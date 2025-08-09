@@ -1,0 +1,15 @@
+﻿flask_env/
+raw_data_viewer_env/
+ring_server_env_32bit/
+build/
+dist/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.spec
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
