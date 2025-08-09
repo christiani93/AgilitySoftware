@@ -26,3 +26,240 @@ __pycache__
 09.08.2025 14:51:57.78 [INFO] setze Git user.name / user.email (global, failsafe)
 09.08.2025 14:51:57.90 [INFO] git init im C:\Users\chris\OneDrive\Dokumente\AgilitySoftware\web_app
 Initialized empty Git repository in C:/Users/chris/OneDrive/Dokumente/AgilitySoftware/web_app/.git/
+warning: in the working copy of 'start_dev.log', LF will be replaced by CRLF the next time Git touches it
+[main (root-commit) d22797f] Initial commit (auto start_dev)
+ 74 files changed, 7959 insertions(+)
+ create mode 100644 AgilitySuite.spec
+ create mode 100644 __pycache__/app.cpython-313.pyc
+ create mode 100644 __pycache__/utils.cpython-313.pyc
+ create mode 100644 app.py
+ create mode 100644 blueprints/__pycache__/routes_debug.cpython-313.pyc
+ create mode 100644 blueprints/__pycache__/routes_events.cpython-313.pyc
+ create mode 100644 blueprints/__pycache__/routes_live.cpython-313.pyc
+ create mode 100644 blueprints/__pycache__/routes_master_data.cpython-313.pyc
+ create mode 100644 blueprints/__pycache__/routes_print.cpython-313.pyc
+ create mode 100644 blueprints/routes_debug.py
+ create mode 100644 blueprints/routes_events.py
+ create mode 100644 blueprints/routes_live.py
+ create mode 100644 blueprints/routes_master_data.py
+ create mode 100644 blueprints/routes_print.py
+ create mode 100644 build_exe.bat
+ create mode 100644 data/clubs.json
+ create mode 100644 data/judges.json
+ create mode 100644 data/settings.json
+ create mode 100644 git
+ create mode 100644 requirements.txt
+ create mode 100644 ring_server.py
+ create mode 100644 setze
+ create mode 100644 show_raw_data.py
+ create mode 100644 start_dev.bat
+ create mode 100644 start_dev.log
+ create mode 100644 start_raw_data_viewer.bat
+ create mode 100644 start_ring_server.bat
+ create mode 100644 templates/_announcer_ring_column.html
+ create mode 100644 templates/_announcer_schedule.html
+ create mode 100644 templates/_ring_monitor_content.html
+ create mode 100644 templates/_speaker_panel_content.html
+ create mode 100644 templates/_steward_list_table.html
+ create mode 100644 templates/add_manual_participant_form.html
+ create mode 100644 templates/announcer_dashboard.html
+ create mode 100644 templates/confirm_add_participant.html
+ create mode 100644 templates/error_page.html
+ create mode 100644 templates/event_form.html
+ create mode 100644 templates/events_list.html
+ create mode 100644 templates/home.html
+ create mode 100644 templates/import_package.html
+ create mode 100644 templates/import_participants_event.html
+ create mode 100644 templates/layout.html
+ create mode 100644 templates/live_event_dashboard.html
+ create mode 100644 templates/live_run_entry.html
+ create mode 100644 templates/manage_all_participants.html
+ create mode 100644 templates/manage_event_participants.html
+ create mode 100644 templates/manage_run_participants.html
+ create mode 100644 templates/manage_runs.html
+ create mode 100644 templates/master_data.html
+ create mode 100644 templates/master_data_item_form.html
+ create mode 100644 templates/plan_schedule.html
+ create mode 100644 templates/print/_print_header.html
+ create mode 100644 templates/print/_steward_list_table.html
+ create mode 100644 templates/print/briefing_groups.html
+ create mode 100644 templates/print/master_steward_list.html
+ create mode 100644 templates/print/participant_list.html
+ create mode 100644 templates/print/schedule.html
+ create mode 100644 templates/print/scribe_list.html
+ create mode 100644 templates/print_award_list.html
+ create mode 100644 templates/print_marshall_list.html
+ create mode 100644 templates/print_ranking_single.html
+ create mode 100644 templates/print_startlists.html
+ create mode 100644 templates/print_stewardlists.html
+ create mode 100644 templates/ranking.html
+ create mode 100644 templates/ring_monitor.html
+ create mode 100644 templates/ring_pc_dashboard.html
+ create mode 100644 templates/run_form.html
+ create mode 100644 templates/select_award_list.html
+ create mode 100644 templates/select_dog_for_run.html
+ create mode 100644 templates/select_handler.html
+ create mode 100644 templates/settings.html
+ create mode 100644 templates/startlist_print.html
+ create mode 100644 templates/startlist_print_all.html
+ create mode 100644 utils.py
+09.08.2025 14:51:59.53 [INFO] git pull --rebase --autostash
+warning: in the working copy of 'start_dev.log', LF will be replaced by CRLF the next time Git touches it
+Saved working directory and index state On main: temp-stash-before-pull
+warning: failed to remove build/AgilitySuite: Permission denied
+warning: failed to remove dist/: Permission denied
+From https://github.com/christiani93/AgilitySoftware
+ * [new branch]      main       -> origin/main
+M	start_dev.log
+Already on 'main'
+There is no tracking information for the current branch.
+Please specify which branch you want to rebase against.
+See git-pull(1) for details.
+
+    git pull <remote> <branch>
+
+If you wish to set tracking information for this branch you can do so with:
+
+    git branch --set-upstream-to=origin/<branch> main
+
+09.08.2025 14:52:03.43 [WARNUNG] pull-Konflikt/Fehler. Details im Log.
+error: Your local changes to the following files would be overwritten by merge:
+	start_dev.log
+Please commit your changes or stash them before you merge.
+Aborting
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   start_dev.log
+
+no changes added to commit (use "git add" and/or "git commit -a")
+The stash entry is kept in case you need it again.
+Requirement already satisfied: pip in c:\users\chris\onedrive\dokumente\agilitysoftware\web_app\flask_env\lib\site-packages (25.1.1)
+Collecting pip
+  Downloading pip-25.2-py3-none-any.whl.metadata (4.7 kB)
+Downloading pip-25.2-py3-none-any.whl (1.8 MB)
+   ---------------------------------------- 1.8/1.8 MB 3.4 MB/s eta 0:00:00
+
+[notice] A new release of pip is available: 25.1.1 -> 25.2
+[notice] To update, run: python.exe -m pip install --upgrade pip
+ERROR: To modify pip, please run the following command:
+C:\Users\chris\OneDrive\Dokumente\AgilitySoftware\web_app\flask_env\Scripts\python.exe -m pip install --upgrade pip
+Collecting Flask
+  Using cached flask-3.1.1-py3-none-any.whl.metadata (3.0 kB)
+Collecting openpyxl
+  Using cached openpyxl-3.1.5-py2.py3-none-any.whl.metadata (2.5 kB)
+Collecting Flask-SocketIO
+  Using cached Flask_SocketIO-5.5.1-py3-none-any.whl.metadata (2.6 kB)
+Collecting pyinstaller
+  Using cached pyinstaller-6.15.0-py3-none-win_amd64.whl.metadata (8.4 kB)
+Collecting gevent
+  Using cached gevent-25.5.1-cp313-cp313-win_amd64.whl.metadata (14 kB)
+Collecting gevent-websocket
+  Using cached gevent_websocket-0.10.1-py3-none-any.whl.metadata (5.3 kB)
+Collecting pywin32
+  Using cached pywin32-311-cp313-cp313-win_amd64.whl.metadata (10 kB)
+Collecting requests
+  Using cached requests-2.32.4-py3-none-any.whl.metadata (4.9 kB)
+Collecting blinker>=1.9.0 (from Flask)
+  Using cached blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+Collecting click>=8.1.3 (from Flask)
+  Using cached click-8.2.1-py3-none-any.whl.metadata (2.5 kB)
+Collecting itsdangerous>=2.2.0 (from Flask)
+  Using cached itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+Collecting jinja2>=3.1.2 (from Flask)
+  Using cached jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Collecting markupsafe>=2.1.1 (from Flask)
+  Using cached MarkupSafe-3.0.2-cp313-cp313-win_amd64.whl.metadata (4.1 kB)
+Collecting werkzeug>=3.1.0 (from Flask)
+  Using cached werkzeug-3.1.3-py3-none-any.whl.metadata (3.7 kB)
+Collecting et-xmlfile (from openpyxl)
+  Using cached et_xmlfile-2.0.0-py3-none-any.whl.metadata (2.7 kB)
+Collecting python-socketio>=5.12.0 (from Flask-SocketIO)
+  Using cached python_socketio-5.13.0-py3-none-any.whl.metadata (3.2 kB)
+Collecting setuptools>=42.0.0 (from pyinstaller)
+  Using cached setuptools-80.9.0-py3-none-any.whl.metadata (6.6 kB)
+Collecting altgraph (from pyinstaller)
+  Using cached altgraph-0.17.4-py2.py3-none-any.whl.metadata (7.3 kB)
+Collecting pefile!=2024.8.26,>=2022.5.30 (from pyinstaller)
+  Using cached pefile-2023.2.7-py3-none-any.whl.metadata (1.4 kB)
+Collecting pywin32-ctypes>=0.2.1 (from pyinstaller)
+  Using cached pywin32_ctypes-0.2.3-py3-none-any.whl.metadata (3.9 kB)
+Collecting pyinstaller-hooks-contrib>=2025.8 (from pyinstaller)
+  Using cached pyinstaller_hooks_contrib-2025.8-py3-none-any.whl.metadata (16 kB)
+Collecting packaging>=22.0 (from pyinstaller)
+  Using cached packaging-25.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting greenlet>=3.2.2 (from gevent)
+  Using cached greenlet-3.2.4-cp313-cp313-win_amd64.whl.metadata (4.2 kB)
+Collecting cffi>=1.17.1 (from gevent)
+  Using cached cffi-1.17.1-cp313-cp313-win_amd64.whl.metadata (1.6 kB)
+Collecting zope.event (from gevent)
+  Using cached zope_event-5.1.1-py3-none-any.whl.metadata (5.0 kB)
+Collecting zope.interface (from gevent)
+  Using cached zope.interface-7.2-cp313-cp313-win_amd64.whl.metadata (45 kB)
+Collecting charset_normalizer<4,>=2 (from requests)
+  Using cached charset_normalizer-3.4.3-cp313-cp313-win_amd64.whl.metadata (37 kB)
+Collecting idna<4,>=2.5 (from requests)
+  Using cached idna-3.10-py3-none-any.whl.metadata (10 kB)
+Collecting urllib3<3,>=1.21.1 (from requests)
+  Using cached urllib3-2.5.0-py3-none-any.whl.metadata (6.5 kB)
+Collecting certifi>=2017.4.17 (from requests)
+  Using cached certifi-2025.8.3-py3-none-any.whl.metadata (2.4 kB)
+Collecting pycparser (from cffi>=1.17.1->gevent)
+  Using cached pycparser-2.22-py3-none-any.whl.metadata (943 bytes)
+Collecting colorama (from click>=8.1.3->Flask)
+  Using cached colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+Collecting bidict>=0.21.0 (from python-socketio>=5.12.0->Flask-SocketIO)
+  Using cached bidict-0.23.1-py3-none-any.whl.metadata (8.7 kB)
+Collecting python-engineio>=4.11.0 (from python-socketio>=5.12.0->Flask-SocketIO)
+  Using cached python_engineio-4.12.2-py3-none-any.whl.metadata (2.2 kB)
+Collecting simple-websocket>=0.10.0 (from python-engineio>=4.11.0->python-socketio>=5.12.0->Flask-SocketIO)
+  Using cached simple_websocket-1.1.0-py3-none-any.whl.metadata (1.5 kB)
+Collecting wsproto (from simple-websocket>=0.10.0->python-engineio>=4.11.0->python-socketio>=5.12.0->Flask-SocketIO)
+  Using cached wsproto-1.2.0-py3-none-any.whl.metadata (5.6 kB)
+Collecting h11<1,>=0.9.0 (from wsproto->simple-websocket>=0.10.0->python-engineio>=4.11.0->python-socketio>=5.12.0->Flask-SocketIO)
+  Using cached h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+Using cached flask-3.1.1-py3-none-any.whl (103 kB)
+Using cached openpyxl-3.1.5-py2.py3-none-any.whl (250 kB)
+Using cached Flask_SocketIO-5.5.1-py3-none-any.whl (18 kB)
+Using cached pyinstaller-6.15.0-py3-none-win_amd64.whl (1.4 MB)
+Using cached gevent-25.5.1-cp313-cp313-win_amd64.whl (1.6 MB)
+Using cached gevent_websocket-0.10.1-py3-none-any.whl (22 kB)
+Using cached pywin32-311-cp313-cp313-win_amd64.whl (9.5 MB)
+Using cached requests-2.32.4-py3-none-any.whl (64 kB)
+Using cached charset_normalizer-3.4.3-cp313-cp313-win_amd64.whl (107 kB)
+Using cached idna-3.10-py3-none-any.whl (70 kB)
+Using cached urllib3-2.5.0-py3-none-any.whl (129 kB)
+Using cached blinker-1.9.0-py3-none-any.whl (8.5 kB)
+Using cached certifi-2025.8.3-py3-none-any.whl (161 kB)
+Using cached cffi-1.17.1-cp313-cp313-win_amd64.whl (182 kB)
+Using cached click-8.2.1-py3-none-any.whl (102 kB)
+Using cached greenlet-3.2.4-cp313-cp313-win_amd64.whl (299 kB)
+Using cached itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+Using cached jinja2-3.1.6-py3-none-any.whl (134 kB)
+Using cached MarkupSafe-3.0.2-cp313-cp313-win_amd64.whl (15 kB)
+Using cached packaging-25.0-py3-none-any.whl (66 kB)
+Using cached pefile-2023.2.7-py3-none-any.whl (71 kB)
+Using cached pyinstaller_hooks_contrib-2025.8-py3-none-any.whl (442 kB)
+Using cached python_socketio-5.13.0-py3-none-any.whl (77 kB)
+Using cached bidict-0.23.1-py3-none-any.whl (32 kB)
+Using cached python_engineio-4.12.2-py3-none-any.whl (59 kB)
+Using cached pywin32_ctypes-0.2.3-py3-none-any.whl (30 kB)
+Using cached setuptools-80.9.0-py3-none-any.whl (1.2 MB)
+Using cached simple_websocket-1.1.0-py3-none-any.whl (13 kB)
+Using cached werkzeug-3.1.3-py3-none-any.whl (224 kB)
+Using cached altgraph-0.17.4-py2.py3-none-any.whl (21 kB)
+Using cached colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Using cached et_xmlfile-2.0.0-py3-none-any.whl (18 kB)
+Using cached pycparser-2.22-py3-none-any.whl (117 kB)
+Using cached wsproto-1.2.0-py3-none-any.whl (24 kB)
+Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+Using cached zope_event-5.1.1-py3-none-any.whl (7.0 kB)
+Using cached zope.interface-7.2-cp313-cp313-win_amd64.whl (212 kB)
+Installing collected packages: pywin32, altgraph, urllib3, setuptools, pywin32-ctypes, pycparser, pefile, packaging, markupsafe, itsdangerous, idna, h11, greenlet, et-xmlfile, colorama, charset_normalizer, certifi, blinker, bidict, zope.interface, zope.event, wsproto, werkzeug, requests, pyinstaller-hooks-contrib, openpyxl, jinja2, click, cffi, simple-websocket, pyinstaller, gevent, Flask, python-engineio, gevent-websocket, python-socketio, Flask-SocketIO
+
+Successfully installed Flask-3.1.1 Flask-SocketIO-5.5.1 altgraph-0.17.4 bidict-0.23.1 blinker-1.9.0 certifi-2025.8.3 cffi-1.17.1 charset_normalizer-3.4.3 click-8.2.1 colorama-0.4.6 et-xmlfile-2.0.0 gevent-25.5.1 gevent-websocket-0.10.1 greenlet-3.2.4 h11-0.16.0 idna-3.10 itsdangerous-2.2.0 jinja2-3.1.6 markupsafe-3.0.2 openpyxl-3.1.5 packaging-25.0 pefile-2023.2.7 pycparser-2.22 pyinstaller-6.15.0 pyinstaller-hooks-contrib-2025.8 python-engineio-4.12.2 python-socketio-5.13.0 pywin32-311 pywin32-ctypes-0.2.3 requests-2.32.4 setuptools-80.9.0 simple-websocket-1.1.0 urllib3-2.5.0 werkzeug-3.1.3 wsproto-1.2.0 zope.event-5.1.1 zope.interface-7.2
+
+[notice] A new release of pip is available: 25.1.1 -> 25.2
+[notice] To update, run: python.exe -m pip install --upgrade pip
+09.08.2025 14:52:45.81 [INFO] pruefe lokale Aenderungen fuer Push (Post-Run)
