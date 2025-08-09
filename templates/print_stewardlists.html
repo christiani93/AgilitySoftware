@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="no-print d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h4">{{ title }}</h1>
+    <button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print me-2"></i>Drucken</button>
+</div>
+
+{% if is_grouped %}
+    {% for ring_name, runs_in_ring in runs_to_print.items() %}
+    <div class="page-break">
+        <h2 class="text-center">{{ event.Bezeichnung }} - {{ ring_name }}</h2>
+        {% for run in runs_in_ring %}
+            {% include '_steward_list_table.html' %}
+        {% endfor %}
+    </div>
+    {% endfor %}
+{% else %}
+    {% for run in runs_to_print %}
+    <div class="page-break">
+        {% include '_steward_list_table.html' %}
+    </div>
+    {% endfor %}
+{% endif %}
+{% endblock %}

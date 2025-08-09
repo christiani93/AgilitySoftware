@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Alle Startlisten - {{ event.Bezeichnung }}</title>
+    <style>
+        @media print {
+            body {
+                margin: 0;
+            }
+            .no-print {
+                display: none;
+            }
+            .page-break {
+                page-break-after: always;
+            }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .startlist-container {
+             page-break-after: always;
+        }
+        .startlist-container:last-child {
+            page-break-after: auto;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        h2 {
+            font-size: 1.2em;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: normal;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10pt;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 6px;
+            text-align: left;
+        }
+        th {
+            background-color: #eee;
+        }
+        .start-last {
+            background-color: #fef9e7;
+        }
+    </style>
+</head>
+<body>
+    <button class="no-print" onclick="window.print()" style="padding: 10px 20px; font-size: 1em; margin-bottom: 20px;">Drucken</button>
+    
+    {% for run in ordered_runs %}
+        {% if run.entries %}
+            <div class="startlist-container">
+                <h1>{{ event.Bezeichnung }}</h1>
+                <h2>Startliste für: {{ run.name }}</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Start-Nr.</th>
+                            <th>Hundeführer</th>
+                            <th>Hund</th>
+                            <th>Rasse</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in run.entries|sort(attribute='Startnummer'|int) %}
+                        <tr class="{{ 'start-last' if entry.start_last }}">
+                            <td>{{ entry.Startnummer }}</td>
+                            <td>{{ entry.Hundefuehrer }}</td>
+                            <td>{{ entry.Hundename }}</td>
+                            <td>{{ entry.Rasse }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+</body>
+</html>

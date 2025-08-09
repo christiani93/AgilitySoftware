@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Ringschreiberlisten - {{ event.Bezeichnung }}</title>
+    <style>
+        body { font-family: sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        @page { size: A4; margin: 2.5cm 1.5cm 1.5cm 1.5cm; }
+
+        .print-header { position: fixed; top: 0; left: 0; right: 0; height: 2cm; text-align: center; }
+        .print-header h1, .print-header h2 { margin: 0; }
+        .print-header h2 { font-size: 1.2em; }
+        .print-header h1 { font-size: 1em; color: #666; font-weight: normal; }
+
+        .run-container { page-break-after: always; padding-top: 1cm;}
+        .run-container:last-child { page-break-after: auto; }
+
+        h4 { text-align: center; font-size: 14pt; margin:0; }
+        /* NEU: Grösserer Platz für Laufvorgaben (Punkt 1.2) */
+        .run-meta-info { text-align: center; font-size: 10pt; margin-bottom: 10px; padding: 5px; border: 1px solid #ccc; border-radius: 5px; background-color: #f8f9fa !important; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid black !important; padding: 8px; vertical-align: middle; }
+        thead th { background-color: #e9ecef !important; font-size: 11pt; }
+        
+        main { padding-top: 2.5cm; }
+    </style>
+</head>
+<body>
+    <header class="print-header">
+        <h1>{{ event.Bezeichnung }} - {{ event.Datum | format_date }}</h1>
+        <h2>{{ title }}</h2>
+    </header>
+
+    <main>
+        {% for cat, classes in grouped_runs.items()|sort %}
+            {% for cls, runs in classes.items()|sort %}
+                {% for run in runs %}
+                     <div class="run-container">
+                        <h4 class="mt-4 text-center">{{ run.name }}</h4>
+                        {# NEU: Platzhalter für Geräteanzahl hinzugefügt (Punkt 1.1) #}
+                        <p class="run-meta-info">
+                            Richter: {% set judge = judges|selectattr('id', 'equalto', run.richter_id)|first %}{{ judge.lastname if judge else '___' }} | 
+                            Parcourslänge: {{ run.laufdaten.parcours_laenge or '___' }}m | 
+                            Anz. Geräte: {{ run.laufdaten.anzahl_hindernisse or '___' }} <br>
+                            Standardzeit (SCT): {{ run.laufdaten.standardzeit_sct or '___' }}s | 
+                            Maximalzeit (MCT): {{ run.laufdaten.maximalzeit_mct or '___' }}s
+                        </p>
+                        <table class="table table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 5%;">Start-Nr.</th>
+                                    <th style="width: 25%;">Hundeführer / Hund</th>
+                                    <th style="width: 10%;">Zeit</th>
+                                    <th style="width: 10%;">Fehler</th>
+                                    <th style="width: 10%;">Verw.</th>
+                                    <th style="width: 10%;">DIS/ABR</th>
+                                    <th style="width: 30%;">Notizen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in run.entries %}
+                                <tr>
+                                    <td>{{ entry.Startnummer }}</td>
+                                    <td><strong>{{ entry.Hundefuehrer }}</strong><br><small>{{ entry.Hundename }}</small></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                     </div>
+                {% endfor %}
+            {% endfor %}
+        {% else %}
+            <p style="text-align: center; font-weight: bold; margin-top: 2cm;">
+                Keine Läufe im Zeitplan gefunden.
+            </p>
+        {% endfor %}
+    </main>
+</body>
+</html>

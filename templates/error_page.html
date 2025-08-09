@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block title %}{{ title|default('Fehler') }}{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <h1 class="display-4">{{ title|default('Ein Fehler ist aufgetreten') }}</h1>
+    <p class="lead">{{ message|default('Etwas ist schiefgelaufen.') }}</p>
+    <a href="{{ url_for('home') }}" class="btn btn-primary mt-3">Zurück zur Startseite</a>
+</div>
+{% endblock %}

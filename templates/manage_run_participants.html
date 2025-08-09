@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+
+{% block title %}Teilnehmer verwalten: {{ run.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Teilnehmer für "{{ run.name }}"</h2>
+        <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zurück zu den Läufen</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    Aktuelle Teilnehmer ({{ run.entries|length }})
+                </div>
+                <div class="card-body">
+                     <form method="POST">
+                        <ul class="list-group">
+                            {% for participant in run.entries|sort(attribute='Hundefuehrer') %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ participant.Hundefuehrer }}</strong> mit {{ participant.Hundename }} ({{ participant.Lizenznummer }})
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                         <div class="form-check form-switch me-3">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="start_at_end_{{participant.Lizenznummer}}" name="start_at_end_{{participant.Lizenznummer}}" {{ 'checked' if participant.start_at_end }}>
+                                            <label class="form-check-label" for="start_at_end_{{participant.Lizenznummer}}">Am Ende starten</label>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="document.getElementById('remove-form-{{ participant.Lizenznummer }}').submit();"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </li>
+                            {% else %}
+                                <li class="list-group-item text-muted">Noch keine Teilnehmer in diesem Lauf.</li>
+                            {% endfor %}
+                        </ul>
+                         <button type="submit" class="btn btn-primary mt-3">Änderungen speichern</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">Teilnehmer hinzufügen</div>
+                <div class="card-body">
+                    <form action="{{ url_for('events_bp.add_participant_to_run', event_id=event.id, run_id=(run.id or run.run_id)) }}" method="POST">
+                        <div class="mb-3">
+                            <label for="participant-search" class="form-label">Suche Hundeführer oder Hund</label>
+                            <input type="text" class="form-control" id="participant-search" placeholder="Namen eingeben...">
+                            <input type="hidden" name="license_number" id="selected-license-number">
+                        </div>
+                        <button type="submit" class="btn btn-success" id="add-participant-btn" disabled>Hinzufügen</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for participant in run.entries %}
+<form id="remove-form-{{ participant.Lizenznummer }}" action="{{ url_for('events_bp.remove_participant_from_run', event_id=event.id, run_id=(run.id or run.run_id), license_nr=participant.Lizenznummer) }}" method="POST" class="d-none"></form>
+{% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('participant-search');
+    const licenseInput = document.getElementById('selected-license-number');
+    const addButton = document.getElementById('add-participant-btn');
+    
+    const allParticipants = JSON.parse({{ all_participants_json|tojson }});
+    const existingLicenseNumbers = new Set({{ existing_license_numbers_json|tojson }});
+
+    // ... (Hier könnte eine Autocomplete-Logik implementiert werden)
+    // Zur Vereinfachung hier eine manuelle Eingabe mit Validierung
+    searchInput.addEventListener('input', function() {
+        const selectedDog = allParticipants.find(p => p.Hundename.toLowerCase() === searchInput.value.toLowerCase() || p.Hundefuehrer.toLowerCase() === searchInput.value.toLowerCase());
+
+        if (selectedDog && !existingLicenseNumbers.has(selectedDog.Lizenznummer)) {
+            licenseInput.value = selectedDog.Lizenznummer;
+            addButton.disabled = false;
+        } else {
+            licenseInput.value = '';
+            addButton.disabled = true;
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block title %}Teilnehmer-Optionen für {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Teilnehmer-Optionen</h1>
+        <p class="text-muted fs-5">{{ event.Bezeichnung }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Zurück zur Lauf-Verwaltung</a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <form method="POST">
+        <div class="card-header">
+            <h5 class="mb-0">Option "Am Schluss starten"</h5>
+        </div>
+        <div class="card-body p-0">
+             <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>Hund</th>
+                            <th>Hundeführer</th>
+                            <th class="text-center">Am Schluss starten?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in participants|sort(attribute='Hundename') %}
+                        <tr>
+                            <td>{{ p.Hundename }}</td>
+                            <td>{{ p.Hundefuehrer }}</td>
+                            <td class="text-center">
+                                <div class="form-check form-switch d-inline-block">
+                                    <input class="form-check-input" type="checkbox" name="start_last" value="{{ p.Lizenznummer }}" {% if p.start_last %}checked{% endif %}>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center p-4">Für dieses Event wurden noch keine Teilnehmer importiert.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if participants %}
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Änderungen speichern</button>
+        </div>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

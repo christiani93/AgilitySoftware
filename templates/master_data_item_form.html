@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    {% if action == 'add' %}
+        Neuen Eintrag erstellen
+    {% else %}
+        Eintrag bearbeiten
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>
+        {% if action == 'add' %}
+            Neuen {{ config.title }} Eintrag erstellen
+        {% else %}
+            {{ config.title }} Eintrag bearbeiten
+        {% endif %}
+    </h3>
+
+    <form method="post">
+        {% for field, label in config.fields.items() %}
+            {# Die ID wird normalerweise nicht manuell bearbeitet, daher überspringen wir sie im Formular #}
+            {% if field != 'id' %}
+                <div class="mb-3">
+                    <label for="{{ field }}" class="form-label">{{ label }}</label>
+                    
+                    {% if field == 'Hundefuehrer_ID' %}
+                        <select class="form-select" id="{{ field }}" name="{{ field }}" required>
+                            {% for handler in handlers %}
+                                <option value="{{ handler.id }}" {% if item and item.Hundefuehrer_ID == handler.id %}selected{% endif %}>
+                                    {{ handler.Vorname }} {{ handler.Nachname }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    {% elif field == 'Vereinsnummer' %}
+                        <select class="form-select" id="{{ field }}" name="{{ field }}">
+                            <option value="">Kein Verein</option>
+                            {% for club in clubs %}
+                                <option value="{{ club.nummer }}" {% if item and item.Vereinsnummer == club.nummer %}selected{% endif %}>
+                                    {{ club.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <input type="text" class="form-control" id="{{ field }}" name="{{ field }}" value="{{ item.get(field, '') }}" required>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <a href="{{ url_for('master_data_bp.master_data', type=data_type) }}" class="btn btn-secondary">Abbrechen</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+===== Start: 09.08.2025 14:51:57.61 =====
+09.08.2025 14:51:57.62 [INFO] PROJECT_DIR=C:\Users\chris\OneDrive\Dokumente\AgilitySoftware\web_app
+09.08.2025 14:51:57.64 [INFO] Datei-Liste (Top-Level):
+AgilitySuite.spec
+app.py
+blueprints
+build
+build_exe.bat
+data
+dist
+flask_env
+git
+raw_data_viewer_env
+requirements.txt
+ring_server.py
+ring_server_env_32bit
+setze
+show_raw_data.py
+start_dev.bat
+start_dev.log
+start_raw_data_viewer.bat
+start_ring_server.bat
+templates
+utils.py
+__pycache__
+09.08.2025 14:51:57.78 [INFO] setze Git user.name / user.email (global, failsafe)
+09.08.2025 14:51:57.90 [INFO] git init im C:\Users\chris\OneDrive\Dokumente\AgilitySoftware\web_app
+Initialized empty Git repository in C:/Users/chris/OneDrive/Dokumente/AgilitySoftware/web_app/.git/

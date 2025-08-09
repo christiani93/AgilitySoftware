@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Teilnehmerliste - {{ event.Bezeichnung }}</title>
+    <style>body{font-family: sans-serif;} table{width: 100%; border-collapse: collapse;} th, td{border: 1px solid #ddd; padding: 8px; text-align: left;} th{background-color: #f2f2f2;}</style>
+</head>
+<body>
+    <h1>Teilnehmerliste (alphabetisch)</h1>
+    <h2>{{ event.Bezeichnung }} ({{ event.Datum | format_date }})</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Hundeführer</th>
+                <th>Hund</th>
+                <th>Lizenz</th>
+                <th>Start-Nr.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in participants %}
+            <tr>
+                <td>{{ p.Hundefuehrer_Nachname }}, {{ p.Hundefuehrer_Vorname }}</td>
+                <td>{{ p.Hundename }}</td>
+                <td>{{ p.Lizenznummer }}</td>
+                <td><strong>{{ p.Startnummer or '-' }}</strong></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4">Keine Teilnehmer gefunden.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

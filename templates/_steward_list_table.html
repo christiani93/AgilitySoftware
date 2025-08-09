@@ -1,0 +1,28 @@
+<h4 class="mt-4 text-center">{{ run.name }}</h4>
+<p class="text-center">Richter: {% set judge = judges|selectattr('id', 'equalto', run.richter_id)|first %}{{ judge.lastname if judge else 'N/A' }} | Parcourslänge: {{ run.laufdaten.parcours_laenge or '___' }}m | SCT: {{ run.laufdaten.standardzeit_sct or '___' }}s</p>
+<table class="table table-sm table-bordered">
+    <thead class="table-light">
+        <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 25%;">Hund / Hundeführer</th>
+            <th style="width: 10%;">Zeit</th>
+            <th style="width: 10%;">Fehler</th>
+            <th style="width: 10%;">Verw.</th>
+            <th style="width: 10%;">DIS</th>
+            <th style="width: 30%;">Notizen</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in run.entries %}
+        <tr>
+            <td>{{ entry.Startnummer }}</td>
+            <td><strong>{{ entry.Hundename }}</strong><br><small>{{ entry.Hundefuehrer }}</small></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
