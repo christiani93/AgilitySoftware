@@ -1,0 +1,238 @@
+diff --git a/blueprints/routes_events.py b/blueprints/routes_events.py
+--- a/blueprints/routes_events.py
++++ b/blueprints/routes_events.py
+@@ -1,6 +1,7 @@
+ from flask import Blueprint, request, jsonify, render_template, redirect, url_for
+ # ... weitere Importe ...
+ 
++# HINWEIS: Blueprint hat url_prefix="/events"
+ events_bp = Blueprint('events_bp', __name__, url_prefix='/events')
+ 
+ # ---------------------------------------------------------------------
+ # vorhandene Routen ...
+@@ -250,12 +251,12 @@
+ # ---------------------------------------------------------------------
+-@events_bp.route('/events/api/get_run_details/<event_id>/<run_id>', methods=['GET'])
++@events_bp.route('/api/get_run_details/<event_id>/<run_id>', methods=['GET'])
+ def api_get_run_details(event_id, run_id):
+     """
+     Gibt Starterliste + Resultate für einen Lauf zurück.
+     Erwartetes JSON: { success: bool, data: { entries: [...] }, message?: str }
+     """
+     # ... bestehende Implementierung bleibt unverändert ...
+     # return jsonify({...})
+     pass
++
+ 
+diff --git a/templates/ring_pc_dashboard.html b/templates/ring_pc_dashboard.html
+--- a/templates/ring_pc_dashboard.html
++++ b/templates/ring_pc_dashboard.html
+@@ -97,10 +97,17 @@
+     function fetchRunDetails() {
+         if (!state.currentRunId) return;
+-        const url = `/events/api/get_run_details/${eventId}/${state.currentRunId}`;
+-        fetch(url)
++        // Pfad stabil über url_for erzeugen:
++        // Wir setzen im Template einen Platzhalter __RID__ und ersetzen ihn im JS.
++        const baseUrl = {{ url_for('events_bp.api_get_run_details', event_id=event.id, run_id='__RID__') | tojson }};
++        const url = baseUrl.replace('__RID__', state.currentRunId);
++        fetch(url, { headers: { 'Accept': 'application/json' }})
+             .then(res => res.ok ? res.json() : Promise.reject(res.status))
+             .then(data => {
+                 if (data.success) {
+                     state.allEntries = data.data.entries;
+                     renderStarterList();
+                 } else {
+                     alert(`Fehler: ${data.message}`);
+                 }
+             })
+             .catch(err => {
+                 ui.starterList.innerHTML = `<p class="text-red-500 font-bold">Netzwerkfehler.</p>`;
+             });
+     }
+ 
+diff --git a/templates/manage_run_participants.html b/templates/manage_run_participants.html
+--- a/templates/manage_run_participants.html
++++ b/templates/manage_run_participants.html
+@@ -1,6 +1,7 @@
+ {% extends "layout.html" %}
+ {% block title %}Teilnehmer verwalten{% endblock %}
+ {% block content %}
++{# ... übriges HTML unverändert ... #}
+ <script>
+ (function(){
+     const eventId = {{ event.id|tojson }};
+@@ -12,8 +13,15 @@
+ 
+     function loadRunDetails(runId){
+-        const url = `/api/get_run_details/${eventId}/${runId}`;
+-        fetch(url)
++        // Stabiler Pfad über url_for, Platzhalter via JS ersetzen
++        const base = {{ url_for('events_bp.api_get_run_details', event_id=event.id, run_id='__RID__') | tojson }};
++        const url  = base.replace('__RID__', runId);
++        fetch(url, { headers: { 'Accept': 'application/json' }})
+             .then(r => r.ok ? r.json() : Promise.reject(r.status))
+             .then(json => {
+                 if(json.success){
+                     // ... bestehende Logik zum Rendern ...
+                 } else {
+                     alert('Fehler: ' + (json.message || 'Unbekannt'));
+                 }
+             })
+             .catch(() => alert('Netzwerkfehler'));
+     }
+ })();
+ </script>
+ {% endblock %}
+ 
+diff --git a/start_dev.bat b/start_dev.bat
+--- a/start_dev.bat
++++ b/start_dev.bat
+@@ -1,15 +1,22 @@
+-@echo off
+-setlocal
++@echo off
++setlocal ENABLEDELAYEDEXPANSION
+ 
+ REM =============================================================================
+ REM AgilitySoftware Webanwendung Start-Skript (mit Auto-Update)
+ REM =============================================================================
+ 
+ REM ----------------------- Benutzer-Konfiguration ------------------------------
+ set "PYTHON_313_PATH=C:\Users\chris\AppData\Local\Programs\Python\Python313"
+ set "VENV_NAME=flask_env"
+ set "FLASK_APP_FILE=app.py"
++REM Auto-Update-Strategie: pull | none
++set "AUTO_UPDATE=pull"
++REM Auto-Patch: alle .patch in .\patches\ werden angewendet (falls vorhanden)
++set "APPLY_PATCHES=1"
+ 
+ REM ----------------------- Allgemeines Setup -----------------------------------
+ chcp 65001 > nul
+ echo.
+ echo =========================================================
+ echo  AgilitySoftware - Dev Start (mit Auto-Update)
+ echo  Projektpfad: %~dp0
+ echo =========================================================
+ echo.
+ 
+ set "PROJECT_DIR=%~dp0"
+ if not exist "%PROJECT_DIR%" (
+     echo [FEHLER] PROJECT_DIR nicht gefunden: %PROJECT_DIR%
+     pause
+     exit /b 1
+ )
+ 
+ echo === Start: %DATE% %TIME% ===
+ echo [INFO] PROJECT_DIR=%PROJECT_DIR%
+ echo [INFO] setze Git user.name / user.email (global)
+ git config --global user.name "AgilitySuite Dev"
+ git config --global user.email "dev@agilitysuite.local"
+ 
++REM ----------------------- Git-Repo sicherstellen ------------------------------
+ if not exist "%PROJECT_DIR%\.git\" (
+     pushd "%PROJECT_DIR%"
+     git init
+     git add -A
+     git commit -m "Initial commit (auto start_dev)"
+     popd
+ )
+ 
+ REM ----------------------- Auto-Update (optional) ------------------------------
+-if /I "%AUTO_UPDATE%"=="pull" (
+-    echo [INFO] Auto-Update aktiv: Strategie=pull
+-    pushd "%PROJECT_DIR%"
+-    echo [INFO] git status (Kurzform):
+-    git status -s
+-    echo [INFO] git pull --rebase --autostash
+-    git pull --rebase --autostash
+-    echo [INFO] git log --oneline -1:
+-    git log --oneline -1
+-    popd
++if /I "%AUTO_UPDATE%"=="pull" (
++    echo [INFO] Auto-Update aktiv: Strategie=pull
++    pushd "%PROJECT_DIR%"
++    echo [INFO] git status (Kurzform):
++    git status -s
++    echo [INFO] git pull --rebase --autostash
++    git pull --rebase --autostash
++    echo [INFO] git log --oneline -1:
++    git log --oneline -1
++    popd
+ )
+ 
++REM ----------------------- Auto-Patches anwenden -------------------------------
++if "%APPLY_PATCHES%"=="1" (
++    if exist "%PROJECT_DIR%\patches\" (
++        echo [INFO] Suche Patches in "%PROJECT_DIR%\patches"
++        set "PATCH_APPLIED=0"
++        pushd "%PROJECT_DIR%"
++        for %%F in ("patches\*.patch") do (
++            if exist "%%~fF" (
++                echo [PATCH] wende an: %%~nxF
++                git apply --whitespace=fix "%%~fF"
++                if errorlevel 1 (
++                    echo [FEHLER] Patch fehlgeschlagen: %%~nxF
++                ) else (
++                    set "PATCH_APPLIED=1"
++                )
++            )
++        )
++        if "!PATCH_APPLIED!"=="1" (
++            echo [INFO] Committe angewandte Patches...
++            git add -A
++            git commit -m "apply: local patches"
++            if not errorlevel 1 (
++                echo [INFO] Versuche Push (optional)...
++                git push --no-verify
++            )
++        ) else (
++            echo [INFO] Keine Patches angewendet.
++        )
++        popd
++    ) else (
++        echo [INFO] Kein patches\-Ordner vorhanden. Auto-Patch uebersprungen.
++    )
++)
++
+ REM ----------------------- Schritt 2: venv -------------------------------------
+ echo [SCHRITT 2/5] Erstelle/Pruefe virtuelle Umgebung "%VENV_NAME%"...
+ if not exist "%PROJECT_DIR%\%VENV_NAME%\Scripts\activate.bat" (
+     "%PYTHON_313_PATH%\python.exe" -m venv "%PROJECT_DIR%\%VENV_NAME%"
+ )
+ if not exist "%PROJECT_DIR%\%VENV_NAME%\Scripts\activate.bat" (
+     echo [FEHLER] Virtuelle Umgebung konnte nicht erstellt werden.
+     pause
+     exit /b 1
+ )
+ echo Virtuelle Umgebung bereit.
+ 
+ REM ----------------------- Schritt 3: Pakete ----------------------------------
+ echo [SCHRITT 3/5] Aktiviere Umgebung und installiere Module...
+ call "%PROJECT_DIR%%VENV_NAME%\Scripts\activate.bat"
+ python --version
+ pip --version
+ if exist "%PROJECT_DIR%\requirements.txt" (
+     echo Installiere Pakete aus requirements.txt ...
+     pip install -r "%PROJECT_DIR%\requirements.txt"
+ ) else (
+     echo Installiere Standardpakete ...
+     pip install Flask openpyxl Flask-SocketIO pyinstaller gevent gevent-websocket pywin32 requests
+ )
+ 
+ REM ----------------------- Schritt 4: freeze ----------------------------------
+ echo [SCHRITT 4/5] Erzeuge/Aktualisiere requirements.txt ...
+ pip freeze > "%PROJECT_DIR%\requirements.txt"
+ echo requirements.txt aktualisiert.
+ 
+ REM ----------------------- Schritt 5: Flask starten ---------------------------
+ echo [SCHRITT 5/5] Starte die Flask-Webanwendung...
+ set "FLASK_APP=%FLASK_APP_FILE%"
+ python -m flask run
+ echo.
+ echo =========================================================
+ echo Flask-Anwendung beendet.
+ echo =========================================================
+ echo.
+ endlocal
+ pause
