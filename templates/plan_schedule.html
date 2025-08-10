@@ -46,15 +46,26 @@
                                     <div id="schedule-blocks-ring-{{ ring }}" class="schedule-blocks-list p-2" data-ring-id="{{ ring }}" style="min-height: 200px;">
                                         {% for item in timeline %}
                                             <div class="list-group-item mb-2 p-2 border rounded d-flex justify-content-between align-items-center"
-                                                 data-laufart="{{ item.block.laufart }}" data-kategorie="{{ item.block.kategorie or '' }}" data-klasse="{{ item.block.klasse or '' }}"
-                                                 data-ring="{{ item.block.ring or '' }}" data-richter-id="{{ item.block.richter_id or '' }}"
-                                                 data-duration="{{ item.block.duration or '' }}" data-label="{{ item.block.label or '' }}"
-                                                 data-kat-sort="{{ item.block.kat_sort or '' }}" data-kl-sort="{{ item.block.kl_sort or '' }}"
-                                                 data-is-grossring="{{ 'true' if item.block.is_grossring else 'false' }}">
+                                                 data-laufart="{{ item.block.laufart }}"
+                                                 data-kategorie="{{ item.block.kategorie or '' }}"
+                                                 data-klasse="{{ item.block.klasse or '' }}"
+                                                 data-ring="{{ item.block.ring or '' }}"
+                                                 data-richter_id="{{ item.block.richter_id or '' }}"
+                                                 data-duration="{{ item.block.duration or '' }}"
+                                                 data-label="{{ item.block.label or '' }}"
+                                                 data-kat_sort="{{ item.block.kat_sort or '' }}"
+                                                 data-kl_sort="{{ item.block.kl_sort or '' }}"
+                                                 data-is_grossring="{{ 'true' if item.block.is_grossring else 'false' }}">
                                                 <span>
                                                     <i class="fas fa-grip-vertical me-2"></i><strong>{{ item.start_time }}</strong> |
                                                     {% if item.block.is_grossring %}<i class="fas fa-expand-arrows-alt text-primary me-1" title="Grossring"></i>{% endif %}
-                                                    {% if item.block.laufart in ['Pause', 'Umbau', 'Vorbereitung', 'Briefing', 'Grossring'] %}{{ item.block.laufart|upper }} ({{ "%.0f"|format(item.duration|float) }} min){% else %}<strong>{{ item.block.laufart }}</strong> {{ item.block.kategorie }} {{ item.block.klasse }}<span class="badge bg-secondary ms-2">{{ item.num_starters }} Starter</span>{% endif %}
+                                                    {% if item.block.laufart in ['Pause', 'Umbau', 'Vorbereitung', 'Briefing', 'Grossring'] %}
+                                                        {{ item.block.laufart|upper }} ({{ "%.0f"|format(item.duration|float) }} min)
+                                                    {% else %}
+                                                        <strong>{{ item.block.laufart }}</strong>
+                                                        {{ item.block.kategorie }} {{ item.block.klasse }}
+                                                        <span class="badge bg-secondary ms-2">{{ item.num_starters }} Starter</span>
+                                                    {% endif %}
                                                 </span>
                                                 <button type="button" class="btn-close btn-sm" aria-label="Close"></button>
                                             </div>
@@ -78,26 +89,77 @@
                     <div class="tab-content pt-3" id="myTabContent">
                         <div class="tab-pane fade show active" id="run-tab-pane" role="tabpanel">
                              <div class="row g-2">
-                                <div class="col-md-3"><label class="form-label">Laufart</label><select id="new_laufart" class="form-select form-select-sm">{% for la in laufarten %}<option value="{{ la }}">{{ la }}</option>{% endfor %}</select></div>
-                                <div class="col-md-3"><label class="form-label">Kategorie</label><select id="new_kategorie" class="form-select form-select-sm"><option value="Alle">Alle</option>{% for kat in kategorien %}<option value="{{ kat }}">{{ kat }}</option>{% endfor %}</select></div>
-                                <div class="col-md-3"><label class="form-label">Klasse</label><select id="new_klasse" class="form-select form-select-sm"><option value="Alle">Alle</option>{% for kl in klassen %}<option value="{{ kl }}">{{ kl }}</option>{% endfor %}</select></div>
-                                <div class="col-md-3"><label class="form-label">Ziel-Ring</label><select id="new_ring" class="form-select form-select-sm">{% for i in range(1, (event.num_rings or 1) + 1) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}</select></div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Laufart</label>
+                                    <select id="new_laufart" class="form-select form-select-sm">
+                                        {% for la in laufarten %}<option value="{{ la }}">{{ la }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Kategorie</label>
+                                    <select id="new_kategorie" class="form-select form-select-sm">
+                                        <option value="Alle">Alle</option>
+                                        {% for kat in kategorien %}<option value="{{ kat }}">{{ kat }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Klasse</label>
+                                    <select id="new_klasse" class="form-select form-select-sm">
+                                        <option value="Alle">Alle</option>
+                                        {% for kl in klassen %}<option value="{{ kl }}">{{ kl }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Ziel-Ring</label>
+                                    <select id="new_ring" class="form-select form-select-sm">
+                                        {% for i in range(1, (event.num_rings or 1) + 1) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                                    </select>
+                                </div>
                             </div>
-                            {# NEU: Sortier-Optionen hinzugefügt #}
                             <div class="row g-2 mt-1">
-                                <div class="col-md-3"><label class="form-label">Kat.-Sortierung</label><select id="new_kat_sort" class="form-select form-select-sm"><option value="">Keine</option><option value="asc">Aufsteigend</option><option value="desc">Absteigend</option></select></div>
-                                <div class="col-md-3"><label class="form-label">Kl.-Sortierung</label><select id="new_kl_sort" class="form-select form-select-sm"><option value="">Keine</option><option value="asc">Aufsteigend</option><option value="desc">Absteigend</option></select></div>
-                                <div class="col-md-6"><label class="form-label">Richter</label><select id="new_richter" class="form-select form-select-sm"><option value="">--</option>{% for j in judges %}<option value="{{ j.id }}">{{ j.firstname }} {{ j.lastname }}</option>{% endfor %}</select></div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Kat.-Sortierung</label>
+                                    <select id="new_kat_sort" class="form-select form-select-sm">
+                                        <option value="">Keine</option>
+                                        <option value="asc">Aufsteigend</option>
+                                        <option value="desc">Absteigend</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Kl.-Sortierung</label>
+                                    <select id="new_kl_sort" class="form-select form-select-sm">
+                                        <option value="">Keine</option>
+                                        <option value="asc">Aufsteigend</option>
+                                        <option value="desc">Absteigend</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Richter</label>
+                                    <select id="new_richter" class="form-select form-select-sm">
+                                        <option value="">--</option>
+                                        {% for j in judges %}<option value="{{ j.id }}">{{ j.firstname }} {{ j.lastname }}</option>{% endfor %}
+                                    </select>
+                                </div>
                             </div>
                             <div class="row g-2 mt-2">
-                                <div class="col-12"><button type="button" id="add-run-block-btn" class="btn btn-primary w-100">Lauf-Block mit Umbau & Briefing hinzufügen</button></div>
+                                <div class="col-12">
+                                    <button type="button" id="add-run-block-btn" class="btn btn-primary w-100">Lauf-Block mit Umbau & Briefing hinzufügen</button>
+                                </div>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="other-tab-pane" role="tabpanel">
                             <div class="input-group">
                                 <label class="input-group-text">Ziel-Ring</label>
-                                <select id="other_ring" class="form-select" style="max-width: 80px;">{% for i in range(1, (event.num_rings or 1) + 1) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}</select>
-                                <select id="other_type" class="form-select" style="max-width: 150px;"><option value="Pause" selected>Pause</option><option value="Umbau">Umbau</option><option value="Briefing">Briefing</option><option value="Vorbereitung">Vorbereitung</option><option value="Grossring">Marker: Grossring</option></select>
+                                <select id="other_ring" class="form-select" style="max-width: 80px;">
+                                    {% for i in range(1, (event.num_rings or 1) + 1) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                                </select>
+                                <select id="other_type" class="form-select" style="max-width: 150px;">
+                                    <option value="Pause" selected>Pause</option>
+                                    <option value="Umbau">Umbau</option>
+                                    <option value="Briefing">Briefing</option>
+                                    <option value="Vorbereitung">Vorbereitung</option>
+                                    <option value="Grossring">Marker: Grossring</option>
+                                </select>
                                 <input type="text" id="other_label" class="form-control" placeholder="Optionale Notiz">
                                 <input type="number" id="other_duration" class="form-control" value="15" min="1" style="max-width: 100px;">
                                 <span class="input-group-text">min</span>
@@ -108,26 +170,29 @@
                 </div>
             </div>
         </div>
+
         <div class="col-lg-4">
             <form action="{{ url_for('events_bp.save_schema', event_id=event.id) }}" method="post" class="card mb-4">
                 <div class="card-header"><h5>2. Startnummern-Schema</h5></div>
-                <div class="card-body"><div style="max-height: 400px; overflow-y: auto;" class="pe-2">
-                    {% set schema = event.start_number_schema or {} %}
-                    {% for cat in possible_categories|sort(attribute='name', reverse=True) %}
-                        <h6>{{ cat }}</h6>
-                        {% for cls in possible_classes %}
-                            {% set key = cat + '-' + cls %}
-                            <div class="input-group input-group-sm mb-2">
-                                <span class="input-group-text" style="width: 80px;">Klasse {{ cls }}</span>
-                                <input type="number" name="{{ key }}" class="form-control" value="{{ schema.get(key, '') }}">
-                            </div>
+                <div class="card-body">
+                    <div style="max-height: 400px; overflow-y: auto;" class="pe-2">
+                        {% set schema = event.start_number_schema or {} %}
+                        {% for cat in possible_categories %}
+                            <h6>{{ cat }}</h6>
+                            {% for cls in possible_classes %}
+                                {% set key = cat + '-' + cls %}
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text" style="width: 100px;">Klasse {{ cls }}</span>
+                                    <input type="number" name="{{ key }}" class="form-control" value="{{ schema.get(key, '') }}">
+                                </div>
+                            {% endfor %}
                         {% endfor %}
-                    {% endfor %}
-                </div>
-                <button type="submit" class="btn btn-success w-100 mt-3"><i class="fas fa-save"></i> Schema speichern</button>
-                <button type="submit" formaction="{{ url_for('events_bp.load_schema_template', event_id=event.id) }}" formnovalidate class="btn btn-secondary w-100 mt-2"><i class="fas fa-download"></i> Vorlage laden</button>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 mt-3"><i class="fas fa-save"></i> Schema speichern</button>
+                    <button type="submit" formaction="{{ url_for('events_bp.load_schema_template', event_id=event.id) }}" formnovalidate class="btn btn-secondary w-100 mt-2"><i class="fas fa-download"></i> Vorlage laden</button>
                 </div>
             </form>
+
             <form action="{{ url_for('events_bp.generate_startlist', event_id=event.id) }}" method="post" class="card">
                 <div class="card-header"><h5>3. Startliste generieren</h5></div>
                 <div class="card-body">
@@ -142,6 +207,7 @@
             </form>
         </div>
     </div>
+
     <div class="card mt-4">
         <div class="card-header"><h5>Vorschau der Startliste</h5></div>
         <div class="card-body" style="max-height: 500px; overflow-y: auto;">
@@ -149,7 +215,13 @@
                 <thead><tr><th>Start-Nr.</th><th>Hundeführer</th><th>Hund</th><th>Kategorie</th><th>Klasse</th></tr></thead>
                 <tbody>
                     {% for entry in preview_list %}
-                        <tr><td><strong>{{ entry.Startnummer }}</strong></td><td>{{ entry.Hundefuehrer }}</td><td>{{ entry.Hundename }} ({{ entry.Lizenznummer }})</td><td>{{ entry.Kategorie or 'N/A' }}</td><td>{{ entry.Klasse or 'N/A' }}</td></tr>
+                        <tr>
+                            <td><strong>{{ entry.Startnummer }}</strong></td>
+                            <td>{{ entry.Hundefuehrer }}</td>
+                            <td>{{ entry.Hundename }} ({{ entry.Lizenznummer }})</td>
+                            <td>{{ entry.Kategorie or 'N/A' }}</td>
+                            <td>{{ entry.Klasse or 'N/A' }}</td>
+                        </tr>
                     {% else %}
                         <tr><td colspan="5" class="text-center">Noch keine Startliste generiert.</td></tr>
                     {% endfor %}
@@ -165,61 +237,147 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const eventId = {{ event.id|tojson }};
-    document.querySelectorAll('.schedule-blocks-list').forEach(el => new Sortable(el, { group: 'schedule', animation: 150, ghostClass: 'bg-light' }));
 
-    // --- Formular-Aktionen per Javascript steuern ---
+    // DnD aktivieren
+    document.querySelectorAll('.schedule-blocks-list').forEach(el => {
+        new Sortable(el, { group: 'schedule', animation: 150, ghostClass: 'bg-light' });
+    });
+
+    // Hilfsfunktion: Kachel erstellen + einhängen
+    function addBlockToRing(ringId, data, innerHTML, extraClass = '') {
+        const list = document.querySelector(`#schedule-blocks-ring-${ringId}`);
+        if (!list) return;
+        const item = document.createElement('div');
+        item.className = `list-group-item mb-2 p-2 border rounded d-flex justify-content-between align-items-center ${extraClass}`;
+        // Datensätze im SNAKE_CASE ablegen → server erwartet diese Keys!
+        const dataset = {
+            laufart: data.laufart || '',
+            kategorie: data.kategorie || '',
+            klasse: data.klasse || '',
+            ring: ringId,
+            richter_id: data.richter_id || '',
+            duration: data.duration || '',
+            label: data.label || '',
+            kat_sort: data.kat_sort || '',
+            kl_sort: data.kl_sort || '',
+            is_grossring: data.is_grossring ? 'true' : ''
+        };
+        Object.entries(dataset).forEach(([k,v]) => item.dataset[k] = v);
+        item.innerHTML = `
+            <span><i class="fas fa-grip-vertical me-2"></i>${innerHTML}</span>
+            <button type="button" class="btn-close btn-sm" aria-label="Close"></button>
+        `;
+        list.appendChild(item);
+    }
+
+    // Speichern
     document.getElementById('save-schedule-btn').addEventListener('click', function() {
         const form = document.getElementById('schedule-form');
         const blocks = [];
         document.querySelectorAll('.schedule-blocks-list .list-group-item').forEach(el => {
-            const ringId = el.closest('.schedule-blocks-list').dataset.ringId;
-            const blockData = Object.assign({}, el.dataset);
-            blockData.ring = ringId;
-            blocks.push(blockData);
+            // dataset liest camelCase, wir haben snake_case Keys abgelegt → bleiben snake_case beim Serialisieren
+            const b = {
+                laufart: el.dataset.laufart || '',
+                kategorie: el.dataset.kategorie || '',
+                klasse: el.dataset.klasse || '',
+                ring: el.dataset.ring || '',
+                richter_id: el.dataset.richter_id || '',
+                duration: el.dataset.duration || '',
+                label: el.dataset.label || '',
+                kat_sort: el.dataset.kat_sort || '',
+                kl_sort: el.dataset.kl_sort || '',
+                is_grossring: el.dataset.is_grossring === 'true'
+            };
+            blocks.push(b);
         });
         document.getElementById('run_order_data').value = JSON.stringify(blocks);
         form.action = "{{ url_for('events_bp.save_schedule', event_id=event.id) }}";
         form.submit();
     });
 
-    // --- Block hinzufügen Logik ---
-    function addBlockToRing(ringId, data, innerHTML, bgColorClass = 'list-group-item-light') { /* ... unverändert ... */ }
+    // API: Starter zählen + Briefingdauer
+    async function fetchStarterInfo(payload) {
+        const res = await fetch(`{{ url_for('events_bp.get_starter_count', event_id=event.id) }}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('API Fehler');
+        return res.json();
+    }
 
+    // Lauf-Block (mit Umbau/Briefing/Vorbereitung) hinzufügen
     document.getElementById('add-run-block-btn').addEventListener('click', async function() {
-        // NEU: Sortier-Optionen auslesen
-        const katSort = document.getElementById('new_kat_sort').value;
-        const klSort = document.getElementById('new_kl_sort').value;
         const laufart = document.getElementById('new_laufart').value;
         const kategorie = document.getElementById('new_kategorie').value;
         const klasse = document.getElementById('new_klasse').value;
-        const richterId = document.getElementById('new_richter').value;
         const ring = document.getElementById('new_ring').value;
-        
-        const runData = { laufart, kategorie, klasse, richterId, katSort, klSort };
+
+        const kat_sort = document.getElementById('new_kat_sort').value;
+        const kl_sort = document.getElementById('new_kl_sort').value;
+        const richter_id = document.getElementById('new_richter').value;
+
+        const runData = { laufart, kategorie, klasse, richter_id, kat_sort, kl_sort };
 
         this.disabled = true;
         try {
-            const response = await fetch(`{{ url_for('events_bp.get_starter_count', event_id=event.id) }}`, {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(runData)
-            });
-            const apiData = await response.json();
+            const apiData = await fetchStarterInfo(runData);
             const briefingDuration = apiData.briefing_duration;
             const starterCount = apiData.starter_count;
 
-            addBlockToRing(ring, { laufart: 'Umbau', duration: '20', label: `für ${laufart}` }, `<span><i class="fas fa-grip-vertical me-2"></i> UMBAU (20 min)</span>`, 'bg-secondary-subtle');
-            addBlockToRing(ring, { laufart: 'Briefing', ...runData, duration: briefingDuration, label: `${laufart} | Kat: ${kategorie} | Kl: ${klasse}` }, `<span><i class="fas fa-grip-vertical me-2"></i> <strong>BRIEFING (${briefingDuration} min)</strong></span>`, 'bg-info-subtle');
+            addBlockToRing(ring, { laufart: 'Umbau', duration: '20', label: `für ${laufart}` },
+                `<strong>UMBAU</strong> (20 min)`, 'bg-secondary-subtle');
+
+            addBlockToRing(ring, { laufart: 'Briefing', ...runData, duration: String(briefingDuration), label: `${laufart} | Kat: ${kategorie} | Kl: ${klasse}` },
+                `<strong>BRIEFING</strong> (${briefingDuration} min)`, 'bg-info-subtle');
+
             if (starterCount > 0 && starterCount <= 50) {
-                addBlockToRing(ring, { laufart: 'Vorbereitung', duration: '5', label: `für 1. Starter` }, `<span><i class="fas fa-grip-vertical me-2"></i> VORBEREITUNG (5 min)</span>`, 'bg-warning-subtle');
+                addBlockToRing(ring, { laufart: 'Vorbereitung', duration: '5', label: `für 1. Starter` },
+                    `VORBEREITUNG (5 min)`, 'bg-warning-subtle');
             }
-            addBlockToRing(ring, runData, `<span><i class="fas fa-grip-vertical me-2"></i> <strong>${laufart}</strong> ${kategorie} ${klasse}</span>`);
-        } catch (error) { console.error('Fehler:', error);
-        } finally { this.disabled = false; }
+
+            addBlockToRing(ring, runData,
+                `<strong>${laufart}</strong> ${kategorie} ${klasse}${richter_id ? ` <span class="badge bg-light text-dark ms-2">R:${richter_id}</span>` : ''}`);
+        } catch (e) {
+            console.error(e);
+            alert('Beim Hinzufügen ist ein Fehler aufgetreten.');
+        } finally {
+            this.disabled = false;
+        }
     });
 
-    document.getElementById('add-other-block-btn').addEventListener('click', function() { /* ... unverändert ... */ });
-    document.getElementById('other_type').addEventListener('change', function() { /* ... unverändert ... */ });
-    document.getElementById('schedule-container').addEventListener('click', function(e) { if (e.target.classList.contains('btn-close')) { e.target.parentElement.remove(); } });
+    // Manuelle Blöcke
+    function toggleOtherFields() {
+        const type = document.getElementById('other_type').value;
+        const duration = document.getElementById('other_duration');
+        duration.disabled = (type === 'Grossring');
+        if (type === 'Grossring') duration.value = 0;
+    }
+    document.getElementById('other_type').addEventListener('change', toggleOtherFields);
+    toggleOtherFields();
+
+    document.getElementById('add-other-block-btn').addEventListener('click', function() {
+        const ring = document.getElementById('other_ring').value;
+        const type = document.getElementById('other_type').value;
+        const label = document.getElementById('other_label').value || '';
+        const duration = String(document.getElementById('other_duration').value || '0');
+
+        const isGross = (type === 'Grossring');
+        const data = { laufart: type, duration, label, is_grossring: isGross };
+
+        const text = isGross
+            ? `<i class="fas fa-expand-arrows-alt text-primary me-1" title="Grossring"></i> <strong>GROSSRING</strong>`
+            : `<strong>${type.toUpperCase()}</strong> (${duration} min) ${label ? '– ' + label : ''}`;
+
+        addBlockToRing(ring, data, text, isGross ? 'bg-primary-subtle' : 'bg-light');
+    });
+
+    // Entfernen
+    document.getElementById('schedule-container').addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-close')) {
+            e.target.closest('.list-group-item')?.remove();
+        }
+    });
 });
 </script>
 {% endblock %}

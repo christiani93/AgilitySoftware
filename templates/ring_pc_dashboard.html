@@ -27,19 +27,20 @@
                         <option value="{{ run.id }}">{{ run.name }}</option>
                     {% endfor %}
                 </select>
-                <button id="activate-display-btn" class="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600 disabled:opacity-50" title="Diesen Lauf für Monitore aktivieren" disabled>
+                <button id="activate-display-btn" class="bg-yellow-400 text-black p-2 rounded hover:bg-yellow-500 disabled:opacity-50" title="Diesen Lauf für Monitore aktivieren" disabled>
                     <i class="fas fa-bullhorn"></i>
                 </button>
             </div>
             <div id="ring-server-status" class="mt-3 text-sm text-gray-500">Verbinde mit Ring-Server...</div>
-            <div id="live-info" class="mt-2 p-3 bg-gray-800 text-white rounded">
+            <div id="live-info" class="mt-2 p-3 bg-gray-200 text-black rounded">
                 <div>Status: <span id="info-status" class="font-mono">idle</span></div>
                 <div>Starter: <span id="info-starter" class="font-mono">-</span></div>
                 <div>Zeit: <span id="info-time" class="font-mono">0.00</span>s</div>
                 <div>Fehler (F): <span id="info-faults" class="font-mono">0</span> | Verw. (V): <span id="info-refusals" class="font-mono">0</span></div>
             </div>
-            <button id="reset-run-btn" class="mt-2 w-full bg-red-600 text-white p-2 rounded hover:bg-red-700">Aktuellen Lauf zurücksetzen</button>
+            <button id="reset-run-btn" class="mt-2 w-full bg-red-200 text-black p-2 rounded hover:bg-red-300">Aktuellen Lauf zurücksetzen</button>
         </div>
+
         <div class="md:col-span-2 bg-white p-4 rounded-lg shadow">
             <h2 class="text-lg font-bold mb-3 border-b pb-2">2. Starterliste & Resultate</h2>
             <div id="starter-list-container"><p class="text-gray-500">Bitte wählen Sie links einen Lauf aus.</p></div>
@@ -47,7 +48,7 @@
     </div>
 </div>
 
-<div id="result-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden" >
+<div id="result-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
             <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Resultat bearbeiten</h3>
@@ -55,11 +56,13 @@
                 <input type="number" step="0.01" id="modal-zeit" placeholder="Zeit" class="mb-2 w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none" required>
                 <input type="number" step="1" min="0" id="modal-fehler" placeholder="Fehler" class="mb-2 w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none">
                 <input type="number" step="1" min="0" id="modal-verweigerung" placeholder="Verweigerungen" class="mb-2 w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none">
-                <select id="modal-disq" class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none"><option value="">Keine</option><option value="DIS">DIS</option><option value="ABR">ABR</option></select>
+                <select id="modal-disq" class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none">
+                    <option value="">Keine</option><option value="DIS">DIS</option><option value="ABR">ABR</option>
+                </select>
             </form>
             <div class="items-center px-4 py-3">
-                <button id="modal-save-btn" class="px-4 py-2 bg-green-500 text-white rounded-md w-full hover:bg-green-600">Speichern</button>
-                <button id="modal-cancel-btn" class="mt-2 px-4 py-2 bg-gray-300 text-gray-800 rounded-md w-full hover:bg-gray-400">Abbrechen</button>
+                <button id="modal-save-btn" class="px-4 py-2 bg-green-200 text-black rounded-md w-full hover:bg-green-300">Speichern</button>
+                <button id="modal-cancel-btn" class="mt-2 px-4 py-2 bg-gray-200 text-black rounded-md w-full hover:bg-gray-300">Abbrechen</button>
             </div>
         </div>
     </div>
@@ -69,37 +72,75 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ui = { runSelect: document.getElementById('run-select'), starterList: document.getElementById('starter-list-container'), statusDiv: document.getElementById('ring-server-status'), activateBtn: document.getElementById('activate-display-btn'), modal: document.getElementById('result-modal'), resetBtn: document.getElementById('reset-run-btn'), info: { status: document.getElementById('info-status'), starter: document.getElementById('info-starter'), time: document.getElementById('info-time'), faults: document.getElementById('info-faults'), refusals: document.getElementById('info-refusals') } };
+    const ui = {
+        runSelect: document.getElementById('run-select'),
+        starterList: document.getElementById('starter-list-container'),
+        statusDiv: document.getElementById('ring-server-status'),
+        activateBtn: document.getElementById('activate-display-btn'),
+        modal: document.getElementById('result-modal'),
+        resetBtn: document.getElementById('reset-run-btn'),
+        info: {
+            status: document.getElementById('info-status'),
+            starter: document.getElementById('info-starter'),
+            time: document.getElementById('info-time'),
+            faults: document.getElementById('info-faults'),
+            refusals: document.getElementById('info-refusals')
+        }
+    };
     const eventId = '{{ event.id }}';
-    let state = { currentRunId: null, allEntries: [], currentEntryToEdit: null, localSocket: null, mainSocket: null, clockInterval: null };
+    let state = {
+        currentRunId: null,
+        allEntries: [],
+        currentEntryToEdit: null,
+        localSocket: null,
+        mainSocket: null,
+        clockInterval: null
+    };
 
     function connectSockets() {
         state.mainSocket = io();
         state.localSocket = io("http://127.0.0.1:5001", { reconnection: false });
-        state.localSocket.on('connect', () => { ui.statusDiv.textContent = 'Ring-Server: Verbunden'; ui.statusDiv.className = 'mt-3 text-sm text-green-600 font-bold'; });
-        state.localSocket.on('disconnect', () => { ui.statusDiv.textContent = 'Ring-Server: Verbindung getrennt!'; ui.statusDiv.className = 'mt-3 text-sm text-red-600 font-bold'; });
-        state.localSocket.on('connect_error', () => { ui.statusDiv.textContent = 'Ring-Server: Verbindung fehlgeschlagen!'; ui.statusDiv.className = 'mt-3 text-sm text-red-600 font-bold'; });
+
+        state.localSocket.on('connect', () => {
+            ui.statusDiv.textContent = 'Ring-Server: Verbunden';
+            ui.statusDiv.className = 'mt-3 text-sm text-green-600 font-bold';
+        });
+        state.localSocket.on('disconnect', () => {
+            ui.statusDiv.textContent = 'Ring-Server: Verbindung getrennt!';
+            ui.statusDiv.className = 'mt-3 text-sm text-red-600 font-bold';
+        });
+        state.localSocket.on('connect_error', () => {
+            ui.statusDiv.textContent = 'Ring-Server: Verbindung fehlgeschlagen!';
+            ui.statusDiv.className = 'mt-3 text-sm text-red-600 font-bold';
+        });
+
         state.localSocket.on('state_update', (serverState) => {
             ui.info.status.textContent = serverState.run_status;
             ui.info.starter.textContent = serverState.current_starter ? `#${serverState.current_starter.Startnummer}` : '-';
             ui.info.faults.textContent = serverState.faults;
             ui.info.refusals.textContent = serverState.refusals;
+
             document.querySelectorAll('.starter-row').forEach(el => el.classList.remove('starter-ready', 'starter-running'));
-            if(serverState.current_starter) {
+            if (serverState.current_starter) {
                 const el = document.getElementById(`starter-${serverState.current_starter.Lizenznummer}`);
                 if (el) el.classList.add(serverState.run_status === 'ready' ? 'starter-ready' : 'starter-running');
             }
         });
+
         state.localSocket.on('start_clock', () => {
-            if(state.clockInterval) clearInterval(state.clockInterval);
-            let clockStartTime = Date.now();
-            state.clockInterval = setInterval(() => { ui.info.time.textContent = ((Date.now() - clockStartTime) / 1000).toFixed(2); }, 50);
+            if (state.clockInterval) clearInterval(state.clockInterval);
+            let t0 = Date.now();
+            state.clockInterval = setInterval(() => {
+                ui.info.time.textContent = ((Date.now() - t0) / 1000).toFixed(2);
+            }, 50);
         });
+
         state.localSocket.on('run_finished_timing', (data) => {
-            if(state.clockInterval) clearInterval(state.clockInterval);
+            if (state.clockInterval) clearInterval(state.clockInterval);
             ui.info.time.textContent = data.final_time;
             window.appActions.editResult(state.currentEntryToEdit.Lizenznummer, data);
         });
+
         state.mainSocket.on('result_update', (data) => {
             if (data.run_id === state.currentRunId) fetchRunDetails();
         });
@@ -110,24 +151,43 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = `/api/get_run_details/${eventId}/${state.currentRunId}`;
         fetch(url)
             .then(res => res.ok ? res.json() : Promise.reject(res.status))
-            .then(data => { if (data.success) { state.allEntries = data.data.entries; renderStarterList(); } else { alert(`Fehler: ${data.message}`); } })
-            .catch(err => { ui.starterList.innerHTML = `<p class="text-red-500 font-bold">Netzwerkfehler.</p>`; });
+            .then(data => {
+                if (data.success) {
+                    state.allEntries = data.data.entries || [];
+                    renderStarterList();
+                } else {
+                    ui.starterList.innerHTML = `<p class="text-red-500 font-bold">Fehler: ${data.message}</p>`;
+                }
+            })
+            .catch(() => {
+                ui.starterList.innerHTML = `<p class="text-red-500 font-bold">Netzwerkfehler.</p>`;
+            });
     }
 
     function renderStarterList() {
+        if (!state.allEntries.length) {
+            ui.starterList.innerHTML = '<p class="text-gray-500">Keine Starter vorhanden.</p>';
+            return;
+        }
         ui.starterList.innerHTML = state.allEntries.map(entry => {
             const hasResult = entry.result && (entry.result.zeit || entry.result.disqualifikation);
-            const statusText = hasResult ? (entry.result.disqualifikation || `${entry.result.zeit || '-'}s, ${entry.result.fehler || 0}F, ${entry.result.verweigerungen || 0}V`) : (entry.status_vermerk || '');
+            const statusText = hasResult
+                ? (entry.result.disqualifikation || `${entry.result.zeit || '-'}s, ${entry.result.fehler || 0}F, ${entry.result.verweigerungen || 0}V`)
+                : (entry.status_vermerk || '');
             const buttonDisabled = hasResult ? 'disabled' : '';
-            return `<div id="starter-${entry.Lizenznummer}" class="starter-row p-3 rounded-lg flex justify-between items-center ${hasResult ? 'bg-green-100' : 'bg-gray-50'}">
-                        <div><span class="font-bold text-lg mr-4 w-12 text-center">${entry.Startnummer}</span><span>${entry.Hundefuehrer} mit ${entry.Hundename}</span></div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-48 text-right font-bold text-sm text-gray-700">${statusText}</div>
-                            <button onclick="window.appActions.editResult('${entry.Lizenznummer}')" class="bg-blue-500 text-white py-1 px-2 rounded text-xs hover:bg-blue-600" title="Manuelle Korrektur"><i class="fas fa-edit"></i></button>
-                            <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}', 'a.K.')" class="bg-gray-400 text-black py-1 px-2 rounded text-xs hover:bg-gray-500" ${buttonDisabled}>a.K.</button>
-                            <button onclick="window.appActions.setStarterReady('${entry.Lizenznummer}')" class="bg-yellow-400 text-gray-800 font-bold py-1 px-3 rounded text-sm hover:bg-yellow-500" ${buttonDisabled}>Bereit</button>
-                        </div>
-                    </div>`;
+            return `
+            <div id="starter-${entry.Lizenznummer}" class="starter-row p-3 rounded-lg flex justify-between items-center ${hasResult ? 'bg-green-100' : 'bg-gray-50'}">
+                <div>
+                    <span class="font-bold text-lg mr-4 w-12 inline-block text-center">${entry.Startnummer}</span>
+                    <span>${entry.Hundefuehrer} mit ${entry.Hundename}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-48 text-right font-bold text-sm text-gray-700">${statusText}</div>
+                    <button onclick="window.appActions.editResult('${entry.Lizenznummer}')" class="bg-blue-200 text-black py-1 px-2 rounded text-xs hover:bg-blue-300" title="Manuelle Korrektur"><i class="fas fa-edit"></i></button>
+                    <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}', 'a.K.')" class="bg-gray-300 text-black py-1 px-2 rounded text-xs hover:bg-gray-400" ${buttonDisabled}>a.K.</button>
+                    <button onclick="window.appActions.setStarterReady('${entry.Lizenznummer}')" class="bg-yellow-300 text-black font-bold py-1 px-3 rounded text-sm hover:bg-yellow-400" ${buttonDisabled}>Bereit</button>
+                </div>
+            </div>`;
         }).join('');
     }
 
@@ -154,50 +214,67 @@ document.addEventListener('DOMContentLoaded', function() {
             ui.modal.classList.remove('hidden');
         },
         saveResult: () => {
-            const resultData = { license_number: state.currentEntryToEdit.Lizenznummer, zeit: document.getElementById('modal-zeit').value, fehler: document.getElementById('modal-fehler').value, verweigerungen: document.getElementById('modal-verweigerung').value, disqualifikation: document.getElementById('modal-disq').value };
+            const resultData = {
+                license_number: state.currentEntryToEdit.Lizenznummer,
+                zeit: document.getElementById('modal-zeit').value,
+                fehler: document.getElementById('modal-fehler').value,
+                verweigerungen: document.getElementById('modal-verweigerung').value,
+                disqualifikation: document.getElementById('modal-disq').value
+            };
             const url = `/live/save_result/${eventId}/${state.currentRunId}`;
             fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(resultData) })
-                .then(res => res.json()).then(data => {
+                .then(res => res.json())
+                .then(data => {
                     if (data.success) {
                         ui.modal.classList.add('hidden');
                         fetchRunDetails();
-                        if(state.localSocket && state.localSocket.connected) state.localSocket.emit('reset_current_run');
-                    } else { alert('Fehler: ' + data.message); }
+                        if (state.localSocket && state.localSocket.connected) state.localSocket.emit('reset_current_run');
+                    } else {
+                        alert('Fehler: ' + data.message);
+                    }
                 });
         },
         activateForAnnouncer: () => {
             if (!state.currentRunId) return;
             const url = `/live/set_active_announcer_run/${eventId}/${state.currentRunId}`;
-            fetch(url).then(res => { if(res.ok) alert('Lauf für Monitore aktiviert.'); else alert('Fehler beim Aktivieren.'); });
+            fetch(url).then(res => { if (res.ok) alert('Lauf für Monitore aktiviert.'); else alert('Fehler beim Aktivieren.'); });
         },
         setStarterReady: (licenseNr) => {
             if (!state.localSocket || !state.localSocket.connected) { alert("Keine Verbindung zum Ring-Server!"); return; }
             const starter = state.allEntries.find(e => e.Lizenznummer === licenseNr);
-            if(starter) {
+            if (starter) {
                 state.currentEntryToEdit = starter;
                 state.localSocket.emit('set_starter_ready', { run_id: state.currentRunId, starter: starter });
             }
         },
-        setParticipantStatus: (licenseNr, status) => { /* To be implemented */ }
+        setParticipantStatus: (licenseNr, status) => {
+            // Optional: hier kannst du Status setzen/merken
+            console.log('Set status', licenseNr, status);
+        }
     };
-    
+
     ui.runSelect.addEventListener('change', function() {
         state.currentRunId = this.value;
         ui.activateBtn.disabled = !state.currentRunId;
-        if (state.currentRunId) fetchRunDetails(); else ui.starterList.innerHTML = '<p class="text-gray-500">Bitte wählen Sie links einen Lauf aus.</p>';
+        if (state.currentRunId) fetchRunDetails();
+        else ui.starterList.innerHTML = '<p class="text-gray-500">Bitte wählen Sie links einen Lauf aus.</p>';
     });
-    
+
     ui.activateBtn.addEventListener('click', window.appActions.activateForAnnouncer);
-    ui.resetBtn.addEventListener('click', () => { if (confirm("Soll der aktuelle Lauf im Ring-Server wirklich zurückgesetzt werden?")) state.localSocket.emit('reset_current_run'); });
+    ui.resetBtn.addEventListener('click', () => {
+        if (confirm("Soll der aktuelle Lauf im Ring-Server wirklich zurückgesetzt werden?")) {
+            if (state.localSocket && state.localSocket.connected) state.localSocket.emit('reset_current_run');
+        }
+    });
     document.getElementById('modal-save-btn').addEventListener('click', window.appActions.saveResult);
     document.getElementById('modal-cancel-btn').addEventListener('click', () => ui.modal.classList.add('hidden'));
-    
+
     document.addEventListener('keydown', (e) => {
         if (ui.info.status.textContent !== 'running') return;
         if (e.key.toLowerCase() === 'f') { e.preventDefault(); state.localSocket.emit('increment_counter', { type: 'faults', value: 1 }); }
         if (e.key.toLowerCase() === 'v') { e.preventDefault(); state.localSocket.emit('increment_counter', { type: 'refusals', value: 1 }); }
     });
-    
+
     connectSockets();
 });
 </script>

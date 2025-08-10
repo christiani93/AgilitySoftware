@@ -1,93 +1,399 @@
 {% extends "layout.html" %}
-
-{% block title %}Teilnehmer verwalten: {{ run.name }}{% endblock %}
+{% block title %}Teilnehmer verwalten – {{ event.Bezeichnung }} – {{ run.name }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Teilnehmer für "{{ run.name }}"</h2>
-        <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zurück zu den Läufen</a>
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 m-0">Teilnehmer verwalten – <span class="text-muted">{{ event.Bezeichnung }}</span></h2>
+    <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary">
+      ← Zurück zu den Läufen
+    </a>
+  </div>
+  <div class="card mb-4">
+    <div class="card-header">
+      <strong>Lauf:</strong> {{ run.name }}
     </div>
+    <div class="card-body">
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    Aktuelle Teilnehmer ({{ run.entries|length }})
-                </div>
-                <div class="card-body">
-                     <form method="POST">
-                        <ul class="list-group">
-                            {% for participant in run.entries|sort(attribute='Hundefuehrer') %}
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>{{ participant.Hundefuehrer }}</strong> mit {{ participant.Hundename }} ({{ participant.Lizenznummer }})
-                                    </div>
-                                    <div class="d-flex align-items-center">
-                                         <div class="form-check form-switch me-3">
-                                            <input class="form-check-input" type="checkbox" role="switch" id="start_at_end_{{participant.Lizenznummer}}" name="start_at_end_{{participant.Lizenznummer}}" {{ 'checked' if participant.start_at_end }}>
-                                            <label class="form-check-label" for="start_at_end_{{participant.Lizenznummer}}">Am Ende starten</label>
-                                        </div>
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="document.getElementById('remove-form-{{ participant.Lizenznummer }}').submit();"><i class="fas fa-trash"></i></button>
-                                    </div>
-                                </li>
-                            {% else %}
-                                <li class="list-group-item text-muted">Noch keine Teilnehmer in diesem Lauf.</li>
-                            {% endfor %}
-                        </ul>
-                         <button type="submit" class="btn btn-primary mt-3">Änderungen speichern</button>
-                    </form>
-                </div>
-            </div>
+      <!-- Suche / Dropdown -->
+      <div class="row g-3 align-items-end">
+        <div class="col-md-7">
+          <label class="form-label">Suche (Lizenznr., Hund, Hundeführer)</label>
+          <div class="position-relative">
+            <input type="text" class="form-control" id="search-input" placeholder="z.B. 14185, Go-Tic, Tavazzi …" autocomplete="off">
+            <div id="search-results" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; display:none; max-height: 280px; overflow-y: auto;"></div>
+          </div>
+          <div class="form-text">Tippen, um zu suchen. Enter/Click um auszuwählen.</div>
         </div>
+        <div class="col-md-3">
+          <label class="form-label d-block">Aktion</label>
+          <button id="btn-add-selected" class="btn btn-dark w-100" disabled>
+            Zum Lauf hinzufügen
+          </button>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label d-block">Neuer Eintrag</label>
+          <button id="btn-open-create" class="btn btn-outline-dark w-100">
+            Neu erfassen …
+          </button>
+        </div>
+      </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">Teilnehmer hinzufügen</div>
-                <div class="card-body">
-                    <form action="{{ url_for('events_bp.add_participant_to_run', event_id=event.id, run_id=(run.id or run.run_id)) }}" method="POST">
-                        <div class="mb-3">
-                            <label for="participant-search" class="form-label">Suche Hundeführer oder Hund</label>
-                            <input type="text" class="form-control" id="participant-search" placeholder="Namen eingeben...">
-                            <input type="hidden" name="license_number" id="selected-license-number">
-                        </div>
-                        <button type="submit" class="btn btn-success" id="add-participant-btn" disabled>Hinzufügen</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+      <!-- Auswahl-Vorschau -->
+      <div id="selected-preview" class="alert alert-secondary d-none mt-3 mb-0 small">
+        <strong>Ausgewählt:</strong> <span data-field="lizenz"></span> ·
+        <span data-field="hund"></span> ·
+        <span data-field="handler"></span> ·
+        <span data-field="kat"></span>/<span data-field="kl"></span>
+      </div>
+
     </div>
+  </div>
+
+  <!-- Neu erfassen Modal -->
+  <div class="modal fade" id="createModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form id="create-form" class="modal-content" autocomplete="off">
+        <div class="modal-header">
+          <h5 class="modal-title">Neuen Teilnehmer erfassen</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info small">
+            Pflichtfelder: Lizenznr., Hundename, Hundeführer (Vor- & Nachname), Kategorie, Klasse
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Lizenznummer *</label>
+              <input type="text" class="form-control" name="Lizenznummer" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Kategorie *</label>
+              <select class="form-select" name="Kategorie" required>
+                <option value="" selected disabled>— wählen —</option>
+                {% for kat in ['Small','Medium','Intermediate','Large'] %}
+                  <option value="{{ kat }}">{{ kat }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Klasse *</label>
+              <select class="form-select" name="Klasse" required>
+                <option value="" selected disabled>— wählen —</option>
+                {% for kl in ['1','2','3'] %}
+                  <option value="{{ kl }}">{{ kl }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Hundename *</label>
+              <input type="text" class="form-control" name="Hundename" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Hundeführer ID (optional, falls vorhanden)</label>
+              <input type="text" class="form-control" name="Hundefuehrer_ID" placeholder="UUID falls schon vorhanden">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">HF Vorname *</label>
+              <input type="text" class="form-control" name="HF_Vorname" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">HF Nachname *</label>
+              <input type="text" class="form-control" name="HF_Nachname" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">HF Vereinsnummer</label>
+              <input type="text" class="form-control" name="Vereinsnummer" placeholder="z.B. 420">
+            </div>
+          </div>
+
+          <hr>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">E-Mail (optional)</label>
+              <input type="email" class="form-control" name="Email">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Telefon (optional)</label>
+              <input type="text" class="form-control" name="Telefon">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Rasse (optional)</label>
+              <input type="text" class="form-control" name="Rasse">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Chip (optional)</label>
+              <input type="text" class="form-control" name="Chip">
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Abbrechen</button>
+          <button class="btn btn-dark" type="submit">Erfassen & zum Lauf hinzufügen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Aktuelle Starterliste -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="m-0">Starter in diesem Lauf</h5>
+      <div class="text-muted small">{{ run.laufart }} · {{ run.kategorie }} · {{ run.klasse }}</div>
+    </div>
+    <div class="card-body p-0">
+      <div id="starter-table-wrapper" class="table-responsive">
+        <table class="table table-striped table-hover mb-0 align-middle">
+          <thead class="table-light">
+          <tr>
+            <th style="width: 110px;">Lizenz</th>
+            <th>Hund</th>
+            <th>Hundeführer</th>
+            <th style="width: 120px;">Kat./Kl.</th>
+            <th style="width: 70px;"></th>
+          </tr>
+          </thead>
+          <tbody id="starter-tbody">
+            <tr><td colspan="5" class="text-center text-muted py-4">Lade …</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 </div>
-
-{% for participant in run.entries %}
-<form id="remove-form-{{ participant.Lizenznummer }}" action="{{ url_for('events_bp.remove_participant_from_run', event_id=event.id, run_id=(run.id or run.run_id), license_nr=participant.Lizenznummer) }}" method="POST" class="d-none"></form>
-{% endfor %}
-
 {% endblock %}
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('participant-search');
-    const licenseInput = document.getElementById('selected-license-number');
-    const addButton = document.getElementById('add-participant-btn');
-    
-    const allParticipants = JSON.parse({{ all_participants_json|tojson }});
-    const existingLicenseNumbers = new Set({{ existing_license_numbers_json|tojson }});
+document.addEventListener('DOMContentLoaded', () => {
+  const eventId = {{ event.id|tojson }};
+  const runId = {{ run.id|tojson }};
 
-    // ... (Hier könnte eine Autocomplete-Logik implementiert werden)
-    // Zur Vereinfachung hier eine manuelle Eingabe mit Validierung
-    searchInput.addEventListener('input', function() {
-        const selectedDog = allParticipants.find(p => p.Hundename.toLowerCase() === searchInput.value.toLowerCase() || p.Hundefuehrer.toLowerCase() === searchInput.value.toLowerCase());
+  const ui = {
+    search: document.getElementById('search-input'),
+    results: document.getElementById('search-results'),
+    addBtn: document.getElementById('btn-add-selected'),
+    openCreate: document.getElementById('btn-open-create'),
+    selectedPreview: document.getElementById('selected-preview'),
+    prevLiz: document.querySelector('#selected-preview [data-field="lizenz"]'),
+    prevHund: document.querySelector('#selected-preview [data-field="hund"]'),
+    prevHandler: document.querySelector('#selected-preview [data-field="handler"]'),
+    prevKat: document.querySelector('#selected-preview [data-field="kat"]'),
+    prevKl: document.querySelector('#selected-preview [data-field="kl"]'),
+    tbody: document.getElementById('starter-tbody'),
+    createForm: document.getElementById('create-form')
+  };
 
-        if (selectedDog && !existingLicenseNumbers.has(selectedDog.Lizenznummer)) {
-            licenseInput.value = selectedDog.Lizenznummer;
-            addButton.disabled = false;
-        } else {
-            licenseInput.value = '';
-            addButton.disabled = true;
+  let selectedItem = null;
+  let results = [];
+
+  // ------- Helpers
+  function showResults(show) {
+    ui.results.style.display = show ? 'block' : 'none';
+  }
+  function selectItem(item) {
+    selectedItem = item || null;
+    if (item) {
+      ui.prevLiz.textContent = item.Lizenznummer || '';
+      ui.prevHund.textContent = item.Hundename || '';
+      ui.prevHandler.textContent = item.Hundefuehrer || '';
+      ui.prevKat.textContent = item.Kategorie || '';
+      ui.prevKl.textContent = item.Klasse || '';
+      ui.selectedPreview.classList.remove('d-none');
+      ui.addBtn.disabled = false;
+    } else {
+      ui.selectedPreview.classList.add('d-none');
+      ui.addBtn.disabled = true;
+    }
+  }
+  function renderResults() {
+    if (!results.length) {
+      ui.results.innerHTML = `<div class="list-group-item text-muted">Keine Treffer</div>`;
+      return;
+    }
+    ui.results.innerHTML = results.map((it, idx) => `
+      <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" data-idx="${idx}">
+        <div>
+          <div><strong>${it.Lizenznummer || '—'}</strong> · ${it.Hundename || '—'}</div>
+          <div class="small text-muted">${it.Hundefuehrer || '—'} · ${it.Kategorie || '—'}/${it.Klasse || '—'}</div>
+        </div>
+        <span class="badge bg-light text-dark">Auswählen</span>
+      </button>
+    `).join('');
+  }
+  function fetchRunDetails() {
+    fetch(`/api/get_run_details/${eventId}/${runId}`)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(data => {
+        if (!data.success) throw new Error(data.message || 'Fehler');
+        const entries = (data.data && data.data.entries) || [];
+        if (!entries.length) {
+          ui.tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Noch keine Teilnehmer in diesem Lauf.</td></tr>`;
+          return;
         }
-    });
+        ui.tbody.innerHTML = entries.map(e => `
+          <tr>
+            <td><code>${e.Lizenznummer || ''}</code></td>
+            <td>${e.Hundename || ''}</td>
+            <td>${e.Hundefuehrer || ''}</td>
+            <td>${e.Kategorie || ''}/${e.Klasse || ''}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-dark" data-remove="${e.Lizenznummer}">Entfernen</button>
+            </td>
+          </tr>
+        `).join('');
+      })
+      .catch(() => {
+        ui.tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Laden fehlgeschlagen.</td></tr>`;
+      });
+  }
+
+  // ------- Suche
+  let searchDebounce;
+  ui.search.addEventListener('input', () => {
+    const q = ui.search.value.trim();
+    selectItem(null);
+    if (searchDebounce) clearTimeout(searchDebounce);
+    if (!q) { showResults(false); return; }
+    searchDebounce = setTimeout(() => {
+      fetch(`/events/api/search_participants/${eventId}?q=${encodeURIComponent(q)}`)
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(data => {
+          results = data.success ? (data.items || []) : [];
+          renderResults();
+          showResults(true);
+        })
+        .catch(() => {
+          results = [];
+          renderResults();
+          showResults(true);
+        });
+    }, 200);
+  });
+
+  ui.search.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { showResults(false); }
+  });
+
+  ui.results.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-idx]');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.idx, 10);
+    const item = results[idx];
+    selectItem(item);
+    showResults(false);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!ui.results.contains(e.target) && e.target !== ui.search) showResults(false);
+  });
+
+  // ------- Hinzufügen
+  ui.addBtn.addEventListener('click', () => {
+    if (!selectedItem || !selectedItem.Lizenznummer) return;
+    ui.addBtn.disabled = true;
+    fetch(`/events/api/add_run_participant/${eventId}/${runId}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ Lizenznummer: selectedItem.Lizenznummer })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.success) throw new Error(data.message || 'Fehlschlag');
+        selectItem(null);
+        ui.search.value = '';
+        fetchRunDetails();
+      })
+      .catch(err => alert('Konnte Teilnehmer nicht hinzufügen: ' + err.message))
+      .finally(() => ui.addBtn.disabled = false);
+  });
+
+  // ------- Entfernen
+  ui.tbody.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-remove]');
+    if (!btn) return;
+    const liz = btn.dataset.remove;
+    if (!confirm(`Teilnehmer ${liz} aus diesem Lauf entfernen?`)) return;
+    btn.disabled = true;
+    fetch(`/events/api/remove_run_participant/${eventId}/${runId}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ Lizenznummer: liz })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.success) throw new Error(data.message || 'Fehlschlag');
+        fetchRunDetails();
+      })
+      .catch(err => alert('Entfernen fehlgeschlagen: ' + err.message))
+      .finally(() => btn.disabled = false);
+  });
+
+  // ------- Neu erfassen
+  const createModal = new bootstrap.Modal(document.getElementById('createModal'));
+  ui.openCreate.addEventListener('click', () => {
+    ui.createForm.reset();
+    createModal.show();
+  });
+
+  ui.createForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const fd = new FormData(ui.createForm);
+    // Backend erwartet flache Felder; wir mappen sinnvolle Keys:
+    const payload = {
+      Lizenznummer: fd.get('Lizenznummer')?.trim(),
+      Hundename: fd.get('Hundename')?.trim(),
+      Kategorie: fd.get('Kategorie'),
+      Klasse: fd.get('Klasse'),
+      HF_Vorname: fd.get('HF_Vorname')?.trim(),
+      HF_Nachname: fd.get('HF_Nachname')?.trim(),
+      Vereinsnummer: fd.get('Vereinsnummer')?.trim() || null,
+      Email: fd.get('Email')?.trim() || null,
+      Telefon: fd.get('Telefon')?.trim() || null,
+      Rasse: fd.get('Rasse')?.trim() || null,
+      Chip: fd.get('Chip')?.trim() || null
+    };
+    // Basic validation
+    if (!payload.Lizenznummer || !payload.Hundename || !payload.Kategorie || !payload.Klasse || !payload.HF_Vorname || !payload.HF_Nachname) {
+      alert('Bitte alle Pflichtfelder ausfüllen.');
+      return;
+    }
+    const submitBtn = ui.createForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+
+    fetch('/master_data/api/create_participant', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.success) throw new Error(data.message || 'Erfassung fehlgeschlagen');
+        const item = data.item; // sollte {Lizenznummer,Hundename,Hundefuehrer,Kategorie,Klasse,...} liefern
+        // direkt zum Lauf hinzufügen:
+        return fetch(`/events/api/add_run_participant/${eventId}/${runId}`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ Lizenznummer: item.Lizenznummer })
+        });
+      })
+      .then(r => r.json())
+      .then(addRes => {
+        if (!addRes.success) throw new Error(addRes.message || 'Hinzufügen nach Erfassung fehlgeschlagen');
+        createModal.hide();
+        fetchRunDetails();
+      })
+      .catch(err => alert(err.message))
+      .finally(() => submitBtn.disabled = false);
+  });
+
+  // Initial
+  fetchRunDetails();
 });
 </script>
 {% endblock %}

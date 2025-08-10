@@ -1,0 +1,1404 @@
+[
+    {
+        "id": "448c1840-4805-49c2-a368-8d3bb408f05b",
+        "Bezeichnung": "Test",
+        "Datum": "2025-08-09",
+        "VeranstalterClubNr": "196",
+        "Turniernummer": "13466",
+        "num_rings": 1,
+        "Veranstaltungsart": "Meeting",
+        "start_times_by_ring": {
+            "ring_1": "07:30"
+        },
+        "runs": [
+            {
+                "id": "a2479713-f768-4362-a20f-3333a429b251",
+                "name": "Agility Small 1",
+                "laufart": "Agility",
+                "kategorie": "Small",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "16552",
+                        "Hundename": "Elsa",
+                        "Hundefuehrer": "Kathrin Baumeler",
+                        "Startnummer": 4101
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "82af619f-3276-40fc-a439-a9c82128cb64",
+                "name": "Agility Small 2",
+                "laufart": "Agility",
+                "kategorie": "Small",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "15988",
+                        "Hundename": "Daya",
+                        "Hundefuehrer": "Nicole Mottet",
+                        "Startnummer": 4203
+                    },
+                    {
+                        "Lizenznummer": "15517",
+                        "Hundename": "Duke",
+                        "Hundefuehrer": "Corina Leu",
+                        "Startnummer": 4202
+                    },
+                    {
+                        "Lizenznummer": "58000",
+                        "Hundename": "Yuki",
+                        "Hundefuehrer": "Werner Brönnimann",
+                        "Startnummer": 4201
+                    },
+                    {
+                        "Lizenznummer": "15500",
+                        "Hundename": "Chino",
+                        "Hundefuehrer": "Christina Aeppli",
+                        "Startnummer": 4204
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "4e5b407a-f25d-4bfd-8827-bb00fc288401",
+                "name": "Agility Small 3",
+                "laufart": "Agility",
+                "kategorie": "Small",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "16059",
+                        "Hundename": "Suki",
+                        "Hundefuehrer": "Simone Risi",
+                        "Startnummer": 4304
+                    },
+                    {
+                        "Lizenznummer": "14201",
+                        "Hundename": "Fuego",
+                        "Hundefuehrer": "Désirée Brenzikofer",
+                        "Startnummer": 4303
+                    },
+                    {
+                        "Lizenznummer": "15618",
+                        "Hundename": "Saija",
+                        "Hundefuehrer": "Evelyne von Riedmatten",
+                        "Startnummer": 4301
+                    },
+                    {
+                        "Lizenznummer": "14746",
+                        "Hundename": "Vince",
+                        "Hundefuehrer": "Kathrin Baumeler",
+                        "Startnummer": 4302
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "e377a612-52ef-4c11-b87d-5cc4effc136c",
+                "name": "Agility Medium 1",
+                "laufart": "Agility",
+                "kategorie": "Medium",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "16633",
+                        "Hundename": "Dean",
+                        "Hundefuehrer": "Maggy Erne",
+                        "Startnummer": 3101
+                    },
+                    {
+                        "Lizenznummer": "16499",
+                        "Hundename": "Ramos",
+                        "Hundefuehrer": "Rahel Glatthard",
+                        "Startnummer": 3102
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "8a71631c-99a0-493e-a70c-e030a7302278",
+                "name": "Agility Medium 2",
+                "laufart": "Agility",
+                "kategorie": "Medium",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "15774",
+                        "Hundename": "Taio",
+                        "Hundefuehrer": "Prisca Stoller",
+                        "Startnummer": 3201
+                    },
+                    {
+                        "Lizenznummer": "16273",
+                        "Hundename": "Zesty Zette",
+                        "Hundefuehrer": "Ariane Faucillon",
+                        "Startnummer": 3202
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "f324e63f-d315-4059-af3d-d7efc359874c",
+                "name": "Agility Medium 3",
+                "laufart": "Agility",
+                "kategorie": "Medium",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "14766",
+                        "Hundename": "Gil",
+                        "Hundefuehrer": "Lilo Grogg",
+                        "Startnummer": 3303
+                    },
+                    {
+                        "Lizenznummer": "21220",
+                        "Hundename": "Vegas",
+                        "Hundefuehrer": "Toni Cipriano",
+                        "Startnummer": 3301
+                    },
+                    {
+                        "Lizenznummer": "15731",
+                        "Hundename": "Robin",
+                        "Hundefuehrer": "Anna Schönenberger",
+                        "Startnummer": 3302
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "79b2fba0-3678-499e-b512-463d1bfb0f6e",
+                "name": "Agility Intermediate 1",
+                "laufart": "Agility",
+                "kategorie": "Intermediate",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "13852",
+                        "Hundename": "Rocky",
+                        "Hundefuehrer": "Mary Diserens",
+                        "Startnummer": 2104
+                    },
+                    {
+                        "Lizenznummer": "16430",
+                        "Hundename": "Ace",
+                        "Hundefuehrer": "Nicole Blaser",
+                        "Startnummer": 2101
+                    },
+                    {
+                        "Lizenznummer": "16373",
+                        "Hundename": "Weeny",
+                        "Hundefuehrer": "Virginia Gafner",
+                        "Startnummer": 2103
+                    },
+                    {
+                        "Lizenznummer": "16009",
+                        "Hundename": "AC",
+                        "Hundefuehrer": "Elvira Leuenberger",
+                        "Startnummer": 2105
+                    },
+                    {
+                        "Lizenznummer": "15309",
+                        "Hundename": "Xuani",
+                        "Hundefuehrer": "Andrea Zimmermann",
+                        "Startnummer": 2107
+                    },
+                    {
+                        "Lizenznummer": "16436",
+                        "Hundename": "Freecy",
+                        "Hundefuehrer": "Natalie Raetzo",
+                        "Startnummer": 2102
+                    },
+                    {
+                        "Lizenznummer": "16482",
+                        "Hundename": "Time",
+                        "Hundefuehrer": "Nicole Bürki",
+                        "Startnummer": 2106
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "28663570-c5aa-4ea7-9bb0-4dc3c4e1ccfa",
+                "name": "Agility Intermediate 2",
+                "laufart": "Agility",
+                "kategorie": "Intermediate",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "16480",
+                        "Hundename": "Beany",
+                        "Hundefuehrer": "Anita Leonardi",
+                        "Startnummer": 2204
+                    },
+                    {
+                        "Lizenznummer": "16030",
+                        "Hundename": "Gin",
+                        "Hundefuehrer": "Muriel Grand",
+                        "Startnummer": 2202
+                    },
+                    {
+                        "Lizenznummer": "16522",
+                        "Hundename": "Snap",
+                        "Hundefuehrer": "Iris Wegmann",
+                        "Startnummer": 2203
+                    },
+                    {
+                        "Lizenznummer": "16190",
+                        "Hundename": "Kelly",
+                        "Hundefuehrer": "Valentin Bannwart",
+                        "Startnummer": 2205
+                    },
+                    {
+                        "Lizenznummer": "16082",
+                        "Hundename": "Bonnie",
+                        "Hundefuehrer": "Nadine Brönnimann",
+                        "Startnummer": 2201
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "596a7199-4b42-4231-906e-a37e2eb238f6",
+                "name": "Agility Intermediate 3",
+                "laufart": "Agility",
+                "kategorie": "Intermediate",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "14185",
+                        "Hundename": "Go-Tic",
+                        "Hundefuehrer": "Francine Tavazzi",
+                        "Startnummer": 2304
+                    },
+                    {
+                        "Lizenznummer": "14733",
+                        "Hundename": "Free",
+                        "Hundefuehrer": "Ashleigh Serrem",
+                        "Startnummer": 2301
+                    },
+                    {
+                        "Lizenznummer": "16189",
+                        "Hundename": "Piece",
+                        "Hundefuehrer": "Irene Bannwart",
+                        "Startnummer": 2303
+                    },
+                    {
+                        "Lizenznummer": "15803",
+                        "Hundename": "Grace",
+                        "Hundefuehrer": "Patrick Martin",
+                        "Startnummer": 2302
+                    },
+                    {
+                        "Lizenznummer": "14313",
+                        "Hundename": "Berny",
+                        "Hundefuehrer": "Toni Cipriano",
+                        "Startnummer": 2305
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "57bb3682-f107-44ab-b981-58b1a97b6b11",
+                "name": "Agility Large 1",
+                "laufart": "Agility",
+                "kategorie": "Large",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "15333",
+                        "Hundename": "Mac",
+                        "Hundefuehrer": "Christiane Brönnimann",
+                        "Startnummer": 1104
+                    },
+                    {
+                        "Lizenznummer": "15524",
+                        "Hundename": "Hashtag",
+                        "Hundefuehrer": "Claudia Theunissen",
+                        "Startnummer": 1105
+                    },
+                    {
+                        "Lizenznummer": "15695",
+                        "Hundename": "Carly",
+                        "Hundefuehrer": "michelle kropf",
+                        "Startnummer": 1101
+                    },
+                    {
+                        "Lizenznummer": "15876",
+                        "Hundename": "Artax",
+                        "Hundefuehrer": "Rahel Oegüt",
+                        "Startnummer": 1103
+                    },
+                    {
+                        "Lizenznummer": "16631",
+                        "Hundename": "Nox",
+                        "Hundefuehrer": "Rahel Spring",
+                        "Startnummer": 1102
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "c018f548-aa12-424e-9d2e-a77abb5811ee",
+                "name": "Agility Large 2",
+                "laufart": "Agility",
+                "kategorie": "Large",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "15086",
+                        "Hundename": "Kara",
+                        "Hundefuehrer": "Stéphane Wohlhauser",
+                        "Startnummer": 1210
+                    },
+                    {
+                        "Lizenznummer": "16406",
+                        "Hundename": "Leeloo",
+                        "Hundefuehrer": "Cécile Francey",
+                        "Startnummer": 1201
+                    },
+                    {
+                        "Lizenznummer": "16434",
+                        "Hundename": "Too much",
+                        "Hundefuehrer": "Claudia Theunissen",
+                        "Startnummer": 1209
+                    },
+                    {
+                        "Lizenznummer": "14758",
+                        "Hundename": "Da Vinci",
+                        "Hundefuehrer": "Manuela Reber",
+                        "Startnummer": 1203
+                    },
+                    {
+                        "Lizenznummer": "14709",
+                        "Hundename": "Icebreaker",
+                        "Hundefuehrer": "Eliane Streit",
+                        "Startnummer": 1208
+                    },
+                    {
+                        "Lizenznummer": "15762",
+                        "Hundename": "Sobacca",
+                        "Hundefuehrer": "Natascha Imboden",
+                        "Startnummer": 1204
+                    },
+                    {
+                        "Lizenznummer": "15595",
+                        "Hundename": "Oschka",
+                        "Hundefuehrer": "Sibylle Zeller-Schwab",
+                        "Startnummer": 1202
+                    },
+                    {
+                        "Lizenznummer": "16168",
+                        "Hundename": "Aidan",
+                        "Hundefuehrer": "Annick Hosner",
+                        "Startnummer": 1206
+                    },
+                    {
+                        "Lizenznummer": "14817",
+                        "Hundename": "Phoebe",
+                        "Hundefuehrer": "Carole Zeiter",
+                        "Startnummer": 1205
+                    },
+                    {
+                        "Lizenznummer": "15754",
+                        "Hundename": "Seeed",
+                        "Hundefuehrer": "Carole Zeiter",
+                        "Startnummer": 1207
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "25c49147-69c1-4685-b2ea-ec42b0191329",
+                "name": "Agility Large 3",
+                "laufart": "Agility",
+                "kategorie": "Large",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "16075",
+                        "Hundename": "A-Yena",
+                        "Hundefuehrer": "Francine Tavazzi",
+                        "Startnummer": 1303
+                    },
+                    {
+                        "Lizenznummer": "14707",
+                        "Hundename": "Pepsie",
+                        "Hundefuehrer": "caroline dolder",
+                        "Startnummer": 1302
+                    },
+                    {
+                        "Lizenznummer": "15638",
+                        "Hundename": "Zoey",
+                        "Hundefuehrer": "Sandra Loosli",
+                        "Startnummer": 1312
+                    },
+                    {
+                        "Lizenznummer": "15425",
+                        "Hundename": "Zane",
+                        "Hundefuehrer": "Natalie Kaufmann",
+                        "Startnummer": 1314
+                    },
+                    {
+                        "Lizenznummer": "15147",
+                        "Hundename": "Biscuit",
+                        "Hundefuehrer": "Iris Wegmann",
+                        "Startnummer": 1307
+                    },
+                    {
+                        "Lizenznummer": "15504",
+                        "Hundename": "Fate",
+                        "Hundefuehrer": "Andreas Krähenbühl",
+                        "Startnummer": 1301
+                    },
+                    {
+                        "Lizenznummer": "15406",
+                        "Hundename": "Mokka",
+                        "Hundefuehrer": "Ursula Roethlisberger",
+                        "Startnummer": 1313
+                    },
+                    {
+                        "Lizenznummer": "14754",
+                        "Hundename": "Jacket",
+                        "Hundefuehrer": "Evelyne von Riedmatten",
+                        "Startnummer": 1305
+                    },
+                    {
+                        "Lizenznummer": "14958",
+                        "Hundename": "Djuna",
+                        "Hundefuehrer": "Alina Schärz",
+                        "Startnummer": 1309
+                    },
+                    {
+                        "Lizenznummer": "15804",
+                        "Hundename": "Hiva",
+                        "Hundefuehrer": "Patrick Martin",
+                        "Startnummer": 1311
+                    },
+                    {
+                        "Lizenznummer": "66830",
+                        "Hundename": "Unit",
+                        "Hundefuehrer": "Romy Folch",
+                        "Startnummer": 1306
+                    },
+                    {
+                        "Lizenznummer": "15565",
+                        "Hundename": "Mae",
+                        "Hundefuehrer": "Renée Jansen",
+                        "Startnummer": 1304
+                    },
+                    {
+                        "Lizenznummer": "15661",
+                        "Hundename": "Gin",
+                        "Hundefuehrer": "Alexandra Tschanz",
+                        "Startnummer": 1308
+                    },
+                    {
+                        "Lizenznummer": "15488",
+                        "Hundename": "Fjun",
+                        "Hundefuehrer": "Yvonne Wyss",
+                        "Startnummer": 1310
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "bcf2edc8-7d61-4fbd-8434-5b2420dfcf7f",
+                "name": "Jumping Small 1",
+                "laufart": "Jumping",
+                "kategorie": "Small",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "16552",
+                        "Hundename": "Elsa",
+                        "Hundefuehrer": "Kathrin Baumeler",
+                        "Startnummer": 4101
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "14eaabfc-e8cf-46e0-8f38-7f11e21aa55a",
+                "name": "Jumping Small 2",
+                "laufart": "Jumping",
+                "kategorie": "Small",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "15988",
+                        "Hundename": "Daya",
+                        "Hundefuehrer": "Nicole Mottet",
+                        "Startnummer": 4203
+                    },
+                    {
+                        "Lizenznummer": "15517",
+                        "Hundename": "Duke",
+                        "Hundefuehrer": "Corina Leu",
+                        "Startnummer": 4202
+                    },
+                    {
+                        "Lizenznummer": "58000",
+                        "Hundename": "Yuki",
+                        "Hundefuehrer": "Werner Brönnimann",
+                        "Startnummer": 4201
+                    },
+                    {
+                        "Lizenznummer": "15500",
+                        "Hundename": "Chino",
+                        "Hundefuehrer": "Christina Aeppli",
+                        "Startnummer": 4204
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "b8aafcd7-24d4-44af-b47c-52d5112ae70d",
+                "name": "Jumping Small 3",
+                "laufart": "Jumping",
+                "kategorie": "Small",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "16059",
+                        "Hundename": "Suki",
+                        "Hundefuehrer": "Simone Risi",
+                        "Startnummer": 4304
+                    },
+                    {
+                        "Lizenznummer": "14201",
+                        "Hundename": "Fuego",
+                        "Hundefuehrer": "Désirée Brenzikofer",
+                        "Startnummer": 4303
+                    },
+                    {
+                        "Lizenznummer": "15618",
+                        "Hundename": "Saija",
+                        "Hundefuehrer": "Evelyne von Riedmatten",
+                        "Startnummer": 4301
+                    },
+                    {
+                        "Lizenznummer": "14746",
+                        "Hundename": "Vince",
+                        "Hundefuehrer": "Kathrin Baumeler",
+                        "Startnummer": 4302
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "d529779e-ef3c-4f72-8f35-bc8e8c7f2a48",
+                "name": "Jumping Medium 1",
+                "laufart": "Jumping",
+                "kategorie": "Medium",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "16633",
+                        "Hundename": "Dean",
+                        "Hundefuehrer": "Maggy Erne",
+                        "Startnummer": 3101
+                    },
+                    {
+                        "Lizenznummer": "16499",
+                        "Hundename": "Ramos",
+                        "Hundefuehrer": "Rahel Glatthard",
+                        "Startnummer": 3102
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "3e2830bb-178e-46cc-a205-b6402f60de38",
+                "name": "Jumping Medium 2",
+                "laufart": "Jumping",
+                "kategorie": "Medium",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "15774",
+                        "Hundename": "Taio",
+                        "Hundefuehrer": "Prisca Stoller",
+                        "Startnummer": 3201
+                    },
+                    {
+                        "Lizenznummer": "16273",
+                        "Hundename": "Zesty Zette",
+                        "Hundefuehrer": "Ariane Faucillon",
+                        "Startnummer": 3202
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "56a2bf30-e413-484c-9200-857a5c465226",
+                "name": "Jumping Medium 3",
+                "laufart": "Jumping",
+                "kategorie": "Medium",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "14766",
+                        "Hundename": "Gil",
+                        "Hundefuehrer": "Lilo Grogg",
+                        "Startnummer": 3303
+                    },
+                    {
+                        "Lizenznummer": "21220",
+                        "Hundename": "Vegas",
+                        "Hundefuehrer": "Toni Cipriano",
+                        "Startnummer": 3301
+                    },
+                    {
+                        "Lizenznummer": "15731",
+                        "Hundename": "Robin",
+                        "Hundefuehrer": "Anna Schönenberger",
+                        "Startnummer": 3302
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "9ba4dd25-0ff0-4b55-8d82-487847309dcf",
+                "name": "Jumping Intermediate 1",
+                "laufart": "Jumping",
+                "kategorie": "Intermediate",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "13852",
+                        "Hundename": "Rocky",
+                        "Hundefuehrer": "Mary Diserens",
+                        "Startnummer": 2104
+                    },
+                    {
+                        "Lizenznummer": "16430",
+                        "Hundename": "Ace",
+                        "Hundefuehrer": "Nicole Blaser",
+                        "Startnummer": 2101
+                    },
+                    {
+                        "Lizenznummer": "16373",
+                        "Hundename": "Weeny",
+                        "Hundefuehrer": "Virginia Gafner",
+                        "Startnummer": 2103
+                    },
+                    {
+                        "Lizenznummer": "16009",
+                        "Hundename": "AC",
+                        "Hundefuehrer": "Elvira Leuenberger",
+                        "Startnummer": 2105
+                    },
+                    {
+                        "Lizenznummer": "15309",
+                        "Hundename": "Xuani",
+                        "Hundefuehrer": "Andrea Zimmermann",
+                        "Startnummer": 2107
+                    },
+                    {
+                        "Lizenznummer": "16436",
+                        "Hundename": "Freecy",
+                        "Hundefuehrer": "Natalie Raetzo",
+                        "Startnummer": 2102
+                    },
+                    {
+                        "Lizenznummer": "16482",
+                        "Hundename": "Time",
+                        "Hundefuehrer": "Nicole Bürki",
+                        "Startnummer": 2106
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "7a8eff33-e7ee-4aa0-a1a3-c11b87ab6577",
+                "name": "Jumping Intermediate 2",
+                "laufart": "Jumping",
+                "kategorie": "Intermediate",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "16480",
+                        "Hundename": "Beany",
+                        "Hundefuehrer": "Anita Leonardi",
+                        "Startnummer": 2204
+                    },
+                    {
+                        "Lizenznummer": "16030",
+                        "Hundename": "Gin",
+                        "Hundefuehrer": "Muriel Grand",
+                        "Startnummer": 2202
+                    },
+                    {
+                        "Lizenznummer": "16522",
+                        "Hundename": "Snap",
+                        "Hundefuehrer": "Iris Wegmann",
+                        "Startnummer": 2203
+                    },
+                    {
+                        "Lizenznummer": "16190",
+                        "Hundename": "Kelly",
+                        "Hundefuehrer": "Valentin Bannwart",
+                        "Startnummer": 2205
+                    },
+                    {
+                        "Lizenznummer": "16082",
+                        "Hundename": "Bonnie",
+                        "Hundefuehrer": "Nadine Brönnimann",
+                        "Startnummer": 2201
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "342f941e-d9ad-4cde-962f-973fae6965fb",
+                "name": "Jumping Intermediate 3",
+                "laufart": "Jumping",
+                "kategorie": "Intermediate",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "14185",
+                        "Hundename": "Go-Tic",
+                        "Hundefuehrer": "Francine Tavazzi",
+                        "Startnummer": 2304
+                    },
+                    {
+                        "Lizenznummer": "14733",
+                        "Hundename": "Free",
+                        "Hundefuehrer": "Ashleigh Serrem",
+                        "Startnummer": 2301
+                    },
+                    {
+                        "Lizenznummer": "16189",
+                        "Hundename": "Piece",
+                        "Hundefuehrer": "Irene Bannwart",
+                        "Startnummer": 2303
+                    },
+                    {
+                        "Lizenznummer": "15803",
+                        "Hundename": "Grace",
+                        "Hundefuehrer": "Patrick Martin",
+                        "Startnummer": 2302
+                    },
+                    {
+                        "Lizenznummer": "14313",
+                        "Hundename": "Berny",
+                        "Hundefuehrer": "Toni Cipriano",
+                        "Startnummer": 2305
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "5680cf84-2d08-4a79-8e3e-921ebbcfea82",
+                "name": "Jumping Large 1",
+                "laufart": "Jumping",
+                "kategorie": "Large",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "15333",
+                        "Hundename": "Mac",
+                        "Hundefuehrer": "Christiane Brönnimann",
+                        "Startnummer": 1104
+                    },
+                    {
+                        "Lizenznummer": "15524",
+                        "Hundename": "Hashtag",
+                        "Hundefuehrer": "Claudia Theunissen",
+                        "Startnummer": 1105
+                    },
+                    {
+                        "Lizenznummer": "15695",
+                        "Hundename": "Carly",
+                        "Hundefuehrer": "michelle kropf",
+                        "Startnummer": 1101
+                    },
+                    {
+                        "Lizenznummer": "15876",
+                        "Hundename": "Artax",
+                        "Hundefuehrer": "Rahel Oegüt",
+                        "Startnummer": 1103
+                    },
+                    {
+                        "Lizenznummer": "16631",
+                        "Hundename": "Nox",
+                        "Hundefuehrer": "Rahel Spring",
+                        "Startnummer": 1102
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "1dae2cc5-7680-44f5-b26d-8f8f68e19a8b",
+                "name": "Jumping Large 2",
+                "laufart": "Jumping",
+                "kategorie": "Large",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "15086",
+                        "Hundename": "Kara",
+                        "Hundefuehrer": "Stéphane Wohlhauser",
+                        "Startnummer": 1210
+                    },
+                    {
+                        "Lizenznummer": "16406",
+                        "Hundename": "Leeloo",
+                        "Hundefuehrer": "Cécile Francey",
+                        "Startnummer": 1201
+                    },
+                    {
+                        "Lizenznummer": "16434",
+                        "Hundename": "Too much",
+                        "Hundefuehrer": "Claudia Theunissen",
+                        "Startnummer": 1209
+                    },
+                    {
+                        "Lizenznummer": "14758",
+                        "Hundename": "Da Vinci",
+                        "Hundefuehrer": "Manuela Reber",
+                        "Startnummer": 1203
+                    },
+                    {
+                        "Lizenznummer": "14709",
+                        "Hundename": "Icebreaker",
+                        "Hundefuehrer": "Eliane Streit",
+                        "Startnummer": 1208
+                    },
+                    {
+                        "Lizenznummer": "15762",
+                        "Hundename": "Sobacca",
+                        "Hundefuehrer": "Natascha Imboden",
+                        "Startnummer": 1204
+                    },
+                    {
+                        "Lizenznummer": "15595",
+                        "Hundename": "Oschka",
+                        "Hundefuehrer": "Sibylle Zeller-Schwab",
+                        "Startnummer": 1202
+                    },
+                    {
+                        "Lizenznummer": "16168",
+                        "Hundename": "Aidan",
+                        "Hundefuehrer": "Annick Hosner",
+                        "Startnummer": 1206
+                    },
+                    {
+                        "Lizenznummer": "14817",
+                        "Hundename": "Phoebe",
+                        "Hundefuehrer": "Carole Zeiter",
+                        "Startnummer": 1205
+                    },
+                    {
+                        "Lizenznummer": "15754",
+                        "Hundename": "Seeed",
+                        "Hundefuehrer": "Carole Zeiter",
+                        "Startnummer": 1207
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "23424c04-f65e-43ce-8c4e-b47061ec8309",
+                "name": "Jumping Large 3",
+                "laufart": "Jumping",
+                "kategorie": "Large",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "16075",
+                        "Hundename": "A-Yena",
+                        "Hundefuehrer": "Francine Tavazzi",
+                        "Startnummer": 1303
+                    },
+                    {
+                        "Lizenznummer": "14707",
+                        "Hundename": "Pepsie",
+                        "Hundefuehrer": "caroline dolder",
+                        "Startnummer": 1302
+                    },
+                    {
+                        "Lizenznummer": "15638",
+                        "Hundename": "Zoey",
+                        "Hundefuehrer": "Sandra Loosli",
+                        "Startnummer": 1312
+                    },
+                    {
+                        "Lizenznummer": "15425",
+                        "Hundename": "Zane",
+                        "Hundefuehrer": "Natalie Kaufmann",
+                        "Startnummer": 1314
+                    },
+                    {
+                        "Lizenznummer": "15147",
+                        "Hundename": "Biscuit",
+                        "Hundefuehrer": "Iris Wegmann",
+                        "Startnummer": 1307
+                    },
+                    {
+                        "Lizenznummer": "15504",
+                        "Hundename": "Fate",
+                        "Hundefuehrer": "Andreas Krähenbühl",
+                        "Startnummer": 1301
+                    },
+                    {
+                        "Lizenznummer": "15406",
+                        "Hundename": "Mokka",
+                        "Hundefuehrer": "Ursula Roethlisberger",
+                        "Startnummer": 1313
+                    },
+                    {
+                        "Lizenznummer": "14754",
+                        "Hundename": "Jacket",
+                        "Hundefuehrer": "Evelyne von Riedmatten",
+                        "Startnummer": 1305
+                    },
+                    {
+                        "Lizenznummer": "14958",
+                        "Hundename": "Djuna",
+                        "Hundefuehrer": "Alina Schärz",
+                        "Startnummer": 1309
+                    },
+                    {
+                        "Lizenznummer": "15804",
+                        "Hundename": "Hiva",
+                        "Hundefuehrer": "Patrick Martin",
+                        "Startnummer": 1311
+                    },
+                    {
+                        "Lizenznummer": "66830",
+                        "Hundename": "Unit",
+                        "Hundefuehrer": "Romy Folch",
+                        "Startnummer": 1306
+                    },
+                    {
+                        "Lizenznummer": "15565",
+                        "Hundename": "Mae",
+                        "Hundefuehrer": "Renée Jansen",
+                        "Startnummer": 1304
+                    },
+                    {
+                        "Lizenznummer": "15661",
+                        "Hundename": "Gin",
+                        "Hundefuehrer": "Alexandra Tschanz",
+                        "Startnummer": 1308
+                    },
+                    {
+                        "Lizenznummer": "15488",
+                        "Hundename": "Fjun",
+                        "Hundefuehrer": "Yvonne Wyss",
+                        "Startnummer": 1310
+                    }
+                ],
+                "laufdaten": {},
+                "assigned_ring": "ring_1",
+                "richter_id": "741",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            }
+        ],
+        "run_order": [
+            {
+                "laufart": "Umbau",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "20",
+                "label": "für Agility",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Briefing",
+                "kategorie": "Alle",
+                "klasse": "1",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "10",
+                "label": "Agility | Kat: Alle | Kl: 1",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Vorbereitung",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "5",
+                "label": "für 1. Starter",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Agility",
+                "kategorie": "Alle",
+                "klasse": "1",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "",
+                "label": "",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Umbau",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "20",
+                "label": "für Jumping",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Briefing",
+                "kategorie": "Alle",
+                "klasse": "1",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "10",
+                "label": "Jumping | Kat: Alle | Kl: 1",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Vorbereitung",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "5",
+                "label": "für 1. Starter",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Jumping",
+                "kategorie": "Alle",
+                "klasse": "1",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "",
+                "label": "",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Umbau",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "20",
+                "label": "für Jumping",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Briefing",
+                "kategorie": "Alle",
+                "klasse": "2",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "10",
+                "label": "Jumping | Kat: Alle | Kl: 2",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Vorbereitung",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "5",
+                "label": "für 1. Starter",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Jumping",
+                "kategorie": "Alle",
+                "klasse": "2",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "",
+                "label": "",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Umbau",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "20",
+                "label": "für Agility",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Briefing",
+                "kategorie": "Alle",
+                "klasse": "2",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "10",
+                "label": "Agility | Kat: Alle | Kl: 2",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Vorbereitung",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "5",
+                "label": "für 1. Starter",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Agility",
+                "kategorie": "Alle",
+                "klasse": "2",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "",
+                "label": "",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Umbau",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "20",
+                "label": "für Agility",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Briefing",
+                "kategorie": "Alle",
+                "klasse": "3",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "10",
+                "label": "Agility | Kat: Alle | Kl: 3",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Vorbereitung",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "5",
+                "label": "für 1. Starter",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Agility",
+                "kategorie": "Alle",
+                "klasse": "3",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "",
+                "label": "",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Umbau",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "20",
+                "label": "für Jumping",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Briefing",
+                "kategorie": "Alle",
+                "klasse": "3",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "10",
+                "label": "Jumping | Kat: Alle | Kl: 3",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Vorbereitung",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "5",
+                "label": "für 1. Starter",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Jumping",
+                "kategorie": "Alle",
+                "klasse": "3",
+                "ring": "1",
+                "richter_id": "741",
+                "duration": "",
+                "label": "",
+                "kat_sort": "asc",
+                "kl_sort": "",
+                "is_grossring": false
+            }
+        ],
+        "start_number_schema": {
+            "Large-1": 1101,
+            "Large-2": 1201,
+            "Large-3": 1301,
+            "Large-Oldie": 1401,
+            "Intermediate-1": 2101,
+            "Intermediate-2": 2201,
+            "Intermediate-3": 2301,
+            "Intermediate-Oldie": 2401,
+            "Medium-1": 3101,
+            "Medium-2": 3201,
+            "Medium-3": 3301,
+            "Medium-Oldie": 3401,
+            "Small-1": 4101,
+            "Small-2": 4201,
+            "Small-3": 4301,
+            "Small-Oldie": 4401
+        }
+    }
+]

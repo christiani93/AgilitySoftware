@@ -1,0 +1,64 @@
+*** Begin Patch
+*** Update File: templates/ring_pc_dashboard.html
+@@
+-                <button id="activate-display-btn" class="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600 disabled:opacity-50" title="Diesen Lauf für Monitore aktivieren" disabled>
++                <!-- Text auf gelbem Button schwarz für bessere Lesbarkeit -->
++                <button id="activate-display-btn" class="bg-yellow-500 text-black p-2 rounded hover:bg-yellow-600 disabled:opacity-50" title="Diesen Lauf für Monitore aktivieren" disabled>
+                     <i class="fas fa-bullhorn"></i>
+                 </button>
+             </div>
+@@
+-            <button id="reset-run-btn" class="mt-2 w-full bg-red-600 text-white p-2 rounded hover:bg-red-700">Aktuellen Lauf zurücksetzen</button>
++            <!-- Rot auf Weiß belassen (Kontrast), Rest auf Schwarz umgestellt -->
++            <button id="reset-run-btn" class="mt-2 w-full bg-red-600 text-white p-2 rounded hover:bg-red-700">Aktuellen Lauf zurücksetzen</button>
+         </div>
+@@
+-            return `<div id="starter-${entry.Lizenznummer}" class="starter-row p-3 rounded-lg flex justify-between items-center ${hasResult ? 'bg-green-100' : 'bg-gray-50'}">
++            return `<div id="starter-${entry.Lizenznummer}" class="starter-row p-3 rounded-lg flex justify-between items-center ${hasResult ? 'bg-green-100' : 'bg-gray-50'}">
+                         <div><span class="font-bold text-lg mr-4 w-12 text-center">${entry.Startnummer}</span><span>${entry.Hundefuehrer} mit ${entry.Hundename}</span></div>
+                         <div class="flex items-center gap-2">
+                             <div class="w-48 text-right font-bold text-sm text-gray-700">${statusText}</div>
+-                            <button onclick="window.appActions.editResult('${entry.Lizenznummer}')" class="bg-blue-500 text-white py-1 px-2 rounded text-xs hover:bg-blue-600" title="Manuelle Korrektur"><i class="fas fa-edit"></i></button>
+-                            <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}', 'a.K.')" class="bg-gray-400 text-black py-1 px-2 rounded text-xs hover:bg-gray-500" ${buttonDisabled}>a.K.</button>
+-                            <button onclick="window.appActions.setStarterReady('${entry.Lizenznummer}')" class="bg-yellow-400 text-gray-800 font-bold py-1 px-3 rounded text-sm hover:bg-yellow-500" ${buttonDisabled}>Bereit</button>
++                            <!-- Blaue Aktionstaste jetzt mit schwarzem Text auf hellblauem Hintergrund -->
++                            <button onclick="window.appActions.editResult('${entry.Lizenznummer}')" class="bg-blue-200 text-black py-1 px-2 rounded text-xs hover:bg-blue-300" title="Manuelle Korrektur"><i class="fas fa-edit"></i></button>
++                            <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}', 'a.K.')" class="bg-gray-300 text-black py-1 px-2 rounded text-xs hover:bg-gray-400" ${buttonDisabled}>a.K.</button>
++                            <button onclick="window.appActions.setStarterReady('${entry.Lizenznummer}')" class="bg-yellow-400 text-black font-bold py-1 px-3 rounded text-sm hover:bg-yellow-500" ${buttonDisabled}>Bereit</button>
+                         </div>
+                     </div>`;
+         }).join('');
+     }
+@@
+-    function fetchRunDetails() {
++    function fetchRunDetails() {
+         if (!state.currentRunId) return;
+-        const url = `/api/get_run_details/${eventId}/${state.currentRunId}`;
++        // *Kein* hartkodierter Pfad mehr – serverseitig generiert:
++        const url = document.getElementById('run-select').dataset.apiRunDetailsTemplate
++            .replace('__EVENT__', eventId)
++            .replace('__RUN__', state.currentRunId);
+         fetch(url)
+             .then(res => res.ok ? res.json() : Promise.reject(res.status))
+             .then(data => { if (data.success) { state.allEntries = data.data.entries; renderStarterList(); } else { alert(`Fehler: ${data.message}`); } })
+             .catch(err => { ui.starterList.innerHTML = `<p class="text-red-500 font-bold">Netzwerkfehler.</p>`; });
+     }
+@@
+-    ui.runSelect.addEventListener('change', function() {
++    ui.runSelect.addEventListener('change', function() {
+         state.currentRunId = this.value;
+         ui.activateBtn.disabled = !state.currentRunId;
+         if (state.currentRunId) fetchRunDetails(); else ui.starterList.innerHTML = '<p class="text-gray-500">Bitte wählen Sie links einen Lauf aus.</p>';
+     });
+@@
+-    connectSockets();
++    // Hinterlege API-Vorlage aus Jinja
++    (function injectApiTemplate(){
++        const apiTpl = "{{ url_for('events_bp.api_get_run_details', event_id='__EVENT__', run_id='__RUN__') }}";
++        document.getElementById('run-select').setAttribute('data-api-run-details-template', apiTpl);
++    })();
++    connectSockets();
+ });
+ </script>
+ {% endblock %}
+*** End Patch
