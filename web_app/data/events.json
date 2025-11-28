@@ -51,9 +51,9 @@
                     "standardzeit_sct": 61.79
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "fd78dd0b-dc5a-4f1f-9e1c-9ed2c26fd14c",
@@ -105,9 +105,9 @@
                     "standardzeit_sct": 82.8
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "920b5e0f-2fef-4af6-8c54-0544df2aaa8e",
@@ -175,9 +175,9 @@
                     "standardzeit_sct": 85.6
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "50bec726-4d0b-44f7-84bf-9297cada7e4d",
@@ -192,9 +192,9 @@
                     "standardzeit_sct": 67.86
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "9deeec8d-32b0-4796-a482-ec5d1428cbba",
@@ -223,9 +223,9 @@
                     "standardzeit_sct": 77.6
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "ebae4980-2f65-47fd-8cfd-296158635934",
@@ -303,9 +303,9 @@
                     "standardzeit_sct": 82.4
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "afbdc225-40f1-4c64-a719-46bcc5a37bf1",
@@ -399,9 +399,9 @@
                     "standardzeit_sct": 61.43
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "15355578-ad4d-41df-ab48-62740de07521",
@@ -495,9 +495,9 @@
                     "standardzeit_sct": 67.2
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "b498d15b-e3e1-4443-bc7c-3c62fa35a210",
@@ -650,9 +650,9 @@
                     "standardzeit_sct": 66.8
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "0b3cec7e-e384-4af3-8ae3-2f73a30cd98a",
@@ -798,9 +798,9 @@
                     "standardzeit_sct": 77.86
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "043991c3-45a1-429e-93a6-2f0ec8872d0a",
@@ -1229,9 +1229,9 @@
                     "standardzeit_sct": 80.4
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "27e2d72b-8214-4c7e-bda6-e0c53c8564c0",
@@ -1631,9 +1631,9 @@
                     "standardzeit_sct": 82.0
                 },
                 "assigned_ring": "ring_1",
-                "richter_id": "17385",
-                "kat_sort": "",
-                "kl_sort": ""
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "eaec4cbe-f731-4d01-baa0-c5fb5bd58bef",
@@ -1674,10 +1674,10 @@
                     "anzahl_hindernisse": 21,
                     "standardzeit_sct": 61.79
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "13830584-f23d-43b2-b3cf-e646676a3065",
@@ -1731,10 +1731,10 @@
                     "anzahl_hindernisse": 21,
                     "standardzeit_sct": 69.33
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "52c04fc5-4f07-4c8a-b4c5-8da6362a8229",
@@ -1801,10 +1801,10 @@
                     "anzahl_hindernisse": 22,
                     "standardzeit_sct": 68.33
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "e9d20f93-a862-41dd-94bd-a6cbe4285ff3",
@@ -1818,10 +1818,10 @@
                     "anzahl_hindernisse": 21,
                     "standardzeit_sct": 67.14
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "c181cb2e-467f-40b9-bfb2-b84299a6f6c7",
@@ -1849,10 +1849,10 @@
                     "anzahl_hindernisse": 20,
                     "standardzeit_sct": 54.0
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "fc71c3f7-0de6-4a17-b9ae-e7ff91fcc033",
@@ -1929,10 +1929,10 @@
                     "anzahl_hindernisse": 22,
                     "standardzeit_sct": 56.67
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "981df62c-5263-4f55-89db-3d239f7ca572",
@@ -2022,10 +2022,10 @@
                     "anzahl_hindernisse": 21,
                     "standardzeit_sct": 77.14
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "d1e78343-bd56-4219-a7bc-1f76db95f042",
@@ -2115,10 +2115,10 @@
                     "anzahl_hindernisse": 21,
                     "standardzeit_sct": 54.67
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "a8ae13d9-0c83-4a37-aff8-267ec7c28256",
@@ -2273,10 +2273,10 @@
                     "anzahl_hindernisse": 22,
                     "standardzeit_sct": 56.0
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "e272e651-9f51-4233-a022-9f1925033153",
@@ -2418,10 +2418,10 @@
                     "anzahl_hindernisse": 19,
                     "standardzeit_sct": 63.21
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "bf23f1be-0219-4cac-80ff-5bcd8b2b013d",
@@ -2849,10 +2849,10 @@
                     "anzahl_hindernisse": 18,
                     "standardzeit_sct": 57.33
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             },
             {
                 "id": "481ffa6c-a58f-410f-a016-033526b46281",
@@ -3254,60 +3254,54 @@
                     "anzahl_hindernisse": 22,
                     "standardzeit_sct": 54.67
                 },
-                "assigned_ring": null,
-                "richter_id": "3995",
-                "kat_sort": "asc",
-                "kl_sort": ""
+                "assigned_ring": "ring_1",
+                "richter_id": "3034",
+                "kat_sort": null,
+                "kl_sort": null
             }
         ],
         "run_order": [
             {
-                "laufart": "Umbau",
-                "kategorie": "",
-                "klasse": "",
-                "ring": "1",
-                "richter_id": "",
-                "duration": "20",
-                "label": "für Agility",
-                "kat_sort": "",
-                "kl_sort": "",
-                "is_grossring": false
-            },
-            {
-                "laufart": "Umbau",
-                "kategorie": "",
-                "klasse": "",
-                "ring": "1",
-                "richter_id": "",
-                "duration": "20",
-                "label": "für Agility",
-                "kat_sort": "",
-                "kl_sort": "",
-                "is_grossring": false
-            },
-            {
+                "ring": "ring_1",
+                "richter_id": "3034",
                 "laufart": "Agility",
                 "kategorie": "Alle",
-                "klasse": "Alle",
-                "ring": "1",
-                "richter_id": "17385",
-                "duration": "30",
-                "label": "Agility | Kat: Alle | Kl: Alle",
-                "kat_sort": "",
-                "kl_sort": "",
-                "is_grossring": false
+                "klasse": "1"
             },
             {
+                "ring": "ring_1",
+                "richter_id": "3034",
+                "laufart": "Jumping",
+                "kategorie": "Alle",
+                "klasse": "1"
+            },
+            {
+                "ring": "ring_1",
+                "richter_id": "3034",
+                "laufart": "Jumping",
+                "kategorie": "Alle",
+                "klasse": "2"
+            },
+            {
+                "ring": "ring_1",
+                "richter_id": "3034",
                 "laufart": "Agility",
                 "kategorie": "Alle",
-                "klasse": "Alle",
-                "ring": "1",
-                "richter_id": "17385",
-                "duration": "",
-                "label": "",
-                "kat_sort": "",
-                "kl_sort": "",
-                "is_grossring": false
+                "klasse": "2"
+            },
+            {
+                "ring": "ring_1",
+                "richter_id": "3034",
+                "laufart": "Agility",
+                "kategorie": "Alle",
+                "klasse": "3"
+            },
+            {
+                "ring": "ring_1",
+                "richter_id": "3034",
+                "laufart": "Jumping",
+                "kategorie": "Alle",
+                "klasse": "3"
             }
         ],
         "start_number_schema": {

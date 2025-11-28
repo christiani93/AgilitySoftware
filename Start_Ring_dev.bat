@@ -1,0 +1,93 @@
+@echo off
+setlocal EnableExtensions EnableDelayedExpansion
+
+echo ============================================
+echo   AgilitySoftware - Ring 1 (DEV, venv)
+echo   (Ring-Server + Ring-PC Ansicht)
+echo ============================================
+echo.
+
+REM ------------------------------------------------
+REM 0) KONFIGURATION
+REM ------------------------------------------------
+REM IP des Hauptservers (wo die Web-App laeuft)
+set "SERVER_IP=127.0.0.1"
+
+REM Ring-bezogene Einstellungen
+set "RING_NUMBER=1"
+set "RING_LABEL=Ring 1"
+set "RING_PORT=5001"
+
+REM Fester Pfad zu Python 32-bit
+set "PY32=C:\Users\chris\AppData\Local\Programs\Python\Python313-32\python.exe"
+
+REM ------------------------------------------------
+REM 1) Zum Projekt-Root wechseln
+REM ------------------------------------------------
+cd /d "%~dp0"
+
+if not exist "web_app" (
+  echo FEHLER: Ordner web_app wurde nicht gefunden.
+  echo Pfad: %CD%\web_app
+  pause
+  exit /b 1
+)
+
+cd web_app
+
+if not exist "ring_server\ring_server.py" (
+  echo FEHLER: ring_server\ring_server.py wurde nicht gefunden.
+  echo Pfad: %CD%\ring_server\ring_server.py
+  pause
+  exit /b 1
+)
+
+if not exist "%PY32%" (
+  echo FEHLER: Python 32-bit wurde nicht gefunden:
+  echo   %PY32%
+  pause
+  exit /b 1
+)
+
+echo [RING1] Verwende Python 32-bit: %PY32%
+
+REM ------------------------------------------------
+REM 2) Virtuelle Umgebung fuer Ring-Server pruefen/erstellen
+REM ------------------------------------------------
+echo [RING1] Pruefe virtuelle Umgebung ring_env ...
+
+set "RING_ENV_DIR=%CD%\ring_env"
+set "RING_ENV_PY=%RING_ENV_DIR%\Scripts\python.exe"
+
+if not exist "%RING_ENV_PY%" (
+  echo [RING1] Erstelle neue venv in ring_env ...
+  "%PY32%" -m venv "%RING_ENV_DIR%"
+)
+
+if not exist "%RING_ENV_PY%" (
+  echo FEHLER: ring_env konnte nicht erstellt werden.
+  pause
+  exit /b 1
+)
+
+echo [RING1] Aktualisiere Pakete in ring_env ...
+"%RING_ENV_PY%" -m pip install --upgrade pip
+"%RING_ENV_PY%" -m pip install flask flask-socketio requests pywin32
+
+REM ------------------------------------------------
+REM 3) Ring-Server im aktuellen Fenster starten (ueber venv)
+REM ------------------------------------------------
+echo [RING1] Starte Ring-Server "%RING_LABEL%" auf Port %RING_PORT% ...
+cd ring_server
+
+echo.
+echo --- Ring-Server laeuft. Zum Beenden STRG+C druecken. ---
+echo.
+
+"%RING_ENV_PY%" ring_server.py --ring "%RING_LABEL%" --port %RING_PORT%
+
+echo.
+echo [RING1] Ring-Server wurde beendet.
+pause
+endlocal
+exit /b 0

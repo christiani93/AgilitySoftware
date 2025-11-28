@@ -1,2 +1,4 @@
 /web_app/blueprints/__pycache__
 /web_app/patches_applied
+/web_app/__pycache__
+web_app/data/events.json
