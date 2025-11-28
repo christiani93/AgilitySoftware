@@ -127,6 +127,82 @@
     {% endfor %}
   </div>
 
+  <!-- Startnummern-Schema und Vergabe (wiederhergestellt) -->
+  <div class="row mb-3">
+    <div class="col-12 col-xl-6">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Startnummern-Schema</span>
+          <form class="m-0" method="post" action="{{ url_for('events_bp.load_schema_template', event_id=event.id) }}">
+            <button class="btn btn-sm btn-outline-secondary" type="submit">Vorlage laden</button>
+          </form>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{{ url_for('events_bp.save_schema', event_id=event.id) }}">
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-3">
+                <thead class="table-light">
+                  <tr>
+                    <th>Kategorie</th>
+                    <th>Klasse</th>
+                    <th>Startnummer ab</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% set schema = event.start_number_schema or {} %}
+                {% for cat in possible_categories %}
+                  {% for cls in possible_classes %}
+                  <tr>
+                    <td>{{ cat }}</td>
+                    <td>{{ cls }}</td>
+                    <td>
+                      <input type="number"
+                             class="form-control form-control-sm"
+                             name="{{ cat }}-{{ cls }}"
+                             value="{{ schema.get(cat ~ '-' ~ cls, '') }}"
+                             min="1">
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% endfor %}
+                  <tr>
+                    <td colspan="2">Fallback</td>
+                    <td>
+                      <input type="number"
+                             class="form-control form-control-sm"
+                             name="Default"
+                             value="{{ schema.get('Default', '') }}"
+                             min="1">
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <button class="btn btn-primary" type="submit">Schema speichern</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <div class="card h-100">
+        <div class="card-header">Startnummern vergeben</div>
+        <div class="card-body">
+          <form class="row g-3 align-items-end" method="post" action="{{ url_for('events_bp.generate_startlist', event_id=event.id) }}">
+            <div class="col-12 col-md-6">
+              <label class="form-label">Abstand zwischen Hundeführern</label>
+              <input type="number" class="form-control" name="handler_distance" value="20" min="1">
+            </div>
+            <div class="col-12 col-md-6 d-flex gap-2">
+              <button class="btn btn-outline-secondary flex-fill" type="submit">Startnummern generieren</button>
+            </div>
+          </form>
+          <p class="small text-muted mt-3 mb-0">Die automatische Vergabe nutzt die oben definierten Startnummern-Blöcke und mischt die Starter zufällig.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Vorschau Startnummern -->
   <div class="card mb-5">
     <div class="card-header">Vorschau – vergebene Startnummern</div>
@@ -167,6 +243,8 @@
       "{{ j.id }}": "{{ (j.firstname ~ ' ' ~ j.lastname).strip()|e }}"{% if not loop.last %},{% endif %}
     {% endfor %}
   };
+  const INITIAL_RUN_ORDER = {{ (event.run_order or []) | tojson }};
+  const MAX_RING = {{ num_rings or 1 }};
 
   // Nicht-Lauf Typen – müssen exakt mit dem Server übereinstimmen
   const NON_RUN_TYPES = ["briefing","umbau","vorbereitung","pause","grossring"];
@@ -205,8 +283,8 @@
       document.getElementById('run_order_data').value = JSON.stringify(RUN_ORDER);
     });
 
-    // Falls der Server bestehende Reihenfolge mitliefert, hier könnten wir sie initial rendern.
-    // In deiner aktuellen View kommt sie nicht separat – die Liste wird durch Drag&Drop / Add aufgebaut.
+    // Bestehende Reihenfolge initial anzeigen (wiederhergestellt)
+    hydrateScheduleFromServer();
   });
 
   function currentRingKey() {
@@ -236,6 +314,25 @@
     RUN_ORDER.push(block);
     const card = renderBlockCard(block);
     renderJudgeBadge(card, block.richter_id);
+  }
+
+  // Überträgt vorhandene Blocks aus dem Backend wieder in die UI
+  function hydrateScheduleFromServer() {
+    if (!Array.isArray(INITIAL_RUN_ORDER)) return;
+    INITIAL_RUN_ORDER.forEach(rawBlock => {
+      const ringKey = normalizeRing(rawBlock.ring || rawBlock.ring_id || rawBlock.ringIndex || rawBlock.ringName);
+      const block = { ...rawBlock, ring: ringKey };
+      RUN_ORDER.push(block);
+      const card = renderBlockCard(block);
+      renderJudgeBadge(card, block.richter_id);
+    });
+  }
+
+  function normalizeRing(value) {
+    if (!value) return 'ring_1';
+    const match = String(value).match(/(\d+)/);
+    const ringNo = match ? Math.min(Math.max(parseInt(match[1], 10) || 1, 1), MAX_RING) : 1;
+    return `ring_${ringNo}`;
   }
 
   function renderBlockCard(block) {
