@@ -4,8 +4,9 @@ echo  Ring 1 DEV - Minimalstart
 echo ================================
 echo.
 
-REM 1) In den ring_server-Ordner wechseln
-cd /d "C:\Users\chris\OneDrive\Dokumente\AgilitySoftware\web_app\ring_server"
+REM 1) In den ring_server-Ordner wechseln (relativ zum Projektpfad)
+cd /d "%~dp0"
+cd web_app\ring_server
 
 if not exist "ring_server.py" (
   echo FEHLER: ring_server.py nicht gefunden!

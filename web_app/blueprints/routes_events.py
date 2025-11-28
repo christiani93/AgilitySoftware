@@ -716,7 +716,17 @@ def plan_schedule(event_id):
     laufarten = sorted(list(set(r['laufart'] for r in event.get('runs', []))))
     kategorien = sorted(list(set(r['kategorie'] for r in event.get('runs', []))), key=get_category_sort_key)
     klassen = sorted(list(set(str(r['klasse']) for r in event.get('runs', []))))
-    judges = _load_data(JUDGES_FILE)
+    # Robust gegen ältere Datenstrukturen, damit das Richter-Dropdown gefüllt wird
+    judges_raw = _load_data(JUDGES_FILE) or []
+    judges = []
+    for j in judges_raw:
+        if not isinstance(j, dict):
+            continue
+        judges.append({
+            'id': j.get('id'),
+            'firstname': j.get('firstname') or j.get('vorname') or j.get('Vorname'),
+            'lastname': j.get('lastname') or j.get('nachname') or j.get('Nachname'),
+        })
     return render_template('plan_schedule.html',
                            event=event,
                            laufarten=laufarten,
