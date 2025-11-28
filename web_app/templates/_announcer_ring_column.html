@@ -1,0 +1,62 @@
+<h2 class="ring-title">{{ ring_name }}</h2>
+            
+{% if ring_data %}
+    <h3 class="run-title">{{ ring_data.active_run.name }}</h3>
+
+    <div class="info-box">
+        <h3>Nächste Starter</h3>
+        <ul>
+            {% for starter in ring_data.next_starters %}
+                <li><strong>{{ starter.Startnummer }}</strong> - {{ starter.Hundefuehrer }} mit {{ starter.Hundename }}</li>
+            {% else %}
+                <li>Keine weiteren Starter.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="info-box">
+        <h3>Live-Rangliste</h3>
+        <table style="width: 100%; font-size: 0.9em;">
+            <thead>
+                <tr style="text-align: left;">
+                    <th style="width: 8%;">Rang</th>
+                    <th style="width: 42%;">Team</th>
+                    <th style="width: 15%;">Zeit</th>
+                    <th style="width: 35%;">Fehler (Parcours / Total)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in ring_data.rankings %}
+                <tr>
+                    <td class="rank-col">{{ r.rank }}.</td>
+                    <td>{{ r.Hundefuehrer }}<br><small style="color: #bdc3c7;">{{ r.Hundename }}</small></td>
+                    <td class="time-col">{{ "%.2f"|format(r.result.zeit|float) }}s</td>
+                    <td>
+                        {% if r.total_faults is number %}
+                            {{ "%.2f"|format(r.total_faults - r.time_faults) }} / <strong>{{ "%.2f"|format(r.total_faults) }}</strong>
+                        {% else %}
+                            <strong>{{ r.total_faults }}</strong>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="info-box">
+        <h3>Zuletzt erfasst</h3>
+        <ul>
+            {% for res in ring_data.last_results %}
+                 <li><strong>{{ res.Startnummer }} - {{ res.Hundefuehrer }}:</strong> {{ "%.2f"|format(res.result.zeit|float) }}s (Fehler: {{ res.result.fehler or 0 }}, Verw: {{ res.result.verweigerungen or 0 }})</li>
+            {% else %}
+                <li>Noch keine Ergebnisse erfasst.</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% else %}
+    <div class="info-box">
+        <p>Kein aktiver Lauf für diesen Ring ausgewählt.</p>
+        <p>Bitte in der Live-Übersicht einen Lauf "für Sprecher anzeigen".</p>
+    </div>
+{% endif %}

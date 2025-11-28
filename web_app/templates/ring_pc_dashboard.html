@@ -1,0 +1,469 @@
+
+<!-- RING-PC STATUS BANNER START -->
+<style>
+  .ring-banner{position:sticky;top:0;z-index:1000;background:#111;color:#fff;
+    padding:.5rem .75rem;font-family:system-ui,Segoe UI,Arial,sans-serif;display:flex;
+    gap:1rem;align-items:center;border-bottom:2px solid #333}
+  .ring-badge{padding:.15rem .5rem;border-radius:.5rem;font-weight:600}
+  .ring-badge.ok{background:#2e7d32}
+  .ring-badge.bad{background:#b71c1c}
+  .ring-label{opacity:.8}
+</style>
+<div id="ring-banner" class="ring-banner">
+  <span class="ring-label">Ring:</span>
+  <strong id="ring-label">{{ ring_name|default('Ring 1') }}</strong>
+  <span class="ring-label">Server:</span>
+  <span id="ring-conn" class="ring-badge bad">Keine Verbindung</span>
+  <span class="ring-label">Lauf:</span>
+  <span id="ring-selected">Kein Lauf ausgewählt</span>
+</div>
+<!-- RING-PC STATUS BANNER END -->
+
+<div id="fix-meta-event" data-event-id="{{ event.id }}"></div>
+
+{% extends "layout.html" %}
+{% block title %}Ring-PC: {{ ring_name }} - {{ event.Bezeichnung }}{% endblock %}
+{% set kiosk_mode = True %}
+
+{% block content %}
+<style>
+    .starter-ready { background-color: #fef9c3 !important; }
+    .starter-running { background-color: #fecaca !important; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+</style>
+<div class="container mx-auto p-4 max-w-7xl">
+    <header class="bg-white p-4 rounded-lg shadow mb-4 flex justify-between items-center no-print">
+        <div>
+            <h1 class="text-2xl font-bold text-blue-600">{{ ring_name }}</h1>
+            <p class="text-gray-600">{{ event.Bezeichnung }}</p>
+        </div>
+        <div><a href="{{ url_for('live_bp.live_event_dashboard') }}" class="text-blue-500 hover:underline">&larr; Zurück zum Live-Dashboard</a></div>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="md:col-span-1 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-lg font-bold mb-3 border-b pb-2">1. Lauf auswählen & Steuerung</h2>
+            <div class="flex gap-2">
+                <select id="run-select" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">-- Bitte wählen --</option>
+                    {% for run in runs %}
+                        <option value="{{ run.id }}">{{ run.name }}</option>
+                    {% endfor %}
+                </select>
+                <button id="activate-display-btn" class="bg-yellow-400 text-black p-2 rounded hover:bg-yellow-500 disabled:opacity-50" title="Diesen Lauf für Monitore aktivieren" disabled>
+                    <i class="fas fa-bullhorn"></i>
+                </button>
+                <a id="edit-run-btn" href="#" class="bg-gray-500 text-white p-2 rounded hover:bg-gray-600 disabled:opacity-50" title="Lauf-Einstellungen" aria-disabled="true">Einstellungen</a>
+            </div>
+            <div id="ring-server-status" class="mt-3 text-sm text-gray-500">Verbinde mit Ring-Server...</div>
+            <div id="live-info" class="mt-2 p-3 bg-gray-200 text-black rounded">
+                <div>Status: <span id="info-status" class="font-mono">idle</span></div>
+<button id="quick-save-btn" class="mt-2 w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">
+  Schnell speichern (Zeit/F/V)
+</button>
+
+                <div>Starter: <span id="info-starter" class="font-mono">-</span></div>
+                <div>Zeit: <span id="info-time" class="font-mono">0.00</span>s</div>
+                <div>Fehler (F): <span id="info-faults" class="font-mono">0</span> | Verw. (V): <span id="info-refusals" class="font-mono">0</span></div>
+            </div>
+            <button id="reset-run-btn" class="mt-2 w-full bg-red-200 text-black p-2 rounded hover:bg-red-300">Aktuellen Lauf zurücksetzen</button>
+        </div>
+
+        <div class="md:col-span-2 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-lg font-bold mb-3 border-b pb-2">2. Starterliste & Resultate</h2>
+            <div id="starter-list-container"><p class="text-gray-500">Bitte wählen Sie links einen Lauf aus.</p></div>
+        </div>
+    </div>
+</div>
+
+<div id="result-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Resultat bearbeiten</h3>
+            <form id="result-form" onsubmit="return false;" class="mt-2 px-7 py-3">
+                <input type="number" step="0.01" id="modal-zeit" placeholder="Zeit" class="mb-2 w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none" required>
+                <input type="number" step="1" min="0" id="modal-fehler" placeholder="Fehler" class="mb-2 w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none">
+                <input type="number" step="1" min="0" id="modal-verweigerung" placeholder="Verweigerungen" class="mb-2 w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none">
+                <select id="modal-disq" class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none">
+                    <option value="">Keine</option><option value="DIS">DIS</option><option value="ABR">ABR</option>
+                </select>
+            </form>
+            <div class="items-center px-4 py-3">
+                <button id="modal-save-btn" class="px-4 py-2 bg-green-200 text-black rounded-md w-full hover:bg-green-300">Speichern</button>
+                <button id="modal-cancel-btn" class="mt-2 px-4 py-2 bg-gray-200 text-black rounded-md w-full hover:bg-gray-300">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ===== Ring-PC Dashboard (konsolidiert, saubere Klammern) ===== */
+(function(){
+  "use strict";
+
+  // ---- Hilfsfunktionen ----
+  function normRingId(input){
+    if (input == null) return "";
+    let s = String(input).toLowerCase().trim();
+    s = s.replace("ring_","").replace("ring","").trim();
+    const n = parseInt(s,10);
+    if (!isFinite(n) || n < 1) return "";
+    return "ring_" + n;
+  }
+  function displayRingLabel(ringId){
+    const s = normRingId(ringId);
+    return s ? ("Ring " + s.replace("ring_","")) : "Ring ?";
+  }
+
+  // ---- DOM Ready ----
+  document.addEventListener("DOMContentLoaded", function(){
+    const ui = {
+      runSelect   : document.getElementById("run-select"),
+      starterList : document.getElementById("starter-list-container"),
+      statusDiv   : document.getElementById("ring-server-status"),
+      activateBtn : document.getElementById("activate-display-btn"),
+      editRunBtn  : document.getElementById("edit-run-btn"),
+      resetBtn    : document.getElementById("reset-run-btn"),
+      modal       : document.getElementById("result-modal"),
+      info: {
+        status   : document.getElementById("info-status"),
+        starter  : document.getElementById("info-starter"),
+        time     : document.getElementById("info-time"),
+        faults   : document.getElementById("info-faults"),
+        refusals : document.getElementById("info-refusals")
+      }
+    };
+
+    const eventId = "{{ event.id }}";
+    const RING_SERVER_URL = "http://127.0.0.1:5001";
+
+    const state = {
+      currentRunId: null,
+      allEntries: [],
+      currentEntryToEdit: null,
+      clockInterval: null,
+      localSocket: null,
+      mainSocket: null
+    };
+
+    // ---- Banner-Health (schwarzer Banner #ring-conn) ----
+    (function(){
+      const $conn = document.getElementById("ring-conn");
+      function setConn(ok){
+        if (!$conn) return;
+        $conn.textContent = ok ? "Verbunden" : "Keine Verbindung";
+        $conn.classList.toggle("ok", !!ok);
+        $conn.classList.toggle("bad", !ok);
+      }
+      async function pollHealth(){
+        try{
+          const r = await fetch(RING_SERVER_URL + "/health", {cache:"no-store", credentials:"omit"});
+          setConn(r.ok);
+        }catch(e){
+          setConn(false);
+        }
+      }
+      pollHealth();
+      setInterval(pollHealth, 2000);
+    })();
+
+    // ---- Socket.IO (Ringserver + Hauptsocket) ----
+    function connectSockets(){
+      if (typeof io !== "function") return;
+
+      state.mainSocket = io(); // Haupt-App
+
+      const host = window.location.hostname || "127.0.0.1";
+      const localUrl = "http://" + host + ":5001";
+
+      state.localSocket = io(localUrl, {
+        transports: ["websocket","polling"],
+        reconnection: true,
+        reconnectionAttempts: 30,
+        reconnectionDelay: 1000,
+        timeout: 5000
+      });
+
+      state.localSocket.on("connect", () => {
+        if (ui.statusDiv){
+          ui.statusDiv.textContent = "Ring-Server: Verbunden";
+          ui.statusDiv.className = "mt-3 text-sm text-green-600 font-bold";
+        }
+      });
+      state.localSocket.on("disconnect", () => {
+        if (ui.statusDiv){
+          ui.statusDiv.textContent = "Ring-Server: Verbindung getrennt!";
+          ui.statusDiv.className = "mt-3 text-sm text-red-600 font-bold";
+        }
+      });
+      state.localSocket.on("connect_error", () => {
+        if (ui.statusDiv){
+          ui.statusDiv.textContent = "Ring-Server: Verbindung fehlgeschlagen!";
+          ui.statusDiv.className = "mt-3 text-sm text-red-600 font-bold";
+        }
+      });
+
+      state.localSocket.on("state_update", (serverState) => {
+        if (ui.info.status)   ui.info.status.textContent  = serverState.run_status || "idle";
+        if (ui.info.starter)  ui.info.starter.textContent = (serverState.current_starter && serverState.current_starter.Startnummer) ? ("#" + serverState.current_starter.Startnummer) : "-";
+        if (ui.info.faults)   ui.info.faults.textContent  = (serverState.faults ?? 0);
+        if (ui.info.refusals) ui.info.refusals.textContent= (serverState.refusals ?? 0);
+
+        document.querySelectorAll(".starter-row").forEach(el => el.classList.remove("starter-ready","starter-running"));
+        if (serverState.current_starter){
+          const el = document.getElementById("starter-" + serverState.current_starter.Lizenznummer);
+          if (el) el.classList.add(serverState.run_status === "ready" ? "starter-ready" : "starter-running");
+        }
+      });
+
+      state.localSocket.on("start_clock", () => {
+        if (state.clockInterval) clearInterval(state.clockInterval);
+        const t0 = Date.now();
+        state.clockInterval = setInterval(() => {
+          if (ui.info.time) ui.info.time.textContent = ((Date.now() - t0)/1000).toFixed(2);
+        }, 50);
+      });
+
+      state.localSocket.on("run_finished_timing", (data) => {
+        if (state.clockInterval) clearInterval(state.clockInterval);
+        if (ui.info.time) ui.info.time.textContent = data.final_time;
+        if (state.currentEntryToEdit && window.appActions && typeof window.appActions.editResult === "function"){
+          window.appActions.editResult(state.currentEntryToEdit.Lizenznummer, data);
+        }
+      });
+
+      state.mainSocket.on("result_update", (data) => {
+        if (data.run_id === state.currentRunId) fetchRunDetails();
+      });
+    }
+
+    // ---- Run-Details laden & rendern ----
+    function fetchRunDetails(){
+      if (!state.currentRunId) return;
+      const url = `/events/api/get_run_details/${eventId}/${state.currentRunId}`;
+      fetch(url, {cache:"no-store"})
+        .then(res => res.ok ? res.json() : Promise.reject(res.status))
+        .then(data => {
+          if (data.success){
+            state.allEntries = data.data.entries || [];
+            renderStarterList();
+          } else {
+            ui.starterList.innerHTML = `<p class="text-red-500 font-bold">Fehler: ${data.message}</p>`;
+          }
+        })
+        .catch(() => {
+          ui.starterList.innerHTML = `<p class="text-red-500 font-bold">Netzwerkfehler.</p>`;
+        });
+    }
+
+    function byStartnummer(a,b){
+      const na = parseInt(a.Startnummer,10);
+      const nb = parseInt(b.Startnummer,10);
+      if (isNaN(na) && isNaN(nb)) return 0;
+      if (isNaN(na)) return 1;
+      if (isNaN(nb)) return -1;
+      return na - nb;
+    }
+
+    function renderStarterList(){
+      if (!state.allEntries.length){
+        ui.starterList.innerHTML = '<p class="text-gray-500">Keine Starter vorhanden.</p>';
+        return;
+      }
+      const entries = [...state.allEntries].sort(byStartnummer);
+      ui.starterList.innerHTML = entries.map(entry => {
+        const hasResult = entry.result && (entry.result.zeit || entry.result.disqualifikation);
+        const statusText = hasResult
+          ? (entry.result.disqualifikation || `${entry.result.zeit || '-'}s, ${entry.result.fehler || 0}F, ${entry.result.verweigerungen || 0}V`)
+          : (entry.status_vermerk || '');
+        const disabled = hasResult ? "disabled" : "";
+        return `
+          <div id="starter-${entry.Lizenznummer}" class="starter-row p-3 rounded-lg flex justify-between items-center ${hasResult ? 'bg-green-100' : 'bg-gray-50'}">
+            <div>
+              <span class="font-bold text-lg mr-4 w-12 inline-block text-center">${entry.Startnummer}</span>
+              <span>${entry.Hundefuehrer} mit ${entry.Hundename}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-48 text-right font-bold text-sm text-gray-700">${statusText}</div>
+              <button onclick="window.appActions.editResult('${entry.Lizenznummer}')" class="bg-blue-200 text-black py-1 px-2 rounded text-xs hover:bg-blue-300" title="Manuelle Korrektur"><i class="fas fa-edit"></i></button>
+              <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}','a.K.')" class="bg-gray-300 text-black py-1 px-2 rounded text-xs hover:bg-gray-400" ${disabled}>a.K.</button>
+              <button onclick="window.appActions.setStarterReady('${entry.Lizenznummer}')" class="bg-yellow-300 text-black font-bold py-1 px-3 rounded text-sm hover:bg-yellow-400" ${disabled}>Bereit</button>
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    // ---- Aktionen (Modal speichern etc.) ----
+    window.appActions = {
+        quickSaveCurrent: () => {
+            try {
+                if (!state.currentRunId) { alert('Kein Lauf aktiv.'); return; }
+                if (!state.currentEntryToEdit) { alert('Kein Starter gesetzt (Bereit).'); return; }
+
+                const zeit = parseFloat((ui.info.time && ui.info.time.textContent) || "0") || 0;
+                const fehler = parseInt((ui.info.faults && ui.info.faults.textContent) || "0", 10) || 0;
+                const verweigerungen = parseInt((ui.info.refusals && ui.info.refusals.textContent) || "0", 10) || 0;
+
+                const payload = {
+                    license_number: state.currentEntryToEdit.Lizenznummer,
+                    zeit: zeit.toFixed(2),
+                    fehler: fehler,
+                    verweigerungen: verweigerungen,
+                    disqualifikation: ""
+                };
+                const url = `/live/save_result/{{ event.id }}/${state.currentRunId}`;
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .then(data => {
+                    if (data && data.success) {
+                        fetchRunDetails();
+                        if (state.localSocket && state.localSocket.connected) {
+                            state.localSocket.emit('reset_current_run', {});
+                        }
+                    } else {
+                        alert('Speichern fehlgeschlagen.');
+                    }
+                })
+                .catch(()=> alert('Netzwerkfehler beim Speichern.'));
+            } catch(e) {
+                console.error(e);
+                alert('Fehler beim Schnell-Speichern.');
+            }
+        },editResult: function(licenseNr, autoFillData){
+        state.currentEntryToEdit = state.allEntries.find(e => e.Lizenznummer === licenseNr);
+        if (!state.currentEntryToEdit) return;
+        const form = document.getElementById("result-form");
+        document.getElementById("modal-title").textContent = `Resultat für #${state.currentEntryToEdit.Startnummer}`;
+        form.reset();
+        const result = state.currentEntryToEdit.result || {};
+        form.elements["modal-fehler"].value = 0;
+        form.elements["modal-verweigerung"].value = 0;
+        if (autoFillData){
+          form.elements["modal-zeit"].value = autoFillData.final_time;
+          form.elements["modal-fehler"].value = autoFillData.faults;
+          form.elements["modal-verweigerung"].value = autoFillData.refusals;
+        } else {
+          form.elements["modal-zeit"].value = result.zeit || "";
+          form.elements["modal-fehler"].value = result.fehler || 0;
+          form.elements["modal-verweigerung"].value = result.verweigerungen || 0;
+          form.elements["modal-disq"].value = result.disqualifikation || "";
+        }
+        ui.modal.classList.remove("hidden");
+      },
+      saveResult: function(){
+        if (!state.currentEntryToEdit || !state.currentRunId) return;
+        const payload = {
+          license_number: state.currentEntryToEdit.Lizenznummer,
+          zeit: document.getElementById("modal-zeit").value,
+          fehler: document.getElementById("modal-fehler").value,
+          verweigerungen: document.getElementById("modal-verweigerung").value,
+          disqualifikation: document.getElementById("modal-disq").value
+        };
+        fetch(`/live/save_result/${eventId}/${state.currentRunId}`, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(payload)
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(data => {
+          if (data.success){
+            ui.modal.classList.add("hidden");
+            fetchRunDetails();
+            if (state.localSocket && state.localSocket.connected){
+              state.localSocket.emit('reset_current_run', {});
+            }
+          } else {
+            alert("Fehler: " + (data.message || "Unbekannt"));
+          }
+        })
+        .catch(()=> alert("Netzwerkfehler beim Speichern."));
+      },
+      setStarterReady: function(licenseNr){
+        if (!state.localSocket || !state.localSocket.connected){
+          alert("Keine Verbindung zum Ring-Server!");
+          return;
+        }
+        const starter = state.allEntries.find(e => e.Lizenznummer === licenseNr);
+        if (starter){
+          state.currentEntryToEdit = starter;
+          state.localSocket.emit("set_starter_ready", { run_id: state.currentRunId, starter: starter });
+        }
+      },
+      setParticipantStatus: function(licenseNr, status){
+        console.log("Set status", licenseNr, status);
+      }
+    };
+
+    // ---- Modal Buttons ----
+    (function(){
+      const saveBtn = document.getElementById("modal-save-btn");
+      const cancelBtn = document.getElementById("modal-cancel-btn");
+      if (saveBtn)   saveBtn.addEventListener("click", window.appActions.saveResult);
+      if (cancelBtn) cancelBtn.addEventListener("click", () => ui.modal.classList.add("hidden"));
+    })();
+
+    // ---- Run-Auswahl ----
+    if (ui.runSelect){
+      ui.runSelect.addEventListener("change", function(){
+        state.currentRunId = this.value || null;
+        if (ui.activateBtn) ui.activateBtn.disabled = !state.currentRunId;
+
+        if (ui.editRunBtn){
+          if (state.currentRunId){
+            ui.editRunBtn.href = `/events/edit_run/${eventId}/${state.currentRunId}`;
+            ui.editRunBtn.setAttribute("aria-disabled","false");
+            ui.editRunBtn.classList.remove("disabled:opacity-50");
+          } else {
+            ui.editRunBtn.href = "#";
+            ui.editRunBtn.setAttribute("aria-disabled","true");
+            if (!ui.editRunBtn.classList.contains("disabled:opacity-50")){
+              ui.editRunBtn.classList.add("disabled:opacity-50");
+            }
+          }
+        }
+
+        const bannerSel = document.getElementById("ring-selected");
+        if (!state.currentRunId){
+          ui.starterList.innerHTML = '<p class="text-gray-500">Bitte wählen Sie links einen Lauf aus.</p>';
+          if (bannerSel) bannerSel.textContent = "Kein Lauf ausgewählt";
+          return;
+        }
+
+        // Banner sofort updaten
+        const opt = this.options[this.selectedIndex];
+        if (bannerSel) bannerSel.textContent = opt ? (opt.textContent || opt.label || "Ausgewählt") : "Ausgewählt";
+
+        // Details laden
+        fetchRunDetails();
+
+        // Für Monitore/Sprecher aktiv setzen
+        fetch(`/live/set_active_announcer_run/${eventId}/${state.currentRunId}?from_ring_pc=1`,
+          { method:"GET", cache:"no-store", credentials:"same-origin" })
+          .catch(err => console.warn("Aktiver Lauf setzen fehlgeschlagen:", err));
+      });
+    }
+
+    // ---- Tastatur F/V wenn 'running' ----
+    document.addEventListener("keydown", (e) => {
+      if (!ui.info || !ui.info.status) return;
+      if (ui.info.status.textContent !== "running") return;
+      const k = e.key.toLowerCase();
+      if (k === "f"){ e.preventDefault(); if (state.localSocket) state.localSocket.emit("increment_counter",{type:"faults", value:1}); }
+      if (k === "v"){ e.preventDefault(); if (state.localSocket) state.localSocket.emit("increment_counter",{type:"refusals", value:1}); }
+    });
+
+    // ---- Sockets zum Schluss starten ----
+    connectSockets();
+  });
+})();
+</script>
+{% endblock %}
+
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>

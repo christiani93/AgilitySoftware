@@ -1,0 +1,38 @@
+{
+    "ranking_points": [
+        10,
+        8,
+        6,
+        4,
+        2
+    ],
+    "sct_factors": {
+        "Jumping": {
+            "2": 3.0,
+            "3": 3.0
+        },
+        "Agility": {
+            "2": 2.5,
+            "3": 2.5
+        }
+    },
+    "start_number_schema_template": {
+        "Large-1": 1101,
+        "Large-2": 1201,
+        "Large-3": 1301,
+        "Large-Oldie": 1401,
+        "Intermediate-1": 2101,
+        "Intermediate-2": 2201,
+        "Intermediate-3": 2301,
+        "Intermediate-Oldie": 2401,
+        "Medium-1": 3101,
+        "Medium-2": 3201,
+        "Medium-3": 3301,
+        "Medium-Oldie": 3401,
+        "Small-1": 4101,
+        "Small-2": 4201,
+        "Small-3": 4301,
+        "Small-Oldie": 4401
+    },
+    "time_per_starter": 65
+}

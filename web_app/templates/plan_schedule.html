@@ -1,0 +1,302 @@
+{% extends "layout.html" %}
+{% block title %}Zeitplan – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h3 class="mb-0">Zeitplan – {{ event.Bezeichnung }}</h3>
+    <div>
+      <a class="btn btn-outline-secondary me-2" href="{{ url_for('events_bp.events_list') }}">Zurück</a>
+      <button class="btn btn-primary" form="form-save-schedule">Zeitplan speichern</button>
+    </div>
+  </div>
+
+  <!-- Konfiguration Kopf -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <form id="form-save-schedule" method="post" action="{{ url_for('events_bp.save_schedule', event_id=event.id) }}">
+        <div class="row g-3 align-items-end">
+          {% for i in range(1, (num_rings or 1)+1) %}
+          {% set ring_key = 'ring_' ~ i %}
+          <div class="col-12 col-md-3">
+            <label class="form-label">Startzeit Ring {{ i }}</label>
+            <input
+              type="time"
+              class="form-control"
+              name="start_time_ring_{{ i }}"
+              value="{{ (event.start_times_by_ring or {}).get(ring_key, '07:30') }}"
+              required>
+          </div>
+          {% endfor %}
+          <!-- Hidden: hier landet der JSON-Plan -->
+          <input type="hidden" name="run_order_data" id="run_order_data">
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Block hinzufügen -->
+  <div class="card mb-3">
+    <div class="card-header">Block hinzufügen</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12 col-md-2">
+          <label class="form-label">Block-Typ</label>
+          <select id="block_type" class="form-select">
+            <option value="Lauf" selected>Lauf</option>
+            <option value="Briefing">Briefing</option>
+            <option value="Umbau">Umbau</option>
+            <option value="Pause">Pause</option>
+            <option value="Vorbereitung">Vorbereitung</option>
+            <option value="Grossring">Grossring</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-2">
+          <label class="form-label">Ring</label>
+          <select id="ring_select" class="form-select">
+            {% for i in range(1, (num_rings or 1)+1) %}
+              <option value="ring_{{ i }}">Ring {{ i }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Nur für Lauf -->
+        <div class="col-12 col-md-2 lauf-only">
+          <label class="form-label">Laufart</label>
+          <select id="laufart_select" class="form-select">
+            <option value="Alle">Alle</option>
+            {% for la in laufarten %}
+              <option value="{{ la }}">{{ la }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12 col-md-2 lauf-only">
+          <label class="form-label">Kategorie</label>
+          <select id="kategorie_select" class="form-select">
+            <option value="Alle">Alle</option>
+            {% for kat in kategorien %}
+              <option value="{{ kat }}">{{ kat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12 col-md-2 lauf-only">
+          <label class="form-label">Klasse</label>
+          <select id="klasse_select" class="form-select">
+            <option value="Alle">Alle</option>
+            {% for kl in klassen %}
+              <option value="{{ kl }}">{{ kl }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12 col-md-2">
+          <label class="form-label">Richter</label>
+          <!-- Sortierung nach Vorname -->
+          <select id="richter_select" class="form-select">
+            <option value="">— keiner —</option>
+            {% for j in judges|sort(attribute="firstname") %}
+              <option value="{{ j.id }}">{{ (j.firstname ~ ' ' ~ j.lastname).strip() }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12">
+          <button id="btn-add-block" class="btn btn-success">Block hinzufügen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zeitplan je Ring -->
+  <div class="row" id="schedule-rows">
+    {% for i in range(1, (num_rings or 1)+1) %}
+    <div class="col-12 col-xl-6">
+      <div class="card mb-3" data-ring="ring_{{ i }}">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <strong>Ring {{ i }}</strong>
+          <small class="text-muted">Start: {{ (event.start_times_by_ring or {}).get('ring_' ~ i, '07:30') }}</small>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2" data-role="ring-list"></div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Vorschau Startnummern -->
+  <div class="card mb-5">
+    <div class="card-header">Vorschau – vergebene Startnummern</div>
+    <div class="card-body table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 80px;">Startnr.</th>
+            <th>Lizenz</th>
+            <th>Hundeführer</th>
+            <th>Hund</th>
+            <th>Kat/Kl</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for p in preview_list %}
+          <tr>
+            <td>{{ p.Startnummer }}</td>
+            <td>{{ p.Lizenznummer }}</td>
+            <td>{{ p.Hundefuehrer }}</td>
+            <td>{{ p.Hundename }}</td>
+            <td>{{ p.Kategorie }} {{ p.Klasse }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted">Noch keine Startnummern vergeben.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ====================== SCRIPTS ====================== -->
+<script>
+  // Richter-Map für sofortige Anzeige
+  const JUDGE_NAME_MAP = {
+    {% for j in judges|sort(attribute="firstname") %}
+      "{{ j.id }}": "{{ (j.firstname ~ ' ' ~ j.lastname).strip()|e }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  };
+
+  // Nicht-Lauf Typen – müssen exakt mit dem Server übereinstimmen
+  const NON_RUN_TYPES = ["briefing","umbau","vorbereitung","pause","grossring"];
+
+  // interner Zustand: Plan je Ring
+  const RUN_ORDER = []; // flache Liste aller Blöcke (mit .ring)
+  const ringContainers = {}; // ring_key -> DOM-Container
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Ring-Container referenzieren
+    document.querySelectorAll('[data-role="ring-list"]').forEach(el => {
+      const wrap = el.closest('[data-ring]');
+      if (wrap) {
+        ringContainers[wrap.getAttribute('data-ring')] = el;
+      }
+    });
+
+    // UI-Logik: Lauf-Felder nur zeigen, wenn Typ "Lauf"
+    const typeSel = document.getElementById('block_type');
+    const laufOnly = document.querySelectorAll('.lauf-only');
+    function toggleLaufFields() {
+      const isRun = (typeSel.value || '').toLowerCase() === 'lauf';
+      laufOnly.forEach(el => el.style.display = isRun ? '' : 'none');
+    }
+    typeSel.addEventListener('change', toggleLaufFields);
+    toggleLaufFields();
+
+    // Button: Block hinzufügen
+    document.getElementById('btn-add-block').addEventListener('click', (e) => {
+      e.preventDefault();
+      addBlockFromUI();
+    });
+
+    // Beim Absenden: JSON in hidden setzen
+    document.getElementById('form-save-schedule').addEventListener('submit', () => {
+      document.getElementById('run_order_data').value = JSON.stringify(RUN_ORDER);
+    });
+
+    // Falls der Server bestehende Reihenfolge mitliefert, hier könnten wir sie initial rendern.
+    // In deiner aktuellen View kommt sie nicht separat – die Liste wird durch Drag&Drop / Add aufgebaut.
+  });
+
+  function currentRingKey() {
+    const sel = document.getElementById('ring_select');
+    return sel?.value || 'ring_1';
+  }
+
+  function addBlockFromUI() {
+    const typeVal = (document.getElementById('block_type').value || '').trim();
+    const ringVal = currentRingKey();
+    const judgeId = (document.getElementById('richter_select').value || '').trim();
+
+    let block = { ring: ringVal, richter_id: judgeId };
+
+    if (typeVal && typeVal.toLowerCase() !== 'lauf') {
+      // Nicht-Lauf Block – genau so abspeichern, dass der Server ihn als Nicht-Lauf erkennt
+      block.laufart   = typeVal;   // "Briefing", "Umbau", "Pause", "Vorbereitung", "Grossring"
+      block.kategorie = 'Alle';
+      block.klasse    = 'Alle';
+    } else {
+      // Lauf-Filter
+      block.laufart   = (document.getElementById('laufart_select').value || 'Alle').trim();
+      block.kategorie = (document.getElementById('kategorie_select').value || 'Alle').trim();
+      block.klasse    = (document.getElementById('klasse_select').value || 'Alle').trim();
+    }
+
+    RUN_ORDER.push(block);
+    const card = renderBlockCard(block);
+    renderJudgeBadge(card, block.richter_id);
+  }
+
+  function renderBlockCard(block) {
+    const ring = block.ring || 'ring_1';
+    const host = ringContainers[ring];
+    if (!host) return null;
+
+    const isNonRun = NON_RUN_TYPES.includes((block.laufart || '').toLowerCase());
+
+    const card = document.createElement('div');
+    card.className = 'card shadow-sm';
+    card.style.borderLeft = isNonRun ? '4px solid #6c757d' : '4px solid #0d6efd';
+    card.style.padding = '0';
+    card.style.overflow = 'hidden';
+    card.dataset.ring = ring;
+
+    const header = document.createElement('div');
+    header.className = 'card-body py-2 px-3 d-flex flex-wrap align-items-center justify-content-between';
+
+    const title = document.createElement('div');
+    title.className = 'fw-semibold';
+    title.textContent = isNonRun
+      ? `${block.laufart}`
+      : `${block.laufart} ${block.kategorie} ${block.klasse}`;
+
+    const right = document.createElement('div');
+    right.className = 'd-flex align-items-center gap-2';
+
+    // EIN Badge für Richtername (kein Doppel)
+    const badge = document.createElement('span');
+    badge.className = 'badge bg-light text-dark ms-2';
+    badge.setAttribute('data-role', 'judge-badge');
+    badge.innerHTML = 'R: <span class="judge-name"></span>';
+    right.appendChild(badge);
+
+    const btnDel = document.createElement('button');
+    btnDel.className = 'btn btn-sm btn-outline-danger';
+    btnDel.textContent = 'Entfernen';
+    btnDel.addEventListener('click', () => {
+      // aus RUN_ORDER entfernen (erstes passendes entfernen)
+      const idx = RUN_ORDER.indexOf(block);
+      if (idx >= 0) RUN_ORDER.splice(idx, 1);
+      card.remove();
+    });
+
+    right.appendChild(btnDel);
+    header.appendChild(title);
+    header.appendChild(right);
+    card.appendChild(header);
+
+    host.appendChild(card);
+    return card;
+  }
+
+  function renderJudgeBadge(cardEl, judgeId) {
+    const badge = cardEl?.querySelector('[data-role="judge-badge"]');
+    if (!badge) return;
+    if (!judgeId) { badge.style.display = 'none'; return; }
+    const name = JUDGE_NAME_MAP[judgeId] || ('ID:' + judgeId);
+    badge.querySelector('.judge-name').textContent = name;
+    badge.style.display = '';
+  }
+</script>
+{% endblock %}

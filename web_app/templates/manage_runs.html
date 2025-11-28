@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block title %}Läufe verwalten: {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Läufe verwalten</h1>
+        <p class="text-muted fs-5">{{ event.Bezeichnung }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('events_bp.events_list') }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Zurück zur Event-Übersicht</a>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{{ url_for('events_bp.plan_schedule', event_id=event.id) }}" class="btn btn-primary"><i class="fas fa-calendar-alt me-2"></i>Zeitplan & Startnummern</a>
+    <a href="{{ url_for('events_bp.import_participants', event_id=event.id) }}" class="btn btn-outline-success"><i class="fas fa-file-csv me-2"></i>Teilnehmer importieren</a>
+    <a href="{{ url_for('events_bp.manage_all_participants', event_id=event.id) }}" class="btn btn-outline-info"><i class="fas fa-users-cog me-2"></i>Alle Teilnehmer verwalten</a>
+    <a href="{{ url_for('events_bp.export_event_package', event_id=event.id) }}" class="btn btn-outline-dark"><i class="fas fa-file-export me-2"></i>Event-Paket exportieren</a>
+    <a href="{{ url_for('print_bp.tkamo_export', event_id=event.id) }}" class="btn btn-outline-secondary"><i class="fas fa-file-download me-2"></i>TKAMO Export</a>
+    <a href="{{ url_for('debug_bp.generate_test_results', event_id=event.id) }}" class="btn btn-warning" onclick="return confirm('Achtung: Dies überschreibt alle bestehenden Resultate für dieses Event. Fortfahren?');"><i class="fas fa-magic me-2"></i>Test-Resultate generieren</a>
+    <a href="{{ url_for('live_bp.live_event_dashboard') }}" class="btn btn-danger"><i class="fas fa-play-circle me-2"></i>Live-Modus starten</a>
+</div>
+
+<div class="row">
+    {% for run in event.runs|sort(attribute='name') %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ run.name }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">
+                    Richter: {% set judge = judges|selectattr('id', 'equalto', run.richter_id)|first %}{{ judge.firstname ~ ' ' ~ judge.lastname if judge else 'N/A' }} | Ring: {{ run.assigned_ring or 'N/A' }}
+                </h6>
+                <p class="card-text">
+                    <span class="badge rounded-pill bg-primary">{{ run.entries|length }} Teilnehmer</span>
+                </p>
+                <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-info text-white" target="_blank"><i class="fas fa-trophy me-2"></i>Rangliste</a>
+                <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-dark"><i class="fas fa-users me-2"></i>Teilnehmer</a>
+                <a href="{{ url_for('events_bp.edit_run', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-edit me-2"></i>Laufdaten</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <p class="text-muted">Für diese Veranstaltung wurden noch keine Läufe erstellt.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,1066 @@
+[
+    {
+        "Lizenznummer": "13852",
+        "Hundename": "Rocky",
+        "Hundefuehrer_ID": "497b576c-bbd8-4bc2-9cc5-2f2c970c5621",
+        "Kategorie": "Intermediate",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "14185",
+        "Hundename": "Go-Tic",
+        "Hundefuehrer_ID": "1fb5fb01-6f84-4a06-be2a-05d4d1b16848",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16075",
+        "Hundename": "A-Yena",
+        "Hundefuehrer_ID": "1fb5fb01-6f84-4a06-be2a-05d4d1b16848",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "14707",
+        "Hundename": "Pepsie",
+        "Hundefuehrer_ID": "3cc889bf-1991-4ff8-9fe1-02f3c58bf951",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16480",
+        "Hundename": "Beany",
+        "Hundefuehrer_ID": "e3e2fda2-d16f-405a-862f-9d61efeff00f",
+        "Kategorie": "Intermediate",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "14733",
+        "Hundename": "Free",
+        "Hundefuehrer_ID": "0f85656b-9c3e-4872-bdb0-10ef0ee27445",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16030",
+        "Hundename": "Gin",
+        "Hundefuehrer_ID": "5d4249e1-9210-4b67-907a-a11fea3cf73a",
+        "Kategorie": "Intermediate",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15086",
+        "Hundename": "Kara",
+        "Hundefuehrer_ID": "1ec821d9-5d70-422a-9418-052936c256fa",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16406",
+        "Hundename": "Leeloo",
+        "Hundefuehrer_ID": "2cafb5c5-c798-458e-b932-a84d3dc1e500",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15333",
+        "Hundename": "Mac",
+        "Hundefuehrer_ID": "0d296fdc-960f-4d22-b5ad-18d34be8e9d0",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16434",
+        "Hundename": "Too much",
+        "Hundefuehrer_ID": "4ce14373-82bc-4447-8fed-473710e86efe",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15524",
+        "Hundename": "Hashtag",
+        "Hundefuehrer_ID": "4ce14373-82bc-4447-8fed-473710e86efe",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "15774",
+        "Hundename": "Taio",
+        "Hundefuehrer_ID": "c41840ce-2cba-4eed-8ee7-8622ec9ccebe",
+        "Kategorie": "Medium",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15638",
+        "Hundename": "Zoey",
+        "Hundefuehrer_ID": "ba8f6885-79b0-48eb-ab27-a9a134f34a49",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16059",
+        "Hundename": "Suki",
+        "Hundefuehrer_ID": "315c39ad-1a54-4b5f-b519-77e7f4f80f56",
+        "Kategorie": "Small",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15425",
+        "Hundename": "Zane",
+        "Hundefuehrer_ID": "98765207-558b-422a-8a37-d96f50a9ec21",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15695",
+        "Hundename": "Carly",
+        "Hundefuehrer_ID": "c2ad0ce8-dc17-4c9b-a4f2-789d0e5d6c61",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "14758",
+        "Hundename": "Da Vinci",
+        "Hundefuehrer_ID": "24b208ba-d9b1-4ea0-adab-b236e0eb7421",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16522",
+        "Hundename": "Snap",
+        "Hundefuehrer_ID": "c43caa5a-cf5e-4a6d-b40f-1ae141f57e74",
+        "Kategorie": "Intermediate",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15147",
+        "Hundename": "Biscuit",
+        "Hundefuehrer_ID": "c43caa5a-cf5e-4a6d-b40f-1ae141f57e74",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16633",
+        "Hundename": "Dean",
+        "Hundefuehrer_ID": "3a7e33e4-f287-49ef-afe7-84aabc72de34",
+        "Kategorie": "Medium",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16430",
+        "Hundename": "Ace",
+        "Hundefuehrer_ID": "b9fa886e-bee8-4179-b3d5-0ff4a6748981",
+        "Kategorie": "Intermediate",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "15504",
+        "Hundename": "Fate",
+        "Hundefuehrer_ID": "47cc2195-9afc-4c0b-9d03-4a59f62347a3",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16373",
+        "Hundename": "Weeny",
+        "Hundefuehrer_ID": "41658fb4-b1ef-431a-b1a3-e7203a721772",
+        "Kategorie": "Intermediate",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16009",
+        "Hundename": "AC",
+        "Hundefuehrer_ID": "4db53b9c-1104-4798-8d34-2eb2859cbc7a",
+        "Kategorie": "Intermediate",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16273",
+        "Hundename": "Zesty Zette",
+        "Hundefuehrer_ID": "e7347d75-4f6f-446f-b359-33f945881cff",
+        "Kategorie": "Medium",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "14709",
+        "Hundename": "Icebreaker",
+        "Hundefuehrer_ID": "72adfe24-38db-4364-89e3-e2dbc1c409d4",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15988",
+        "Hundename": "Daya",
+        "Hundefuehrer_ID": "8cbb4190-3390-4688-8703-7e4144d3235a",
+        "Kategorie": "Small",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "14766",
+        "Hundename": "Gil",
+        "Hundefuehrer_ID": "e9475f96-b192-4584-9d66-44a40847d5cc",
+        "Kategorie": "Medium",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15517",
+        "Hundename": "Duke",
+        "Hundefuehrer_ID": "a309acba-5d50-44dd-a035-274295fb0d69",
+        "Kategorie": "Small",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16190",
+        "Hundename": "Kelly",
+        "Hundefuehrer_ID": "7778b075-e1d2-4435-af13-1afc30e223f1",
+        "Kategorie": "Intermediate",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16189",
+        "Hundename": "Piece",
+        "Hundefuehrer_ID": "a1706f13-af10-47fe-86ba-7f1675041ac7",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16082",
+        "Hundename": "Bonnie",
+        "Hundefuehrer_ID": "b9109c4a-d1d7-4436-8669-11df3a675a60",
+        "Kategorie": "Intermediate",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15876",
+        "Hundename": "Artax",
+        "Hundefuehrer_ID": "878bd1ca-20f7-4e35-a860-751e52e2f904",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "15406",
+        "Hundename": "Mokka",
+        "Hundefuehrer_ID": "f51a72e7-19de-4019-93c2-cb6e85980168",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "14201",
+        "Hundename": "Fuego",
+        "Hundefuehrer_ID": "773fb7d8-455e-4662-9559-631373803755",
+        "Kategorie": "Small",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15618",
+        "Hundename": "Saija",
+        "Hundefuehrer_ID": "84da08f5-a6db-4a49-868a-1bee897a4cfe",
+        "Kategorie": "Small",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "14754",
+        "Hundename": "Jacket",
+        "Hundefuehrer_ID": "84da08f5-a6db-4a49-868a-1bee897a4cfe",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15309",
+        "Hundename": "Xuani",
+        "Hundefuehrer_ID": "7724a1f5-1ceb-4da9-98d9-d3b49300588d",
+        "Kategorie": "Intermediate",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "14958",
+        "Hundename": "Djuna",
+        "Hundefuehrer_ID": "affb3274-a856-4692-824f-35da66aa1370",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15762",
+        "Hundename": "Sobacca",
+        "Hundefuehrer_ID": "7568e7dd-1a8a-4a9d-b894-3b4091734b58",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15804",
+        "Hundename": "Hiva",
+        "Hundefuehrer_ID": "27a4d4dd-a05f-4787-ad83-7fdfc5225a7e",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15803",
+        "Hundename": "Grace",
+        "Hundefuehrer_ID": "27a4d4dd-a05f-4787-ad83-7fdfc5225a7e",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15595",
+        "Hundename": "Oschka",
+        "Hundefuehrer_ID": "d995631f-48e9-47f7-ae5a-5c93356cb6d2",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "58000",
+        "Hundename": "Yuki",
+        "Hundefuehrer_ID": "a3ac1a97-12c8-4fea-81a9-2e16219d3e58",
+        "Kategorie": "Small",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16436",
+        "Hundename": "Freecy",
+        "Hundefuehrer_ID": "3527f2b1-43d1-4f23-9ebf-0e19609974e5",
+        "Kategorie": "Intermediate",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16631",
+        "Hundename": "Nox",
+        "Hundefuehrer_ID": "67cc260b-8bfb-4988-b7a6-d312f0c3f0a3",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "15500",
+        "Hundename": "Chino",
+        "Hundefuehrer_ID": "875b573c-8a0a-406d-94dc-696d5efec3f1",
+        "Kategorie": "Small",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16168",
+        "Hundename": "Aidan",
+        "Hundefuehrer_ID": "f5130dd8-2022-4409-9d54-abda9291a784",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "21220",
+        "Hundename": "Vegas",
+        "Hundefuehrer_ID": "743005b2-f5b1-4c07-a2dd-f9638467a38a",
+        "Kategorie": "Medium",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "66830",
+        "Hundename": "Unit",
+        "Hundefuehrer_ID": "47fdd775-3d0d-4190-a8c5-85412f829464",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "14313",
+        "Hundename": "Berny",
+        "Hundefuehrer_ID": "743005b2-f5b1-4c07-a2dd-f9638467a38a",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15565",
+        "Hundename": "Mae",
+        "Hundefuehrer_ID": "1baddc05-bee8-4253-a772-dffe46718eeb",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15661",
+        "Hundename": "Gin",
+        "Hundefuehrer_ID": "48da4220-5939-41de-8810-fb5282ccd8a8",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16499",
+        "Hundename": "Ramos",
+        "Hundefuehrer_ID": "7182ba0c-7975-4600-8f08-012e03b3594a",
+        "Kategorie": "Medium",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "15488",
+        "Hundename": "Fjun",
+        "Hundefuehrer_ID": "291231c8-950c-4407-a8f7-9e89fa62ca3d",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16482",
+        "Hundename": "Time",
+        "Hundefuehrer_ID": "09f3d6fb-9d10-477f-ad2c-87ca8fb8d1bc",
+        "Kategorie": "Intermediate",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "14817",
+        "Hundename": "Phoebe",
+        "Hundefuehrer_ID": "3ab39549-75ad-4a62-90a7-9b52bec1b96e",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15754",
+        "Hundename": "Seeed",
+        "Hundefuehrer_ID": "897e0663-dd72-49fa-a926-505e329c55dc",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "14746",
+        "Hundename": "Vince",
+        "Hundefuehrer_ID": "f979acbb-3921-4a6a-b81b-cc616f309831",
+        "Kategorie": "Small",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16552",
+        "Hundename": "Elsa",
+        "Hundefuehrer_ID": "f979acbb-3921-4a6a-b81b-cc616f309831",
+        "Kategorie": "Small",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "15731",
+        "Hundename": "Robin",
+        "Hundefuehrer_ID": "a5040769-40a9-4a07-914d-2e8d0ce57970",
+        "Kategorie": "Medium",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "18881",
+        "Hundename": "Pirate",
+        "Hundefuehrer_ID": "3e12b437-e833-4c28-a712-e80f0557b722",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "14985",
+        "Hundename": "Fuji",
+        "Hundefuehrer_ID": "3e12b437-e833-4c28-a712-e80f0557b722",
+        "Kategorie": "Medium",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "13878",
+        "Hundename": "Extreme Folly",
+        "Hundefuehrer_ID": "a74d272a-2601-4a3e-803b-fe8a190be7a7",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "13877",
+        "Hundename": "Djinn' Tomic Folly",
+        "Hundefuehrer_ID": "7e98648f-eb18-48d8-a498-ccefd2263445",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15736",
+        "Hundename": "Carioca",
+        "Hundefuehrer_ID": "ffe2430b-bf4f-4316-994f-ca5eee6f87c8",
+        "Kategorie": "Small",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15756",
+        "Hundename": "Mango",
+        "Hundefuehrer_ID": "c5ea5923-b075-4977-9322-203a15b5fafb",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16568",
+        "Hundename": "Undi",
+        "Hundefuehrer_ID": "e1fe589f-85e6-4809-84da-2fb107fee465",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "14341",
+        "Hundename": "Oxygen",
+        "Hundefuehrer_ID": "183f0752-0169-46e5-815b-2d7f82c9339e",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16107",
+        "Hundename": "Fayer",
+        "Hundefuehrer_ID": "b32d14b1-1f0b-4ffa-979a-0514dd20f833",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15536",
+        "Hundename": "Booster",
+        "Hundefuehrer_ID": "afbb5494-2db7-4329-bf97-b4709678638a",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16837",
+        "Hundename": "Nash",
+        "Hundefuehrer_ID": "db311b1e-d177-4ffa-9092-679ac80e01d1",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15759",
+        "Hundename": "Jet",
+        "Hundefuehrer_ID": "db311b1e-d177-4ffa-9092-679ac80e01d1",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16021",
+        "Hundename": "Tessie",
+        "Hundefuehrer_ID": "11e96c12-fe31-49da-965c-bd470a9bf409",
+        "Kategorie": "Intermediate",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "14643",
+        "Hundename": "Rayna",
+        "Hundefuehrer_ID": "11e96c12-fe31-49da-965c-bd470a9bf409",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16836",
+        "Hundename": "Uma",
+        "Hundefuehrer_ID": "6cd3dda5-4aed-40f7-b084-8271b90b70ba",
+        "Kategorie": "Small",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "15534",
+        "Hundename": "Sophia",
+        "Hundefuehrer_ID": "6cd3dda5-4aed-40f7-b084-8271b90b70ba",
+        "Kategorie": "Small",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16795",
+        "Hundename": "Hinouk",
+        "Hundefuehrer_ID": "7cd89e3c-9ad5-489e-8435-9833f4a11d7d",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "14604",
+        "Hundename": "Thunderstorm",
+        "Hundefuehrer_ID": "c8e0598f-8296-4bbb-b70d-acfb14f3055d",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15052",
+        "Hundename": "Kwin",
+        "Hundefuehrer_ID": "74ed5262-f0c6-44ba-a9be-b74a88f13e17",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15738",
+        "Hundename": "Rebel",
+        "Hundefuehrer_ID": "e554b040-e467-4bf5-8ebe-7bd99d5b0c44",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "14165",
+        "Hundename": "Nikaia",
+        "Hundefuehrer_ID": "4cf62898-539b-45fc-8faf-0b951f1c9f52",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16658",
+        "Hundename": "Mr Peregrin Took",
+        "Hundefuehrer_ID": "4c80b9c0-4efa-447a-b1e0-6491baf67e73",
+        "Kategorie": "Small",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16591",
+        "Hundename": "Electra",
+        "Hundefuehrer_ID": "f6ed272a-f825-4396-8ff8-d714531b72ab",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16427",
+        "Hundename": "Kadoc",
+        "Hundefuehrer_ID": "7cc8618f-fe52-46d0-868d-7a0421437af6",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16256",
+        "Hundename": "Atlas",
+        "Hundefuehrer_ID": "d0190612-db5a-4054-9f1b-7368b4f81ee0",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16565",
+        "Hundename": "Maybe",
+        "Hundefuehrer_ID": "ab494d3a-24ab-4a0c-8488-1d59d94f1aea",
+        "Kategorie": "Medium",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16227",
+        "Hundename": "Qilin",
+        "Hundefuehrer_ID": "73b65d23-156a-42a3-a7a8-cb8dc0ed79c6",
+        "Kategorie": "Medium",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16691",
+        "Hundename": "Sonic",
+        "Hundefuehrer_ID": "3b94f591-2b7a-44c0-b7a7-1692b336a104",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "15095",
+        "Hundename": "Orko",
+        "Hundefuehrer_ID": "3b94f591-2b7a-44c0-b7a7-1692b336a104",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15195",
+        "Hundename": "Iceman",
+        "Hundefuehrer_ID": "a7aa27ed-8ad3-43cb-8a2a-ffaeeb34c857",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15764",
+        "Hundename": "Hazel-Shelby",
+        "Hundefuehrer_ID": "6c6cac89-f0fc-4bbe-99c9-a33692fa938b",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16765",
+        "Hundename": "Rosie",
+        "Hundefuehrer_ID": "4df77d25-f404-4405-a856-34cf557df443",
+        "Kategorie": "Intermediate",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "15009",
+        "Hundename": "Lou",
+        "Hundefuehrer_ID": "3414f907-3f4d-44fc-9bc9-0a7a84b65ae8",
+        "Kategorie": "Small",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16527",
+        "Hundename": "Fame",
+        "Hundefuehrer_ID": "d3012f7d-bef5-433e-af20-66d32fff55b8",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "13316",
+        "Hundename": "QB",
+        "Hundefuehrer_ID": "d466a3c3-0ce7-4563-9e64-dbef9c0110ac",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16098",
+        "Hundename": "Gwyn",
+        "Hundefuehrer_ID": "f065a9bc-d926-4bd2-a62d-909bd08f85fd",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16362",
+        "Hundename": "Nayra",
+        "Hundefuehrer_ID": "951bef3f-fde2-4894-8ca5-2d261b0e8588",
+        "Kategorie": "Intermediate",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16790",
+        "Hundename": "Win",
+        "Hundefuehrer_ID": "388f1bfd-0167-4da4-a22b-f7bf0f704700",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16474",
+        "Hundename": "Arvok",
+        "Hundefuehrer_ID": "5bc967eb-4426-4133-baec-ee2e74f6be88",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15531",
+        "Hundename": "Kyona",
+        "Hundefuehrer_ID": "5482ceaa-4924-4577-815e-6915edf0540f",
+        "Kategorie": "Intermediate",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "15967",
+        "Hundename": "Zaz",
+        "Hundefuehrer_ID": "83028679-e18f-4700-98fb-95ddb0108948",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16084",
+        "Hundename": "Nala",
+        "Hundefuehrer_ID": "8f9c4ca3-f853-4db6-9be2-e39d97d45183",
+        "Kategorie": "Intermediate",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15505",
+        "Hundename": "Vita",
+        "Hundefuehrer_ID": "3588e020-2be8-4799-a765-1becf83a8225",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "14563",
+        "Hundename": "Ombre",
+        "Hundefuehrer_ID": "3588e020-2be8-4799-a765-1becf83a8225",
+        "Kategorie": "Medium",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16458",
+        "Hundename": "Adri",
+        "Hundefuehrer_ID": "3588e020-2be8-4799-a765-1becf83a8225",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15811",
+        "Hundename": "Asics",
+        "Hundefuehrer_ID": "7ea15338-f2b1-48f4-b29f-07b59aa66e11",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16370",
+        "Hundename": "Devil",
+        "Hundefuehrer_ID": "24b208ba-d9b1-4ea0-adab-b236e0eb7421",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16209",
+        "Hundename": "Joolz",
+        "Hundefuehrer_ID": "9b9b9666-13c7-47d5-bca0-a62e2537b81c",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "14939",
+        "Hundename": "Soleil",
+        "Hundefuehrer_ID": "d07aed25-d182-48e5-a0f6-e2357f3023cb",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15407",
+        "Hundename": "Eve",
+        "Hundefuehrer_ID": "81e0efc9-2581-41ac-8143-03ad1b8f9cfe",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15669",
+        "Hundename": "Tia",
+        "Hundefuehrer_ID": "af8b8e57-44dd-4037-b715-c7c7b29215b9",
+        "Kategorie": "Intermediate",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16342",
+        "Hundename": "Nuuk",
+        "Hundefuehrer_ID": "9b16c8f2-94a1-4961-9e2a-11c0aca7fe92",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "14523",
+        "Hundename": "Pippa",
+        "Hundefuehrer_ID": "ae95b1e4-fdfe-4aa9-b99e-62bcbdd9d971",
+        "Kategorie": "Medium",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "18088",
+        "Hundename": "Neon",
+        "Hundefuehrer_ID": "ae95b1e4-fdfe-4aa9-b99e-62bcbdd9d971",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "14777",
+        "Hundename": "Sky",
+        "Hundefuehrer_ID": "b046ae96-1785-44af-a714-45e148f0f52c",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "49777",
+        "Hundename": "Ice",
+        "Hundefuehrer_ID": "b046ae96-1785-44af-a714-45e148f0f52c",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16582",
+        "Hundename": "Phelym",
+        "Hundefuehrer_ID": "2bf1763b-fc16-4f40-8b9f-cedf3989bdba",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16810",
+        "Hundename": "Kipekee",
+        "Hundefuehrer_ID": "608fea58-9a3a-4636-bc14-4ccfa1c85dc3",
+        "Kategorie": "Intermediate",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16312",
+        "Hundename": "Ouzo",
+        "Hundefuehrer_ID": "e1603b71-dbef-48bb-8cb0-51ac949aacc2",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "14953",
+        "Hundename": "Loca",
+        "Hundefuehrer_ID": "e1603b71-dbef-48bb-8cb0-51ac949aacc2",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16127",
+        "Hundename": "Casy",
+        "Hundefuehrer_ID": "0137bc9a-232e-4cad-8641-2449a6377cb3",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15129",
+        "Hundename": "Milane",
+        "Hundefuehrer_ID": "b004862f-31da-4cbd-af5c-94e0e9a4aaf4",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16014",
+        "Hundename": "Dark",
+        "Hundefuehrer_ID": "e8eaaa8b-ff7a-4058-a376-ddf941084f1b",
+        "Kategorie": "Intermediate",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "14354",
+        "Hundename": "Roxi",
+        "Hundefuehrer_ID": "e8eaaa8b-ff7a-4058-a376-ddf941084f1b",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "21800",
+        "Hundename": "Floyd",
+        "Hundefuehrer_ID": "9f0beaf8-e29a-42d0-bb56-1c6a683c4db3",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16868",
+        "Hundename": "Niffler",
+        "Hundefuehrer_ID": "436da440-3eb2-4ea4-9f85-f1d5c97ea77b",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16139",
+        "Hundename": "Jim Beam",
+        "Hundefuehrer_ID": "b5ca1e5d-2e11-44dc-8f0f-a6b30f4696a9",
+        "Kategorie": "Small",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15053",
+        "Hundename": "Hayley",
+        "Hundefuehrer_ID": "812fdcf3-7eb1-4973-9cd4-35957ee77755",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15382",
+        "Hundename": "Faye",
+        "Hundefuehrer_ID": "b5ca1e5d-2e11-44dc-8f0f-a6b30f4696a9",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15447",
+        "Hundename": "Fellow",
+        "Hundefuehrer_ID": "222ced8b-2970-472f-99aa-a52bf8bbd2ca",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15394",
+        "Hundename": "Hunter",
+        "Hundefuehrer_ID": "23d8d387-2d3c-470a-9f80-c7e7c4fc05c4",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15395",
+        "Hundename": "Hairon",
+        "Hundefuehrer_ID": "7133cf87-a4e6-4fb4-839d-fd6623853dfc",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15959",
+        "Hundename": "Fame",
+        "Hundefuehrer_ID": "059a2ee4-f0f7-4b03-bc1f-941364030152",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16503",
+        "Hundename": "Tschiller",
+        "Hundefuehrer_ID": "8addefd4-c8c6-45a3-a8f8-5fa2d25c864d",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "15368",
+        "Hundename": "Fletcher",
+        "Hundefuehrer_ID": "8addefd4-c8c6-45a3-a8f8-5fa2d25c864d",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16409",
+        "Hundename": "Nashvilles",
+        "Hundefuehrer_ID": "1baddc05-bee8-4253-a772-dffe46718eeb",
+        "Kategorie": "Small",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "14723",
+        "Hundename": "Speedy",
+        "Hundefuehrer_ID": "0ddd0bbd-1ca5-46a6-b4b2-e14ebed0c7f1",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16162",
+        "Hundename": "Tweety",
+        "Hundefuehrer_ID": "0ddd0bbd-1ca5-46a6-b4b2-e14ebed0c7f1",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "16625",
+        "Hundename": "Juna",
+        "Hundefuehrer_ID": "36e5aacb-91f3-49b9-8d10-d11017ddbde0",
+        "Kategorie": "Large",
+        "Klasse": "1"
+    },
+    {
+        "Lizenznummer": "16577",
+        "Hundename": "Oreo",
+        "Hundefuehrer_ID": "7972f72b-ba2e-492c-93d4-15876f8b6117",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15602",
+        "Hundename": "Capraia",
+        "Hundefuehrer_ID": "f33dd112-f362-4322-9d42-bd32613a25fa",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "22645",
+        "Hundename": "Shyleen",
+        "Hundefuehrer_ID": "f777f312-3f9e-4b82-ac12-d5aab807ebb1",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "20190",
+        "Hundename": "Style",
+        "Hundefuehrer_ID": "e2193784-b44e-4be1-a77b-1189ed65cfce",
+        "Kategorie": "Large",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "15634",
+        "Hundename": "Gee",
+        "Hundefuehrer_ID": "57913321-5a2c-47c0-bc22-4cdfeb1cfc13",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16727",
+        "Hundename": "Grace",
+        "Hundefuehrer_ID": "5158f98b-cc2c-4750-999a-8f8dcb0b5359",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15262",
+        "Hundename": "Lou",
+        "Hundefuehrer_ID": "aa448533-b93a-4384-99c1-b26f9b626d85",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16476",
+        "Hundename": "Paige",
+        "Hundefuehrer_ID": "b4c31c66-215a-483b-b596-458d64df448a",
+        "Kategorie": "Large",
+        "Klasse": "2"
+    },
+    {
+        "Lizenznummer": "15953",
+        "Hundename": "Liv",
+        "Hundefuehrer_ID": "aa448533-b93a-4384-99c1-b26f9b626d85",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16001",
+        "Hundename": "Posh",
+        "Hundefuehrer_ID": "75e0ea81-3f36-418a-a297-a31be1d9696d",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    },
+    {
+        "Lizenznummer": "16000",
+        "Hundename": "Tendai",
+        "Hundefuehrer_ID": "75e0ea81-3f36-418a-a297-a31be1d9696d",
+        "Kategorie": "Intermediate",
+        "Klasse": "3"
+    }
+]

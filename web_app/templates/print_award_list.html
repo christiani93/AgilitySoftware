@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Rangverkündigung - {{ event_name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        /* --- START DER ÄNDERUNG --- */
+        .award-list {
+            margin-top: 2rem;
+            page-break-inside: avoid; /* Verhindert, dass eine Tabelle über zwei Seiten getrennt wird */
+        }
+        /* --- ENDE DER ÄNDERUNG --- */
+        h1, h2, h3 {
+            text-align: center;
+        }
+        .run-header {
+            text-align: center;
+        }
+        .run-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.2rem;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+        .run-header .judge-name {
+            font-size: 1rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #333;
+            padding-bottom: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1.2rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .rank {
+            width: 5%;
+            text-align: center;
+            font-weight: bold;
+        }
+        .faults {
+            width: 15%;
+            text-align: right;
+        }
+        .time {
+            width: 15%;
+            text-align: right;
+        }
+
+        .extra-row, .dis-row {
+            display: none;
+        }
+
+        @media print {
+            body { -webkit-print-color-adjust: exact; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container my-4">
+    <div class="text-center no-print mb-4">
+        <button onclick="window.print();" class="btn btn-primary">Drucken</button>
+        <button id="toggle-ranks-btn" class="btn btn-secondary">Alle Ränge anzeigen</button>
+        
+        {% if event_id %}
+        <a href="{{ url_for('live_bp.live_event_dashboard', event_id=event_id) }}" class="btn btn-outline-secondary">Zurück zum Live-Dashboard</a>
+        {% else %}
+        <a href="{{ url_for('events_bp.events_list') }}" class="btn btn-outline-secondary">Zurück zur Event-Übersicht</a>
+        {% endif %}
+    </div>
+
+    <h1>Rangverkündigung</h1>
+    <h2>{{ event_name }}</h2>
+
+    {% for data in award_data %}
+    <div class="award-list">
+        <div class="run-header">
+            <h3>{{ data.name }}</h3>
+            <p class="judge-name">Richter: {{ data.full_judge_name }}</p>
+        </div>
+        
+        {% if data.rankings %}
+            <table>
+                <thead>
+                    <tr>
+                        <th class="rank">Rang</th>
+                        <th>Hundeführer</th>
+                        <th>Hund</th>
+                        <th class="faults">Fehler</th>
+                        <th class="time">Zeit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in data.rankings %}
+                        <tr class="
+                            {% if entry.rank == 'DIS' %}
+                                dis-row
+                            {% elif entry.rank is number and entry.rank > 3 %}
+                                extra-row
+                            {% endif %}
+                        ">
+                            <td class="rank">{{ entry.rank }}</td>
+                            <td>{{ entry.Hundefuehrer }}</td>
+                            <td>{{ entry.Hundename }}</td>
+                            <td class="faults">{{ '%.2f'|format(entry.total_faults) if entry.total_faults is number else entry.total_faults }}</td>
+                            <td class="time">{{ '%.2f'|format(entry.result.zeit|float) if entry.result and entry.result.zeit else '-' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-center text-muted">Für diesen Lauf wurden keine vollständigen Ergebnisse gefunden.</p>
+        {% endif %}
+    </div>
+    {# --- START DER ÄNDERUNG: Fester Seitenumbruch wurde entfernt --- #}
+    {# Kein <div class="page-break"></div> mehr hier #}
+    {# --- ENDE DER ÄNDERUNG --- #}
+    {% endfor %}
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggle-ranks-btn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            const extraRows = document.querySelectorAll('.extra-row');
+            let isHidden = extraRows.length === 0 || extraRows[0].style.display === 'none' || extraRows[0].style.display === '';
+
+            extraRows.forEach(row => {
+                row.style.display = isHidden ? 'table-row' : 'none';
+            });
+            
+            this.textContent = isHidden ? 'Nur Top 3 anzeigen' : 'Alle Ränge anzeigen';
+        });
+    }
+});
+</script>
+
+</body>
+</html>

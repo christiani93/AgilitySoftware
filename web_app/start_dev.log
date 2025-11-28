@@ -1,0 +1,18 @@
+[SCHRITT 1a/5] venv (x64) prüfen: flask_env
+[INFO] Erzeuge venv (x64) ...
+[SCHRITT 2a/5] Python/Pip Version (x64)
+[SCHRITT 3a/5] pip/setuptools/wheel Upgrade (x64)
+[INFO] requirements.txt installieren/aktualisieren (x64)
+[SCHRITT 1b/5] venv (x86) prüfen: ring_env32
+[INFO] Erzeuge venv (x86) ...
+[SCHRITT 2b/5] Python/Pip Version (x86)
+[SCHRITT 3b/5] pip/setuptools/wheel Upgrade (x86)
+[INFO] Keine Ring-Requirements – installiere Minimalpakete (x86): pyserial
+[SCHRITT 4/5] Optionale Auto-Patches (apply_fix_*.py) – falls vorhanden (x64)
+[INFO] Keine apply_fix_*.py gefunden.
+=== Startskript beendet ===
+=== Start: 23.11.2025  7:11:47.69 ===
+[INFO] PROJECT_DIR=C:\Users\chris\OneDrive\Dokumente\AgilitySoftware\web_app
+[INFO] Git wird NICHT aktualisiert/benutzt.
+[INFO] Prüfe Upgrade für Python 64-bit (best effort)...
+[INFO] Prüfe Upgrade für Python 32-bit (best effort)...

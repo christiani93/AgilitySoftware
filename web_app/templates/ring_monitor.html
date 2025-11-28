@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %}Ring Monitor: {{ ring_name }}{% endblock %}
+
+{% block content %}
+<div id="monitor-container">
+    <!-- Content is loaded via JavaScript -->
+     <div class="text-center p-5">
+        <h2><i class="fas fa-spinner fa-spin me-2"></i>Lade Live-Daten für {{ ring_name }}...</h2>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('monitor-container');
+    const ringNumber = {{ ring_name.split(' ')[1] }};
+    const eventId = '{{ event.id }}';
+    const socket = io();
+
+    function fetchAndRender() {
+        // KORRIGIERT: API-Endpunkt auf live_bp angepasst
+        fetch(`{{ url_for('live_bp.render_ring_monitor_content', ring_number=999) }}`.replace('999', ringNumber))
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+            });
+    }
+
+    socket.on('connect', function() { console.log('Ring Monitor Socket.IO connected!'); });
+
+    socket.on('announcer_update', function(data) {
+        if (data.event_id === eventId && data.ring_name === '{{ ring_name }}') {
+            console.log('Update received for this ring');
+            fetchAndRender();
+        }
+    });
+
+    fetchAndRender(); // Initial load
+    setInterval(fetchAndRender, 15000); // Refresh every 15 seconds as a fallback
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,3332 @@
+[
+    {
+        "id": "4f77479e-cbc3-4e37-98fb-8a9ac6e92ffd",
+        "Bezeichnung": "Test",
+        "Datum": "2025-11-06",
+        "VeranstalterClubNr": "199",
+        "Turniernummer": "12314",
+        "num_rings": 1,
+        "Veranstaltungsart": "Meeting",
+        "start_times_by_ring": {
+            "ring_1": "07:30"
+        },
+        "runs": [
+            {
+                "id": "18cb347d-9088-4575-b283-acde7f0e482a",
+                "name": "Agility Small 1",
+                "laufart": "Agility",
+                "kategorie": "Small",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "16836",
+                        "Hundename": "Uma",
+                        "Hundefuehrer": "Muriel Petitjean",
+                        "result": {
+                            "zeit": "65.14",
+                            "fehler": 1,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "6cd3dda5-4aed-40f7-b084-8271b90b70ba",
+                        "Startnummer": 4102
+                    },
+                    {
+                        "Lizenznummer": "16658",
+                        "Hundename": "Mr Peregrin Took",
+                        "Hundefuehrer": "Aline Calame",
+                        "result": {
+                            "zeit": "73.38",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "4c80b9c0-4efa-447a-b1e0-6491baf67e73",
+                        "Startnummer": 4101
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 173,
+                    "anzahl_hindernisse": 20,
+                    "standardzeit_sct": 61.79
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "fd78dd0b-dc5a-4f1f-9e1c-9ed2c26fd14c",
+                "name": "Agility Small 2",
+                "laufart": "Agility",
+                "kategorie": "Small",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "15534",
+                        "Hundename": "Sophia",
+                        "Hundefuehrer": "Muriel Petitjean",
+                        "result": {
+                            "zeit": "84.09",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "6cd3dda5-4aed-40f7-b084-8271b90b70ba",
+                        "Startnummer": 4201
+                    },
+                    {
+                        "Lizenznummer": "15009",
+                        "Hundename": "Lou",
+                        "Hundefuehrer": "Isabelle Loretan",
+                        "result": {
+                            "zeit": "83.16",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3414f907-3f4d-44fc-9bc9-0a7a84b65ae8",
+                        "Startnummer": 4203
+                    },
+                    {
+                        "Lizenznummer": "58000",
+                        "Hundename": "Yuki",
+                        "Hundefuehrer": "Werner Brönnimann",
+                        "result": {
+                            "disqualifikation": "DIS"
+                        },
+                        "handler_id": "a3ac1a97-12c8-4fea-81a9-2e16219d3e58",
+                        "Startnummer": 4202
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 207,
+                    "anzahl_hindernisse": 21,
+                    "standardzeit_sct": 82.8
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "920b5e0f-2fef-4af6-8c54-0544df2aaa8e",
+                "name": "Agility Small 3",
+                "laufart": "Agility",
+                "kategorie": "Small",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "15736",
+                        "Hundename": "Carioca",
+                        "Hundefuehrer": "Tiphanie Mauroux",
+                        "result": {
+                            "zeit": "96.40",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "ffe2430b-bf4f-4316-994f-ca5eee6f87c8",
+                        "Startnummer": 4304
+                    },
+                    {
+                        "Lizenznummer": "14201",
+                        "Hundename": "Fuego",
+                        "Hundefuehrer": "Désirée Brenzikofer",
+                        "result": {
+                            "zeit": "99.72",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "773fb7d8-455e-4662-9559-631373803755",
+                        "Startnummer": 4302
+                    },
+                    {
+                        "Lizenznummer": "16139",
+                        "Hundename": "Jim Beam",
+                        "Hundefuehrer": "Nathalie Brunner",
+                        "result": {
+                            "zeit": "84.86",
+                            "fehler": 1,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b5ca1e5d-2e11-44dc-8f0f-a6b30f4696a9",
+                        "Startnummer": 4301
+                    },
+                    {
+                        "Lizenznummer": "16409",
+                        "Hundename": "Nashvilles",
+                        "Hundefuehrer": "Renée Jansen",
+                        "result": {
+                            "zeit": "89.13",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "1baddc05-bee8-4253-a772-dffe46718eeb",
+                        "Startnummer": 4303
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 214,
+                    "anzahl_hindernisse": 19,
+                    "standardzeit_sct": 85.6
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "50bec726-4d0b-44f7-84bf-9297cada7e4d",
+                "name": "Agility Medium 1",
+                "laufart": "Agility",
+                "kategorie": "Medium",
+                "klasse": "1",
+                "entries": [],
+                "laufdaten": {
+                    "parcours_laenge": 190,
+                    "anzahl_hindernisse": 20,
+                    "standardzeit_sct": 67.86
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "9deeec8d-32b0-4796-a482-ec5d1428cbba",
+                "name": "Agility Medium 2",
+                "laufart": "Agility",
+                "kategorie": "Medium",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "16565",
+                        "Hundename": "Maybe",
+                        "Hundefuehrer": "Marie-Jo Golay",
+                        "result": {
+                            "zeit": "88.64",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "ab494d3a-24ab-4a0c-8488-1d59d94f1aea",
+                        "Startnummer": 3201
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": "194",
+                    "anzahl_hindernisse": "21",
+                    "standardzeit_sct": 77.6
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "ebae4980-2f65-47fd-8cfd-296158635934",
+                "name": "Agility Medium 3",
+                "laufart": "Agility",
+                "kategorie": "Medium",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "14985",
+                        "Hundename": "Fuji",
+                        "Hundefuehrer": "Letizia Grunder",
+                        "result": {
+                            "zeit": "94.11",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3e12b437-e833-4c28-a712-e80f0557b722",
+                        "Startnummer": 3305
+                    },
+                    {
+                        "Lizenznummer": "16227",
+                        "Hundename": "Qilin",
+                        "Hundefuehrer": "Virginie de Andrea",
+                        "result": {
+                            "zeit": "88.07",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "73b65d23-156a-42a3-a7a8-cb8dc0ed79c6",
+                        "Startnummer": 3301
+                    },
+                    {
+                        "Lizenznummer": "14563",
+                        "Hundename": "Ombre",
+                        "Hundefuehrer": "Simone Nützi",
+                        "result": {
+                            "zeit": "79.44",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3588e020-2be8-4799-a765-1becf83a8225",
+                        "Startnummer": 3302
+                    },
+                    {
+                        "Lizenznummer": "14523",
+                        "Hundename": "Pippa",
+                        "Hundefuehrer": "Roland Hilfiker",
+                        "result": {
+                            "zeit": "90.24",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "ae95b1e4-fdfe-4aa9-b99e-62bcbdd9d971",
+                        "Startnummer": 3304
+                    },
+                    {
+                        "Lizenznummer": "15731",
+                        "Hundename": "Robin",
+                        "Hundefuehrer": "Anna Schönenberger",
+                        "result": {
+                            "disqualifikation": "ABR"
+                        },
+                        "handler_id": "a5040769-40a9-4a07-914d-2e8d0ce57970",
+                        "Startnummer": 3303
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 206,
+                    "anzahl_hindernisse": 19,
+                    "standardzeit_sct": 82.4
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "afbdc225-40f1-4c64-a719-46bcc5a37bf1",
+                "name": "Agility Intermediate 1",
+                "laufart": "Agility",
+                "kategorie": "Intermediate",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "13852",
+                        "Hundename": "Rocky",
+                        "Hundefuehrer": "Mary Diserens",
+                        "result": {
+                            "zeit": "72.04",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "497b576c-bbd8-4bc2-9cc5-2f2c970c5621",
+                        "Startnummer": 2104
+                    },
+                    {
+                        "Lizenznummer": "16021",
+                        "Hundename": "Tessie",
+                        "Hundefuehrer": "Sabrina Dirren",
+                        "result": {
+                            "zeit": "56.94",
+                            "fehler": 2,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "11e96c12-fe31-49da-965c-bd470a9bf409",
+                        "Startnummer": 2106
+                    },
+                    {
+                        "Lizenznummer": "16765",
+                        "Hundename": "Rosie",
+                        "Hundefuehrer": "Sandra Blum",
+                        "result": {
+                            "zeit": "57.46",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "4df77d25-f404-4405-a856-34cf557df443",
+                        "Startnummer": 2103
+                    },
+                    {
+                        "Lizenznummer": "15531",
+                        "Hundename": "Kyona",
+                        "Hundefuehrer": "Mirja Roth",
+                        "result": {
+                            "zeit": "59.26",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "5482ceaa-4924-4577-815e-6915edf0540f",
+                        "Startnummer": 2105
+                    },
+                    {
+                        "Lizenznummer": "16810",
+                        "Hundename": "Kipekee",
+                        "Hundefuehrer": "Marianne Mattle",
+                        "result": {
+                            "zeit": "68.62",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "608fea58-9a3a-4636-bc14-4ccfa1c85dc3",
+                        "Startnummer": 2101
+                    },
+                    {
+                        "Lizenznummer": "16014",
+                        "Hundename": "Dark",
+                        "Hundefuehrer": "Carlo Ruggia",
+                        "result": {
+                            "zeit": "67.52",
+                            "fehler": 1,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e8eaaa8b-ff7a-4058-a376-ddf941084f1b",
+                        "Startnummer": 2102
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 172,
+                    "anzahl_hindernisse": 19,
+                    "standardzeit_sct": 61.43
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "15355578-ad4d-41df-ab48-62740de07521",
+                "name": "Agility Intermediate 2",
+                "laufart": "Agility",
+                "kategorie": "Intermediate",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "16480",
+                        "Hundename": "Beany",
+                        "Hundefuehrer": "Anita Leonardi",
+                        "result": {
+                            "zeit": "76.94",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e3e2fda2-d16f-405a-862f-9d61efeff00f",
+                        "Startnummer": 2204
+                    },
+                    {
+                        "Lizenznummer": "16030",
+                        "Hundename": "Gin",
+                        "Hundefuehrer": "Muriel Grand",
+                        "result": {
+                            "zeit": "71.29",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "5d4249e1-9210-4b67-907a-a11fea3cf73a",
+                        "Startnummer": 2206
+                    },
+                    {
+                        "Lizenznummer": "16362",
+                        "Hundename": "Nayra",
+                        "Hundefuehrer": "Andrea Rickli",
+                        "result": {
+                            "zeit": "65.80",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "951bef3f-fde2-4894-8ca5-2d261b0e8588",
+                        "Startnummer": 2202
+                    },
+                    {
+                        "Lizenznummer": "16084",
+                        "Hundename": "Nala",
+                        "Hundefuehrer": "Ariane Boutellier",
+                        "result": {
+                            "zeit": "69.18",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "8f9c4ca3-f853-4db6-9be2-e39d97d45183",
+                        "Startnummer": 2205
+                    },
+                    {
+                        "Lizenznummer": "15669",
+                        "Hundename": "Tia",
+                        "Hundefuehrer": "Susanne Haring",
+                        "result": {
+                            "zeit": "76.56",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "af8b8e57-44dd-4037-b715-c7c7b29215b9",
+                        "Startnummer": 2201
+                    },
+                    {
+                        "Lizenznummer": "16436",
+                        "Hundename": "Freecy",
+                        "Hundefuehrer": "Natalie Raetzo",
+                        "result": {
+                            "zeit": "73.12",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3527f2b1-43d1-4f23-9ebf-0e19609974e5",
+                        "Startnummer": 2203
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 168,
+                    "anzahl_hindernisse": 19,
+                    "standardzeit_sct": 67.2
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "b498d15b-e3e1-4443-bc7c-3c62fa35a210",
+                "name": "Agility Intermediate 3",
+                "laufart": "Agility",
+                "kategorie": "Intermediate",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "18881",
+                        "Hundename": "Pirate",
+                        "Hundefuehrer": "Letizia Grunder",
+                        "result": {
+                            "zeit": "76.69",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3e12b437-e833-4c28-a712-e80f0557b722",
+                        "Startnummer": 2311
+                    },
+                    {
+                        "Lizenznummer": "14165",
+                        "Hundename": "Nikaia",
+                        "Hundefuehrer": "Corentin Sansonnens",
+                        "result": {
+                            "zeit": "75.37",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "4cf62898-539b-45fc-8faf-0b951f1c9f52",
+                        "Startnummer": 2310
+                    },
+                    {
+                        "Lizenznummer": "14185",
+                        "Hundename": "Go-Tic",
+                        "Hundefuehrer": "Francine Tavazzi",
+                        "result": {
+                            "zeit": "65.60",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "1fb5fb01-6f84-4a06-be2a-05d4d1b16848",
+                        "Startnummer": 2308
+                    },
+                    {
+                        "Lizenznummer": "15764",
+                        "Hundename": "Hazel-Shelby",
+                        "Hundefuehrer": "Dominik Oehler",
+                        "result": {
+                            "zeit": "80.57",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "6c6cac89-f0fc-4bbe-99c9-a33692fa938b",
+                        "Startnummer": 2305
+                    },
+                    {
+                        "Lizenznummer": "15505",
+                        "Hundename": "Vita",
+                        "Hundefuehrer": "Simone Nützi",
+                        "result": {
+                            "disqualifikation": "DIS"
+                        },
+                        "handler_id": "3588e020-2be8-4799-a765-1becf83a8225",
+                        "Startnummer": 2303
+                    },
+                    {
+                        "Lizenznummer": "14354",
+                        "Hundename": "Roxi",
+                        "Hundefuehrer": "Carlo Ruggia",
+                        "result": {
+                            "zeit": "70.04",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e8eaaa8b-ff7a-4058-a376-ddf941084f1b",
+                        "Startnummer": 2304
+                    },
+                    {
+                        "Lizenznummer": "15634",
+                        "Hundename": "Gee",
+                        "Hundefuehrer": "Larissa Michel",
+                        "result": {
+                            "disqualifikation": "DIS"
+                        },
+                        "handler_id": "57913321-5a2c-47c0-bc22-4cdfeb1cfc13",
+                        "Startnummer": 2307
+                    },
+                    {
+                        "Lizenznummer": "15262",
+                        "Hundename": "Lou",
+                        "Hundefuehrer": "Bettina Heiniger",
+                        "result": {
+                            "zeit": "76.75",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "aa448533-b93a-4384-99c1-b26f9b626d85",
+                        "Startnummer": 2302
+                    },
+                    {
+                        "Lizenznummer": "15953",
+                        "Hundename": "Liv",
+                        "Hundefuehrer": "Bettina Heiniger",
+                        "result": {
+                            "zeit": "69.73",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "aa448533-b93a-4384-99c1-b26f9b626d85",
+                        "Startnummer": 2309
+                    },
+                    {
+                        "Lizenznummer": "16001",
+                        "Hundename": "Posh",
+                        "Hundefuehrer": "Margrit Klauz",
+                        "result": {
+                            "zeit": "72.29",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "75e0ea81-3f36-418a-a297-a31be1d9696d",
+                        "Startnummer": 2301
+                    },
+                    {
+                        "Lizenznummer": "16000",
+                        "Hundename": "Tendai",
+                        "Hundefuehrer": "Margrit Klauz",
+                        "result": {
+                            "zeit": "69.12",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "75e0ea81-3f36-418a-a297-a31be1d9696d",
+                        "Startnummer": 2306
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 167,
+                    "anzahl_hindernisse": 18,
+                    "standardzeit_sct": 66.8
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "0b3cec7e-e384-4af3-8ae3-2f73a30cd98a",
+                "name": "Agility Large 1",
+                "laufart": "Agility",
+                "kategorie": "Large",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "14341",
+                        "Hundename": "Oxygen",
+                        "Hundefuehrer": "Jessica Herren",
+                        "result": {
+                            "zeit": "82.70",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "183f0752-0169-46e5-815b-2d7f82c9339e",
+                        "Startnummer": 1102
+                    },
+                    {
+                        "Lizenznummer": "16795",
+                        "Hundename": "Hinouk",
+                        "Hundefuehrer": "Jessica Wyss",
+                        "result": {
+                            "zeit": "87.54",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7cd89e3c-9ad5-489e-8435-9833f4a11d7d",
+                        "Startnummer": 1109
+                    },
+                    {
+                        "Lizenznummer": "16591",
+                        "Hundename": "Electra",
+                        "Hundefuehrer": "Amélie Genevey",
+                        "result": {
+                            "zeit": "78.61",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f6ed272a-f825-4396-8ff8-d714531b72ab",
+                        "Startnummer": 1101
+                    },
+                    {
+                        "Lizenznummer": "16691",
+                        "Hundename": "Sonic",
+                        "Hundefuehrer": "Christelle Borcard",
+                        "result": {
+                            "zeit": "78.07",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3b94f591-2b7a-44c0-b7a7-1692b336a104",
+                        "Startnummer": 1104
+                    },
+                    {
+                        "Lizenznummer": "16098",
+                        "Hundename": "Gwyn",
+                        "Hundefuehrer": "Sabine Hartweg",
+                        "result": {
+                            "zeit": "82.81",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f065a9bc-d926-4bd2-a62d-909bd08f85fd",
+                        "Startnummer": 1110
+                    },
+                    {
+                        "Lizenznummer": "16370",
+                        "Hundename": "Devil",
+                        "Hundefuehrer": "Céline Zahn",
+                        "result": {
+                            "zeit": "82.89",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "24b208ba-d9b1-4ea0-adab-b236e0eb7421",
+                        "Startnummer": 1103
+                    },
+                    {
+                        "Lizenznummer": "16342",
+                        "Hundename": "Nuuk",
+                        "Hundefuehrer": "Sarih Ganzmann",
+                        "result": {
+                            "zeit": "74.57",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "9b16c8f2-94a1-4961-9e2a-11c0aca7fe92",
+                        "Startnummer": 1105
+                    },
+                    {
+                        "Lizenznummer": "16868",
+                        "Hundename": "Niffler",
+                        "Hundefuehrer": "Tanja Fähndrich",
+                        "result": {
+                            "zeit": "73.59",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "436da440-3eb2-4ea4-9f85-f1d5c97ea77b",
+                        "Startnummer": 1107
+                    },
+                    {
+                        "Lizenznummer": "16503",
+                        "Hundename": "Tschiller",
+                        "Hundefuehrer": "Ursula Schneider",
+                        "result": {
+                            "zeit": "88.33",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "8addefd4-c8c6-45a3-a8f8-5fa2d25c864d",
+                        "Startnummer": 1106
+                    },
+                    {
+                        "Lizenznummer": "16625",
+                        "Hundename": "Juna",
+                        "Hundefuehrer": "Jenny Mäusli",
+                        "result": {
+                            "zeit": "87.99",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "36e5aacb-91f3-49b9-8d10-d11017ddbde0",
+                        "Startnummer": 1108
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 218,
+                    "anzahl_hindernisse": 18,
+                    "standardzeit_sct": 77.86
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "043991c3-45a1-429e-93a6-2f0ec8872d0a",
+                "name": "Agility Large 2",
+                "laufart": "Agility",
+                "kategorie": "Large",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "16568",
+                        "Hundename": "Undi",
+                        "Hundefuehrer": "Giulia Lizzo",
+                        "result": {
+                            "zeit": "78.57",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e1fe589f-85e6-4809-84da-2fb107fee465",
+                        "Startnummer": 1204
+                    },
+                    {
+                        "Lizenznummer": "16107",
+                        "Hundename": "Fayer",
+                        "Hundefuehrer": "Estelle Brêchet",
+                        "result": {
+                            "zeit": "81.75",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b32d14b1-1f0b-4ffa-979a-0514dd20f833",
+                        "Startnummer": 1209
+                    },
+                    {
+                        "Lizenznummer": "15536",
+                        "Hundename": "Booster",
+                        "Hundefuehrer": "Melinda Savarino",
+                        "result": {
+                            "zeit": "77.91",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "afbb5494-2db7-4329-bf97-b4709678638a",
+                        "Startnummer": 1229
+                    },
+                    {
+                        "Lizenznummer": "16837",
+                        "Hundename": "Nash",
+                        "Hundefuehrer": "Agnes Certain",
+                        "result": {
+                            "zeit": "88.89",
+                            "fehler": 1,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "db311b1e-d177-4ffa-9092-679ac80e01d1",
+                        "Startnummer": 1222
+                    },
+                    {
+                        "Lizenznummer": "14643",
+                        "Hundename": "Rayna",
+                        "Hundefuehrer": "Sabrina Dirren",
+                        "result": {
+                            "zeit": "94.57",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "11e96c12-fe31-49da-965c-bd470a9bf409",
+                        "Startnummer": 1220
+                    },
+                    {
+                        "Lizenznummer": "15052",
+                        "Hundename": "Kwin",
+                        "Hundefuehrer": "Philippe Pollien",
+                        "result": {
+                            "zeit": "90.88",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "74ed5262-f0c6-44ba-a9be-b74a88f13e17",
+                        "Startnummer": 1216
+                    },
+                    {
+                        "Lizenznummer": "16427",
+                        "Hundename": "Kadoc",
+                        "Hundefuehrer": "Pamela Matthey-Doret",
+                        "result": {
+                            "zeit": "93.61",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7cc8618f-fe52-46d0-868d-7a0421437af6",
+                        "Startnummer": 1221
+                    },
+                    {
+                        "Lizenznummer": "16256",
+                        "Hundename": "Atlas",
+                        "Hundefuehrer": "Lydia Dafflon",
+                        "result": {
+                            "zeit": "87.06",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "d0190612-db5a-4054-9f1b-7368b4f81ee0",
+                        "Startnummer": 1202
+                    },
+                    {
+                        "Lizenznummer": "15762",
+                        "Hundename": "Sobacca",
+                        "Hundefuehrer": "Natascha Imboden",
+                        "result": {
+                            "zeit": "78.96",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7568e7dd-1a8a-4a9d-b894-3b4091734b58",
+                        "Startnummer": 1223
+                    },
+                    {
+                        "Lizenznummer": "14758",
+                        "Hundename": "Da Vinci",
+                        "Hundefuehrer": "Céline Zahn",
+                        "result": {
+                            "zeit": "81.38",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "24b208ba-d9b1-4ea0-adab-b236e0eb7421",
+                        "Startnummer": 1207
+                    },
+                    {
+                        "Lizenznummer": "16527",
+                        "Hundename": "Fame",
+                        "Hundefuehrer": "Peter Huber",
+                        "result": {
+                            "zeit": "81.81",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "d3012f7d-bef5-433e-af20-66d32fff55b8",
+                        "Startnummer": 1214
+                    },
+                    {
+                        "Lizenznummer": "13316",
+                        "Hundename": "QB",
+                        "Hundefuehrer": "Beatrice Huber",
+                        "result": {
+                            "zeit": "79.03",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "d466a3c3-0ce7-4563-9e64-dbef9c0110ac",
+                        "Startnummer": 1218
+                    },
+                    {
+                        "Lizenznummer": "16790",
+                        "Hundename": "Win",
+                        "Hundefuehrer": "Jeannine Gloor",
+                        "result": {
+                            "zeit": "91.86",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "388f1bfd-0167-4da4-a22b-f7bf0f704700",
+                        "Startnummer": 1213
+                    },
+                    {
+                        "Lizenznummer": "16474",
+                        "Hundename": "Arvok",
+                        "Hundefuehrer": "Maja Notarfrancesco",
+                        "result": {
+                            "zeit": "88.22",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "5bc967eb-4426-4133-baec-ee2e74f6be88",
+                        "Startnummer": 1225
+                    },
+                    {
+                        "Lizenznummer": "15754",
+                        "Hundename": "Seeed",
+                        "Hundefuehrer": "Carole Zeiter",
+                        "result": {
+                            "zeit": "90.88",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "897e0663-dd72-49fa-a926-505e329c55dc",
+                        "Startnummer": 1231
+                    },
+                    {
+                        "Lizenznummer": "14817",
+                        "Hundename": "Phoebe",
+                        "Hundefuehrer": "Daniel Zeiter",
+                        "result": {
+                            "disqualifikation": "ABR"
+                        },
+                        "handler_id": "3ab39549-75ad-4a62-90a7-9b52bec1b96e",
+                        "Startnummer": 1224
+                    },
+                    {
+                        "Lizenznummer": "16458",
+                        "Hundename": "Adri",
+                        "Hundefuehrer": "Simone Nützi",
+                        "result": {
+                            "zeit": "83.04",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3588e020-2be8-4799-a765-1becf83a8225",
+                        "Startnummer": 1217
+                    },
+                    {
+                        "Lizenznummer": "15811",
+                        "Hundename": "Asics",
+                        "Hundefuehrer": "Lukas Risi",
+                        "result": {
+                            "zeit": "87.91",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7ea15338-f2b1-48f4-b29f-07b59aa66e11",
+                        "Startnummer": 1211
+                    },
+                    {
+                        "Lizenznummer": "14939",
+                        "Hundename": "Soleil",
+                        "Hundefuehrer": "Lilian Oehler",
+                        "result": {
+                            "zeit": "81.32",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "d07aed25-d182-48e5-a0f6-e2357f3023cb",
+                        "Startnummer": 1212
+                    },
+                    {
+                        "Lizenznummer": "49777",
+                        "Hundename": "Ice",
+                        "Hundefuehrer": "Franziska Hilfiker",
+                        "result": {
+                            "zeit": "92.00",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b046ae96-1785-44af-a714-45e148f0f52c",
+                        "Startnummer": 1215
+                    },
+                    {
+                        "Lizenznummer": "16582",
+                        "Hundename": "Phelym",
+                        "Hundefuehrer": "Stephanie Bolliger",
+                        "result": {
+                            "zeit": "85.24",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "2bf1763b-fc16-4f40-8b9f-cedf3989bdba",
+                        "Startnummer": 1230
+                    },
+                    {
+                        "Lizenznummer": "16127",
+                        "Hundename": "Casy",
+                        "Hundefuehrer": "Regula Grünenfelder",
+                        "result": {
+                            "zeit": "80.35",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "0137bc9a-232e-4cad-8641-2449a6377cb3",
+                        "Startnummer": 1208
+                    },
+                    {
+                        "Lizenznummer": "21800",
+                        "Hundename": "Floyd",
+                        "Hundefuehrer": "Barbara Manz",
+                        "result": {
+                            "zeit": "82.41",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "9f0beaf8-e29a-42d0-bb56-1c6a683c4db3",
+                        "Startnummer": 1228
+                    },
+                    {
+                        "Lizenznummer": "16168",
+                        "Hundename": "Aidan",
+                        "Hundefuehrer": "Annick Hosner",
+                        "result": {
+                            "zeit": "89.12",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f5130dd8-2022-4409-9d54-abda9291a784",
+                        "Startnummer": 1227
+                    },
+                    {
+                        "Lizenznummer": "15395",
+                        "Hundename": "Hairon",
+                        "Hundefuehrer": "Ludwig Florioli",
+                        "result": {
+                            "zeit": "84.15",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7133cf87-a4e6-4fb4-839d-fd6623853dfc",
+                        "Startnummer": 1219
+                    },
+                    {
+                        "Lizenznummer": "15959",
+                        "Hundename": "Fame",
+                        "Hundefuehrer": "Sandra Summermatter",
+                        "result": {
+                            "zeit": "92.03",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "059a2ee4-f0f7-4b03-bc1f-941364030152",
+                        "Startnummer": 1201
+                    },
+                    {
+                        "Lizenznummer": "15368",
+                        "Hundename": "Fletcher",
+                        "Hundefuehrer": "Ursula Schneider",
+                        "result": {
+                            "zeit": "85.06",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "8addefd4-c8c6-45a3-a8f8-5fa2d25c864d",
+                        "Startnummer": 1226
+                    },
+                    {
+                        "Lizenznummer": "16162",
+                        "Hundename": "Tweety",
+                        "Hundefuehrer": "Raphael Jenny",
+                        "result": {
+                            "zeit": "94.07",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "0ddd0bbd-1ca5-46a6-b4b2-e14ebed0c7f1",
+                        "Startnummer": 1205
+                    },
+                    {
+                        "Lizenznummer": "16577",
+                        "Hundename": "Oreo",
+                        "Hundefuehrer": "Patrick Stutz",
+                        "result": {
+                            "zeit": "79.81",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7972f72b-ba2e-492c-93d4-15876f8b6117",
+                        "Startnummer": 1210
+                    },
+                    {
+                        "Lizenznummer": "22645",
+                        "Hundename": "Shyleen",
+                        "Hundefuehrer": "Annick Blanc",
+                        "result": {
+                            "zeit": "80.41",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f777f312-3f9e-4b82-ac12-d5aab807ebb1",
+                        "Startnummer": 1203
+                    },
+                    {
+                        "Lizenznummer": "16727",
+                        "Hundename": "Grace",
+                        "Hundefuehrer": "Annette Ogierman",
+                        "result": {
+                            "zeit": "86.19",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "5158f98b-cc2c-4750-999a-8f8dcb0b5359",
+                        "Startnummer": 1206
+                    },
+                    {
+                        "Lizenznummer": "16476",
+                        "Hundename": "Paige",
+                        "Hundefuehrer": "Mirjam Senn",
+                        "result": {
+                            "zeit": "78.61",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b4c31c66-215a-483b-b596-458d64df448a",
+                        "Startnummer": 1232
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 201,
+                    "anzahl_hindernisse": 22,
+                    "standardzeit_sct": 80.4
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "27e2d72b-8214-4c7e-bda6-e0c53c8564c0",
+                "name": "Agility Large 3",
+                "laufart": "Agility",
+                "kategorie": "Large",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "13878",
+                        "Hundename": "Extreme Folly",
+                        "Hundefuehrer": "Irène Mauroux",
+                        "result": {
+                            "zeit": "86.60",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "a74d272a-2601-4a3e-803b-fe8a190be7a7",
+                        "Startnummer": 1321
+                    },
+                    {
+                        "Lizenznummer": "13877",
+                        "Hundename": "Djinn' Tomic Folly",
+                        "Hundefuehrer": "Pascal Mauroux",
+                        "result": {
+                            "zeit": "84.77",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7e98648f-eb18-48d8-a498-ccefd2263445",
+                        "Startnummer": 1301
+                    },
+                    {
+                        "Lizenznummer": "15756",
+                        "Hundename": "Mango",
+                        "Hundefuehrer": "Rachele Fuzzati",
+                        "result": {
+                            "zeit": "92.63",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "c5ea5923-b075-4977-9322-203a15b5fafb",
+                        "Startnummer": 1314
+                    },
+                    {
+                        "Lizenznummer": "15759",
+                        "Hundename": "Jet",
+                        "Hundefuehrer": "Agnes Certain",
+                        "result": {
+                            "zeit": "91.02",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "db311b1e-d177-4ffa-9092-679ac80e01d1",
+                        "Startnummer": 1326
+                    },
+                    {
+                        "Lizenznummer": "14604",
+                        "Hundename": "Thunderstorm",
+                        "Hundefuehrer": "Aurore Brelot",
+                        "result": {
+                            "disqualifikation": "ABR"
+                        },
+                        "handler_id": "c8e0598f-8296-4bbb-b70d-acfb14f3055d",
+                        "Startnummer": 1317
+                    },
+                    {
+                        "Lizenznummer": "15738",
+                        "Hundename": "Rebel",
+                        "Hundefuehrer": "Eric Sansonnens",
+                        "result": {
+                            "zeit": "95.57",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e554b040-e467-4bf5-8ebe-7bd99d5b0c44",
+                        "Startnummer": 1307
+                    },
+                    {
+                        "Lizenznummer": "16075",
+                        "Hundename": "A-Yena",
+                        "Hundefuehrer": "Francine Tavazzi",
+                        "result": {
+                            "zeit": "85.01",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "1fb5fb01-6f84-4a06-be2a-05d4d1b16848",
+                        "Startnummer": 1309
+                    },
+                    {
+                        "Lizenznummer": "15086",
+                        "Hundename": "Kara",
+                        "Hundefuehrer": "Stéphane Wohlhauser",
+                        "result": {
+                            "zeit": "94.83",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "1ec821d9-5d70-422a-9418-052936c256fa",
+                        "Startnummer": 1319
+                    },
+                    {
+                        "Lizenznummer": "16406",
+                        "Hundename": "Leeloo",
+                        "Hundefuehrer": "Cécile Francey",
+                        "result": {
+                            "zeit": "94.69",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "2cafb5c5-c798-458e-b932-a84d3dc1e500",
+                        "Startnummer": 1302
+                    },
+                    {
+                        "Lizenznummer": "15095",
+                        "Hundename": "Orko",
+                        "Hundefuehrer": "Christelle Borcard",
+                        "result": {
+                            "disqualifikation": "DIS"
+                        },
+                        "handler_id": "3b94f591-2b7a-44c0-b7a7-1692b336a104",
+                        "Startnummer": 1318
+                    },
+                    {
+                        "Lizenznummer": "15195",
+                        "Hundename": "Iceman",
+                        "Hundefuehrer": "Denise von Tobel",
+                        "result": {
+                            "zeit": "86.02",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "a7aa27ed-8ad3-43cb-8a2a-ffaeeb34c857",
+                        "Startnummer": 1320
+                    },
+                    {
+                        "Lizenznummer": "15967",
+                        "Hundename": "Zaz",
+                        "Hundefuehrer": "Rahel Pfäffli",
+                        "result": {
+                            "zeit": "79.74",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "83028679-e18f-4700-98fb-95ddb0108948",
+                        "Startnummer": 1310
+                    },
+                    {
+                        "Lizenznummer": "16209",
+                        "Hundename": "Joolz",
+                        "Hundefuehrer": "André Mühlebach",
+                        "result": {
+                            "zeit": "84.36",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "9b9b9666-13c7-47d5-bca0-a62e2537b81c",
+                        "Startnummer": 1323
+                    },
+                    {
+                        "Lizenznummer": "15407",
+                        "Hundename": "Eve",
+                        "Hundefuehrer": "Martin Brunner",
+                        "result": {
+                            "zeit": "95.67",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "81e0efc9-2581-41ac-8143-03ad1b8f9cfe",
+                        "Startnummer": 1308
+                    },
+                    {
+                        "Lizenznummer": "15406",
+                        "Hundename": "Mokka",
+                        "Hundefuehrer": "Ursula Roethlisberger",
+                        "result": {
+                            "zeit": "89.19",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f51a72e7-19de-4019-93c2-cb6e85980168",
+                        "Startnummer": 1328
+                    },
+                    {
+                        "Lizenznummer": "18088",
+                        "Hundename": "Neon",
+                        "Hundefuehrer": "Roland Hilfiker",
+                        "result": {
+                            "zeit": "83.54",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "ae95b1e4-fdfe-4aa9-b99e-62bcbdd9d971",
+                        "Startnummer": 1330
+                    },
+                    {
+                        "Lizenznummer": "14777",
+                        "Hundename": "Sky",
+                        "Hundefuehrer": "Franziska Hilfiker",
+                        "result": {
+                            "zeit": "93.26",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b046ae96-1785-44af-a714-45e148f0f52c",
+                        "Startnummer": 1329
+                    },
+                    {
+                        "Lizenznummer": "16312",
+                        "Hundename": "Ouzo",
+                        "Hundefuehrer": "Jenny Stephenson",
+                        "result": {
+                            "zeit": "83.56",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e1603b71-dbef-48bb-8cb0-51ac949aacc2",
+                        "Startnummer": 1311
+                    },
+                    {
+                        "Lizenznummer": "14953",
+                        "Hundename": "Loca",
+                        "Hundefuehrer": "Jenny Stephenson",
+                        "result": {
+                            "zeit": "79.83",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e1603b71-dbef-48bb-8cb0-51ac949aacc2",
+                        "Startnummer": 1304
+                    },
+                    {
+                        "Lizenznummer": "14754",
+                        "Hundename": "Jacket",
+                        "Hundefuehrer": "Evelyne von Riedmatten",
+                        "result": {
+                            "zeit": "88.63",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "84da08f5-a6db-4a49-868a-1bee897a4cfe",
+                        "Startnummer": 1313
+                    },
+                    {
+                        "Lizenznummer": "15129",
+                        "Hundename": "Milane",
+                        "Hundefuehrer": "Sibylle Lüthi",
+                        "result": {
+                            "zeit": "91.91",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b004862f-31da-4cbd-af5c-94e0e9a4aaf4",
+                        "Startnummer": 1312
+                    },
+                    {
+                        "Lizenznummer": "15488",
+                        "Hundename": "Fjun",
+                        "Hundefuehrer": "Yvonne Wyss",
+                        "result": {
+                            "zeit": "86.11",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "291231c8-950c-4407-a8f7-9e89fa62ca3d",
+                        "Startnummer": 1325
+                    },
+                    {
+                        "Lizenznummer": "15661",
+                        "Hundename": "Gin",
+                        "Hundefuehrer": "Alexandra Tschanz",
+                        "result": {
+                            "zeit": "81.33",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "48da4220-5939-41de-8810-fb5282ccd8a8",
+                        "Startnummer": 1303
+                    },
+                    {
+                        "Lizenznummer": "15053",
+                        "Hundename": "Hayley",
+                        "Hundefuehrer": "Patrick Bleuer",
+                        "result": {
+                            "zeit": "89.27",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "812fdcf3-7eb1-4973-9cd4-35957ee77755",
+                        "Startnummer": 1305
+                    },
+                    {
+                        "Lizenznummer": "15382",
+                        "Hundename": "Faye",
+                        "Hundefuehrer": "Nathalie Brunner",
+                        "result": {
+                            "zeit": "81.94",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b5ca1e5d-2e11-44dc-8f0f-a6b30f4696a9",
+                        "Startnummer": 1322
+                    },
+                    {
+                        "Lizenznummer": "15447",
+                        "Hundename": "Fellow",
+                        "Hundefuehrer": "Patrick Ernst",
+                        "result": {
+                            "zeit": "81.21",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "222ced8b-2970-472f-99aa-a52bf8bbd2ca",
+                        "Startnummer": 1315
+                    },
+                    {
+                        "Lizenznummer": "15394",
+                        "Hundename": "Hunter",
+                        "Hundefuehrer": "Morena Barelli",
+                        "result": {
+                            "zeit": "87.98",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "23d8d387-2d3c-470a-9f80-c7e7c4fc05c4",
+                        "Startnummer": 1316
+                    },
+                    {
+                        "Lizenznummer": "14723",
+                        "Hundename": "Speedy",
+                        "Hundefuehrer": "Raphael Jenny",
+                        "result": {
+                            "zeit": "91.20",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "0ddd0bbd-1ca5-46a6-b4b2-e14ebed0c7f1",
+                        "Startnummer": 1324
+                    },
+                    {
+                        "Lizenznummer": "15602",
+                        "Hundename": "Capraia",
+                        "Hundefuehrer": "Caroline Spahni",
+                        "result": {
+                            "zeit": "94.98",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f33dd112-f362-4322-9d42-bd32613a25fa",
+                        "Startnummer": 1327
+                    },
+                    {
+                        "Lizenznummer": "20190",
+                        "Hundename": "Style",
+                        "Hundefuehrer": "Christa Zaugg",
+                        "result": {
+                            "zeit": "88.37",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e2193784-b44e-4be1-a77b-1189ed65cfce",
+                        "Startnummer": 1306
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 205,
+                    "anzahl_hindernisse": 22,
+                    "standardzeit_sct": 82.0
+                },
+                "assigned_ring": "ring_1",
+                "richter_id": "17385",
+                "kat_sort": "",
+                "kl_sort": ""
+            },
+            {
+                "id": "eaec4cbe-f731-4d01-baa0-c5fb5bd58bef",
+                "name": "Jumping Small 1",
+                "laufart": "Jumping",
+                "kategorie": "Small",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "16836",
+                        "Hundename": "Uma",
+                        "Hundefuehrer": "Muriel Petitjean",
+                        "result": {
+                            "zeit": "70.96",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "6cd3dda5-4aed-40f7-b084-8271b90b70ba",
+                        "Startnummer": 4102
+                    },
+                    {
+                        "Lizenznummer": "16658",
+                        "Hundename": "Mr Peregrin Took",
+                        "Hundefuehrer": "Aline Calame",
+                        "result": {
+                            "zeit": "75.89",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "4c80b9c0-4efa-447a-b1e0-6491baf67e73",
+                        "Startnummer": 4101
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 173,
+                    "anzahl_hindernisse": 21,
+                    "standardzeit_sct": 61.79
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "13830584-f23d-43b2-b3cf-e646676a3065",
+                "name": "Jumping Small 2",
+                "laufart": "Jumping",
+                "kategorie": "Small",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "15534",
+                        "Hundename": "Sophia",
+                        "Hundefuehrer": "Muriel Petitjean",
+                        "result": {
+                            "zeit": "69.72",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "6cd3dda5-4aed-40f7-b084-8271b90b70ba",
+                        "Startnummer": 4201
+                    },
+                    {
+                        "Lizenznummer": "15009",
+                        "Hundename": "Lou",
+                        "Hundefuehrer": "Isabelle Loretan",
+                        "result": {
+                            "zeit": "68.26",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3414f907-3f4d-44fc-9bc9-0a7a84b65ae8",
+                        "Startnummer": 4203
+                    },
+                    {
+                        "Lizenznummer": "58000",
+                        "Hundename": "Yuki",
+                        "Hundefuehrer": "Werner Brönnimann",
+                        "result": {
+                            "zeit": "84.28",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "a3ac1a97-12c8-4fea-81a9-2e16219d3e58",
+                        "Startnummer": 4202
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 208,
+                    "anzahl_hindernisse": 21,
+                    "standardzeit_sct": 69.33
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "52c04fc5-4f07-4c8a-b4c5-8da6362a8229",
+                "name": "Jumping Small 3",
+                "laufart": "Jumping",
+                "kategorie": "Small",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "15736",
+                        "Hundename": "Carioca",
+                        "Hundefuehrer": "Tiphanie Mauroux",
+                        "result": {
+                            "zeit": "71.38",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "ffe2430b-bf4f-4316-994f-ca5eee6f87c8",
+                        "Startnummer": 4304
+                    },
+                    {
+                        "Lizenznummer": "14201",
+                        "Hundename": "Fuego",
+                        "Hundefuehrer": "Désirée Brenzikofer",
+                        "result": {
+                            "zeit": "65.92",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "773fb7d8-455e-4662-9559-631373803755",
+                        "Startnummer": 4302
+                    },
+                    {
+                        "Lizenznummer": "16139",
+                        "Hundename": "Jim Beam",
+                        "Hundefuehrer": "Nathalie Brunner",
+                        "result": {
+                            "zeit": "80.13",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b5ca1e5d-2e11-44dc-8f0f-a6b30f4696a9",
+                        "Startnummer": 4301
+                    },
+                    {
+                        "Lizenznummer": "16409",
+                        "Hundename": "Nashvilles",
+                        "Hundefuehrer": "Renée Jansen",
+                        "result": {
+                            "zeit": "65.31",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "1baddc05-bee8-4253-a772-dffe46718eeb",
+                        "Startnummer": 4303
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 205,
+                    "anzahl_hindernisse": 22,
+                    "standardzeit_sct": 68.33
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "e9d20f93-a862-41dd-94bd-a6cbe4285ff3",
+                "name": "Jumping Medium 1",
+                "laufart": "Jumping",
+                "kategorie": "Medium",
+                "klasse": "1",
+                "entries": [],
+                "laufdaten": {
+                    "parcours_laenge": 188,
+                    "anzahl_hindernisse": 21,
+                    "standardzeit_sct": 67.14
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "c181cb2e-467f-40b9-bfb2-b84299a6f6c7",
+                "name": "Jumping Medium 2",
+                "laufart": "Jumping",
+                "kategorie": "Medium",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "16565",
+                        "Hundename": "Maybe",
+                        "Hundefuehrer": "Marie-Jo Golay",
+                        "result": {
+                            "zeit": "49.86",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "ab494d3a-24ab-4a0c-8488-1d59d94f1aea",
+                        "Startnummer": 3201
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 162,
+                    "anzahl_hindernisse": 20,
+                    "standardzeit_sct": 54.0
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "fc71c3f7-0de6-4a17-b9ae-e7ff91fcc033",
+                "name": "Jumping Medium 3",
+                "laufart": "Jumping",
+                "kategorie": "Medium",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "14985",
+                        "Hundename": "Fuji",
+                        "Hundefuehrer": "Letizia Grunder",
+                        "result": {
+                            "zeit": "51.85",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3e12b437-e833-4c28-a712-e80f0557b722",
+                        "Startnummer": 3305
+                    },
+                    {
+                        "Lizenznummer": "16227",
+                        "Hundename": "Qilin",
+                        "Hundefuehrer": "Virginie de Andrea",
+                        "result": {
+                            "zeit": "59.64",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "73b65d23-156a-42a3-a7a8-cb8dc0ed79c6",
+                        "Startnummer": 3301
+                    },
+                    {
+                        "Lizenznummer": "14563",
+                        "Hundename": "Ombre",
+                        "Hundefuehrer": "Simone Nützi",
+                        "result": {
+                            "zeit": "56.72",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3588e020-2be8-4799-a765-1becf83a8225",
+                        "Startnummer": 3302
+                    },
+                    {
+                        "Lizenznummer": "14523",
+                        "Hundename": "Pippa",
+                        "Hundefuehrer": "Roland Hilfiker",
+                        "result": {
+                            "zeit": "55.98",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "ae95b1e4-fdfe-4aa9-b99e-62bcbdd9d971",
+                        "Startnummer": 3304
+                    },
+                    {
+                        "Lizenznummer": "15731",
+                        "Hundename": "Robin",
+                        "Hundefuehrer": "Anna Schönenberger",
+                        "result": {
+                            "disqualifikation": "DIS"
+                        },
+                        "handler_id": "a5040769-40a9-4a07-914d-2e8d0ce57970",
+                        "Startnummer": 3303
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 170,
+                    "anzahl_hindernisse": 22,
+                    "standardzeit_sct": 56.67
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "981df62c-5263-4f55-89db-3d239f7ca572",
+                "name": "Jumping Intermediate 1",
+                "laufart": "Jumping",
+                "kategorie": "Intermediate",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "13852",
+                        "Hundename": "Rocky",
+                        "Hundefuehrer": "Mary Diserens",
+                        "result": {
+                            "zeit": "87.25",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "497b576c-bbd8-4bc2-9cc5-2f2c970c5621",
+                        "Startnummer": 2104
+                    },
+                    {
+                        "Lizenznummer": "16021",
+                        "Hundename": "Tessie",
+                        "Hundefuehrer": "Sabrina Dirren",
+                        "result": {
+                            "zeit": "86.78",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "11e96c12-fe31-49da-965c-bd470a9bf409",
+                        "Startnummer": 2106
+                    },
+                    {
+                        "Lizenznummer": "16765",
+                        "Hundename": "Rosie",
+                        "Hundefuehrer": "Sandra Blum",
+                        "result": {
+                            "zeit": "87.22",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "4df77d25-f404-4405-a856-34cf557df443",
+                        "Startnummer": 2103
+                    },
+                    {
+                        "Lizenznummer": "15531",
+                        "Hundename": "Kyona",
+                        "Hundefuehrer": "Mirja Roth",
+                        "result": {
+                            "zeit": "90.38",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "5482ceaa-4924-4577-815e-6915edf0540f",
+                        "Startnummer": 2105
+                    },
+                    {
+                        "Lizenznummer": "16810",
+                        "Hundename": "Kipekee",
+                        "Hundefuehrer": "Marianne Mattle",
+                        "result": {
+                            "zeit": "73.26",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "608fea58-9a3a-4636-bc14-4ccfa1c85dc3",
+                        "Startnummer": 2101
+                    },
+                    {
+                        "Lizenznummer": "16014",
+                        "Hundename": "Dark",
+                        "Hundefuehrer": "Carlo Ruggia",
+                        "result": {
+                            "disqualifikation": "ABR"
+                        },
+                        "handler_id": "e8eaaa8b-ff7a-4058-a376-ddf941084f1b",
+                        "Startnummer": 2102
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 216,
+                    "anzahl_hindernisse": 21,
+                    "standardzeit_sct": 77.14
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "d1e78343-bd56-4219-a7bc-1f76db95f042",
+                "name": "Jumping Intermediate 2",
+                "laufart": "Jumping",
+                "kategorie": "Intermediate",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "16480",
+                        "Hundename": "Beany",
+                        "Hundefuehrer": "Anita Leonardi",
+                        "result": {
+                            "zeit": "69.15",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e3e2fda2-d16f-405a-862f-9d61efeff00f",
+                        "Startnummer": 2204
+                    },
+                    {
+                        "Lizenznummer": "16030",
+                        "Hundename": "Gin",
+                        "Hundefuehrer": "Muriel Grand",
+                        "result": {
+                            "zeit": "64.80",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "5d4249e1-9210-4b67-907a-a11fea3cf73a",
+                        "Startnummer": 2206
+                    },
+                    {
+                        "Lizenznummer": "16362",
+                        "Hundename": "Nayra",
+                        "Hundefuehrer": "Andrea Rickli",
+                        "result": {
+                            "disqualifikation": "ABR"
+                        },
+                        "handler_id": "951bef3f-fde2-4894-8ca5-2d261b0e8588",
+                        "Startnummer": 2202
+                    },
+                    {
+                        "Lizenznummer": "16084",
+                        "Hundename": "Nala",
+                        "Hundefuehrer": "Ariane Boutellier",
+                        "result": {
+                            "zeit": "58.36",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "8f9c4ca3-f853-4db6-9be2-e39d97d45183",
+                        "Startnummer": 2205
+                    },
+                    {
+                        "Lizenznummer": "15669",
+                        "Hundename": "Tia",
+                        "Hundefuehrer": "Susanne Haring",
+                        "result": {
+                            "zeit": "66.15",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "af8b8e57-44dd-4037-b715-c7c7b29215b9",
+                        "Startnummer": 2201
+                    },
+                    {
+                        "Lizenznummer": "16436",
+                        "Hundename": "Freecy",
+                        "Hundefuehrer": "Natalie Raetzo",
+                        "result": {
+                            "zeit": "54.44",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3527f2b1-43d1-4f23-9ebf-0e19609974e5",
+                        "Startnummer": 2203
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 164,
+                    "anzahl_hindernisse": 21,
+                    "standardzeit_sct": 54.67
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "a8ae13d9-0c83-4a37-aff8-267ec7c28256",
+                "name": "Jumping Intermediate 3",
+                "laufart": "Jumping",
+                "kategorie": "Intermediate",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "18881",
+                        "Hundename": "Pirate",
+                        "Hundefuehrer": "Letizia Grunder",
+                        "result": {
+                            "zeit": "65.19",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3e12b437-e833-4c28-a712-e80f0557b722",
+                        "Startnummer": 2311
+                    },
+                    {
+                        "Lizenznummer": "14165",
+                        "Hundename": "Nikaia",
+                        "Hundefuehrer": "Corentin Sansonnens",
+                        "result": {
+                            "zeit": "54.59",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "4cf62898-539b-45fc-8faf-0b951f1c9f52",
+                        "Startnummer": 2310
+                    },
+                    {
+                        "Lizenznummer": "14185",
+                        "Hundename": "Go-Tic",
+                        "Hundefuehrer": "Francine Tavazzi",
+                        "result": {
+                            "zeit": "58.15",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "1fb5fb01-6f84-4a06-be2a-05d4d1b16848",
+                        "Startnummer": 2308
+                    },
+                    {
+                        "Lizenznummer": "15764",
+                        "Hundename": "Hazel-Shelby",
+                        "Hundefuehrer": "Dominik Oehler",
+                        "result": {
+                            "zeit": "58.01",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "6c6cac89-f0fc-4bbe-99c9-a33692fa938b",
+                        "Startnummer": 2305
+                    },
+                    {
+                        "Lizenznummer": "15505",
+                        "Hundename": "Vita",
+                        "Hundefuehrer": "Simone Nützi",
+                        "result": {
+                            "zeit": "70.36",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3588e020-2be8-4799-a765-1becf83a8225",
+                        "Startnummer": 2303
+                    },
+                    {
+                        "Lizenznummer": "14354",
+                        "Hundename": "Roxi",
+                        "Hundefuehrer": "Carlo Ruggia",
+                        "result": {
+                            "zeit": "64.22",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e8eaaa8b-ff7a-4058-a376-ddf941084f1b",
+                        "Startnummer": 2304
+                    },
+                    {
+                        "Lizenznummer": "15634",
+                        "Hundename": "Gee",
+                        "Hundefuehrer": "Larissa Michel",
+                        "result": {
+                            "zeit": "65.41",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "57913321-5a2c-47c0-bc22-4cdfeb1cfc13",
+                        "Startnummer": 2307
+                    },
+                    {
+                        "Lizenznummer": "15262",
+                        "Hundename": "Lou",
+                        "Hundefuehrer": "Bettina Heiniger",
+                        "result": {
+                            "zeit": "57.69",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "aa448533-b93a-4384-99c1-b26f9b626d85",
+                        "Startnummer": 2302
+                    },
+                    {
+                        "Lizenznummer": "15953",
+                        "Hundename": "Liv",
+                        "Hundefuehrer": "Bettina Heiniger",
+                        "result": {
+                            "disqualifikation": "DIS"
+                        },
+                        "handler_id": "aa448533-b93a-4384-99c1-b26f9b626d85",
+                        "Startnummer": 2309
+                    },
+                    {
+                        "Lizenznummer": "16001",
+                        "Hundename": "Posh",
+                        "Hundefuehrer": "Margrit Klauz",
+                        "result": {
+                            "zeit": "62.63",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "75e0ea81-3f36-418a-a297-a31be1d9696d",
+                        "Startnummer": 2301
+                    },
+                    {
+                        "Lizenznummer": "16000",
+                        "Hundename": "Tendai",
+                        "Hundefuehrer": "Margrit Klauz",
+                        "result": {
+                            "zeit": "70.51",
+                            "fehler": 2,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "75e0ea81-3f36-418a-a297-a31be1d9696d",
+                        "Startnummer": 2306
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 168,
+                    "anzahl_hindernisse": 22,
+                    "standardzeit_sct": 56.0
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "e272e651-9f51-4233-a022-9f1925033153",
+                "name": "Jumping Large 1",
+                "laufart": "Jumping",
+                "kategorie": "Large",
+                "klasse": "1",
+                "entries": [
+                    {
+                        "Lizenznummer": "14341",
+                        "Hundename": "Oxygen",
+                        "Hundefuehrer": "Jessica Herren",
+                        "result": {
+                            "zeit": "77.15",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "183f0752-0169-46e5-815b-2d7f82c9339e",
+                        "Startnummer": 1102
+                    },
+                    {
+                        "Lizenznummer": "16795",
+                        "Hundename": "Hinouk",
+                        "Hundefuehrer": "Jessica Wyss",
+                        "result": {
+                            "zeit": "74.84",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7cd89e3c-9ad5-489e-8435-9833f4a11d7d",
+                        "Startnummer": 1109
+                    },
+                    {
+                        "Lizenznummer": "16591",
+                        "Hundename": "Electra",
+                        "Hundefuehrer": "Amélie Genevey",
+                        "result": {
+                            "zeit": "66.66",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f6ed272a-f825-4396-8ff8-d714531b72ab",
+                        "Startnummer": 1101
+                    },
+                    {
+                        "Lizenznummer": "16691",
+                        "Hundename": "Sonic",
+                        "Hundefuehrer": "Christelle Borcard",
+                        "result": {
+                            "disqualifikation": "DIS"
+                        },
+                        "handler_id": "3b94f591-2b7a-44c0-b7a7-1692b336a104",
+                        "Startnummer": 1104
+                    },
+                    {
+                        "Lizenznummer": "16098",
+                        "Hundename": "Gwyn",
+                        "Hundefuehrer": "Sabine Hartweg",
+                        "result": {
+                            "zeit": "62.79",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f065a9bc-d926-4bd2-a62d-909bd08f85fd",
+                        "Startnummer": 1110
+                    },
+                    {
+                        "Lizenznummer": "16370",
+                        "Hundename": "Devil",
+                        "Hundefuehrer": "Céline Zahn",
+                        "result": {
+                            "zeit": "66.17",
+                            "fehler": 1,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "24b208ba-d9b1-4ea0-adab-b236e0eb7421",
+                        "Startnummer": 1103
+                    },
+                    {
+                        "Lizenznummer": "16342",
+                        "Hundename": "Nuuk",
+                        "Hundefuehrer": "Sarih Ganzmann",
+                        "result": {
+                            "zeit": "60.15",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "9b16c8f2-94a1-4961-9e2a-11c0aca7fe92",
+                        "Startnummer": 1105
+                    },
+                    {
+                        "Lizenznummer": "16868",
+                        "Hundename": "Niffler",
+                        "Hundefuehrer": "Tanja Fähndrich",
+                        "result": {
+                            "zeit": "67.94",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "436da440-3eb2-4ea4-9f85-f1d5c97ea77b",
+                        "Startnummer": 1107
+                    },
+                    {
+                        "Lizenznummer": "16503",
+                        "Hundename": "Tschiller",
+                        "Hundefuehrer": "Ursula Schneider",
+                        "result": {
+                            "zeit": "61.07",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "8addefd4-c8c6-45a3-a8f8-5fa2d25c864d",
+                        "Startnummer": 1106
+                    },
+                    {
+                        "Lizenznummer": "16625",
+                        "Hundename": "Juna",
+                        "Hundefuehrer": "Jenny Mäusli",
+                        "result": {
+                            "zeit": "77.32",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "36e5aacb-91f3-49b9-8d10-d11017ddbde0",
+                        "Startnummer": 1108
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 177,
+                    "anzahl_hindernisse": 19,
+                    "standardzeit_sct": 63.21
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "bf23f1be-0219-4cac-80ff-5bcd8b2b013d",
+                "name": "Jumping Large 2",
+                "laufart": "Jumping",
+                "kategorie": "Large",
+                "klasse": "2",
+                "entries": [
+                    {
+                        "Lizenznummer": "16568",
+                        "Hundename": "Undi",
+                        "Hundefuehrer": "Giulia Lizzo",
+                        "result": {
+                            "zeit": "55.33",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e1fe589f-85e6-4809-84da-2fb107fee465",
+                        "Startnummer": 1204
+                    },
+                    {
+                        "Lizenznummer": "16107",
+                        "Hundename": "Fayer",
+                        "Hundefuehrer": "Estelle Brêchet",
+                        "result": {
+                            "zeit": "58.57",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b32d14b1-1f0b-4ffa-979a-0514dd20f833",
+                        "Startnummer": 1209
+                    },
+                    {
+                        "Lizenznummer": "15536",
+                        "Hundename": "Booster",
+                        "Hundefuehrer": "Melinda Savarino",
+                        "result": {
+                            "disqualifikation": "DIS"
+                        },
+                        "handler_id": "afbb5494-2db7-4329-bf97-b4709678638a",
+                        "Startnummer": 1229
+                    },
+                    {
+                        "Lizenznummer": "16837",
+                        "Hundename": "Nash",
+                        "Hundefuehrer": "Agnes Certain",
+                        "result": {
+                            "zeit": "62.94",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "db311b1e-d177-4ffa-9092-679ac80e01d1",
+                        "Startnummer": 1222
+                    },
+                    {
+                        "Lizenznummer": "14643",
+                        "Hundename": "Rayna",
+                        "Hundefuehrer": "Sabrina Dirren",
+                        "result": {
+                            "zeit": "65.88",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "11e96c12-fe31-49da-965c-bd470a9bf409",
+                        "Startnummer": 1220
+                    },
+                    {
+                        "Lizenznummer": "15052",
+                        "Hundename": "Kwin",
+                        "Hundefuehrer": "Philippe Pollien",
+                        "result": {
+                            "zeit": "54.66",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "74ed5262-f0c6-44ba-a9be-b74a88f13e17",
+                        "Startnummer": 1216
+                    },
+                    {
+                        "Lizenznummer": "16427",
+                        "Hundename": "Kadoc",
+                        "Hundefuehrer": "Pamela Matthey-Doret",
+                        "result": {
+                            "zeit": "55.07",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7cc8618f-fe52-46d0-868d-7a0421437af6",
+                        "Startnummer": 1221
+                    },
+                    {
+                        "Lizenznummer": "16256",
+                        "Hundename": "Atlas",
+                        "Hundefuehrer": "Lydia Dafflon",
+                        "result": {
+                            "zeit": "54.71",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "d0190612-db5a-4054-9f1b-7368b4f81ee0",
+                        "Startnummer": 1202
+                    },
+                    {
+                        "Lizenznummer": "15762",
+                        "Hundename": "Sobacca",
+                        "Hundefuehrer": "Natascha Imboden",
+                        "result": {
+                            "zeit": "53.56",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7568e7dd-1a8a-4a9d-b894-3b4091734b58",
+                        "Startnummer": 1223
+                    },
+                    {
+                        "Lizenznummer": "14758",
+                        "Hundename": "Da Vinci",
+                        "Hundefuehrer": "Céline Zahn",
+                        "result": {
+                            "zeit": "53.48",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "24b208ba-d9b1-4ea0-adab-b236e0eb7421",
+                        "Startnummer": 1207
+                    },
+                    {
+                        "Lizenznummer": "16527",
+                        "Hundename": "Fame",
+                        "Hundefuehrer": "Peter Huber",
+                        "result": {
+                            "zeit": "59.44",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "d3012f7d-bef5-433e-af20-66d32fff55b8",
+                        "Startnummer": 1214
+                    },
+                    {
+                        "Lizenznummer": "13316",
+                        "Hundename": "QB",
+                        "Hundefuehrer": "Beatrice Huber",
+                        "result": {
+                            "zeit": "63.26",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "d466a3c3-0ce7-4563-9e64-dbef9c0110ac",
+                        "Startnummer": 1218
+                    },
+                    {
+                        "Lizenznummer": "16790",
+                        "Hundename": "Win",
+                        "Hundefuehrer": "Jeannine Gloor",
+                        "result": {
+                            "zeit": "57.95",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "388f1bfd-0167-4da4-a22b-f7bf0f704700",
+                        "Startnummer": 1213
+                    },
+                    {
+                        "Lizenznummer": "16474",
+                        "Hundename": "Arvok",
+                        "Hundefuehrer": "Maja Notarfrancesco",
+                        "result": {
+                            "zeit": "65.79",
+                            "fehler": 2,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "5bc967eb-4426-4133-baec-ee2e74f6be88",
+                        "Startnummer": 1225
+                    },
+                    {
+                        "Lizenznummer": "15754",
+                        "Hundename": "Seeed",
+                        "Hundefuehrer": "Carole Zeiter",
+                        "result": {
+                            "zeit": "68.90",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "897e0663-dd72-49fa-a926-505e329c55dc",
+                        "Startnummer": 1231
+                    },
+                    {
+                        "Lizenznummer": "14817",
+                        "Hundename": "Phoebe",
+                        "Hundefuehrer": "Daniel Zeiter",
+                        "result": {
+                            "zeit": "61.59",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3ab39549-75ad-4a62-90a7-9b52bec1b96e",
+                        "Startnummer": 1224
+                    },
+                    {
+                        "Lizenznummer": "16458",
+                        "Hundename": "Adri",
+                        "Hundefuehrer": "Simone Nützi",
+                        "result": {
+                            "zeit": "56.40",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3588e020-2be8-4799-a765-1becf83a8225",
+                        "Startnummer": 1217
+                    },
+                    {
+                        "Lizenznummer": "15811",
+                        "Hundename": "Asics",
+                        "Hundefuehrer": "Lukas Risi",
+                        "result": {
+                            "zeit": "52.53",
+                            "fehler": 1,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7ea15338-f2b1-48f4-b29f-07b59aa66e11",
+                        "Startnummer": 1211
+                    },
+                    {
+                        "Lizenznummer": "14939",
+                        "Hundename": "Soleil",
+                        "Hundefuehrer": "Lilian Oehler",
+                        "result": {
+                            "zeit": "55.45",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "d07aed25-d182-48e5-a0f6-e2357f3023cb",
+                        "Startnummer": 1212
+                    },
+                    {
+                        "Lizenznummer": "49777",
+                        "Hundename": "Ice",
+                        "Hundefuehrer": "Franziska Hilfiker",
+                        "result": {
+                            "zeit": "59.44",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b046ae96-1785-44af-a714-45e148f0f52c",
+                        "Startnummer": 1215
+                    },
+                    {
+                        "Lizenznummer": "16582",
+                        "Hundename": "Phelym",
+                        "Hundefuehrer": "Stephanie Bolliger",
+                        "result": {
+                            "zeit": "57.84",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "2bf1763b-fc16-4f40-8b9f-cedf3989bdba",
+                        "Startnummer": 1230
+                    },
+                    {
+                        "Lizenznummer": "16127",
+                        "Hundename": "Casy",
+                        "Hundefuehrer": "Regula Grünenfelder",
+                        "result": {
+                            "zeit": "57.37",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "0137bc9a-232e-4cad-8641-2449a6377cb3",
+                        "Startnummer": 1208
+                    },
+                    {
+                        "Lizenznummer": "21800",
+                        "Hundename": "Floyd",
+                        "Hundefuehrer": "Barbara Manz",
+                        "result": {
+                            "zeit": "68.85",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "9f0beaf8-e29a-42d0-bb56-1c6a683c4db3",
+                        "Startnummer": 1228
+                    },
+                    {
+                        "Lizenznummer": "16168",
+                        "Hundename": "Aidan",
+                        "Hundefuehrer": "Annick Hosner",
+                        "result": {
+                            "zeit": "68.22",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f5130dd8-2022-4409-9d54-abda9291a784",
+                        "Startnummer": 1227
+                    },
+                    {
+                        "Lizenznummer": "15395",
+                        "Hundename": "Hairon",
+                        "Hundefuehrer": "Ludwig Florioli",
+                        "result": {
+                            "zeit": "63.96",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7133cf87-a4e6-4fb4-839d-fd6623853dfc",
+                        "Startnummer": 1219
+                    },
+                    {
+                        "Lizenznummer": "15959",
+                        "Hundename": "Fame",
+                        "Hundefuehrer": "Sandra Summermatter",
+                        "result": {
+                            "zeit": "65.02",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "059a2ee4-f0f7-4b03-bc1f-941364030152",
+                        "Startnummer": 1201
+                    },
+                    {
+                        "Lizenznummer": "15368",
+                        "Hundename": "Fletcher",
+                        "Hundefuehrer": "Ursula Schneider",
+                        "result": {
+                            "zeit": "56.70",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "8addefd4-c8c6-45a3-a8f8-5fa2d25c864d",
+                        "Startnummer": 1226
+                    },
+                    {
+                        "Lizenznummer": "16162",
+                        "Hundename": "Tweety",
+                        "Hundefuehrer": "Raphael Jenny",
+                        "result": {
+                            "zeit": "64.76",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "0ddd0bbd-1ca5-46a6-b4b2-e14ebed0c7f1",
+                        "Startnummer": 1205
+                    },
+                    {
+                        "Lizenznummer": "16577",
+                        "Hundename": "Oreo",
+                        "Hundefuehrer": "Patrick Stutz",
+                        "result": {
+                            "zeit": "67.04",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7972f72b-ba2e-492c-93d4-15876f8b6117",
+                        "Startnummer": 1210
+                    },
+                    {
+                        "Lizenznummer": "22645",
+                        "Hundename": "Shyleen",
+                        "Hundefuehrer": "Annick Blanc",
+                        "result": {
+                            "zeit": "63.30",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f777f312-3f9e-4b82-ac12-d5aab807ebb1",
+                        "Startnummer": 1203
+                    },
+                    {
+                        "Lizenznummer": "16727",
+                        "Hundename": "Grace",
+                        "Hundefuehrer": "Annette Ogierman",
+                        "result": {
+                            "zeit": "53.08",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "5158f98b-cc2c-4750-999a-8f8dcb0b5359",
+                        "Startnummer": 1206
+                    },
+                    {
+                        "Lizenznummer": "16476",
+                        "Hundename": "Paige",
+                        "Hundefuehrer": "Mirjam Senn",
+                        "result": {
+                            "zeit": "55.77",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b4c31c66-215a-483b-b596-458d64df448a",
+                        "Startnummer": 1232
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 172,
+                    "anzahl_hindernisse": 18,
+                    "standardzeit_sct": 57.33
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            },
+            {
+                "id": "481ffa6c-a58f-410f-a016-033526b46281",
+                "name": "Jumping Large 3",
+                "laufart": "Jumping",
+                "kategorie": "Large",
+                "klasse": "3",
+                "entries": [
+                    {
+                        "Lizenznummer": "13878",
+                        "Hundename": "Extreme Folly",
+                        "Hundefuehrer": "Irène Mauroux",
+                        "result": {
+                            "zeit": "69.21",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "a74d272a-2601-4a3e-803b-fe8a190be7a7",
+                        "Startnummer": 1321
+                    },
+                    {
+                        "Lizenznummer": "13877",
+                        "Hundename": "Djinn' Tomic Folly",
+                        "Hundefuehrer": "Pascal Mauroux",
+                        "result": {
+                            "zeit": "64.96",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "7e98648f-eb18-48d8-a498-ccefd2263445",
+                        "Startnummer": 1301
+                    },
+                    {
+                        "Lizenznummer": "15756",
+                        "Hundename": "Mango",
+                        "Hundefuehrer": "Rachele Fuzzati",
+                        "result": {
+                            "zeit": "58.96",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "c5ea5923-b075-4977-9322-203a15b5fafb",
+                        "Startnummer": 1314
+                    },
+                    {
+                        "Lizenznummer": "15759",
+                        "Hundename": "Jet",
+                        "Hundefuehrer": "Agnes Certain",
+                        "result": {
+                            "zeit": "58.91",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "db311b1e-d177-4ffa-9092-679ac80e01d1",
+                        "Startnummer": 1326
+                    },
+                    {
+                        "Lizenznummer": "14604",
+                        "Hundename": "Thunderstorm",
+                        "Hundefuehrer": "Aurore Brelot",
+                        "result": {
+                            "zeit": "50.97",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "c8e0598f-8296-4bbb-b70d-acfb14f3055d",
+                        "Startnummer": 1317
+                    },
+                    {
+                        "Lizenznummer": "15738",
+                        "Hundename": "Rebel",
+                        "Hundefuehrer": "Eric Sansonnens",
+                        "result": {
+                            "zeit": "68.21",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e554b040-e467-4bf5-8ebe-7bd99d5b0c44",
+                        "Startnummer": 1307
+                    },
+                    {
+                        "Lizenznummer": "16075",
+                        "Hundename": "A-Yena",
+                        "Hundefuehrer": "Francine Tavazzi",
+                        "result": {
+                            "zeit": "68.45",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "1fb5fb01-6f84-4a06-be2a-05d4d1b16848",
+                        "Startnummer": 1309
+                    },
+                    {
+                        "Lizenznummer": "15086",
+                        "Hundename": "Kara",
+                        "Hundefuehrer": "Stéphane Wohlhauser",
+                        "result": {
+                            "zeit": "57.49",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "1ec821d9-5d70-422a-9418-052936c256fa",
+                        "Startnummer": 1319
+                    },
+                    {
+                        "Lizenznummer": "16406",
+                        "Hundename": "Leeloo",
+                        "Hundefuehrer": "Cécile Francey",
+                        "result": {
+                            "zeit": "66.98",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "2cafb5c5-c798-458e-b932-a84d3dc1e500",
+                        "Startnummer": 1302
+                    },
+                    {
+                        "Lizenznummer": "15095",
+                        "Hundename": "Orko",
+                        "Hundefuehrer": "Christelle Borcard",
+                        "result": {
+                            "zeit": "69.61",
+                            "fehler": 1,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "3b94f591-2b7a-44c0-b7a7-1692b336a104",
+                        "Startnummer": 1318
+                    },
+                    {
+                        "Lizenznummer": "15195",
+                        "Hundename": "Iceman",
+                        "Hundefuehrer": "Denise von Tobel",
+                        "result": {
+                            "zeit": "67.90",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "a7aa27ed-8ad3-43cb-8a2a-ffaeeb34c857",
+                        "Startnummer": 1320
+                    },
+                    {
+                        "Lizenznummer": "15967",
+                        "Hundename": "Zaz",
+                        "Hundefuehrer": "Rahel Pfäffli",
+                        "result": {
+                            "zeit": "60.49",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "83028679-e18f-4700-98fb-95ddb0108948",
+                        "Startnummer": 1310
+                    },
+                    {
+                        "Lizenznummer": "16209",
+                        "Hundename": "Joolz",
+                        "Hundefuehrer": "André Mühlebach",
+                        "result": {
+                            "zeit": "62.51",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "9b9b9666-13c7-47d5-bca0-a62e2537b81c",
+                        "Startnummer": 1323
+                    },
+                    {
+                        "Lizenznummer": "15407",
+                        "Hundename": "Eve",
+                        "Hundefuehrer": "Martin Brunner",
+                        "result": {
+                            "zeit": "59.56",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "81e0efc9-2581-41ac-8143-03ad1b8f9cfe",
+                        "Startnummer": 1308
+                    },
+                    {
+                        "Lizenznummer": "15406",
+                        "Hundename": "Mokka",
+                        "Hundefuehrer": "Ursula Roethlisberger",
+                        "result": {
+                            "zeit": "55.27",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f51a72e7-19de-4019-93c2-cb6e85980168",
+                        "Startnummer": 1328
+                    },
+                    {
+                        "Lizenznummer": "18088",
+                        "Hundename": "Neon",
+                        "Hundefuehrer": "Roland Hilfiker",
+                        "result": {
+                            "zeit": "55.42",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "ae95b1e4-fdfe-4aa9-b99e-62bcbdd9d971",
+                        "Startnummer": 1330
+                    },
+                    {
+                        "Lizenznummer": "14777",
+                        "Hundename": "Sky",
+                        "Hundefuehrer": "Franziska Hilfiker",
+                        "result": {
+                            "zeit": "64.02",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b046ae96-1785-44af-a714-45e148f0f52c",
+                        "Startnummer": 1329
+                    },
+                    {
+                        "Lizenznummer": "16312",
+                        "Hundename": "Ouzo",
+                        "Hundefuehrer": "Jenny Stephenson",
+                        "result": {
+                            "disqualifikation": "DIS"
+                        },
+                        "handler_id": "e1603b71-dbef-48bb-8cb0-51ac949aacc2",
+                        "Startnummer": 1311
+                    },
+                    {
+                        "Lizenznummer": "14953",
+                        "Hundename": "Loca",
+                        "Hundefuehrer": "Jenny Stephenson",
+                        "result": {
+                            "zeit": "66.26",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e1603b71-dbef-48bb-8cb0-51ac949aacc2",
+                        "Startnummer": 1304
+                    },
+                    {
+                        "Lizenznummer": "14754",
+                        "Hundename": "Jacket",
+                        "Hundefuehrer": "Evelyne von Riedmatten",
+                        "result": {
+                            "zeit": "54.46",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "84da08f5-a6db-4a49-868a-1bee897a4cfe",
+                        "Startnummer": 1313
+                    },
+                    {
+                        "Lizenznummer": "15129",
+                        "Hundename": "Milane",
+                        "Hundefuehrer": "Sibylle Lüthi",
+                        "result": {
+                            "zeit": "66.58",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b004862f-31da-4cbd-af5c-94e0e9a4aaf4",
+                        "Startnummer": 1312
+                    },
+                    {
+                        "Lizenznummer": "15488",
+                        "Hundename": "Fjun",
+                        "Hundefuehrer": "Yvonne Wyss",
+                        "result": {
+                            "zeit": "57.57",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "291231c8-950c-4407-a8f7-9e89fa62ca3d",
+                        "Startnummer": 1325
+                    },
+                    {
+                        "Lizenznummer": "15661",
+                        "Hundename": "Gin",
+                        "Hundefuehrer": "Alexandra Tschanz",
+                        "result": {
+                            "zeit": "59.28",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "48da4220-5939-41de-8810-fb5282ccd8a8",
+                        "Startnummer": 1303
+                    },
+                    {
+                        "Lizenznummer": "15053",
+                        "Hundename": "Hayley",
+                        "Hundefuehrer": "Patrick Bleuer",
+                        "result": {
+                            "zeit": "66.83",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "812fdcf3-7eb1-4973-9cd4-35957ee77755",
+                        "Startnummer": 1305
+                    },
+                    {
+                        "Lizenznummer": "15382",
+                        "Hundename": "Faye",
+                        "Hundefuehrer": "Nathalie Brunner",
+                        "result": {
+                            "zeit": "49.79",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "b5ca1e5d-2e11-44dc-8f0f-a6b30f4696a9",
+                        "Startnummer": 1322
+                    },
+                    {
+                        "Lizenznummer": "15447",
+                        "Hundename": "Fellow",
+                        "Hundefuehrer": "Patrick Ernst",
+                        "result": {
+                            "zeit": "56.84",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "222ced8b-2970-472f-99aa-a52bf8bbd2ca",
+                        "Startnummer": 1315
+                    },
+                    {
+                        "Lizenznummer": "15394",
+                        "Hundename": "Hunter",
+                        "Hundefuehrer": "Morena Barelli",
+                        "result": {
+                            "zeit": "51.59",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "23d8d387-2d3c-470a-9f80-c7e7c4fc05c4",
+                        "Startnummer": 1316
+                    },
+                    {
+                        "Lizenznummer": "14723",
+                        "Hundename": "Speedy",
+                        "Hundefuehrer": "Raphael Jenny",
+                        "result": {
+                            "zeit": "68.31",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "0ddd0bbd-1ca5-46a6-b4b2-e14ebed0c7f1",
+                        "Startnummer": 1324
+                    },
+                    {
+                        "Lizenznummer": "15602",
+                        "Hundename": "Capraia",
+                        "Hundefuehrer": "Caroline Spahni",
+                        "result": {
+                            "zeit": "50.22",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "f33dd112-f362-4322-9d42-bd32613a25fa",
+                        "Startnummer": 1327
+                    },
+                    {
+                        "Lizenznummer": "20190",
+                        "Hundename": "Style",
+                        "Hundefuehrer": "Christa Zaugg",
+                        "result": {
+                            "zeit": "60.22",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
+                        },
+                        "handler_id": "e2193784-b44e-4be1-a77b-1189ed65cfce",
+                        "Startnummer": 1306
+                    }
+                ],
+                "laufdaten": {
+                    "parcours_laenge": 164,
+                    "anzahl_hindernisse": 22,
+                    "standardzeit_sct": 54.67
+                },
+                "assigned_ring": null,
+                "richter_id": "3995",
+                "kat_sort": "asc",
+                "kl_sort": ""
+            }
+        ],
+        "run_order": [
+            {
+                "laufart": "Umbau",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "20",
+                "label": "für Agility",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Umbau",
+                "kategorie": "",
+                "klasse": "",
+                "ring": "1",
+                "richter_id": "",
+                "duration": "20",
+                "label": "für Agility",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Agility",
+                "kategorie": "Alle",
+                "klasse": "Alle",
+                "ring": "1",
+                "richter_id": "17385",
+                "duration": "30",
+                "label": "Agility | Kat: Alle | Kl: Alle",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            },
+            {
+                "laufart": "Agility",
+                "kategorie": "Alle",
+                "klasse": "Alle",
+                "ring": "1",
+                "richter_id": "17385",
+                "duration": "",
+                "label": "",
+                "kat_sort": "",
+                "kl_sort": "",
+                "is_grossring": false
+            }
+        ],
+        "start_number_schema": {
+            "Small-1": 4101,
+            "Small-2": 4201,
+            "Small-3": 4301,
+            "Small-Oldie": 4401,
+            "Medium-1": 3101,
+            "Medium-2": 3201,
+            "Medium-3": 3301,
+            "Medium-Oldie": 3401,
+            "Intermediate-1": 2101,
+            "Intermediate-2": 2201,
+            "Intermediate-3": 2301,
+            "Intermediate-Oldie": 2401,
+            "Large-1": 1101,
+            "Large-2": 1201,
+            "Large-3": 1301,
+            "Large-Oldie": 1401
+        }
+    }
+]
