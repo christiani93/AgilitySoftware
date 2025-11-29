@@ -15,11 +15,11 @@
 
 <div class="card shadow-sm">
     <div class="card-header">
-        <div class="d-flex justify-content-between">
+        <div class="d-flex flex-column flex-md-row gap-2 justify-content-between">
             <span>Parcourslänge: {{ run.laufdaten.parcours_laenge or 'N/A' }}m</span>
-            <span>SCT: {{ run.laufdaten.standardzeit_sct_gerundet if run.laufdaten.standardzeit_sct_gerundet != 999 else 'N/A' }}s</span>
-            <span>MCT: {{ run.laufdaten.maximalzeit_mct_gerundet if run.laufdaten.maximalzeit_mct_gerundet != 999 else 'N/A' }}s</span>
-            <span>Richter: {% set judge = judges|selectattr('id', 'equalto', run.richter_id)|first %}{{ judge.lastname if judge else 'N/A' }}</span>
+            <span>SCT: {{ sct_display }}s</span>
+            <span>MCT: {{ mct_display }}s</span>
+            <span>Richter: {% set judge = judges|selectattr('id', 'equalto', run.richter_id)|first %}{{ (judge.firstname ~ ' ' ~ judge.lastname).strip() if judge else 'N/A' }}</span>
         </div>
     </div>
     <div class="card-body p-0">
