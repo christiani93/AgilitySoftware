@@ -49,7 +49,7 @@
                             </span>
                         </small>
                     </div>
-                    <p class="mb-1">Richter: {% set judge = judges|selectattr('id', 'equalto', run.richter_id)|first %}{{ judge.lastname if judge else 'N/A' }}</p>
+                    <p class="mb-1">Richter: {% set judge = judges|selectattr('id', 'equalto', run.richter_id)|first %}{{ (judge.firstname ~ ' ' ~ judge.lastname).strip() if judge else 'N/A' }}</p>
                     <div class="btn-group mt-2">
                         <a href="{{ url_for('live_bp.live_run_entry', event_id=event.id, run_id=run.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-keyboard me-2"></i>Resultate erfassen</a>
                         <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" target="_blank" class="btn btn-info btn-sm text-white"><i class="fas fa-trophy me-2"></i>Rangliste (Druck)</a>

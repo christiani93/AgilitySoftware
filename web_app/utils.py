@@ -151,9 +151,12 @@ def _calculate_run_results(run, settings):
         speed = settings.get('sct_factors', {}).get(laufart, {}).get(klasse, 3.5 if laufart == 'Agility' else 4.0)
         mct = parcours_laenge / 2.5 if laufart == 'Agility' else parcours_laenge / 3.0
         sct = parcours_laenge / speed
-    
-    run['laufdaten']['maximalzeit_mct_berechnet'] = round(mct)
-    run['laufdaten']['standardzeit_sct_berechnet'] = round(sct)
+
+    run['laufdaten']['maximalzeit_mct_berechnet'] = round(mct, 2)
+    run['laufdaten']['standardzeit_sct_berechnet'] = round(sct, 2)
+    # Für die UI zusätzlich ganzzahlig gerundet verfügbar machen
+    run['laufdaten']['maximalzeit_mct_gerundet'] = round(mct)
+    run['laufdaten']['standardzeit_sct_gerundet'] = round(sct)
 
     for entry in run.get('entries', []):
         res = entry.copy()

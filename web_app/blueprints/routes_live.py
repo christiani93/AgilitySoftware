@@ -216,8 +216,20 @@ def show_ranking(event_id, run_id):
     settings = _load_settings()
     rankings = _calculate_run_results(run, settings)
     judges = _load_data('judges.json')
-    calculated_sct = run.get('laufdaten', {}).get('standardzeit_sct_berechnet') or run.get('laufdaten', {}).get('standardzeit_sct')
-    return render_template('ranking.html', event=event, run=run, rankings=rankings, judges=judges, calculated_sct=calculated_sct)
+
+    laufdaten = run.get('laufdaten', {})
+    sct_display = laufdaten.get('standardzeit_sct') or laufdaten.get('standardzeit_sct_gerundet') or laufdaten.get('standardzeit_sct_berechnet') or 'N/A'
+    mct_display = laufdaten.get('maximalzeit_mct') or laufdaten.get('maximalzeit_mct_gerundet') or laufdaten.get('maximalzeit_mct_berechnet') or 'N/A'
+
+    return render_template(
+        'ranking.html',
+        event=event,
+        run=run,
+        rankings=rankings,
+        judges=judges,
+        sct_display=sct_display,
+        mct_display=mct_display,
+    )
 
 @live_bp.route('/announcer_dashboard/<event_id>')
 def announcer_dashboard(event_id):
