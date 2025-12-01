@@ -21,12 +21,19 @@ def generate_test_results(event_id):
         run['laufdaten']['anzahl_hindernisse'] = hindernisse
         klasse = str(run.get('klasse'))
         laufart = run.get('laufart')
-        sct = 999
-        if klasse in ['1', 'Oldie']:
-            sct = float(laufdaten.get('standardzeit_sct', laenge / 2.8))
-        elif klasse in ['2', '3']:
-            speed = settings.get('sct_factors', {}).get(laufart, {}).get(klasse, 3.5)
-            sct = laenge / speed
+        raw_sct = laufdaten.get('standardzeit_sct')
+        try:
+            sct = float(str(raw_sct).replace(',', '.')) if str(raw_sct).strip() != '' else None
+        except Exception:
+            sct = None
+        if sct is None:
+            if klasse in ['1', 'Oldie']:
+                sct = laenge / 2.8
+            elif klasse in ['2', '3']:
+                speed = settings.get('sct_factors', {}).get(laufart, {}).get(klasse, 3.5)
+                sct = laenge / speed
+            else:
+                sct = laenge / 3.0
         run['laufdaten']['standardzeit_sct'] = round(sct, 2)
         for entry in run.get('entries', []):
             if random.random() < 0.1:

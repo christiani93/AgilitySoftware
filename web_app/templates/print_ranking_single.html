@@ -47,8 +47,8 @@
                     <td>{{ res.Hundefuehrer }}</td>
                     <td>{{ res.Hundename }}</td>
                     <td>{{ '%.2f'|format(res.zeit_total|float) if res.zeit_total < 998 else '' }}</td>
-                    <td>{{ res.fehler_parcours|int if res.fehler_parcours is defined else '' }}</td>
-                    <td>{{ res.verweigerung_parcours|int if res.verweigerung_parcours is defined else '' }}</td>
+                    <td>{{ res.fehler_parcours_anzahl|int if res.fehler_parcours_anzahl is defined else (res.fehler_parcours|int if res.fehler_parcours is defined else '') }}</td>
+                    <td>{{ res.verweigerung_parcours_anzahl|int if res.verweigerung_parcours_anzahl is defined else (res.verweigerung_parcours|int if res.verweigerung_parcours is defined else '') }}</td>
                     <td>{{ '%.2f'|format(res.fehler_zeit|float) if res.fehler_zeit is defined else '' }}</td>
                     <td><strong>{{ '%.2f'|format(res.fehler_total|float) if res.fehler_total < 998 else '' }}</strong></td>
                 </tr>
