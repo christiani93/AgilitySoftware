@@ -133,8 +133,13 @@ def live_run_entry(event_id, run_id):
     event = next((e for e in events if e.get('id') == event_id), None)
     run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None) if event else None
     if not event or not run: abort(404)
+    settings = _load_settings()
+    _calculate_run_results(run, settings)
+    laufdaten = run.get('laufdaten', {})
+    sct_display = laufdaten.get('standardzeit_sct') or laufdaten.get('standardzeit_sct_gerundet') or laufdaten.get('standardzeit_sct_berechnet') or 'N/A'
+    mct_display = laufdaten.get('maximalzeit_mct') or laufdaten.get('maximalzeit_mct_gerundet') or laufdaten.get('maximalzeit_mct_berechnet') or 'N/A'
     all_entries_json = json.dumps(run.get('entries', []))
-    return render_template('live_run_entry.html', event=event, run=run, all_entries_json=all_entries_json, run_id_from_url=run_id)
+    return render_template('live_run_entry.html', event=event, run=run, all_entries_json=all_entries_json, run_id_from_url=run_id, sct_display=sct_display, mct_display=mct_display)
 
 @live_bp.route('/live/save_result/<event_id>/<uuid:run_id>', methods=['POST','GET'])
 def save_result(event_id, run_id):
