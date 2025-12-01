@@ -151,7 +151,6 @@ def _calculate_run_results(run, settings):
     auto_dis_on_mct_exceeded = laufdaten.get('auto_dis_on_mct_exceeded', True)
 
     sct_seconds, mct_seconds = None, None
-    sct_for_timefaults = None
 
     if klasse in ['1', 'Oldie']:
         manual_sct = _to_float(laufdaten.get('standardzeit_sct'), None)
@@ -203,9 +202,8 @@ def _calculate_run_results(run, settings):
             sct_seconds = fallback_sct if fallback_sct is not None else sct_seconds
 
     if sct_seconds is not None:
-        sct_for_timefaults = math.ceil(sct_seconds)
         laufdaten['standardzeit_sct_berechnet'] = round(sct_seconds, 2)
-        laufdaten['standardzeit_sct_gerundet'] = sct_for_timefaults
+        laufdaten['standardzeit_sct_gerundet'] = math.ceil(sct_seconds)
     else:
         laufdaten['standardzeit_sct_berechnet'] = None
         laufdaten['standardzeit_sct_gerundet'] = None
@@ -253,10 +251,12 @@ def _calculate_run_results(run, settings):
                 })
             elif laufzeit is not None:
                 fehler_parcours = fehler * 5 + verweigerungen * 5
-                if sct_for_timefaults is None:
+                if sct_seconds is None:
                     fehler_zeit = 0
                 else:
-                    fehler_zeit = max(0, laufzeit - sct_for_timefaults)
+                    laufzeit_rounded = math.ceil(laufzeit)
+                    sct_rounded = math.ceil(sct_seconds)
+                    fehler_zeit = max(0, laufzeit_rounded - sct_rounded)
                 fehler_total = fehler_parcours + fehler_zeit
                 qualifikation = 'N/A'
                 if fehler_total < 6:
@@ -271,8 +271,6 @@ def _calculate_run_results(run, settings):
                     'fehler_zeit': fehler_zeit,
                     'fehler_total': fehler_total,
                     'zeit_total': laufzeit,
-                    'fehler_parcours': fehler_parcours,
-                    'verweigerung_parcours': verweigerungen,
                     'fehler_parcours_anzahl': fehler,
                     'verweigerung_parcours_anzahl': verweigerungen,
                     'qualifikation': qualifikation,
