@@ -156,58 +156,54 @@ def _place_entries_with_distance(entries, distance):
 
 def _calculate_run_results(run, settings):
     results = []
-    laufdaten = run.get('laufdaten', {}) or {}
-    run['laufdaten'] = laufdaten
-    klasse = str(run.get('klasse'))
-    laufart = run.get('laufart')
-    parcours_laenge = float(laufdaten.get('parcours_laenge', 0))
+    laufdaten = run.get("laufdaten", {}) or {}
+    run["laufdaten"] = laufdaten
+    klasse = str(run.get("klasse"))
+    laufart = run.get("laufart")
+
+    parcours_laenge = _to_float(laufdaten.get("parcours_laenge"), 0.0)
     sct_factor_config = {
-        '2': {'standard': 1.4, 'qualification': 1.2},
-        '3': {'standard': 1.3, 'qualification': 1.15},
+        "2": {"standard": 1.4, "qualification": 1.2},
+        "3": {"standard": 1.3, "qualification": 1.15},
     }
     is_qualification = bool(
-        laufdaten.get('is_qualification')
-        or laufdaten.get('qualification_mode')
-        or laufdaten.get('sct_mode') == 'qualification'
+        laufdaten.get("is_qualification")
+        or laufdaten.get("qualification_mode")
+        or laufdaten.get("sct_mode") == "qualification"
     )
-    auto_dis_on_mct_exceeded = laufdaten.get('auto_dis_on_mct_exceeded', True)
+    auto_dis_on_mct_exceeded = laufdaten.get("auto_dis_on_mct_exceeded", True)
 
     sct_seconds, mct_seconds = None, None
 
-    if klasse in ['1', 'Oldie']:
-        manual_sct = _to_float(laufdaten.get('standardzeit_sct'), None)
-        manual_sct = manual_sct if manual_sct is not None else _to_float(laufdaten.get('standardzeit_sct_manuell'), None)
-        if manual_sct is not None:
-            sct_seconds = manual_sct
-        elif parcours_laenge > 0:
-            geschwindigkeit = _to_float(laufdaten.get('geschwindigkeit'), None)
-            if geschwindigkeit:
-                sct_seconds = parcours_laenge / geschwindigkeit
-        if sct_seconds is not None:
-            mct_seconds = sct_seconds * 1.5
-    elif klasse in ['2', '3']:
-        if parcours_laenge > 0:
-            if laufart == 'Agility':
-                mct_seconds = parcours_laenge / 2.5
-            elif laufart == 'Jumping':
-                mct_seconds = parcours_laenge / 3.0
-            else:
-                mct_seconds = parcours_laenge / 2.5
+    if klasse in ["1", "Oldie"]:
+        if laufdaten.get("sct_method") == "speed" and laufdaten.get("geschwindigkeit") and parcours_laenge > 0:
+            geschw = _to_float(laufdaten.get("geschwindigkeit"), 0.0)
+            sct_seconds = parcours_laenge / geschw if geschw > 0 else 999.0
+        else:
+            sct_seconds = _to_float(laufdaten.get("standardzeit_sct"), 999.0)
+        mct_seconds = sct_seconds * 1.5 if sct_seconds is not None else None
 
-        # Bestplatziertes Team bestimmen (wenigste Fehler+Verweigerungen, dann schnellste Nettozeit)
+    elif klasse in ["2", "3"] and parcours_laenge > 0:
+        if laufart == "Agility":
+            mct_seconds = parcours_laenge / 2.5
+        elif laufart == "Jumping":
+            mct_seconds = parcours_laenge / 3.0
+        else:
+            mct_seconds = parcours_laenge / 2.5
+
         best_candidate = None
-        for entry in run.get('entries', []):
-            result_data = entry.get('result') or {}
-            dis_abr = result_data.get('disqualifikation')
+        for entry in run.get("entries", []):
+            result_data = entry.get("result") or {}
+            dis_abr = result_data.get("disqualifikation")
             if dis_abr in ["DIS", "ABR", "DNS"]:
                 continue
-            laufzeit = _to_float(result_data.get('zeit'), None)
+            laufzeit = _to_float(result_data.get("zeit"), None)
             if laufzeit is None:
                 continue
             if auto_dis_on_mct_exceeded and mct_seconds is not None and math.ceil(laufzeit) > math.ceil(mct_seconds):
                 continue
-            fehler = _to_int(result_data.get('fehler', '0'), 0)
-            verweigerungen = _to_int(result_data.get('verweigerungen', '0'), 0)
+            fehler = _to_int(result_data.get("fehler", "0"), 0)
+            verweigerungen = _to_int(result_data.get("verweigerungen", "0"), 0)
             faults_total = fehler + verweigerungen
             candidate = (faults_total, laufzeit)
             if best_candidate is None or candidate < best_candidate:
@@ -215,38 +211,32 @@ def _calculate_run_results(run, settings):
 
         if best_candidate:
             base_time = best_candidate[1]
-            factor_cfg = sct_factor_config.get(klasse, {'standard': 1.0, 'qualification': 1.0})
-            factor = factor_cfg['qualification'] if is_qualification else factor_cfg['standard']
+            factor_cfg = sct_factor_config.get(klasse, {"standard": 1.0, "qualification": 1.0})
+            factor = factor_cfg["qualification"] if is_qualification else factor_cfg["standard"]
             sct_seconds = base_time * factor
 
         if sct_seconds is None:
-            fallback_sct = _to_float(laufdaten.get('standardzeit_sct'), None)
+            fallback_sct = _to_float(laufdaten.get("standardzeit_sct"), None)
             sct_seconds = fallback_sct if fallback_sct is not None else sct_seconds
 
-    if sct_seconds is not None:
-        laufdaten['standardzeit_sct_berechnet'] = round(sct_seconds, 2)
-        laufdaten['standardzeit_sct_gerundet'] = math.ceil(sct_seconds)
-    else:
-        laufdaten['standardzeit_sct_berechnet'] = None
-        laufdaten['standardzeit_sct_gerundet'] = None
+    sct_rounded = math.ceil(sct_seconds) if sct_seconds is not None else None
+    mct_rounded = math.ceil(mct_seconds) if mct_seconds is not None else None
 
-    if mct_seconds is not None:
-        laufdaten['maximalzeit_mct_berechnet'] = round(mct_seconds, 2)
-        laufdaten['maximalzeit_mct_gerundet'] = math.ceil(mct_seconds)
-    else:
-        laufdaten['maximalzeit_mct_berechnet'] = None
-        laufdaten['maximalzeit_mct_gerundet'] = None
+    laufdaten["standardzeit_sct_berechnet"] = sct_rounded
+    laufdaten["standardzeit_sct_gerundet"] = sct_rounded
+    laufdaten["maximalzeit_mct_berechnet"] = mct_rounded
+    laufdaten["maximalzeit_mct_gerundet"] = mct_rounded
 
-    for entry in run.get('entries', []):
+    for entry in run.get("entries", []):
         res = entry.copy()
-        result_data = res.get('result')
+        result_data = res.get("result")
 
         if result_data:
-            dis_abr = result_data.get('disqualifikation')
-            laufzeit_str = result_data.get('zeit')
-            fehler_str = result_data.get('fehler', '0') or '0'
-            verweigerungen_str = result_data.get('verweigerungen', '0') or '0'
-            
+            dis_abr = result_data.get("disqualifikation")
+            laufzeit_str = result_data.get("zeit")
+            fehler_str = result_data.get("fehler", "0") or "0"
+            verweigerungen_str = result_data.get("verweigerungen", "0") or "0"
+
             fehler = _to_int(fehler_str, 0)
             verweigerungen = _to_int(verweigerungen_str, 0)
 
@@ -302,9 +292,9 @@ def _calculate_run_results(run, settings):
                 res.update({'fehler_total': 998, 'zeit_total': 998.99, 'qualifikation': 'N/A', 'disqualifikation': result_data.get('disqualifikation')})
         else:
             res.update({'fehler_total': 998, 'zeit_total': 998.99, 'qualifikation': 'N/A'})
-        
+
         results.append(res)
-        
+
     results.sort(key=lambda x: (x.get('fehler_total', 999), x.get('zeit_total', 999)))
     rank = 1
     for res in results:
