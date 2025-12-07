@@ -13,7 +13,7 @@
 </div>
 
 <div class="alert alert-info d-flex justify-content-between align-items-center">
-    <span>Laufdaten: Länge {{ run.laufdaten.parcours_laenge or 'N/A' }}m | SCT {{ run.laufdaten.standardzeit_sct or (run.laufdaten.standardzeit_sct_dynamisch if run.laufdaten.standardzeit_sct_dynamisch != 999 else 'dynamisch') }}s | MCT {{ "%.2f"|format(run.laufdaten.maximalzeit_mct|float) if run.laufdaten.maximalzeit_mct else 'N/A' }}s</span>
+    <span>Laufdaten: Länge {{ run.laufdaten.parcours_laenge or 'N/A' }}m | SCT {{ sct_display }}s | MCT {{ mct_display }}s</span>
     <a href="{{ url_for('live_bp.set_active_announcer_run', event_id=event.id, run_id=run.id) }}" class="btn btn-warning btn-sm"><i class="fas fa-bullhorn me-2"></i>Für Sprecher-Anzeige aktivieren</a>
 </div>
 
