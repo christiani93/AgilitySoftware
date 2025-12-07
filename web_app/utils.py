@@ -14,6 +14,27 @@ CATEGORY_SORT_ORDER = {'Large': 0, 'Intermediate': 1, 'Medium': 2, 'Small': 3}
 def get_category_sort_key(category_name):
     return CATEGORY_SORT_ORDER.get(category_name, 99)
 
+
+def _to_float(value, default=0.0):
+    """
+    Robuste Float-Konvertierung:
+    - erlaubt None und '' (-> default)
+    - ersetzt Komma durch Punkt
+    - fängt ValueError/TypeError ab
+    """
+    try:
+        if value is None:
+            return default
+        if isinstance(value, str):
+            v = value.strip()
+            if not v:
+                return default
+            v = v.replace(',', '.')
+            return float(v)
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
 def _load_data(filename, default_data=[]):
     filepath = os.path.join('data', filename)
     try:
@@ -135,7 +156,8 @@ def _place_entries_with_distance(entries, distance):
 
 def _calculate_run_results(run, settings):
     results = []
-    laufdaten = run.get('laufdaten', {})
+    laufdaten = run.get('laufdaten', {}) or {}
+    run['laufdaten'] = laufdaten
     klasse = str(run.get('klasse'))
     laufart = run.get('laufart')
     parcours_laenge = float(laufdaten.get('parcours_laenge', 0))
@@ -354,20 +376,6 @@ def _to_int(x, default=0):
     except Exception:
         try:
             return int(x)
-        except Exception:
-            return default
-
-def _to_float(x, default=0.0):
-    if isinstance(x, float):
-        return x
-    try:
-        s = ("" if x is None else str(x)).strip().replace(",", ".")
-        if s == "" or s.lower() in ("nan","none","null","-"):
-            return default
-        return float(s)
-    except Exception:
-        try:
-            return float(x)
         except Exception:
             return default
 
