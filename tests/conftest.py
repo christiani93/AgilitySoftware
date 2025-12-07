@@ -5,7 +5,7 @@ from app import app as flask_app
 @pytest.fixture
 def app():
     """
-    Stellt die Flask-App im TESTING-Modus bereit.
+    Flask-App im TESTING-Modus.
     """
     flask_app.config.update(TESTING=True)
     yield flask_app
@@ -14,6 +14,6 @@ def app():
 @pytest.fixture
 def client(app):
     """
-    Flask-Test-Client, mit dem wir HTTP-Requests gegen die App ausführen können.
+    Test-Client für Integrationstests.
     """
     return app.test_client()
