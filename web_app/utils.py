@@ -155,6 +155,13 @@ def _place_entries_with_distance(entries, distance):
     return final_order
 
 def _calculate_run_results(run, settings):
+    """
+    Berechnet Ranglisten-Ergebnisse inkl. SCT/MCT gemäß aktueller Fachlogik.
+    - Laufzeiten bleiben ungerundet (Hundertstel).
+    - SCT/MCT werden nach Berechnung stets auf volle Sekunden aufgerundet (ceil).
+    - Zeitfehler = max(0, Laufzeit - SCT_gerundet).
+    - Automatische DIS, wenn Laufzeit > MCT_gerundet.
+    """
     results = []
     laufdaten = run.get("laufdaten", {}) or {}
     run["laufdaten"] = laufdaten
@@ -175,32 +182,42 @@ def _calculate_run_results(run, settings):
 
     sct_seconds, mct_seconds = None, None
 
+    # Klasse 1: SCT vorgegeben oder aus Geschwindigkeit, MCT = ceil(SCT*1.5)
     if klasse in ["1", "Oldie"]:
-        if laufdaten.get("sct_method") == "speed" and laufdaten.get("geschwindigkeit") and parcours_laenge > 0:
+        provided_sct = _to_float(laufdaten.get("standardzeit_sct"), None)
+        if provided_sct is not None:
+            sct_seconds = provided_sct
+        elif laufdaten.get("sct_method") == "speed" and laufdaten.get("geschwindigkeit") and parcours_laenge > 0:
             geschw = _to_float(laufdaten.get("geschwindigkeit"), 0.0)
-            sct_seconds = parcours_laenge / geschw if geschw > 0 else 999.0
-        else:
-            sct_seconds = _to_float(laufdaten.get("standardzeit_sct"), 999.0)
+            sct_seconds = parcours_laenge / geschw if geschw > 0 else None
+        elif parcours_laenge > 0 and _to_float(laufdaten.get("geschwindigkeit"), 0.0) > 0:
+            geschw = _to_float(laufdaten.get("geschwindigkeit"), 0.0)
+            sct_seconds = parcours_laenge / geschw if geschw > 0 else None
         mct_seconds = sct_seconds * 1.5 if sct_seconds is not None else None
 
+    # Klassen 2 & 3: MCT aus Parcourslänge/Laufart, SCT aus bestem fehlerfreien Team
     elif klasse in ["2", "3"] and parcours_laenge > 0:
-        if laufart == "Agility":
-            mct_seconds = parcours_laenge / 2.5
-        elif laufart == "Jumping":
+        if laufart == "Jumping":
             mct_seconds = parcours_laenge / 3.0
         else:
             mct_seconds = parcours_laenge / 2.5
 
+        mct_limit = math.ceil(mct_seconds) if mct_seconds is not None else None
         best_candidate = None
         for entry in run.get("entries", []):
-            result_data = entry.get("result") or {}
+            result_data = entry.get("result") or {
+                "zeit": entry.get("zeit"),
+                "fehler": entry.get("fehler"),
+                "verweigerungen": entry.get("verweigerungen"),
+                "disqualifikation": entry.get("dis_abr") or entry.get("disqualifikation"),
+            }
             dis_abr = result_data.get("disqualifikation")
             if dis_abr in ["DIS", "ABR", "DNS"]:
                 continue
             laufzeit = _to_float(result_data.get("zeit"), None)
             if laufzeit is None:
                 continue
-            if auto_dis_on_mct_exceeded and mct_seconds is not None and math.ceil(laufzeit) > math.ceil(mct_seconds):
+            if auto_dis_on_mct_exceeded and mct_limit is not None and laufzeit > mct_limit:
                 continue
             fehler = _to_int(result_data.get("fehler", "0"), 0)
             verweigerungen = _to_int(result_data.get("verweigerungen", "0"), 0)
@@ -229,69 +246,66 @@ def _calculate_run_results(run, settings):
 
     for entry in run.get("entries", []):
         res = entry.copy()
-        result_data = res.get("result")
+        result_data = res.get("result") or {
+            "zeit": res.get("zeit"),
+            "fehler": res.get("fehler"),
+            "verweigerungen": res.get("verweigerungen"),
+            "disqualifikation": res.get("dis_abr") or res.get("disqualifikation"),
+        }
 
-        if result_data:
-            dis_abr = result_data.get("disqualifikation")
-            laufzeit_str = result_data.get("zeit")
-            fehler_str = result_data.get("fehler", "0") or "0"
-            verweigerungen_str = result_data.get("verweigerungen", "0") or "0"
+        dis_abr = result_data.get("disqualifikation")
+        laufzeit = _to_float(result_data.get("zeit"), None)
+        fehler = _to_int(result_data.get("fehler", "0") or "0", 0)
+        verweigerungen = _to_int(result_data.get("verweigerungen", "0") or "0", 0)
 
-            fehler = _to_int(fehler_str, 0)
-            verweigerungen = _to_int(verweigerungen_str, 0)
+        auto_dis_mct = (
+            auto_dis_on_mct_exceeded
+            and laufzeit is not None
+            and mct_rounded is not None
+            and laufzeit > mct_rounded
+        )
 
-            laufzeit = _to_float(laufzeit_str, None)
-
-            auto_dis_mct = (
-                auto_dis_on_mct_exceeded
-                and laufzeit is not None
-                and mct_seconds is not None
-                and math.ceil(laufzeit) > math.ceil(mct_seconds)
-            )
-
-            if dis_abr in ["DIS", "ABR", "DNS"] or auto_dis_mct:
-                dis_value = dis_abr if dis_abr in ["DIS", "ABR", "DNS"] else "DIS"
-                res.update({
-                    'fehler_total': 999,
-                    'zeit_total': 999.99,
-                    'qualifikation': dis_value,
-                    'fehler_parcours_anzahl': fehler,
-                    'verweigerung_parcours_anzahl': verweigerungen,
-                    'fehler_parcours': fehler,
-                    'verweigerung_parcours': verweigerungen,
-                    'disqualifikation': dis_value,
-                })
-            elif laufzeit is not None:
-                fehler_parcours = fehler * 5 + verweigerungen * 5
-                if sct_seconds is None:
-                    fehler_zeit = 0
-                else:
-                    laufzeit_rounded = math.ceil(laufzeit)
-                    sct_rounded = math.ceil(sct_seconds)
-                    fehler_zeit = max(0, laufzeit_rounded - sct_rounded)
-                fehler_total = fehler_parcours + fehler_zeit
-                qualifikation = 'N/A'
-                if fehler_total < 6:
-                    qualifikation = "V0" if fehler_total == 0 else "V"
-                elif fehler_total < 16:
-                    qualifikation = "SG"
-                elif fehler_total < 26:
-                    qualifikation = "G"
-                else:
-                    qualifikation = "NB"
-                res.update({
-                    'fehler_zeit': fehler_zeit,
-                    'fehler_total': fehler_total,
-                    'zeit_total': laufzeit,
-                    'fehler_parcours_anzahl': fehler,
-                    'verweigerung_parcours_anzahl': verweigerungen,
-                    'qualifikation': qualifikation,
-                    'disqualifikation': result_data.get('disqualifikation'),
-                })
+        if dis_abr in ["DIS", "ABR", "DNS"] or auto_dis_mct:
+            dis_value = dis_abr if dis_abr in ["DIS", "ABR", "DNS"] else "DIS"
+            res.update({
+                'fehler_total': 999,
+                'zeit_total': laufzeit if laufzeit is not None else 999.99,
+                'qualifikation': dis_value,
+                'fehler_parcours_anzahl': fehler,
+                'verweigerung_parcours_anzahl': verweigerungen,
+                'fehler_parcours': fehler,
+                'verweigerung_parcours': verweigerungen,
+                'disqualifikation': dis_value,
+            })
+        elif laufzeit is not None:
+            fehler_parcours = fehler * 5 + verweigerungen * 5
+            if sct_rounded is None:
+                fehler_zeit = 0
             else:
-                res.update({'fehler_total': 998, 'zeit_total': 998.99, 'qualifikation': 'N/A', 'disqualifikation': result_data.get('disqualifikation')})
+                fehler_zeit = max(0, laufzeit - sct_rounded)
+            fehler_total = fehler_parcours + fehler_zeit
+            qualifikation = 'N/A'
+            if fehler_total < 6:
+                qualifikation = "V0" if fehler_total == 0 else "V"
+            elif fehler_total < 16:
+                qualifikation = "SG"
+            elif fehler_total < 26:
+                qualifikation = "G"
+            else:
+                qualifikation = "NB"
+            res.update({
+                'fehler_zeit': fehler_zeit,
+                'fehler_total': fehler_total,
+                'zeit_total': laufzeit,
+                'fehler_parcours_anzahl': fehler,
+                'verweigerung_parcours_anzahl': verweigerungen,
+                'fehler_parcours': fehler_parcours,
+                'verweigerung_parcours': verweigerungen,
+                'qualifikation': qualifikation,
+                'disqualifikation': dis_abr,
+            })
         else:
-            res.update({'fehler_total': 998, 'zeit_total': 998.99, 'qualifikation': 'N/A'})
+            res.update({'fehler_total': 998, 'zeit_total': 998.99, 'qualifikation': 'N/A', 'disqualifikation': dis_abr})
 
         results.append(res)
 

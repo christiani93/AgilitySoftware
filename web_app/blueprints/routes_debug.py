@@ -22,8 +22,11 @@ def generate_test_results(event_id):
         klasse = str(run.get('klasse'))
         laufart = run.get('laufart')
         raw_sct = laufdaten.get('standardzeit_sct')
+        sct = None
         try:
-            sct = float(str(raw_sct).replace(',', '.')) if str(raw_sct).strip() != '' else None
+            raw_sct_str = '' if raw_sct is None else str(raw_sct).strip()
+            if raw_sct_str:
+                sct = float(raw_sct_str.replace(',', '.'))
         except Exception:
             sct = None
         if sct is None:
