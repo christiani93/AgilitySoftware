@@ -23,8 +23,8 @@
                         "Hundename": "Uma",
                         "Hundefuehrer": "Muriel Petitjean",
                         "result": {
-                            "zeit": "65.14",
-                            "fehler": 1,
+                            "zeit": "62.72",
+                            "fehler": 2,
                             "verweigerungen": 1,
                             "disqualifikation": null
                         },
@@ -36,7 +36,7 @@
                         "Hundename": "Mr Peregrin Took",
                         "Hundefuehrer": "Aline Calame",
                         "result": {
-                            "zeit": "73.38",
+                            "zeit": "69.11",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -46,7 +46,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 173,
+                    "parcours_laenge": 173.0,
                     "anzahl_hindernisse": 20,
                     "standardzeit_sct": 61.79
                 },
@@ -67,9 +67,9 @@
                         "Hundename": "Sophia",
                         "Hundefuehrer": "Muriel Petitjean",
                         "result": {
-                            "zeit": "84.09",
+                            "zeit": "79.25",
                             "fehler": 1,
-                            "verweigerungen": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "6cd3dda5-4aed-40f7-b084-8271b90b70ba",
@@ -80,8 +80,8 @@
                         "Hundename": "Lou",
                         "Hundefuehrer": "Isabelle Loretan",
                         "result": {
-                            "zeit": "83.16",
-                            "fehler": 0,
+                            "zeit": "83.34",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -93,14 +93,17 @@
                         "Hundename": "Yuki",
                         "Hundefuehrer": "Werner Brönnimann",
                         "result": {
-                            "disqualifikation": "DIS"
+                            "zeit": "93.91",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "a3ac1a97-12c8-4fea-81a9-2e16219d3e58",
                         "Startnummer": 4202
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 207,
+                    "parcours_laenge": 207.0,
                     "anzahl_hindernisse": 21,
                     "standardzeit_sct": 82.8
                 },
@@ -121,8 +124,8 @@
                         "Hundename": "Carioca",
                         "Hundefuehrer": "Tiphanie Mauroux",
                         "result": {
-                            "zeit": "96.40",
-                            "fehler": 0,
+                            "zeit": "94.23",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -134,10 +137,7 @@
                         "Hundename": "Fuego",
                         "Hundefuehrer": "Désirée Brenzikofer",
                         "result": {
-                            "zeit": "99.72",
-                            "fehler": 0,
-                            "verweigerungen": 1,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "773fb7d8-455e-4662-9559-631373803755",
                         "Startnummer": 4302
@@ -147,9 +147,9 @@
                         "Hundename": "Jim Beam",
                         "Hundefuehrer": "Nathalie Brunner",
                         "result": {
-                            "zeit": "84.86",
-                            "fehler": 1,
-                            "verweigerungen": 1,
+                            "zeit": "91.03",
+                            "fehler": 0,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "b5ca1e5d-2e11-44dc-8f0f-a6b30f4696a9",
@@ -160,8 +160,8 @@
                         "Hundename": "Nashvilles",
                         "Hundefuehrer": "Renée Jansen",
                         "result": {
-                            "zeit": "89.13",
-                            "fehler": 0,
+                            "zeit": "98.94",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -170,7 +170,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 214,
+                    "parcours_laenge": 214.0,
                     "anzahl_hindernisse": 19,
                     "standardzeit_sct": 85.6
                 },
@@ -187,7 +187,7 @@
                 "klasse": "1",
                 "entries": [],
                 "laufdaten": {
-                    "parcours_laenge": 190,
+                    "parcours_laenge": 190.0,
                     "anzahl_hindernisse": 20,
                     "standardzeit_sct": 67.86
                 },
@@ -208,7 +208,7 @@
                         "Hundename": "Maybe",
                         "Hundefuehrer": "Marie-Jo Golay",
                         "result": {
-                            "zeit": "88.64",
+                            "zeit": "81.68",
                             "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -218,8 +218,8 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": "194",
-                    "anzahl_hindernisse": "21",
+                    "parcours_laenge": 194.0,
+                    "anzahl_hindernisse": 21,
                     "standardzeit_sct": 77.6
                 },
                 "assigned_ring": "ring_1",
@@ -239,9 +239,9 @@
                         "Hundename": "Fuji",
                         "Hundefuehrer": "Letizia Grunder",
                         "result": {
-                            "zeit": "94.11",
-                            "fehler": 0,
-                            "verweigerungen": 0,
+                            "zeit": "94.10",
+                            "fehler": 2,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "3e12b437-e833-4c28-a712-e80f0557b722",
@@ -252,10 +252,7 @@
                         "Hundename": "Qilin",
                         "Hundefuehrer": "Virginie de Andrea",
                         "result": {
-                            "zeit": "88.07",
-                            "fehler": 0,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "73b65d23-156a-42a3-a7a8-cb8dc0ed79c6",
                         "Startnummer": 3301
@@ -265,10 +262,7 @@
                         "Hundename": "Ombre",
                         "Hundefuehrer": "Simone Nützi",
                         "result": {
-                            "zeit": "79.44",
-                            "fehler": 1,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "3588e020-2be8-4799-a765-1becf83a8225",
                         "Startnummer": 3302
@@ -278,7 +272,7 @@
                         "Hundename": "Pippa",
                         "Hundefuehrer": "Roland Hilfiker",
                         "result": {
-                            "zeit": "90.24",
+                            "zeit": "95.12",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -291,14 +285,17 @@
                         "Hundename": "Robin",
                         "Hundefuehrer": "Anna Schönenberger",
                         "result": {
-                            "disqualifikation": "ABR"
+                            "zeit": "96.01",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "a5040769-40a9-4a07-914d-2e8d0ce57970",
                         "Startnummer": 3303
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 206,
+                    "parcours_laenge": 206.0,
                     "anzahl_hindernisse": 19,
                     "standardzeit_sct": 82.4
                 },
@@ -319,7 +316,7 @@
                         "Hundename": "Rocky",
                         "Hundefuehrer": "Mary Diserens",
                         "result": {
-                            "zeit": "72.04",
+                            "zeit": "59.61",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -332,9 +329,9 @@
                         "Hundename": "Tessie",
                         "Hundefuehrer": "Sabrina Dirren",
                         "result": {
-                            "zeit": "56.94",
-                            "fehler": 2,
-                            "verweigerungen": 1,
+                            "zeit": "72.71",
+                            "fehler": 0,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "11e96c12-fe31-49da-965c-bd470a9bf409",
@@ -345,7 +342,7 @@
                         "Hundename": "Rosie",
                         "Hundefuehrer": "Sandra Blum",
                         "result": {
-                            "zeit": "57.46",
+                            "zeit": "64.40",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -358,7 +355,7 @@
                         "Hundename": "Kyona",
                         "Hundefuehrer": "Mirja Roth",
                         "result": {
-                            "zeit": "59.26",
+                            "zeit": "76.19",
                             "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -371,8 +368,8 @@
                         "Hundename": "Kipekee",
                         "Hundefuehrer": "Marianne Mattle",
                         "result": {
-                            "zeit": "68.62",
-                            "fehler": 0,
+                            "zeit": "68.02",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -384,9 +381,9 @@
                         "Hundename": "Dark",
                         "Hundefuehrer": "Carlo Ruggia",
                         "result": {
-                            "zeit": "67.52",
-                            "fehler": 1,
-                            "verweigerungen": 1,
+                            "zeit": "61.73",
+                            "fehler": 0,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "e8eaaa8b-ff7a-4058-a376-ddf941084f1b",
@@ -394,9 +391,11 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 172,
+                    "parcours_laenge": 172.0,
                     "anzahl_hindernisse": 19,
-                    "standardzeit_sct": 61.43
+                    "standardzeit_sct": 61.43,
+                    "sct_direkt": false,
+                    "geschwindigkeit": "3.0"
                 },
                 "assigned_ring": "ring_1",
                 "richter_id": "3034",
@@ -415,7 +414,7 @@
                         "Hundename": "Beany",
                         "Hundefuehrer": "Anita Leonardi",
                         "result": {
-                            "zeit": "76.94",
+                            "zeit": "81.68",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -428,7 +427,7 @@
                         "Hundename": "Gin",
                         "Hundefuehrer": "Muriel Grand",
                         "result": {
-                            "zeit": "71.29",
+                            "zeit": "75.38",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -441,7 +440,7 @@
                         "Hundename": "Nayra",
                         "Hundefuehrer": "Andrea Rickli",
                         "result": {
-                            "zeit": "65.80",
+                            "zeit": "66.28",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -454,8 +453,8 @@
                         "Hundename": "Nala",
                         "Hundefuehrer": "Ariane Boutellier",
                         "result": {
-                            "zeit": "69.18",
-                            "fehler": 0,
+                            "zeit": "63.46",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -467,8 +466,8 @@
                         "Hundename": "Tia",
                         "Hundefuehrer": "Susanne Haring",
                         "result": {
-                            "zeit": "76.56",
-                            "fehler": 1,
+                            "zeit": "74.33",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -480,8 +479,8 @@
                         "Hundename": "Freecy",
                         "Hundefuehrer": "Natalie Raetzo",
                         "result": {
-                            "zeit": "73.12",
-                            "fehler": 0,
+                            "zeit": "71.28",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -490,7 +489,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 168,
+                    "parcours_laenge": 168.0,
                     "anzahl_hindernisse": 19,
                     "standardzeit_sct": 67.2
                 },
@@ -511,9 +510,9 @@
                         "Hundename": "Pirate",
                         "Hundefuehrer": "Letizia Grunder",
                         "result": {
-                            "zeit": "76.69",
+                            "zeit": "65.70",
                             "fehler": 0,
-                            "verweigerungen": 1,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "3e12b437-e833-4c28-a712-e80f0557b722",
@@ -524,8 +523,8 @@
                         "Hundename": "Nikaia",
                         "Hundefuehrer": "Corentin Sansonnens",
                         "result": {
-                            "zeit": "75.37",
-                            "fehler": 2,
+                            "zeit": "75.72",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -537,9 +536,9 @@
                         "Hundename": "Go-Tic",
                         "Hundefuehrer": "Francine Tavazzi",
                         "result": {
-                            "zeit": "65.60",
+                            "zeit": "79.70",
                             "fehler": 0,
-                            "verweigerungen": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "1fb5fb01-6f84-4a06-be2a-05d4d1b16848",
@@ -550,9 +549,9 @@
                         "Hundename": "Hazel-Shelby",
                         "Hundefuehrer": "Dominik Oehler",
                         "result": {
-                            "zeit": "80.57",
+                            "zeit": "75.26",
                             "fehler": 0,
-                            "verweigerungen": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "6c6cac89-f0fc-4bbe-99c9-a33692fa938b",
@@ -563,7 +562,10 @@
                         "Hundename": "Vita",
                         "Hundefuehrer": "Simone Nützi",
                         "result": {
-                            "disqualifikation": "DIS"
+                            "zeit": "69.81",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "3588e020-2be8-4799-a765-1becf83a8225",
                         "Startnummer": 2303
@@ -573,8 +575,8 @@
                         "Hundename": "Roxi",
                         "Hundefuehrer": "Carlo Ruggia",
                         "result": {
-                            "zeit": "70.04",
-                            "fehler": 2,
+                            "zeit": "76.67",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -586,7 +588,10 @@
                         "Hundename": "Gee",
                         "Hundefuehrer": "Larissa Michel",
                         "result": {
-                            "disqualifikation": "DIS"
+                            "zeit": "75.46",
+                            "fehler": 0,
+                            "verweigerungen": 1,
+                            "disqualifikation": null
                         },
                         "handler_id": "57913321-5a2c-47c0-bc22-4cdfeb1cfc13",
                         "Startnummer": 2307
@@ -596,7 +601,7 @@
                         "Hundename": "Lou",
                         "Hundefuehrer": "Bettina Heiniger",
                         "result": {
-                            "zeit": "76.75",
+                            "zeit": "68.57",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -609,8 +614,8 @@
                         "Hundename": "Liv",
                         "Hundefuehrer": "Bettina Heiniger",
                         "result": {
-                            "zeit": "69.73",
-                            "fehler": 0,
+                            "zeit": "81.44",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -622,9 +627,9 @@
                         "Hundename": "Posh",
                         "Hundefuehrer": "Margrit Klauz",
                         "result": {
-                            "zeit": "72.29",
-                            "fehler": 1,
-                            "verweigerungen": 0,
+                            "zeit": "79.84",
+                            "fehler": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "75e0ea81-3f36-418a-a297-a31be1d9696d",
@@ -635,8 +640,8 @@
                         "Hundename": "Tendai",
                         "Hundefuehrer": "Margrit Klauz",
                         "result": {
-                            "zeit": "69.12",
-                            "fehler": 0,
+                            "zeit": "64.53",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -645,7 +650,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 167,
+                    "parcours_laenge": 167.0,
                     "anzahl_hindernisse": 18,
                     "standardzeit_sct": 66.8
                 },
@@ -666,9 +671,9 @@
                         "Hundename": "Oxygen",
                         "Hundefuehrer": "Jessica Herren",
                         "result": {
-                            "zeit": "82.70",
+                            "zeit": "90.09",
                             "fehler": 0,
-                            "verweigerungen": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "183f0752-0169-46e5-815b-2d7f82c9339e",
@@ -679,8 +684,8 @@
                         "Hundename": "Hinouk",
                         "Hundefuehrer": "Jessica Wyss",
                         "result": {
-                            "zeit": "87.54",
-                            "fehler": 0,
+                            "zeit": "91.90",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -692,8 +697,8 @@
                         "Hundename": "Electra",
                         "Hundefuehrer": "Amélie Genevey",
                         "result": {
-                            "zeit": "78.61",
-                            "fehler": 0,
+                            "zeit": "75.11",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -705,9 +710,9 @@
                         "Hundename": "Sonic",
                         "Hundefuehrer": "Christelle Borcard",
                         "result": {
-                            "zeit": "78.07",
+                            "zeit": "84.30",
                             "fehler": 0,
-                            "verweigerungen": 1,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "3b94f591-2b7a-44c0-b7a7-1692b336a104",
@@ -718,8 +723,8 @@
                         "Hundename": "Gwyn",
                         "Hundefuehrer": "Sabine Hartweg",
                         "result": {
-                            "zeit": "82.81",
-                            "fehler": 0,
+                            "zeit": "81.18",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -731,10 +736,7 @@
                         "Hundename": "Devil",
                         "Hundefuehrer": "Céline Zahn",
                         "result": {
-                            "zeit": "82.89",
-                            "fehler": 0,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "24b208ba-d9b1-4ea0-adab-b236e0eb7421",
                         "Startnummer": 1103
@@ -744,8 +746,8 @@
                         "Hundename": "Nuuk",
                         "Hundefuehrer": "Sarih Ganzmann",
                         "result": {
-                            "zeit": "74.57",
-                            "fehler": 0,
+                            "zeit": "85.62",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -757,8 +759,8 @@
                         "Hundename": "Niffler",
                         "Hundefuehrer": "Tanja Fähndrich",
                         "result": {
-                            "zeit": "73.59",
-                            "fehler": 1,
+                            "zeit": "78.05",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -770,8 +772,8 @@
                         "Hundename": "Tschiller",
                         "Hundefuehrer": "Ursula Schneider",
                         "result": {
-                            "zeit": "88.33",
-                            "fehler": 2,
+                            "zeit": "86.11",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -783,9 +785,9 @@
                         "Hundename": "Juna",
                         "Hundefuehrer": "Jenny Mäusli",
                         "result": {
-                            "zeit": "87.99",
-                            "fehler": 2,
-                            "verweigerungen": 0,
+                            "zeit": "79.96",
+                            "fehler": 1,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "36e5aacb-91f3-49b9-8d10-d11017ddbde0",
@@ -793,7 +795,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 218,
+                    "parcours_laenge": 218.0,
                     "anzahl_hindernisse": 18,
                     "standardzeit_sct": 77.86
                 },
@@ -814,8 +816,8 @@
                         "Hundename": "Undi",
                         "Hundefuehrer": "Giulia Lizzo",
                         "result": {
-                            "zeit": "78.57",
-                            "fehler": 2,
+                            "zeit": "92.51",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -827,10 +829,7 @@
                         "Hundename": "Fayer",
                         "Hundefuehrer": "Estelle Brêchet",
                         "result": {
-                            "zeit": "81.75",
-                            "fehler": 1,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "b32d14b1-1f0b-4ffa-979a-0514dd20f833",
                         "Startnummer": 1209
@@ -840,7 +839,7 @@
                         "Hundename": "Booster",
                         "Hundefuehrer": "Melinda Savarino",
                         "result": {
-                            "zeit": "77.91",
+                            "zeit": "84.56",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -853,9 +852,9 @@
                         "Hundename": "Nash",
                         "Hundefuehrer": "Agnes Certain",
                         "result": {
-                            "zeit": "88.89",
-                            "fehler": 1,
-                            "verweigerungen": 1,
+                            "zeit": "92.91",
+                            "fehler": 0,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "db311b1e-d177-4ffa-9092-679ac80e01d1",
@@ -866,10 +865,7 @@
                         "Hundename": "Rayna",
                         "Hundefuehrer": "Sabrina Dirren",
                         "result": {
-                            "zeit": "94.57",
-                            "fehler": 0,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "11e96c12-fe31-49da-965c-bd470a9bf409",
                         "Startnummer": 1220
@@ -879,7 +875,7 @@
                         "Hundename": "Kwin",
                         "Hundefuehrer": "Philippe Pollien",
                         "result": {
-                            "zeit": "90.88",
+                            "zeit": "88.36",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -892,8 +888,8 @@
                         "Hundename": "Kadoc",
                         "Hundefuehrer": "Pamela Matthey-Doret",
                         "result": {
-                            "zeit": "93.61",
-                            "fehler": 1,
+                            "zeit": "83.62",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -905,10 +901,7 @@
                         "Hundename": "Atlas",
                         "Hundefuehrer": "Lydia Dafflon",
                         "result": {
-                            "zeit": "87.06",
-                            "fehler": 1,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "d0190612-db5a-4054-9f1b-7368b4f81ee0",
                         "Startnummer": 1202
@@ -918,8 +911,8 @@
                         "Hundename": "Sobacca",
                         "Hundefuehrer": "Natascha Imboden",
                         "result": {
-                            "zeit": "78.96",
-                            "fehler": 0,
+                            "zeit": "95.26",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -931,10 +924,7 @@
                         "Hundename": "Da Vinci",
                         "Hundefuehrer": "Céline Zahn",
                         "result": {
-                            "zeit": "81.38",
-                            "fehler": 2,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "24b208ba-d9b1-4ea0-adab-b236e0eb7421",
                         "Startnummer": 1207
@@ -944,8 +934,8 @@
                         "Hundename": "Fame",
                         "Hundefuehrer": "Peter Huber",
                         "result": {
-                            "zeit": "81.81",
-                            "fehler": 2,
+                            "zeit": "81.71",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -957,7 +947,7 @@
                         "Hundename": "QB",
                         "Hundefuehrer": "Beatrice Huber",
                         "result": {
-                            "zeit": "79.03",
+                            "zeit": "77.50",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -970,10 +960,7 @@
                         "Hundename": "Win",
                         "Hundefuehrer": "Jeannine Gloor",
                         "result": {
-                            "zeit": "91.86",
-                            "fehler": 0,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "388f1bfd-0167-4da4-a22b-f7bf0f704700",
                         "Startnummer": 1213
@@ -983,7 +970,7 @@
                         "Hundename": "Arvok",
                         "Hundefuehrer": "Maja Notarfrancesco",
                         "result": {
-                            "zeit": "88.22",
+                            "zeit": "83.70",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -996,7 +983,7 @@
                         "Hundename": "Seeed",
                         "Hundefuehrer": "Carole Zeiter",
                         "result": {
-                            "zeit": "90.88",
+                            "zeit": "94.48",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1009,7 +996,10 @@
                         "Hundename": "Phoebe",
                         "Hundefuehrer": "Daniel Zeiter",
                         "result": {
-                            "disqualifikation": "ABR"
+                            "zeit": "95.20",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "3ab39549-75ad-4a62-90a7-9b52bec1b96e",
                         "Startnummer": 1224
@@ -1019,8 +1009,8 @@
                         "Hundename": "Adri",
                         "Hundefuehrer": "Simone Nützi",
                         "result": {
-                            "zeit": "83.04",
-                            "fehler": 1,
+                            "zeit": "86.07",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1032,7 +1022,7 @@
                         "Hundename": "Asics",
                         "Hundefuehrer": "Lukas Risi",
                         "result": {
-                            "zeit": "87.91",
+                            "zeit": "85.79",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1045,8 +1035,8 @@
                         "Hundename": "Soleil",
                         "Hundefuehrer": "Lilian Oehler",
                         "result": {
-                            "zeit": "81.32",
-                            "fehler": 2,
+                            "zeit": "81.23",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1058,9 +1048,9 @@
                         "Hundename": "Ice",
                         "Hundefuehrer": "Franziska Hilfiker",
                         "result": {
-                            "zeit": "92.00",
-                            "fehler": 1,
-                            "verweigerungen": 0,
+                            "zeit": "93.41",
+                            "fehler": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "b046ae96-1785-44af-a714-45e148f0f52c",
@@ -1071,7 +1061,7 @@
                         "Hundename": "Phelym",
                         "Hundefuehrer": "Stephanie Bolliger",
                         "result": {
-                            "zeit": "85.24",
+                            "zeit": "86.30",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1084,7 +1074,7 @@
                         "Hundename": "Casy",
                         "Hundefuehrer": "Regula Grünenfelder",
                         "result": {
-                            "zeit": "80.35",
+                            "zeit": "84.44",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1097,8 +1087,8 @@
                         "Hundename": "Floyd",
                         "Hundefuehrer": "Barbara Manz",
                         "result": {
-                            "zeit": "82.41",
-                            "fehler": 0,
+                            "zeit": "90.19",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1110,7 +1100,7 @@
                         "Hundename": "Aidan",
                         "Hundefuehrer": "Annick Hosner",
                         "result": {
-                            "zeit": "89.12",
+                            "zeit": "89.35",
                             "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1123,7 +1113,7 @@
                         "Hundename": "Hairon",
                         "Hundefuehrer": "Ludwig Florioli",
                         "result": {
-                            "zeit": "84.15",
+                            "zeit": "88.57",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1136,8 +1126,8 @@
                         "Hundename": "Fame",
                         "Hundefuehrer": "Sandra Summermatter",
                         "result": {
-                            "zeit": "92.03",
-                            "fehler": 1,
+                            "zeit": "90.55",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1149,9 +1139,9 @@
                         "Hundename": "Fletcher",
                         "Hundefuehrer": "Ursula Schneider",
                         "result": {
-                            "zeit": "85.06",
-                            "fehler": 0,
-                            "verweigerungen": 0,
+                            "zeit": "94.54",
+                            "fehler": 2,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "8addefd4-c8c6-45a3-a8f8-5fa2d25c864d",
@@ -1162,8 +1152,8 @@
                         "Hundename": "Tweety",
                         "Hundefuehrer": "Raphael Jenny",
                         "result": {
-                            "zeit": "94.07",
-                            "fehler": 2,
+                            "zeit": "76.32",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1175,7 +1165,7 @@
                         "Hundename": "Oreo",
                         "Hundefuehrer": "Patrick Stutz",
                         "result": {
-                            "zeit": "79.81",
+                            "zeit": "79.23",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1188,8 +1178,8 @@
                         "Hundename": "Shyleen",
                         "Hundefuehrer": "Annick Blanc",
                         "result": {
-                            "zeit": "80.41",
-                            "fehler": 1,
+                            "zeit": "84.57",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1201,8 +1191,8 @@
                         "Hundename": "Grace",
                         "Hundefuehrer": "Annette Ogierman",
                         "result": {
-                            "zeit": "86.19",
-                            "fehler": 0,
+                            "zeit": "84.67",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1214,7 +1204,7 @@
                         "Hundename": "Paige",
                         "Hundefuehrer": "Mirjam Senn",
                         "result": {
-                            "zeit": "78.61",
+                            "zeit": "86.88",
                             "fehler": 0,
                             "verweigerungen": 1,
                             "disqualifikation": null
@@ -1224,7 +1214,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 201,
+                    "parcours_laenge": 201.0,
                     "anzahl_hindernisse": 22,
                     "standardzeit_sct": 80.4
                 },
@@ -1245,8 +1235,8 @@
                         "Hundename": "Extreme Folly",
                         "Hundefuehrer": "Irène Mauroux",
                         "result": {
-                            "zeit": "86.60",
-                            "fehler": 1,
+                            "zeit": "92.37",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1258,9 +1248,9 @@
                         "Hundename": "Djinn' Tomic Folly",
                         "Hundefuehrer": "Pascal Mauroux",
                         "result": {
-                            "zeit": "84.77",
+                            "zeit": "95.63",
                             "fehler": 0,
-                            "verweigerungen": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "7e98648f-eb18-48d8-a498-ccefd2263445",
@@ -1271,9 +1261,9 @@
                         "Hundename": "Mango",
                         "Hundefuehrer": "Rachele Fuzzati",
                         "result": {
-                            "zeit": "92.63",
+                            "zeit": "90.43",
                             "fehler": 0,
-                            "verweigerungen": 1,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "c5ea5923-b075-4977-9322-203a15b5fafb",
@@ -1284,8 +1274,8 @@
                         "Hundename": "Jet",
                         "Hundefuehrer": "Agnes Certain",
                         "result": {
-                            "zeit": "91.02",
-                            "fehler": 1,
+                            "zeit": "79.14",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1307,9 +1297,9 @@
                         "Hundename": "Rebel",
                         "Hundefuehrer": "Eric Sansonnens",
                         "result": {
-                            "zeit": "95.57",
-                            "fehler": 1,
-                            "verweigerungen": 0,
+                            "zeit": "90.66",
+                            "fehler": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "e554b040-e467-4bf5-8ebe-7bd99d5b0c44",
@@ -1320,7 +1310,7 @@
                         "Hundename": "A-Yena",
                         "Hundefuehrer": "Francine Tavazzi",
                         "result": {
-                            "zeit": "85.01",
+                            "zeit": "83.16",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1333,10 +1323,7 @@
                         "Hundename": "Kara",
                         "Hundefuehrer": "Stéphane Wohlhauser",
                         "result": {
-                            "zeit": "94.83",
-                            "fehler": 1,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "1ec821d9-5d70-422a-9418-052936c256fa",
                         "Startnummer": 1319
@@ -1346,10 +1333,7 @@
                         "Hundename": "Leeloo",
                         "Hundefuehrer": "Cécile Francey",
                         "result": {
-                            "zeit": "94.69",
-                            "fehler": 0,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "2cafb5c5-c798-458e-b932-a84d3dc1e500",
                         "Startnummer": 1302
@@ -1359,7 +1343,10 @@
                         "Hundename": "Orko",
                         "Hundefuehrer": "Christelle Borcard",
                         "result": {
-                            "disqualifikation": "DIS"
+                            "zeit": "78.63",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "3b94f591-2b7a-44c0-b7a7-1692b336a104",
                         "Startnummer": 1318
@@ -1369,10 +1356,7 @@
                         "Hundename": "Iceman",
                         "Hundefuehrer": "Denise von Tobel",
                         "result": {
-                            "zeit": "86.02",
-                            "fehler": 0,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "a7aa27ed-8ad3-43cb-8a2a-ffaeeb34c857",
                         "Startnummer": 1320
@@ -1382,8 +1366,8 @@
                         "Hundename": "Zaz",
                         "Hundefuehrer": "Rahel Pfäffli",
                         "result": {
-                            "zeit": "79.74",
-                            "fehler": 1,
+                            "zeit": "83.14",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1395,9 +1379,9 @@
                         "Hundename": "Joolz",
                         "Hundefuehrer": "André Mühlebach",
                         "result": {
-                            "zeit": "84.36",
+                            "zeit": "95.00",
                             "fehler": 0,
-                            "verweigerungen": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "9b9b9666-13c7-47d5-bca0-a62e2537b81c",
@@ -1408,7 +1392,7 @@
                         "Hundename": "Eve",
                         "Hundefuehrer": "Martin Brunner",
                         "result": {
-                            "zeit": "95.67",
+                            "zeit": "79.79",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1421,7 +1405,7 @@
                         "Hundename": "Mokka",
                         "Hundefuehrer": "Ursula Roethlisberger",
                         "result": {
-                            "zeit": "89.19",
+                            "zeit": "81.78",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1434,9 +1418,9 @@
                         "Hundename": "Neon",
                         "Hundefuehrer": "Roland Hilfiker",
                         "result": {
-                            "zeit": "83.54",
-                            "fehler": 0,
-                            "verweigerungen": 1,
+                            "zeit": "80.30",
+                            "fehler": 2,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "ae95b1e4-fdfe-4aa9-b99e-62bcbdd9d971",
@@ -1447,8 +1431,8 @@
                         "Hundename": "Sky",
                         "Hundefuehrer": "Franziska Hilfiker",
                         "result": {
-                            "zeit": "93.26",
-                            "fehler": 0,
+                            "zeit": "92.62",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1460,7 +1444,7 @@
                         "Hundename": "Ouzo",
                         "Hundefuehrer": "Jenny Stephenson",
                         "result": {
-                            "zeit": "83.56",
+                            "zeit": "78.84",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1473,8 +1457,8 @@
                         "Hundename": "Loca",
                         "Hundefuehrer": "Jenny Stephenson",
                         "result": {
-                            "zeit": "79.83",
-                            "fehler": 2,
+                            "zeit": "89.37",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1486,8 +1470,8 @@
                         "Hundename": "Jacket",
                         "Hundefuehrer": "Evelyne von Riedmatten",
                         "result": {
-                            "zeit": "88.63",
-                            "fehler": 1,
+                            "zeit": "91.23",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1499,7 +1483,7 @@
                         "Hundename": "Milane",
                         "Hundefuehrer": "Sibylle Lüthi",
                         "result": {
-                            "zeit": "91.91",
+                            "zeit": "79.11",
                             "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1512,8 +1496,8 @@
                         "Hundename": "Fjun",
                         "Hundefuehrer": "Yvonne Wyss",
                         "result": {
-                            "zeit": "86.11",
-                            "fehler": 0,
+                            "zeit": "85.62",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1525,7 +1509,7 @@
                         "Hundename": "Gin",
                         "Hundefuehrer": "Alexandra Tschanz",
                         "result": {
-                            "zeit": "81.33",
+                            "zeit": "96.54",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1538,10 +1522,7 @@
                         "Hundename": "Hayley",
                         "Hundefuehrer": "Patrick Bleuer",
                         "result": {
-                            "zeit": "89.27",
-                            "fehler": 1,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "812fdcf3-7eb1-4973-9cd4-35957ee77755",
                         "Startnummer": 1305
@@ -1551,7 +1532,7 @@
                         "Hundename": "Faye",
                         "Hundefuehrer": "Nathalie Brunner",
                         "result": {
-                            "zeit": "81.94",
+                            "zeit": "85.40",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1564,8 +1545,8 @@
                         "Hundename": "Fellow",
                         "Hundefuehrer": "Patrick Ernst",
                         "result": {
-                            "zeit": "81.21",
-                            "fehler": 0,
+                            "zeit": "77.48",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1577,10 +1558,7 @@
                         "Hundename": "Hunter",
                         "Hundefuehrer": "Morena Barelli",
                         "result": {
-                            "zeit": "87.98",
-                            "fehler": 0,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "23d8d387-2d3c-470a-9f80-c7e7c4fc05c4",
                         "Startnummer": 1316
@@ -1590,9 +1568,9 @@
                         "Hundename": "Speedy",
                         "Hundefuehrer": "Raphael Jenny",
                         "result": {
-                            "zeit": "91.20",
-                            "fehler": 2,
-                            "verweigerungen": 0,
+                            "zeit": "92.33",
+                            "fehler": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "0ddd0bbd-1ca5-46a6-b4b2-e14ebed0c7f1",
@@ -1603,9 +1581,9 @@
                         "Hundename": "Capraia",
                         "Hundefuehrer": "Caroline Spahni",
                         "result": {
-                            "zeit": "94.98",
+                            "zeit": "93.50",
                             "fehler": 0,
-                            "verweigerungen": 1,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "f33dd112-f362-4322-9d42-bd32613a25fa",
@@ -1616,8 +1594,8 @@
                         "Hundename": "Style",
                         "Hundefuehrer": "Christa Zaugg",
                         "result": {
-                            "zeit": "88.37",
-                            "fehler": 2,
+                            "zeit": "84.21",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1626,7 +1604,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 205,
+                    "parcours_laenge": 205.0,
                     "anzahl_hindernisse": 22,
                     "standardzeit_sct": 82.0
                 },
@@ -1647,8 +1625,8 @@
                         "Hundename": "Uma",
                         "Hundefuehrer": "Muriel Petitjean",
                         "result": {
-                            "zeit": "70.96",
-                            "fehler": 0,
+                            "zeit": "64.53",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1660,7 +1638,7 @@
                         "Hundename": "Mr Peregrin Took",
                         "Hundefuehrer": "Aline Calame",
                         "result": {
-                            "zeit": "75.89",
+                            "zeit": "57.68",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1670,7 +1648,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 173,
+                    "parcours_laenge": 173.0,
                     "anzahl_hindernisse": 21,
                     "standardzeit_sct": 61.79
                 },
@@ -1691,8 +1669,8 @@
                         "Hundename": "Sophia",
                         "Hundefuehrer": "Muriel Petitjean",
                         "result": {
-                            "zeit": "69.72",
-                            "fehler": 1,
+                            "zeit": "79.70",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1704,7 +1682,7 @@
                         "Hundename": "Lou",
                         "Hundefuehrer": "Isabelle Loretan",
                         "result": {
-                            "zeit": "68.26",
+                            "zeit": "65.71",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1717,17 +1695,14 @@
                         "Hundename": "Yuki",
                         "Hundefuehrer": "Werner Brönnimann",
                         "result": {
-                            "zeit": "84.28",
-                            "fehler": 1,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "a3ac1a97-12c8-4fea-81a9-2e16219d3e58",
                         "Startnummer": 4202
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 208,
+                    "parcours_laenge": 208.0,
                     "anzahl_hindernisse": 21,
                     "standardzeit_sct": 69.33
                 },
@@ -1748,8 +1723,8 @@
                         "Hundename": "Carioca",
                         "Hundefuehrer": "Tiphanie Mauroux",
                         "result": {
-                            "zeit": "71.38",
-                            "fehler": 0,
+                            "zeit": "79.28",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1761,8 +1736,8 @@
                         "Hundename": "Fuego",
                         "Hundefuehrer": "Désirée Brenzikofer",
                         "result": {
-                            "zeit": "65.92",
-                            "fehler": 1,
+                            "zeit": "64.10",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1774,9 +1749,9 @@
                         "Hundename": "Jim Beam",
                         "Hundefuehrer": "Nathalie Brunner",
                         "result": {
-                            "zeit": "80.13",
-                            "fehler": 2,
-                            "verweigerungen": 0,
+                            "zeit": "75.26",
+                            "fehler": 1,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "b5ca1e5d-2e11-44dc-8f0f-a6b30f4696a9",
@@ -1787,7 +1762,7 @@
                         "Hundename": "Nashvilles",
                         "Hundefuehrer": "Renée Jansen",
                         "result": {
-                            "zeit": "65.31",
+                            "zeit": "73.12",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1797,7 +1772,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 205,
+                    "parcours_laenge": 205.0,
                     "anzahl_hindernisse": 22,
                     "standardzeit_sct": 68.33
                 },
@@ -1814,7 +1789,7 @@
                 "klasse": "1",
                 "entries": [],
                 "laufdaten": {
-                    "parcours_laenge": 188,
+                    "parcours_laenge": 188.0,
                     "anzahl_hindernisse": 21,
                     "standardzeit_sct": 67.14
                 },
@@ -1835,17 +1810,14 @@
                         "Hundename": "Maybe",
                         "Hundefuehrer": "Marie-Jo Golay",
                         "result": {
-                            "zeit": "49.86",
-                            "fehler": 1,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "ab494d3a-24ab-4a0c-8488-1d59d94f1aea",
                         "Startnummer": 3201
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 162,
+                    "parcours_laenge": 162.0,
                     "anzahl_hindernisse": 20,
                     "standardzeit_sct": 54.0
                 },
@@ -1866,8 +1838,8 @@
                         "Hundename": "Fuji",
                         "Hundefuehrer": "Letizia Grunder",
                         "result": {
-                            "zeit": "51.85",
-                            "fehler": 1,
+                            "zeit": "66.68",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1879,10 +1851,7 @@
                         "Hundename": "Qilin",
                         "Hundefuehrer": "Virginie de Andrea",
                         "result": {
-                            "zeit": "59.64",
-                            "fehler": 0,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "73b65d23-156a-42a3-a7a8-cb8dc0ed79c6",
                         "Startnummer": 3301
@@ -1892,8 +1861,8 @@
                         "Hundename": "Ombre",
                         "Hundefuehrer": "Simone Nützi",
                         "result": {
-                            "zeit": "56.72",
-                            "fehler": 0,
+                            "zeit": "67.28",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1905,9 +1874,9 @@
                         "Hundename": "Pippa",
                         "Hundefuehrer": "Roland Hilfiker",
                         "result": {
-                            "zeit": "55.98",
-                            "fehler": 1,
-                            "verweigerungen": 0,
+                            "zeit": "60.63",
+                            "fehler": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "ae95b1e4-fdfe-4aa9-b99e-62bcbdd9d971",
@@ -1918,14 +1887,17 @@
                         "Hundename": "Robin",
                         "Hundefuehrer": "Anna Schönenberger",
                         "result": {
-                            "disqualifikation": "DIS"
+                            "zeit": "66.31",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "a5040769-40a9-4a07-914d-2e8d0ce57970",
                         "Startnummer": 3303
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 170,
+                    "parcours_laenge": 170.0,
                     "anzahl_hindernisse": 22,
                     "standardzeit_sct": 56.67
                 },
@@ -1946,7 +1918,7 @@
                         "Hundename": "Rocky",
                         "Hundefuehrer": "Mary Diserens",
                         "result": {
-                            "zeit": "87.25",
+                            "zeit": "75.22",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -1959,8 +1931,8 @@
                         "Hundename": "Tessie",
                         "Hundefuehrer": "Sabrina Dirren",
                         "result": {
-                            "zeit": "86.78",
-                            "fehler": 1,
+                            "zeit": "89.91",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1972,8 +1944,8 @@
                         "Hundename": "Rosie",
                         "Hundefuehrer": "Sandra Blum",
                         "result": {
-                            "zeit": "87.22",
-                            "fehler": 0,
+                            "zeit": "79.88",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1985,8 +1957,8 @@
                         "Hundename": "Kyona",
                         "Hundefuehrer": "Mirja Roth",
                         "result": {
-                            "zeit": "90.38",
-                            "fehler": 0,
+                            "zeit": "86.11",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -1998,8 +1970,8 @@
                         "Hundename": "Kipekee",
                         "Hundefuehrer": "Marianne Mattle",
                         "result": {
-                            "zeit": "73.26",
-                            "fehler": 2,
+                            "zeit": "78.76",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2011,14 +1983,17 @@
                         "Hundename": "Dark",
                         "Hundefuehrer": "Carlo Ruggia",
                         "result": {
-                            "disqualifikation": "ABR"
+                            "zeit": "74.12",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "e8eaaa8b-ff7a-4058-a376-ddf941084f1b",
                         "Startnummer": 2102
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 216,
+                    "parcours_laenge": 216.0,
                     "anzahl_hindernisse": 21,
                     "standardzeit_sct": 77.14
                 },
@@ -2039,8 +2014,8 @@
                         "Hundename": "Beany",
                         "Hundefuehrer": "Anita Leonardi",
                         "result": {
-                            "zeit": "69.15",
-                            "fehler": 1,
+                            "zeit": "60.80",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2052,7 +2027,7 @@
                         "Hundename": "Gin",
                         "Hundefuehrer": "Muriel Grand",
                         "result": {
-                            "zeit": "64.80",
+                            "zeit": "50.82",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2065,7 +2040,10 @@
                         "Hundename": "Nayra",
                         "Hundefuehrer": "Andrea Rickli",
                         "result": {
-                            "disqualifikation": "ABR"
+                            "zeit": "53.17",
+                            "fehler": 1,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "951bef3f-fde2-4894-8ca5-2d261b0e8588",
                         "Startnummer": 2202
@@ -2075,8 +2053,8 @@
                         "Hundename": "Nala",
                         "Hundefuehrer": "Ariane Boutellier",
                         "result": {
-                            "zeit": "58.36",
-                            "fehler": 1,
+                            "zeit": "51.90",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2088,8 +2066,8 @@
                         "Hundename": "Tia",
                         "Hundefuehrer": "Susanne Haring",
                         "result": {
-                            "zeit": "66.15",
-                            "fehler": 0,
+                            "zeit": "52.74",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2101,8 +2079,8 @@
                         "Hundename": "Freecy",
                         "Hundefuehrer": "Natalie Raetzo",
                         "result": {
-                            "zeit": "54.44",
-                            "fehler": 0,
+                            "zeit": "64.69",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2111,7 +2089,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 164,
+                    "parcours_laenge": 164.0,
                     "anzahl_hindernisse": 21,
                     "standardzeit_sct": 54.67
                 },
@@ -2132,10 +2110,7 @@
                         "Hundename": "Pirate",
                         "Hundefuehrer": "Letizia Grunder",
                         "result": {
-                            "zeit": "65.19",
-                            "fehler": 1,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "3e12b437-e833-4c28-a712-e80f0557b722",
                         "Startnummer": 2311
@@ -2145,8 +2120,8 @@
                         "Hundename": "Nikaia",
                         "Hundefuehrer": "Corentin Sansonnens",
                         "result": {
-                            "zeit": "54.59",
-                            "fehler": 2,
+                            "zeit": "57.51",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2158,8 +2133,8 @@
                         "Hundename": "Go-Tic",
                         "Hundefuehrer": "Francine Tavazzi",
                         "result": {
-                            "zeit": "58.15",
-                            "fehler": 2,
+                            "zeit": "61.62",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2171,9 +2146,9 @@
                         "Hundename": "Hazel-Shelby",
                         "Hundefuehrer": "Dominik Oehler",
                         "result": {
-                            "zeit": "58.01",
+                            "zeit": "61.59",
                             "fehler": 0,
-                            "verweigerungen": 1,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "6c6cac89-f0fc-4bbe-99c9-a33692fa938b",
@@ -2184,10 +2159,7 @@
                         "Hundename": "Vita",
                         "Hundefuehrer": "Simone Nützi",
                         "result": {
-                            "zeit": "70.36",
-                            "fehler": 0,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "3588e020-2be8-4799-a765-1becf83a8225",
                         "Startnummer": 2303
@@ -2197,7 +2169,7 @@
                         "Hundename": "Roxi",
                         "Hundefuehrer": "Carlo Ruggia",
                         "result": {
-                            "zeit": "64.22",
+                            "zeit": "62.77",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2210,8 +2182,8 @@
                         "Hundename": "Gee",
                         "Hundefuehrer": "Larissa Michel",
                         "result": {
-                            "zeit": "65.41",
-                            "fehler": 0,
+                            "zeit": "58.57",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2223,9 +2195,9 @@
                         "Hundename": "Lou",
                         "Hundefuehrer": "Bettina Heiniger",
                         "result": {
-                            "zeit": "57.69",
+                            "zeit": "54.91",
                             "fehler": 0,
-                            "verweigerungen": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "aa448533-b93a-4384-99c1-b26f9b626d85",
@@ -2236,7 +2208,10 @@
                         "Hundename": "Liv",
                         "Hundefuehrer": "Bettina Heiniger",
                         "result": {
-                            "disqualifikation": "DIS"
+                            "zeit": "59.11",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "aa448533-b93a-4384-99c1-b26f9b626d85",
                         "Startnummer": 2309
@@ -2246,9 +2221,9 @@
                         "Hundename": "Posh",
                         "Hundefuehrer": "Margrit Klauz",
                         "result": {
-                            "zeit": "62.63",
+                            "zeit": "64.90",
                             "fehler": 0,
-                            "verweigerungen": 1,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "75e0ea81-3f36-418a-a297-a31be1d9696d",
@@ -2259,7 +2234,7 @@
                         "Hundename": "Tendai",
                         "Hundefuehrer": "Margrit Klauz",
                         "result": {
-                            "zeit": "70.51",
+                            "zeit": "58.14",
                             "fehler": 2,
                             "verweigerungen": 1,
                             "disqualifikation": null
@@ -2269,7 +2244,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 168,
+                    "parcours_laenge": 168.0,
                     "anzahl_hindernisse": 22,
                     "standardzeit_sct": 56.0
                 },
@@ -2290,8 +2265,8 @@
                         "Hundename": "Oxygen",
                         "Hundefuehrer": "Jessica Herren",
                         "result": {
-                            "zeit": "77.15",
-                            "fehler": 1,
+                            "zeit": "65.58",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2303,8 +2278,8 @@
                         "Hundename": "Hinouk",
                         "Hundefuehrer": "Jessica Wyss",
                         "result": {
-                            "zeit": "74.84",
-                            "fehler": 2,
+                            "zeit": "58.88",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2316,9 +2291,9 @@
                         "Hundename": "Electra",
                         "Hundefuehrer": "Amélie Genevey",
                         "result": {
-                            "zeit": "66.66",
-                            "fehler": 0,
-                            "verweigerungen": 0,
+                            "zeit": "70.96",
+                            "fehler": 1,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "f6ed272a-f825-4396-8ff8-d714531b72ab",
@@ -2329,7 +2304,10 @@
                         "Hundename": "Sonic",
                         "Hundefuehrer": "Christelle Borcard",
                         "result": {
-                            "disqualifikation": "DIS"
+                            "zeit": "62.70",
+                            "fehler": 2,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "3b94f591-2b7a-44c0-b7a7-1692b336a104",
                         "Startnummer": 1104
@@ -2339,7 +2317,7 @@
                         "Hundename": "Gwyn",
                         "Hundefuehrer": "Sabine Hartweg",
                         "result": {
-                            "zeit": "62.79",
+                            "zeit": "67.96",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2352,9 +2330,9 @@
                         "Hundename": "Devil",
                         "Hundefuehrer": "Céline Zahn",
                         "result": {
-                            "zeit": "66.17",
-                            "fehler": 1,
-                            "verweigerungen": 1,
+                            "zeit": "77.74",
+                            "fehler": 0,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "24b208ba-d9b1-4ea0-adab-b236e0eb7421",
@@ -2365,7 +2343,7 @@
                         "Hundename": "Nuuk",
                         "Hundefuehrer": "Sarih Ganzmann",
                         "result": {
-                            "zeit": "60.15",
+                            "zeit": "69.33",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2378,8 +2356,8 @@
                         "Hundename": "Niffler",
                         "Hundefuehrer": "Tanja Fähndrich",
                         "result": {
-                            "zeit": "67.94",
-                            "fehler": 0,
+                            "zeit": "66.37",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2391,9 +2369,9 @@
                         "Hundename": "Tschiller",
                         "Hundefuehrer": "Ursula Schneider",
                         "result": {
-                            "zeit": "61.07",
+                            "zeit": "73.15",
                             "fehler": 0,
-                            "verweigerungen": 1,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "8addefd4-c8c6-45a3-a8f8-5fa2d25c864d",
@@ -2404,8 +2382,8 @@
                         "Hundename": "Juna",
                         "Hundefuehrer": "Jenny Mäusli",
                         "result": {
-                            "zeit": "77.32",
-                            "fehler": 0,
+                            "zeit": "75.91",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2414,7 +2392,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 177,
+                    "parcours_laenge": 177.0,
                     "anzahl_hindernisse": 19,
                     "standardzeit_sct": 63.21
                 },
@@ -2435,8 +2413,8 @@
                         "Hundename": "Undi",
                         "Hundefuehrer": "Giulia Lizzo",
                         "result": {
-                            "zeit": "55.33",
-                            "fehler": 0,
+                            "zeit": "60.97",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2448,9 +2426,9 @@
                         "Hundename": "Fayer",
                         "Hundefuehrer": "Estelle Brêchet",
                         "result": {
-                            "zeit": "58.57",
+                            "zeit": "57.08",
                             "fehler": 0,
-                            "verweigerungen": 1,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "b32d14b1-1f0b-4ffa-979a-0514dd20f833",
@@ -2461,7 +2439,10 @@
                         "Hundename": "Booster",
                         "Hundefuehrer": "Melinda Savarino",
                         "result": {
-                            "disqualifikation": "DIS"
+                            "zeit": "62.28",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "afbb5494-2db7-4329-bf97-b4709678638a",
                         "Startnummer": 1229
@@ -2471,10 +2452,7 @@
                         "Hundename": "Nash",
                         "Hundefuehrer": "Agnes Certain",
                         "result": {
-                            "zeit": "62.94",
-                            "fehler": 2,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "db311b1e-d177-4ffa-9092-679ac80e01d1",
                         "Startnummer": 1222
@@ -2484,7 +2462,7 @@
                         "Hundename": "Rayna",
                         "Hundefuehrer": "Sabrina Dirren",
                         "result": {
-                            "zeit": "65.88",
+                            "zeit": "69.87",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2497,9 +2475,9 @@
                         "Hundename": "Kwin",
                         "Hundefuehrer": "Philippe Pollien",
                         "result": {
-                            "zeit": "54.66",
+                            "zeit": "68.11",
                             "fehler": 0,
-                            "verweigerungen": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "74ed5262-f0c6-44ba-a9be-b74a88f13e17",
@@ -2510,8 +2488,8 @@
                         "Hundename": "Kadoc",
                         "Hundefuehrer": "Pamela Matthey-Doret",
                         "result": {
-                            "zeit": "55.07",
-                            "fehler": 0,
+                            "zeit": "69.42",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2523,8 +2501,8 @@
                         "Hundename": "Atlas",
                         "Hundefuehrer": "Lydia Dafflon",
                         "result": {
-                            "zeit": "54.71",
-                            "fehler": 1,
+                            "zeit": "62.51",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2536,7 +2514,7 @@
                         "Hundename": "Sobacca",
                         "Hundefuehrer": "Natascha Imboden",
                         "result": {
-                            "zeit": "53.56",
+                            "zeit": "71.52",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2549,8 +2527,8 @@
                         "Hundename": "Da Vinci",
                         "Hundefuehrer": "Céline Zahn",
                         "result": {
-                            "zeit": "53.48",
-                            "fehler": 0,
+                            "zeit": "67.77",
+                            "fehler": 1,
                             "verweigerungen": 1,
                             "disqualifikation": null
                         },
@@ -2562,8 +2540,8 @@
                         "Hundename": "Fame",
                         "Hundefuehrer": "Peter Huber",
                         "result": {
-                            "zeit": "59.44",
-                            "fehler": 0,
+                            "zeit": "61.41",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2575,8 +2553,8 @@
                         "Hundename": "QB",
                         "Hundefuehrer": "Beatrice Huber",
                         "result": {
-                            "zeit": "63.26",
-                            "fehler": 0,
+                            "zeit": "59.44",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2588,8 +2566,8 @@
                         "Hundename": "Win",
                         "Hundefuehrer": "Jeannine Gloor",
                         "result": {
-                            "zeit": "57.95",
-                            "fehler": 1,
+                            "zeit": "69.13",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2601,9 +2579,9 @@
                         "Hundename": "Arvok",
                         "Hundefuehrer": "Maja Notarfrancesco",
                         "result": {
-                            "zeit": "65.79",
-                            "fehler": 2,
-                            "verweigerungen": 1,
+                            "zeit": "54.98",
+                            "fehler": 0,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "5bc967eb-4426-4133-baec-ee2e74f6be88",
@@ -2614,7 +2592,7 @@
                         "Hundename": "Seeed",
                         "Hundefuehrer": "Carole Zeiter",
                         "result": {
-                            "zeit": "68.90",
+                            "zeit": "54.44",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2627,8 +2605,8 @@
                         "Hundename": "Phoebe",
                         "Hundefuehrer": "Daniel Zeiter",
                         "result": {
-                            "zeit": "61.59",
-                            "fehler": 0,
+                            "zeit": "66.17",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2640,10 +2618,7 @@
                         "Hundename": "Adri",
                         "Hundefuehrer": "Simone Nützi",
                         "result": {
-                            "zeit": "56.40",
-                            "fehler": 0,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "3588e020-2be8-4799-a765-1becf83a8225",
                         "Startnummer": 1217
@@ -2653,9 +2628,9 @@
                         "Hundename": "Asics",
                         "Hundefuehrer": "Lukas Risi",
                         "result": {
-                            "zeit": "52.53",
-                            "fehler": 1,
-                            "verweigerungen": 1,
+                            "zeit": "66.32",
+                            "fehler": 0,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "7ea15338-f2b1-48f4-b29f-07b59aa66e11",
@@ -2666,8 +2641,8 @@
                         "Hundename": "Soleil",
                         "Hundefuehrer": "Lilian Oehler",
                         "result": {
-                            "zeit": "55.45",
-                            "fehler": 1,
+                            "zeit": "59.02",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2679,7 +2654,7 @@
                         "Hundename": "Ice",
                         "Hundefuehrer": "Franziska Hilfiker",
                         "result": {
-                            "zeit": "59.44",
+                            "zeit": "53.29",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2692,7 +2667,7 @@
                         "Hundename": "Phelym",
                         "Hundefuehrer": "Stephanie Bolliger",
                         "result": {
-                            "zeit": "57.84",
+                            "zeit": "64.21",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2705,9 +2680,9 @@
                         "Hundename": "Casy",
                         "Hundefuehrer": "Regula Grünenfelder",
                         "result": {
-                            "zeit": "57.37",
-                            "fehler": 1,
-                            "verweigerungen": 0,
+                            "zeit": "62.84",
+                            "fehler": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "0137bc9a-232e-4cad-8641-2449a6377cb3",
@@ -2718,9 +2693,9 @@
                         "Hundename": "Floyd",
                         "Hundefuehrer": "Barbara Manz",
                         "result": {
-                            "zeit": "68.85",
-                            "fehler": 0,
-                            "verweigerungen": 1,
+                            "zeit": "65.60",
+                            "fehler": 1,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "9f0beaf8-e29a-42d0-bb56-1c6a683c4db3",
@@ -2731,10 +2706,7 @@
                         "Hundename": "Aidan",
                         "Hundefuehrer": "Annick Hosner",
                         "result": {
-                            "zeit": "68.22",
-                            "fehler": 1,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "f5130dd8-2022-4409-9d54-abda9291a784",
                         "Startnummer": 1227
@@ -2744,7 +2716,7 @@
                         "Hundename": "Hairon",
                         "Hundefuehrer": "Ludwig Florioli",
                         "result": {
-                            "zeit": "63.96",
+                            "zeit": "55.34",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2757,8 +2729,8 @@
                         "Hundename": "Fame",
                         "Hundefuehrer": "Sandra Summermatter",
                         "result": {
-                            "zeit": "65.02",
-                            "fehler": 0,
+                            "zeit": "55.93",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2770,7 +2742,7 @@
                         "Hundename": "Fletcher",
                         "Hundefuehrer": "Ursula Schneider",
                         "result": {
-                            "zeit": "56.70",
+                            "zeit": "60.63",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2783,9 +2755,9 @@
                         "Hundename": "Tweety",
                         "Hundefuehrer": "Raphael Jenny",
                         "result": {
-                            "zeit": "64.76",
+                            "zeit": "61.23",
                             "fehler": 0,
-                            "verweigerungen": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "0ddd0bbd-1ca5-46a6-b4b2-e14ebed0c7f1",
@@ -2796,7 +2768,7 @@
                         "Hundename": "Oreo",
                         "Hundefuehrer": "Patrick Stutz",
                         "result": {
-                            "zeit": "67.04",
+                            "zeit": "55.92",
                             "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2809,9 +2781,9 @@
                         "Hundename": "Shyleen",
                         "Hundefuehrer": "Annick Blanc",
                         "result": {
-                            "zeit": "63.30",
+                            "zeit": "68.82",
                             "fehler": 0,
-                            "verweigerungen": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "f777f312-3f9e-4b82-ac12-d5aab807ebb1",
@@ -2822,7 +2794,7 @@
                         "Hundename": "Grace",
                         "Hundefuehrer": "Annette Ogierman",
                         "result": {
-                            "zeit": "53.08",
+                            "zeit": "65.79",
                             "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2835,8 +2807,8 @@
                         "Hundename": "Paige",
                         "Hundefuehrer": "Mirjam Senn",
                         "result": {
-                            "zeit": "55.77",
-                            "fehler": 1,
+                            "zeit": "67.42",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2845,7 +2817,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 172,
+                    "parcours_laenge": 172.0,
                     "anzahl_hindernisse": 18,
                     "standardzeit_sct": 57.33
                 },
@@ -2866,7 +2838,7 @@
                         "Hundename": "Extreme Folly",
                         "Hundefuehrer": "Irène Mauroux",
                         "result": {
-                            "zeit": "69.21",
+                            "zeit": "63.95",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2879,9 +2851,9 @@
                         "Hundename": "Djinn' Tomic Folly",
                         "Hundefuehrer": "Pascal Mauroux",
                         "result": {
-                            "zeit": "64.96",
-                            "fehler": 0,
-                            "verweigerungen": 0,
+                            "zeit": "59.52",
+                            "fehler": 1,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "7e98648f-eb18-48d8-a498-ccefd2263445",
@@ -2892,10 +2864,7 @@
                         "Hundename": "Mango",
                         "Hundefuehrer": "Rachele Fuzzati",
                         "result": {
-                            "zeit": "58.96",
-                            "fehler": 2,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "c5ea5923-b075-4977-9322-203a15b5fafb",
                         "Startnummer": 1314
@@ -2905,9 +2874,9 @@
                         "Hundename": "Jet",
                         "Hundefuehrer": "Agnes Certain",
                         "result": {
-                            "zeit": "58.91",
+                            "zeit": "66.47",
                             "fehler": 0,
-                            "verweigerungen": 1,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "db311b1e-d177-4ffa-9092-679ac80e01d1",
@@ -2918,7 +2887,7 @@
                         "Hundename": "Thunderstorm",
                         "Hundefuehrer": "Aurore Brelot",
                         "result": {
-                            "zeit": "50.97",
+                            "zeit": "63.87",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2931,8 +2900,8 @@
                         "Hundename": "Rebel",
                         "Hundefuehrer": "Eric Sansonnens",
                         "result": {
-                            "zeit": "68.21",
-                            "fehler": 1,
+                            "zeit": "57.72",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -2944,7 +2913,7 @@
                         "Hundename": "A-Yena",
                         "Hundefuehrer": "Francine Tavazzi",
                         "result": {
-                            "zeit": "68.45",
+                            "zeit": "65.72",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2957,10 +2926,7 @@
                         "Hundename": "Kara",
                         "Hundefuehrer": "Stéphane Wohlhauser",
                         "result": {
-                            "zeit": "57.49",
-                            "fehler": 0,
-                            "verweigerungen": 1,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "1ec821d9-5d70-422a-9418-052936c256fa",
                         "Startnummer": 1319
@@ -2970,7 +2936,7 @@
                         "Hundename": "Leeloo",
                         "Hundefuehrer": "Cécile Francey",
                         "result": {
-                            "zeit": "66.98",
+                            "zeit": "67.54",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -2983,9 +2949,9 @@
                         "Hundename": "Orko",
                         "Hundefuehrer": "Christelle Borcard",
                         "result": {
-                            "zeit": "69.61",
+                            "zeit": "52.87",
                             "fehler": 1,
-                            "verweigerungen": 1,
+                            "verweigerungen": 0,
                             "disqualifikation": null
                         },
                         "handler_id": "3b94f591-2b7a-44c0-b7a7-1692b336a104",
@@ -2996,8 +2962,8 @@
                         "Hundename": "Iceman",
                         "Hundefuehrer": "Denise von Tobel",
                         "result": {
-                            "zeit": "67.90",
-                            "fehler": 0,
+                            "zeit": "63.80",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -3009,7 +2975,7 @@
                         "Hundename": "Zaz",
                         "Hundefuehrer": "Rahel Pfäffli",
                         "result": {
-                            "zeit": "60.49",
+                            "zeit": "63.84",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -3022,10 +2988,7 @@
                         "Hundename": "Joolz",
                         "Hundefuehrer": "André Mühlebach",
                         "result": {
-                            "zeit": "62.51",
-                            "fehler": 1,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "ABR"
                         },
                         "handler_id": "9b9b9666-13c7-47d5-bca0-a62e2537b81c",
                         "Startnummer": 1323
@@ -3035,9 +2998,9 @@
                         "Hundename": "Eve",
                         "Hundefuehrer": "Martin Brunner",
                         "result": {
-                            "zeit": "59.56",
-                            "fehler": 0,
-                            "verweigerungen": 0,
+                            "zeit": "57.22",
+                            "fehler": 1,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "81e0efc9-2581-41ac-8143-03ad1b8f9cfe",
@@ -3048,8 +3011,8 @@
                         "Hundename": "Mokka",
                         "Hundefuehrer": "Ursula Roethlisberger",
                         "result": {
-                            "zeit": "55.27",
-                            "fehler": 0,
+                            "zeit": "55.77",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -3061,7 +3024,7 @@
                         "Hundename": "Neon",
                         "Hundefuehrer": "Roland Hilfiker",
                         "result": {
-                            "zeit": "55.42",
+                            "zeit": "61.60",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -3074,7 +3037,7 @@
                         "Hundename": "Sky",
                         "Hundefuehrer": "Franziska Hilfiker",
                         "result": {
-                            "zeit": "64.02",
+                            "zeit": "66.64",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -3087,7 +3050,10 @@
                         "Hundename": "Ouzo",
                         "Hundefuehrer": "Jenny Stephenson",
                         "result": {
-                            "disqualifikation": "DIS"
+                            "zeit": "65.82",
+                            "fehler": 0,
+                            "verweigerungen": 0,
+                            "disqualifikation": null
                         },
                         "handler_id": "e1603b71-dbef-48bb-8cb0-51ac949aacc2",
                         "Startnummer": 1311
@@ -3097,9 +3063,9 @@
                         "Hundename": "Loca",
                         "Hundefuehrer": "Jenny Stephenson",
                         "result": {
-                            "zeit": "66.26",
-                            "fehler": 1,
-                            "verweigerungen": 0,
+                            "zeit": "55.61",
+                            "fehler": 0,
+                            "verweigerungen": 1,
                             "disqualifikation": null
                         },
                         "handler_id": "e1603b71-dbef-48bb-8cb0-51ac949aacc2",
@@ -3110,7 +3076,7 @@
                         "Hundename": "Jacket",
                         "Hundefuehrer": "Evelyne von Riedmatten",
                         "result": {
-                            "zeit": "54.46",
+                            "zeit": "57.40",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -3123,8 +3089,8 @@
                         "Hundename": "Milane",
                         "Hundefuehrer": "Sibylle Lüthi",
                         "result": {
-                            "zeit": "66.58",
-                            "fehler": 2,
+                            "zeit": "64.28",
+                            "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -3136,7 +3102,7 @@
                         "Hundename": "Fjun",
                         "Hundefuehrer": "Yvonne Wyss",
                         "result": {
-                            "zeit": "57.57",
+                            "zeit": "65.99",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -3149,8 +3115,8 @@
                         "Hundename": "Gin",
                         "Hundefuehrer": "Alexandra Tschanz",
                         "result": {
-                            "zeit": "59.28",
-                            "fehler": 0,
+                            "zeit": "49.83",
+                            "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -3162,10 +3128,7 @@
                         "Hundename": "Hayley",
                         "Hundefuehrer": "Patrick Bleuer",
                         "result": {
-                            "zeit": "66.83",
-                            "fehler": 2,
-                            "verweigerungen": 0,
-                            "disqualifikation": null
+                            "disqualifikation": "DIS"
                         },
                         "handler_id": "812fdcf3-7eb1-4973-9cd4-35957ee77755",
                         "Startnummer": 1305
@@ -3175,7 +3138,7 @@
                         "Hundename": "Faye",
                         "Hundefuehrer": "Nathalie Brunner",
                         "result": {
-                            "zeit": "49.79",
+                            "zeit": "51.98",
                             "fehler": 2,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -3188,7 +3151,7 @@
                         "Hundename": "Fellow",
                         "Hundefuehrer": "Patrick Ernst",
                         "result": {
-                            "zeit": "56.84",
+                            "zeit": "68.66",
                             "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -3201,8 +3164,8 @@
                         "Hundename": "Hunter",
                         "Hundefuehrer": "Morena Barelli",
                         "result": {
-                            "zeit": "51.59",
-                            "fehler": 0,
+                            "zeit": "50.73",
+                            "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
                         },
@@ -3214,7 +3177,7 @@
                         "Hundename": "Speedy",
                         "Hundefuehrer": "Raphael Jenny",
                         "result": {
-                            "zeit": "68.31",
+                            "zeit": "55.93",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -3227,7 +3190,7 @@
                         "Hundename": "Capraia",
                         "Hundefuehrer": "Caroline Spahni",
                         "result": {
-                            "zeit": "50.22",
+                            "zeit": "59.25",
                             "fehler": 1,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -3240,7 +3203,7 @@
                         "Hundename": "Style",
                         "Hundefuehrer": "Christa Zaugg",
                         "result": {
-                            "zeit": "60.22",
+                            "zeit": "59.90",
                             "fehler": 0,
                             "verweigerungen": 0,
                             "disqualifikation": null
@@ -3250,7 +3213,7 @@
                     }
                 ],
                 "laufdaten": {
-                    "parcours_laenge": 164,
+                    "parcours_laenge": 164.0,
                     "anzahl_hindernisse": 22,
                     "standardzeit_sct": 54.67
                 },
