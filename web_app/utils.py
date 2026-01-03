@@ -1,5 +1,6 @@
 # utils.py
 import os
+import sys
 import json
 import csv
 from io import StringIO
@@ -7,6 +8,11 @@ from datetime import datetime, timedelta
 import math
 import uuid
 import random
+
+# Ensure project root is on the path so sibling packages (e.g., planner) resolve
+PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
 
 import planner.schedule_planner as schedule_planner
 from planner.schedule_planner import upgrade_settings
