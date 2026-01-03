@@ -185,22 +185,20 @@ def _calculate_run_results(run, settings):
     # Klasse 1: SCT vorgegeben oder aus Geschwindigkeit, MCT = ceil(SCT*1.5)
     if klasse in ["1", "Oldie"]:
         provided_sct = _to_float(laufdaten.get("standardzeit_sct"), None)
+        speed = _to_float(laufdaten.get("geschwindigkeit"), None)
         if provided_sct is not None:
             sct_seconds = provided_sct
-        elif laufdaten.get("sct_method") == "speed" and laufdaten.get("geschwindigkeit") and parcours_laenge > 0:
-            geschw = _to_float(laufdaten.get("geschwindigkeit"), 0.0)
-            sct_seconds = parcours_laenge / geschw if geschw > 0 else None
-        elif parcours_laenge > 0 and _to_float(laufdaten.get("geschwindigkeit"), 0.0) > 0:
-            geschw = _to_float(laufdaten.get("geschwindigkeit"), 0.0)
-            sct_seconds = parcours_laenge / geschw if geschw > 0 else None
-        mct_seconds = sct_seconds * 1.5 if sct_seconds is not None else None
+        elif parcours_laenge > 0 and speed not in (None, 0):
+            sct_seconds = parcours_laenge / speed
+        if sct_seconds is not None:
+            mct_seconds = sct_seconds * 1.5
 
-    # Klassen 2 & 3: MCT aus Parcourslänge/Laufart, SCT aus bestem fehlerfreien Team
-    elif klasse in ["2", "3"] and parcours_laenge > 0:
-        if laufart == "Jumping":
-            mct_seconds = parcours_laenge / 3.0
-        else:
-            mct_seconds = parcours_laenge / 2.5
+    elif klasse in ["2", "3"]:
+        if parcours_laenge > 0:
+            if laufart == "Jumping":
+                mct_seconds = parcours_laenge / 3.0
+            else:
+                mct_seconds = parcours_laenge / 2.5
 
         mct_limit = math.ceil(mct_seconds) if mct_seconds is not None else None
         best_candidate = None
@@ -211,18 +209,21 @@ def _calculate_run_results(run, settings):
                 "verweigerungen": entry.get("verweigerungen"),
                 "disqualifikation": entry.get("dis_abr") or entry.get("disqualifikation"),
             }
+
             dis_abr = result_data.get("disqualifikation")
             if dis_abr in ["DIS", "ABR", "DNS"]:
                 continue
+
             laufzeit = _to_float(result_data.get("zeit"), None)
             if laufzeit is None:
                 continue
+
             if auto_dis_on_mct_exceeded and mct_limit is not None and laufzeit > mct_limit:
                 continue
+
             fehler = _to_int(result_data.get("fehler", "0"), 0)
             verweigerungen = _to_int(result_data.get("verweigerungen", "0"), 0)
-            faults_total = fehler + verweigerungen
-            candidate = (faults_total, laufzeit)
+            candidate = (fehler + verweigerungen, laufzeit)
             if best_candidate is None or candidate < best_candidate:
                 best_candidate = candidate
 
@@ -232,11 +233,17 @@ def _calculate_run_results(run, settings):
             factor = factor_cfg["qualification"] if is_qualification else factor_cfg["standard"]
             sct_seconds = base_time * factor
 
-        if sct_seconds is None:
-            fallback_sct = _to_float(laufdaten.get("standardzeit_sct"), None)
-            sct_seconds = fallback_sct if fallback_sct is not None else sct_seconds
+        manual_sct = _to_float(laufdaten.get("standardzeit_sct"), None)
+        if sct_seconds is None and manual_sct is not None:
+            sct_seconds = manual_sct
+    else:
+        manual_sct = _to_float(laufdaten.get("standardzeit_sct"), None)
+        if manual_sct is not None:
+            sct_seconds = manual_sct
 
     sct_rounded = math.ceil(sct_seconds) if sct_seconds is not None else None
+    if mct_seconds is None and klasse in ["1", "Oldie"] and sct_seconds is not None:
+        mct_seconds = sct_seconds * 1.5
     mct_rounded = math.ceil(mct_seconds) if mct_seconds is not None else None
 
     laufdaten["standardzeit_sct_berechnet"] = sct_rounded

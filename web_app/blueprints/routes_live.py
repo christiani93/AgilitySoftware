@@ -136,8 +136,8 @@ def live_run_entry(event_id, run_id):
     settings = _load_settings()
     _calculate_run_results(run, settings)
     laufdaten = run.get('laufdaten', {})
-    sct_display = laufdaten.get('standardzeit_sct') or laufdaten.get('standardzeit_sct_gerundet') or laufdaten.get('standardzeit_sct_berechnet') or 'N/A'
-    mct_display = laufdaten.get('maximalzeit_mct') or laufdaten.get('maximalzeit_mct_gerundet') or laufdaten.get('maximalzeit_mct_berechnet') or 'N/A'
+    sct_display = laufdaten.get('standardzeit_sct_gerundet') or laufdaten.get('standardzeit_sct_berechnet') or laufdaten.get('standardzeit_sct') or 'N/A'
+    mct_display = laufdaten.get('maximalzeit_mct_gerundet') or laufdaten.get('maximalzeit_mct_berechnet') or laufdaten.get('maximalzeit_mct') or 'N/A'
     all_entries_json = json.dumps(run.get('entries', []))
     return render_template('live_run_entry.html', event=event, run=run, all_entries_json=all_entries_json, run_id_from_url=run_id, sct_display=sct_display, mct_display=mct_display)
 
@@ -223,8 +223,8 @@ def show_ranking(event_id, run_id):
     judges = _load_data('judges.json')
 
     laufdaten = run.get('laufdaten', {})
-    sct_display = laufdaten.get('standardzeit_sct') or laufdaten.get('standardzeit_sct_gerundet') or laufdaten.get('standardzeit_sct_berechnet') or 'N/A'
-    mct_display = laufdaten.get('maximalzeit_mct') or laufdaten.get('maximalzeit_mct_gerundet') or laufdaten.get('maximalzeit_mct_berechnet') or 'N/A'
+    sct_display = laufdaten.get('standardzeit_sct_gerundet') or laufdaten.get('standardzeit_sct_berechnet') or laufdaten.get('standardzeit_sct') or 'N/A'
+    mct_display = laufdaten.get('maximalzeit_mct_gerundet') or laufdaten.get('maximalzeit_mct_berechnet') or laufdaten.get('maximalzeit_mct') or 'N/A'
 
     return render_template(
         'ranking.html',

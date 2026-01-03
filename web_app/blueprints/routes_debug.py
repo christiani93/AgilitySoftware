@@ -2,7 +2,7 @@
 from flask import Blueprint, redirect, url_for, flash, abort
 import random
 import math
-from utils import _load_data, _save_data, _load_settings
+from utils import _load_data, _save_data, _load_settings, _to_float
 
 debug_bp = Blueprint('debug_bp', __name__)
 
@@ -15,20 +15,14 @@ def generate_test_results(event_id):
     for run in event.get('runs', []):
         if run.get('laufart') in ['Pause', 'Umbau', 'Briefing', 'Vorbereitung', 'Grossring']: continue
         laufdaten = run.get('laufdaten', {})
-        laenge = float(laufdaten.get('parcours_laenge', 0)) or random.randint(150, 220)
+        laenge = _to_float(laufdaten.get('parcours_laenge'), 0.0) or random.randint(150, 220)
         hindernisse = int(laufdaten.get('anzahl_hindernisse', 0)) or random.randint(18, 22)
         run['laufdaten']['parcours_laenge'] = laenge
         run['laufdaten']['anzahl_hindernisse'] = hindernisse
         klasse = str(run.get('klasse'))
         laufart = run.get('laufart')
         raw_sct = laufdaten.get('standardzeit_sct')
-        sct = None
-        try:
-            raw_sct_str = '' if raw_sct is None else str(raw_sct).strip()
-            if raw_sct_str:
-                sct = float(raw_sct_str.replace(',', '.'))
-        except Exception:
-            sct = None
+        sct = _to_float(raw_sct, None)
         if sct is None:
             if klasse in ['1', 'Oldie']:
                 sct = laenge / 2.8

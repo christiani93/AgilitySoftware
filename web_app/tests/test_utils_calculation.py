@@ -11,128 +11,107 @@ def pytest_approx(value, expected, tol=1e-6):
     return abs(value - expected) <= tol
 
 
-def test_sct_mct_rounding_class2_agility():
-    """
-    Klasse 2, Agility, Parcours 150m, Faktor 3.5:
-    SCT = 150 / 3.5 = 42.857... -> gerundet 43
-    MCT = 150 / 2.5 = 60 -> bleibt 60
-    """
+def test_class1_direct_sct_and_mct_dis_logic():
     run = {
-        "klasse": "2",
+        "klasse": "1",
         "laufart": "Agility",
-        "laufdaten": {"parcours_laenge": "150"},
-        "entries": []
+        "laufdaten": {"standardzeit_sct": "40"},
+        "entries": [
+            {"lizenz": "A", "zeit": "39.99", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+            {"lizenz": "B", "zeit": "40.01", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+            {"lizenz": "C", "zeit": "60.00", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+            {"lizenz": "D", "zeit": "60.01", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+        ],
     }
-    settings = {"sct_factors": {"Agility": {"2": 3.5}}}
 
-    results = _calculate_run_results(run, settings)
-    assert isinstance(results, list)
+    results = _calculate_run_results(run, {})
+    laufdaten = run.get("laufdaten", {})
 
-    ld = run.get("laufdaten", {})
-    sct_rounded = ld.get("standardzeit_sct_berechnet")
-    mct_rounded = ld.get("maximalzeit_mct_berechnet")
+    assert laufdaten.get("standardzeit_sct_berechnet") == 40
+    assert laufdaten.get("maximalzeit_mct_berechnet") == 60
 
-    assert sct_rounded == math.ceil(150 / 3.5)
-    assert mct_rounded == math.ceil(150 / 2.5)
+    res_map = {r.get("lizenz"): r for r in results}
+    assert pytest_approx(res_map["B"]["fehler_zeit"], 0.01)
+    assert pytest_approx(res_map["C"]["fehler_zeit"], 20.0)
+    assert res_map["D"].get("disqualifikation") == "DIS"
+    assert res_map["D"].get("fehler_total") == 999
 
 
-def test_timefaults_use_rounded_sct():
-    """
-    Zeitfehler sollen mit ungerundeter Laufzeit, aber gerundeter SCT berechnet werden.
-    Beispiel:
-    - SCT_berechnet = 43
-    - Laufzeit = 43.20
-    -> fehler_zeit = 0.20
-    """
+def test_class1_speed_based_sct():
+    run = {
+        "klasse": "1",
+        "laufart": "Jumping",
+        "laufdaten": {"parcours_laenge": "150", "geschwindigkeit": "3.60"},
+        "entries": [
+            {"lizenz": "A", "zeit": "41.99", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+            {"lizenz": "B", "zeit": "42.00", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+            {"lizenz": "C", "zeit": "42.01", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+            {"lizenz": "D", "zeit": "63.01", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+        ],
+    }
+
+    results = _calculate_run_results(run, {})
+    laufdaten = run.get("laufdaten", {})
+
+    assert laufdaten.get("standardzeit_sct_berechnet") == 42
+    assert laufdaten.get("maximalzeit_mct_berechnet") == 63
+
+    res_map = {r.get("lizenz"): r for r in results}
+    assert pytest_approx(res_map["A"]["fehler_zeit"], 0.0)
+    assert pytest_approx(res_map["C"]["fehler_zeit"], 0.01)
+    assert res_map["D"].get("disqualifikation") == "DIS"
+
+
+def test_class2_sct_from_best_without_dis():
     run = {
         "klasse": "2",
         "laufart": "Agility",
         "laufdaten": {"parcours_laenge": "150"},
         "entries": [
-            {
-                "lizenz": "A123",
-                "zeit": "43.20",
-                "fehler": "0",
-                "verweigerungen": "0",
-                "dis_abr": ""
-            }
-        ]
+            {"lizenz": "A", "zeit": "34.50", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+            {"lizenz": "B", "zeit": "35.20", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+            {"lizenz": "C", "zeit": "32.00", "fehler": "5", "verweigerungen": "0", "dis_abr": ""},
+            {"lizenz": "D", "zeit": "30.00", "fehler": "0", "verweigerungen": "0", "dis_abr": "DIS"},
+        ],
     }
-    settings = {"sct_factors": {"Agility": {"2": 3.5}}}
 
-    results = _calculate_run_results(run, settings)
-    assert len(results) == 1
-    entry = results[0]
+    results = _calculate_run_results(run, {})
+    laufdaten = run.get("laufdaten", {})
 
-    # Laufzeit bleibt ungerundet
-    assert pytest_approx(entry["zeit_total"], 43.20)
+    assert laufdaten.get("standardzeit_sct_berechnet") == 49
+    assert laufdaten.get("maximalzeit_mct_berechnet") == 60
 
-    # SCT_rounded = 43 -> 43.20 - 43 = 0.20
-    assert pytest_approx(entry["fehler_zeit"], 0.20)
-    assert pytest_approx(entry["fehler_total"], 0.20)
+    res_map = {r.get("lizenz"): r for r in results}
+    assert pytest_approx(res_map["A"]["fehler_zeit"], 0.0)
+    assert pytest_approx(res_map["B"]["fehler_zeit"], 0.0)
+    assert res_map["C"].get("fehler_total", 0) >= 5
+    assert res_map["D"].get("disqualifikation") == "DIS"
 
 
-def test_mct_exceed_sets_999():
-    """
-    Wenn die Laufzeit die MCT (gerundet) überschreitet, sollen die fehler_total = 999 sein.
-    Beispiel:
-    - MCT (150m Agility) = 60s
-    - Laufzeit = 70s -> 999
-    """
+def test_class3_jumping_factor_and_timefault_precision():
     run = {
-        "klasse": "2",
-        "laufart": "Agility",
+        "klasse": "3",
+        "laufart": "Jumping",
         "laufdaten": {"parcours_laenge": "150"},
         "entries": [
-            {
-                "lizenz": "B999",
-                "zeit": "70.00",
-                "fehler": "0",
-                "verweigerungen": "0",
-                "dis_abr": ""
-            }
-        ]
+            {"lizenz": "A", "zeit": "34.50", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+            {"lizenz": "B", "zeit": "45.01", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+            {"lizenz": "C", "zeit": "50.10", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+        ],
     }
-    settings = {"sct_factors": {"Agility": {"2": 3.5}}}
 
-    results = _calculate_run_results(run, settings)
-    assert len(results) == 1
-    entry = results[0]
+    results = _calculate_run_results(run, {})
+    laufdaten = run.get("laufdaten", {})
 
-    assert entry["fehler_total"] == 999
-    assert pytest_approx(entry["zeit_total"], 70.00)
+    assert laufdaten.get("standardzeit_sct_berechnet") == math.ceil(34.50 * 1.3)
+    assert laufdaten.get("maximalzeit_mct_berechnet") == math.ceil(150 / 3.0)
 
-
-def test_dis_abr_dns_handling():
-    """
-    DIS/ABR/DNS müssen korrekt als Spezialfälle behandelt werden,
-    ohne Zeitfehlerberechnung.
-    """
-    run = {
-        "klasse": "2",
-        "laufart": "Agility",
-        "laufdaten": {"parcours_laenge": "150"},
-        "entries": [
-            {"lizenz": "D1", "zeit": "", "fehler": "0", "verweigerungen": "0", "dis_abr": "DIS"},
-            {"lizenz": "D2", "zeit": "", "fehler": "0", "verweigerungen": "0", "dis_abr": "ABR"},
-            {"lizenz": "D3", "zeit": "", "fehler": "0", "verweigerungen": "0", "dis_abr": "DNS"},
-        ]
-    }
-    settings = {"sct_factors": {"Agility": {"2": 3.5}}}
-
-    results = _calculate_run_results(run, settings)
-    assert len(results) == 3
-
-    for entry in results:
-        # Je nach Implementierung kann qualifikation oder fehler_total speziell gesetzt sein,
-        # aber es darf kein Crash passieren und die Einträge müssen zurückgegeben werden.
-        assert "lizenz" in entry
+    res_map = {r.get("lizenz"): r for r in results}
+    assert pytest_approx(res_map["B"]["fehler_zeit"], 0.01)
+    assert res_map["C"].get("disqualifikation") == "DIS"
 
 
 def test_empty_values_do_not_crash():
-    """
-    Leere Felder für Parcourslänge, Standardzeit, Geschwindigkeit dürfen keinen Crash erzeugen.
-    """
     run = {
         "klasse": "1",
         "laufart": "Agility",

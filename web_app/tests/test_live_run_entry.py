@@ -25,21 +25,25 @@ def test_run_entry_sct_mct_display(client):
             "klasse": "2",
             "laufart": "Agility",
             "laufdaten": {"parcours_laenge": "150"},
-            "entries": []
+            "entries": [
+                {"lizenz": "A", "zeit": "34.50", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+                {"lizenz": "B", "zeit": "35.20", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+                {"lizenz": "C", "zeit": "32.00", "fehler": "5", "verweigerungen": "0", "dis_abr": ""},
+                {"lizenz": "D", "zeit": "30.00", "fehler": "0", "verweigerungen": "0", "dis_abr": "DIS"},
+            ]
         }]
     }
 
     with open(events_path, "w", encoding="utf-8") as f:
         json.dump([event], f, indent=2, ensure_ascii=False)
 
-    # Aufruf der Run-Entry-Seite
     response = client.get("/live/run_entry/E1/R1")
     assert response.status_code == 200
 
     html = response.get_data(as_text=True)
 
     # Erwartete gerundete Zeiten:
-    # SCT = ceil(150 / 3.5) = 43
+    # SCT = ceil(34.50 * 1.4) = 49
     # MCT = ceil(150 / 2.5) = 60
-    assert "43" in html
+    assert "49" in html
     assert "60" in html
