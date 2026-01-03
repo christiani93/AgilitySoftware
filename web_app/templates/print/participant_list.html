@@ -3,11 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Teilnehmerliste - {{ event.Bezeichnung }}</title>
-    <style>body{font-family: sans-serif;} table{width: 100%; border-collapse: collapse;} th, td{border: 1px solid #ddd; padding: 8px; text-align: left;} th{background-color: #f2f2f2;}</style>
+    <style>
+        body{font-family: sans-serif;}
+        table{width: 100%; border-collapse: collapse;}
+        th, td{border: 1px solid #ddd; padding: 8px; text-align: left;}
+        th{background-color: #f2f2f2;}
+        .print-header { position: fixed; top: 0; left: 0; right: 0; height: 2.6cm; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .print-header__logo img { max-height: 2.2cm; width: auto; }
+        .print-header__titles { text-align: center; flex: 1; }
+        .print-header__titles h1, .print-header__titles h2 { margin: 0; }
+        .print-header__titles h2 { font-size: 1.2em; }
+        .print-header__titles h1 { font-size: 1em; color: #666; font-weight: normal; }
+        main { padding-top: 3cm; }
+    </style>
 </head>
 <body>
-    <h1>Teilnehmerliste (alphabetisch)</h1>
-    <h2>{{ event.Bezeichnung }} ({{ event.Datum | format_date }})</h2>
+    {% set title = 'Teilnehmerliste (alphabetisch)' %}
+    {% include 'print/_print_header.html' %}
+
+    <main>
     <table>
         <thead>
             <tr>
@@ -30,5 +44,6 @@
             {% endfor %}
         </tbody>
     </table>
+    </main>
 </body>
 </html>
