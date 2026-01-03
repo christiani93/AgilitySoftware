@@ -705,6 +705,7 @@ def plan_schedule(event_id):
     settings = _load_settings()
     start_times_by_ring = event.get('start_times_by_ring', {}) or {}
     schedule = schedule_planner.ensure_schedule_root(event_id, event.get('num_rings', 1), start_times_by_ring, event.get('schedule'))
+    schedule = schedule_planner.ensure_run_titles(schedule)
     schedule['meta']['updated_by'] = 'system'
     event['schedule'] = schedule
     event['start_times_by_ring'] = {f"ring_{k}": v.get('start_time', '07:30') for k, v in (schedule.get('rings') or {}).items()}
@@ -780,6 +781,7 @@ def save_schedule(event_id):
     num_rings = event.get('num_rings', 1)
     settings = _load_settings()
     schedule_data = schedule_planner.ensure_schedule_root(event_id, num_rings, start_times, schedule_payload or event.get('schedule'))
+    schedule_data = schedule_planner.ensure_run_titles(schedule_data)
     schedule_data['meta']['last_updated'] = datetime.utcnow().isoformat()
     schedule_data['meta']['updated_by'] = 'user'
     _recalculate_schedule_estimates(event, schedule_data, settings)

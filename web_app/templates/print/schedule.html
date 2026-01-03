@@ -51,16 +51,19 @@
                         <td>{{ item.start_time }}</td>
                         <td>{{ item.end_time }}</td>
                         <td>
-                            {% if item.block.laufart in ['Pause', 'Umbau', 'Vorbereitung', 'Briefing', 'Grossring'] %}
-                                <strong>{{ item.block.laufart|upper }}</strong> - {{ item.block.label }}
-                            {% else %}
-                                {{ item.block.laufart }} {{ item.block.kategorie }} {{ item.block.klasse }}
+                            <strong>{{ item.label }}</strong>
+                            {% if item.block.title %}<div class="small text-muted">{{ item.block.title }}</div>{% endif %}
+                            {% if item.block.type == 'run' %}
+                              <div class="small text-muted">{{ item.block.size_category|capitalize }} – Klassen: {{ (item.block.classes or [])|join('+') }}</div>
+                            {% elif item.block.type == 'rank_announcement' %}
+                              {% set applies = item.block.get('applies_to', {}) %}
+                              <div class="small text-muted">Kategorien: {{ (applies.get('size_categories') or ['alle'])|join(', ') }}</div>
+                              <div class="small text-muted">Klassen: {{ (applies.get('classes') or ['alle'])|join(', ') }}</div>
                             {% endif %}
                         </td>
                         <td>
-                            {# NEU: Richter wird angezeigt #}
-                            {% if item.block.richter_id %}
-                                {{ judges_map.get(item.block.richter_id, 'N/A') }}
+                            {% if item.block.judge_id %}
+                                {{ judges_map.get(item.block.judge_id, 'N/A') }}
                             {% endif %}
                         </td>
                         <td>{{ item.num_starters if item.num_starters > 0 else '' }}</td>

@@ -1,11 +1,10 @@
 {# templates/_announcer_schedule.html (NEU) #}
 {% for ring, timeline in timelines_by_ring.items()|sort %}
     <div class="col-md-6">
-        {# NEU: Grössere Schriftart für bessere Lesbarkeit #}
         <h6>Zeitplan Ring {{ ring|replace('ring_','') }}</h6>
         <div class="timeline-box" style="font-size: 1rem; max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 5px; border-radius: 5px; background-color: #f8f9fa;">
             {% for item in timeline %}
-                <div><strong>{{ item.start_time }}</strong> - {% if item.block.laufart in ['Pause', 'Umbau', 'Briefing', 'Vorbereitung', 'Grossring'] %}{{ item.block.laufart|upper }}{% else %}{{ item.block.laufart }} {{ item.block.kategorie }} {{ item.block.klasse }}{% endif %}</div>
+                <div><strong>{{ item.start_time }}</strong> - {{ item.label }}{% if item.block.title %}: {{ item.block.title }}{% endif %}</div>
             {% endfor %}
         </div>
     </div>

@@ -7,7 +7,17 @@
       <h3 class="mb-0">Zeitplan – {{ event.Bezeichnung }}</h3>
       <div>
         <a class="btn btn-outline-secondary me-2" href="{{ url_for('events_bp.events_list') }}">Zurück</a>
-        <a class="btn btn-outline-primary me-2" href="{{ url_for('print_bp.print_schedule', event_id=event.id) }}" target="_blank">Vorbereitungsdrucksachen</a>
+        <div class="btn-group me-2" role="group">
+          <a class="btn btn-outline-primary" href="{{ url_for('print_bp.print_schedule', event_id=event.id) }}" target="_blank">Vorbereitungsdrucksachen</a>
+          <button class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Weitere Drucke</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_startlists', event_id=event.id) }}" target="_blank">Startlisten</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_stewardlists', event_id=event.id) }}" target="_blank">Ringschreiberlisten</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_master_steward_list', event_id=event.id) }}" target="_blank">Einweiserlisten</a></li>
+          </ul>
+        </div>
         <button class="btn btn-primary" form="form-save-schedule">Zeitplan speichern</button>
       </div>
     </div>
@@ -149,6 +159,30 @@
           <input id="rank_duration" type="number" class="form-control" value="{{ rank_announcement_default or 300 }}" min="0">
         </div>
 
+        <div class="col-12 col-md-3 rank-only" style="display:none;">
+          <label class="form-label">Gilt für Kategorien</label>
+          <div class="d-flex flex-wrap gap-2">
+            {% for cat in ['small','medium','intermediate','large'] %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="rank_cat_{{ cat }}" value="{{ cat }}" checked>
+                <label class="form-check-label" for="rank_cat_{{ cat }}">{{ cat.capitalize() }}</label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="col-12 col-md-3 rank-only" style="display:none;">
+          <label class="form-label">Gilt für Klassen</label>
+          <div class="d-flex flex-wrap gap-2">
+            {% for kl in ['1','2','3'] %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="rank_class_{{ kl }}" value="{{ kl }}" checked>
+                <label class="form-check-label" for="rank_class_{{ kl }}">{{ kl }}</label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
         <div class="col-12 run-only">
           <label class="form-label">Notizen</label>
           <input id="block_notes" type="text" class="form-control" placeholder="Optional">
@@ -177,6 +211,47 @@
     </div>
     {% endfor %}
   </div>
+
+  {% if timelines_by_ring %}
+  <div class="card mb-3">
+    <div class="card-header">Zeitplan-Vorschau (berechnete Timeline)</div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for ring, timeline in timelines_by_ring.items()|sort %}
+        <div class="col-12 col-xl-6">
+          <h6 class="mb-2">Ring {{ ring }} – Start {{ (event.start_times_by_ring or {}).get('ring_' ~ ring, '07:30') }}</h6>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 15%;">Start</th>
+                  <th style="width: 15%;">Ende</th>
+                  <th>Segment</th>
+                  <th style="width: 20%;">Block</th>
+                  <th style="width: 10%;">Starter</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in timeline %}
+                  <tr>
+                    <td>{{ item.start_time }}</td>
+                    <td>{{ item.end_time }}</td>
+                    <td>{{ item.label }}</td>
+                    <td>{{ item.block.title or item.block.type }}</td>
+                    <td>{% if item.num_starters %}{{ item.num_starters }}{% endif %}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="5" class="text-muted">Keine Segmente vorhanden.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Startnummern-Schema und Vergabe (wiederhergestellt) -->
   <div class="row mb-3">
@@ -321,6 +396,7 @@
     });
 
     bindStartTimeInputs();
+    ensureRunTitles();
     renderSchedule();
   });
 
@@ -381,31 +457,92 @@
     return values;
   }
 
+  function collectRankCategories() {
+    const values = [];
+    document.querySelectorAll('input[id^="rank_cat_"]').forEach(el => {
+      if (el.checked) values.push(el.value);
+    });
+    return values;
+  }
+
+  function collectRankClasses() {
+    const values = [];
+    document.querySelectorAll('input[id^="rank_class_"]').forEach(el => {
+      if (el.checked) values.push(el.value);
+    });
+    return values;
+  }
+
+  function capitalize(word) {
+    if (!word) return '';
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  }
+
+  function generateRunTitle(block) {
+    const runTypeLabel = { agility: 'Agility', jumping: 'Jumping' }[String(block.timing_run_type || '').toLowerCase()] || 'Other';
+    const prefix = (block.run_format || '').toLowerCase() === 'open' ? 'Open ' : '';
+    const classPart = (block.classes || []).join('+');
+
+    const sortPrimary = (block.sort || {}).primary || {};
+    let categoryLabel = '';
+    const size = String(block.size_category || '').toLowerCase();
+    if (size && size !== 'all') {
+      categoryLabel = capitalize(size);
+    } else if ((sortPrimary.field || '') === 'category') {
+      categoryLabel = (sortPrimary.direction || '').toLowerCase() === 'desc' ? 'Absteigend' : 'Aufsteigend';
+    } else if (size === 'all') {
+      categoryLabel = 'Alle';
+    }
+  }
+
+  function toggleBlockTypeFields() {
+    const type = (document.getElementById('block_type').value || '').toLowerCase();
+    const runOnly = document.querySelectorAll('.run-only');
+    const rankOnly = document.querySelectorAll('.rank-only');
+    runOnly.forEach(el => el.style.display = type === 'run' ? '' : 'none');
+    rankOnly.forEach(el => el.style.display = type === 'rank_announcement' ? '' : 'none');
+  }
+
+    return [prefix + runTypeLabel, classPart, categoryLabel].filter(Boolean).join(' ');
+  }
+
+  function ensureRunTitles() {
+    Object.values(scheduleState.rings || {}).forEach(ring => {
+      (ring.blocks || []).forEach(block => {
+        if (block.type === 'run' && (!block.title || !String(block.title).trim())) {
+          block.title = generateRunTitle(block);
+        }
+      });
+    });
+    return values;
+  }
+
   function addBlockFromUI() {
     const type = document.getElementById('block_type').value || 'run';
     const ringKey = currentRingKey();
     const blocks = scheduleState.rings[ringKey].blocks;
 
     if (type === 'rank_announcement') {
+      const appliesTo = {
+        size_categories: collectRankCategories(),
+        classes: collectRankClasses(),
+      };
       const block = {
         id: `blk_${Date.now()}`,
         type: 'rank_announcement',
         title: document.getElementById('block_title').value || 'Rangverkündigung',
         duration_seconds: parseInt(document.getElementById('rank_duration').value || DEFAULT_RANK_DURATION, 10) || DEFAULT_RANK_DURATION,
         notes: document.getElementById('block_notes').value || '',
+        applies_to: appliesTo,
         applies_to_block_ids: [],
       };
       blocks.push(block);
     } else {
-      const block = {
-        id: `blk_${Date.now()}`,
-        type: 'run',
-        title: document.getElementById('block_title').value || 'Laufblock',
+      const tentativeBlock = {
         run_format: document.getElementById('run_format').value || 'normal',
         timing_run_type: document.getElementById('timing_run_type').value || 'agility',
         size_category: document.getElementById('size_category').value || 'all',
         classes: collectSelectedClasses(),
-        judge_id: document.getElementById('richter_select').value || '',
         sort: {
           primary: {
             field: document.getElementById('sort_primary_field').value || 'none',
@@ -415,7 +552,18 @@
             field: document.getElementById('sort_secondary_field').value || 'none',
             direction: document.getElementById('sort_secondary_dir').value || 'asc',
           }
-        },
+        }
+      };
+      const block = {
+        id: `blk_${Date.now()}`,
+        type: 'run',
+        title: document.getElementById('block_title').value || '',
+        run_format: tentativeBlock.run_format,
+        timing_run_type: tentativeBlock.timing_run_type,
+        size_category: tentativeBlock.size_category,
+        classes: tentativeBlock.classes,
+        judge_id: document.getElementById('richter_select').value || '',
+        sort: tentativeBlock.sort,
         estimated: {
           participants_total: 0,
           changeover_seconds: 0,
@@ -426,6 +574,9 @@
         },
         notes: document.getElementById('block_notes').value || '',
       };
+      if (!block.title.trim()) {
+        block.title = generateRunTitle({ ...block });
+      }
       blocks.push(block);
     }
 
@@ -502,6 +653,14 @@
       }
     } else {
       details.push(`Dauer: ${(block.duration_seconds || DEFAULT_RANK_DURATION)} Sekunden`);
+      const catInfo = (block.applies_to && block.applies_to.size_categories && block.applies_to.size_categories.length)
+        ? block.applies_to.size_categories.join(', ')
+        : 'alle';
+      const clsInfo = (block.applies_to && block.applies_to.classes && block.applies_to.classes.length)
+        ? block.applies_to.classes.join(', ')
+        : 'alle';
+      details.push(`Gilt für Kategorien: ${catInfo}`);
+      details.push(`Gilt für Klassen: ${clsInfo}`);
     }
     details.filter(Boolean).forEach(text => {
       const p = document.createElement('div');

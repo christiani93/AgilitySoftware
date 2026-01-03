@@ -460,75 +460,18 @@ def _calculate_timelines(event, round_to_minutes=None):
 
 
 def _calculate_timelines_from_schedule(event, schedule, settings, round_to_minutes=None):
-    num_rings = event.get('num_rings', 1)
-    start_times_by_ring = event.get('start_times_by_ring', {})
-    current_times = {}
-    event_date = event.get('Datum') or datetime.now().strftime('%Y-%m-%d')
-    for ring_num in range(1, num_rings + 1):
-        ring_key = str(ring_num)
-        ring_data = (schedule.get('rings') or {}).get(ring_key, {})
-        start_time_str = ring_data.get('start_time') or start_times_by_ring.get(f"ring_{ring_num}", '07:30')
-        try:
-            current_times[ring_key] = datetime.strptime(f"{event_date} {start_time_str}", '%Y-%m-%d %H:%M')
-        except (ValueError, TypeError):
-            current_times[ring_key] = datetime.now().replace(hour=7, minute=30, second=0, microsecond=0)
-    timelines_by_ring = {str(i): [] for i in range(1, num_rings + 1)}
-
-    def get_times(start_dt, duration_seconds):
-        duration = timedelta(seconds=duration_seconds)
-        end_dt = start_dt + duration
-        if round_to_minutes:
-            def _round_time(dt, n):
-                discard = timedelta(minutes=dt.minute % n, seconds=dt.second, microseconds=dt.microsecond)
-                dt -= discard
-                if discard >= timedelta(minutes=n / 2):
-                    dt += timedelta(minutes=n)
-                return dt
-            return _round_time(start_dt, round_to_minutes), _round_time(end_dt, round_to_minutes)
-        return start_dt, end_dt
-
-    for ring_id, ring_data in (schedule.get('rings') or {}).items():
-        current_time = current_times.get(str(ring_id))
-        if current_time is None:
-            continue
-        for block in ring_data.get('blocks') or []:
-            duration_seconds = 0
-            num_starters = 0
-            if block.get('type') == 'run':
-                estimated = block.get('estimated') or {}
-                duration_seconds = estimated.get('total_seconds', 0)
-                num_starters = estimated.get('participants_total', 0)
-            elif block.get('type') == 'rank_announcement':
-                duration_seconds = block.get('duration_seconds', settings.get('schedule_planning', {}).get('rank_announcement_default_seconds', 300))
-            else:
-                duration_seconds = block.get('duration_seconds', 0)
-
-            start_time, end_time = get_times(current_time, duration_seconds)
-            timeline_item = {
-                'block': block,
-                'start_time': start_time.strftime('%H:%M'),
-                'end_time': end_time.strftime('%H:%M'),
-                'duration': duration_seconds / 60 if duration_seconds else 0,
-                'num_starters': num_starters,
-            }
-            timelines_by_ring[str(ring_id)].append(timeline_item)
-            current_time = end_time
-            current_times[str(ring_id)] = end_time
-    return timelines_by_ring
+    return schedule_planner.compute_computed_timeline(
+        schedule,
+        event_runs=event.get('runs', []),
+        settings=settings,
+        start_times_by_ring=event.get('start_times_by_ring', {}),
+        event_date=event.get('Datum') or datetime.now().strftime('%Y-%m-%d'),
+        round_to_minutes=round_to_minutes,
+    )
 
 
 def _collect_participants_by_class(event_runs, block):
-    counts = {}
-    for run in event_runs or []:
-        if not isinstance(run, dict):
-            continue
-        if block.get('type') != 'run':
-            continue
-        if not _match_run_to_block(run, block):
-            continue
-        klasse = str(run.get('klasse'))
-        counts[klasse] = counts.get(klasse, 0) + len(run.get('entries', []))
-    return counts
+    return schedule_planner.collect_participants_by_class(event_runs, block)
 
 
 def _recalculate_schedule_estimates(event, schedule, settings):

@@ -78,6 +78,67 @@ def test_s5_settings_matrix_upgrade_preserves_existing():
     assert upgraded["schedule_planning"]["changeover_seconds"] == 999
 
 
+def test_computed_timeline_segments():
+    settings = sp.upgrade_settings({})
+    schedule = {
+        "rings": {
+            "1": {
+                "start_time": "08:00",
+                "blocks": [
+                    {
+                        "id": "blk_run",
+                        "type": "run",
+                        "run_format": "normal",
+                        "timing_run_type": "agility",
+                        "size_category": "large",
+                        "classes": ["1"],
+                        "sort": {"primary": {"field": "none"}, "secondary": {"field": "none"}},
+                    }
+                ],
+            }
+        }
+    }
+    runs = [{"laufart": "agility", "kategorie": "large", "klasse": "1", "entries": [{} for _ in range(49)]}]
+    timeline = sp.compute_computed_timeline(schedule, event_runs=runs, settings=settings, start_times_by_ring={"ring_1": "08:00"}, event_date="2026-01-01")
+    segments = [item["segment_type"] for item in timeline.get("1", [])]
+    assert segments == ["changeover", "briefing", "prep_pause", "run"]
+    last_segment = timeline["1"][-1]
+    assert last_segment["num_starters"] == 49
+
+
+def test_generate_title_with_sorting():
+    block = {
+        "run_format": "open",
+        "timing_run_type": "agility",
+        "size_category": "all",
+        "classes": ["2", "3"],
+        "sort": {"primary": {"field": "category", "direction": "desc"}},
+    }
+    assert sp.generate_run_title(block) == "Open Agility 2+3 Absteigend"
+
+
+def test_rank_applies_preserved():
+    settings = sp.upgrade_settings({})
+    schedule = {
+        "rings": {
+            "1": {
+                "start_time": "07:30",
+                "blocks": [
+                    {
+                        "type": "rank_announcement",
+                        "title": "Rangverkündung",
+                        "duration_seconds": 120,
+                        "applies_to": {"size_categories": ["small"], "classes": ["1", "2"]},
+                    }
+                ],
+            }
+        }
+    }
+    timeline = sp.compute_computed_timeline(schedule, settings=settings)
+    block = timeline["1"][0]["block"]
+    assert block.get("applies_to", {}).get("size_categories") == ["small"]
+
+
 if __name__ == "__main__":
     import pytest
     raise SystemExit(pytest.main([__file__]))

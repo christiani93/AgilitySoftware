@@ -175,3 +175,158 @@ def ensure_schedule_root(event_id: str, num_rings: int, start_times: Dict[str, s
 
 def generate_block_id() -> str:
     return f"blk_{uuid.uuid4().hex[:8]}"
+
+
+def collect_participants_by_class(event_runs, block):
+    counts = {}
+    for run in event_runs or []:
+        if not isinstance(run, dict):
+            continue
+        if block.get("type") != "run":
+            continue
+        if not _match_run_to_block(run, block):
+            continue
+        klasse = str(run.get("klasse"))
+        counts[klasse] = counts.get(klasse, 0) + len(run.get("entries", []))
+    return counts
+
+
+def _match_run_to_block(run_item, block):
+    laufart = normalize_size(run_item.get("laufart"))
+    block_laufart = (block.get("timing_run_type") or "").strip().lower()
+    if block_laufart and block_laufart != "other" and laufart != block_laufart:
+        return False
+
+    category = normalize_size(run_item.get("kategorie"))
+    size_cat = (block.get("size_category") or "").lower()
+    if size_cat not in ("", "all") and category != size_cat:
+        return False
+
+    klasse = str(run_item.get("klasse"))
+    if block.get("classes"):
+        if str(klasse) not in [str(c) for c in block.get("classes", [])]:
+            return False
+    return True
+
+
+def generate_run_title(block: Dict) -> str:
+    run_format = (block.get("run_format") or "").strip().lower()
+    run_type = (block.get("timing_run_type") or "").strip().lower()
+    size_category = normalize_size(block.get("size_category"))
+    classes = [normalize_class(c) for c in (block.get("classes") or [])]
+    sort_primary = (block.get("sort") or {}).get("primary", {})
+
+    run_type_label = {
+        "agility": "Agility",
+        "jumping": "Jumping",
+    }.get(run_type, "Other")
+
+    prefix = "Open " if run_format == "open" else ""
+    class_part = "+".join(classes) if classes else ""
+
+    category_label = None
+    if size_category and size_category != "all":
+        category_label = size_category.capitalize()
+    elif (sort_primary or {}).get("field") == "category":
+        direction = (sort_primary or {}).get("direction", "asc").lower()
+        category_label = "Aufsteigend" if direction == "asc" else "Absteigend"
+
+    parts = [prefix + run_type_label]
+    if class_part:
+        parts.append(class_part)
+    if category_label:
+        parts.append(category_label)
+    elif size_category == "all":
+        parts.append("Alle")
+    return " ".join([p for p in parts if p]).strip()
+
+
+def ensure_run_titles(schedule: Dict) -> Dict:
+    schedule = schedule or {}
+    rings = schedule.get("rings") or {}
+    for ring in rings.values():
+        for block in ring.get("blocks") or []:
+            if block.get("type") != "run":
+                continue
+            title = (block.get("title") or "").strip()
+            if not title:
+                block["title"] = generate_run_title(block)
+    return schedule
+
+
+def _apply_rounding(dt_obj: datetime.datetime, minutes: int) -> datetime.datetime:
+    discard = datetime.timedelta(minutes=dt_obj.minute % minutes, seconds=dt_obj.second, microseconds=dt_obj.microsecond)
+    dt_obj -= discard
+    if discard >= datetime.timedelta(minutes=minutes / 2):
+        dt_obj += datetime.timedelta(minutes=minutes)
+    return dt_obj
+
+
+def _compute_timeline_for_ring(ring_id: str, ring_data: Dict, settings: Dict, event_runs, event_date: str, round_to_minutes=None):
+    planning = settings.get("schedule_planning", {})
+    start_time_str = ring_data.get("start_time", "07:30")
+    try:
+        current_time = datetime.datetime.strptime(f"{event_date} {start_time_str}", "%Y-%m-%d %H:%M")
+    except Exception:
+        current_time = datetime.datetime.now().replace(hour=7, minute=30, second=0, microsecond=0)
+
+    timeline_items = []
+
+    def add_segment(segment_type: str, duration_seconds: int, label: str, block: Dict, num_starters: int = 0):
+        nonlocal current_time
+        start_time = current_time
+        end_time = current_time + datetime.timedelta(seconds=duration_seconds)
+        if round_to_minutes:
+            start_time = _apply_rounding(start_time, round_to_minutes)
+            end_time = _apply_rounding(end_time, round_to_minutes)
+        item = {
+            "block": block,
+            "segment_type": segment_type,
+            "label": label,
+            "start_time": start_time.strftime("%H:%M"),
+            "end_time": end_time.strftime("%H:%M"),
+            "duration": duration_seconds / 60 if duration_seconds else 0,
+            "num_starters": num_starters,
+        }
+        timeline_items.append(item)
+        current_time = end_time
+
+    for block in ring_data.get("blocks") or []:
+        block_type = block.get("type")
+        if block_type == "run":
+            participants_by_class = collect_participants_by_class(event_runs, block)
+            block["estimated"] = calculate_estimates(participants_by_class, block, settings)
+            est = block.get("estimated") or {}
+            add_segment("changeover", est.get("changeover_seconds", planning.get("changeover_seconds", 0)), "Umbau", block)
+            add_segment("briefing", est.get("briefing_seconds", 0), "Briefing", block)
+            prep_seconds = est.get("prep_pause_seconds", 0)
+            if prep_seconds:
+                add_segment("prep_pause", prep_seconds, "Prep-Pause", block)
+            add_segment("run", est.get("run_seconds", 0), "Lauf", block, num_starters=est.get("participants_total", 0))
+        elif block_type == "rank_announcement":
+            duration_seconds = block.get("duration_seconds") or planning.get("rank_announcement_default_seconds", 300)
+            add_segment("rank_announcement", duration_seconds, block.get("title") or "Rangverkündigung", block)
+        else:
+            duration_seconds = block.get("duration_seconds", 0)
+            add_segment(block_type or "other", duration_seconds, block.get("title") or block_type or "Block", block)
+
+    return timeline_items
+
+
+def compute_computed_timeline(schedule: Dict, event_runs=None, settings=None, start_times_by_ring=None, event_date=None, round_to_minutes=None):
+    settings = upgrade_settings(settings or {})
+    event_date = event_date or datetime.datetime.now().strftime("%Y-%m-%d")
+    schedule = copy.deepcopy(schedule or {})
+    rings = schedule.get("rings") or {}
+
+    # apply start time fallback
+    for ring_key, fallback in (start_times_by_ring or {}).items():
+        key = str(ring_key).replace("ring_", "")
+        if key in rings and fallback:
+            rings[key].setdefault("start_time", fallback)
+
+    timeline_by_ring = {}
+    for ring_id in sorted(rings.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
+        ring_data = rings.get(ring_id, {})
+        timeline_by_ring[str(ring_id)] = _compute_timeline_for_ring(str(ring_id), ring_data, settings, event_runs or [], event_date, round_to_minutes)
+    return timeline_by_ring
