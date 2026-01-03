@@ -6,7 +6,6 @@ from io import StringIO
 from datetime import datetime, timedelta
 import math
 import uuid
-from flask import flash
 import random
 
 CATEGORY_SORT_ORDER = {'Large': 0, 'Intermediate': 1, 'Medium': 2, 'Small': 3}
@@ -77,13 +76,20 @@ def _get_active_event():
     return next((e for e in events if e.get('id') == active_id), None)
 
 def _decode_csv_file(file_storage):
-    try: return file_storage.read().decode('utf-8-sig')
+    try:
+        from flask import flash as flask_flash
+    except ImportError:  # pragma: no cover - allows pure-Python environments
+        def flask_flash(*args, **kwargs):
+            return None
+
+    try:
+        return file_storage.read().decode('utf-8-sig')
     except UnicodeDecodeError:
         try:
             file_storage.stream.seek(0)
             return file_storage.stream.read().decode('iso-8859-1')
         except Exception as e:
-            flash(f"Konnte die Datei nicht dekodieren: {e}", "error")
+            flask_flash(f"Konnte die Datei nicht dekodieren: {e}", "error")
             return None
             
 def _import_csv_data(file_storage, data_filename, id_field):
