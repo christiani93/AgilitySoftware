@@ -8,10 +8,20 @@ import math
 import uuid
 import random
 
+import planner.schedule_planner as schedule_planner
+from planner.schedule_planner import upgrade_settings
+
 CATEGORY_SORT_ORDER = {'Large': 0, 'Intermediate': 1, 'Medium': 2, 'Small': 3}
 
 def get_category_sort_key(category_name):
     return CATEGORY_SORT_ORDER.get(category_name, 99)
+
+
+def _norm(value):
+    try:
+        return str(value or '').strip()
+    except Exception:
+        return ''
 
 
 def _to_float(value, default=0.0):
@@ -63,6 +73,7 @@ def _load_settings():
     settings = _load_data('settings.json', defaults)
     for key, value in defaults.items():
         settings.setdefault(key, value)
+    settings = upgrade_settings(settings)
     return settings
 
 def _get_active_event_id():
@@ -119,6 +130,13 @@ def _get_concrete_run_list(event):
     for run in all_runs:
         if 'id' not in run: run['id'] = str(uuid.uuid4())
     run_map = {r['id']: r for r in all_runs}
+
+    schedule = event.get('schedule')
+    if isinstance(schedule, dict) and schedule.get('rings'):
+        schedule_runs = _get_run_list_from_schedule(event, schedule)
+        if schedule_runs:
+            return schedule_runs
+
     for block in run_order:
         if block.get('laufart') in ['Pause', 'Umbau', 'Briefing', 'Vorbereitung', 'Grossring']:
             ordered_runs.append(block)
@@ -137,6 +155,57 @@ def _get_concrete_run_list(event):
             block_runs.sort(key=lambda r: (class_order.get(str(r.get('klasse')), 99)), reverse=(kl_sort == 'desc'))
             
         ordered_runs.extend(block_runs)
+    return ordered_runs
+
+
+def _match_run_to_block(run_item, block):
+    laufart = (_norm(run_item.get('laufart')) or '').lower()
+    block_laufart = (block.get('timing_run_type') or '').lower()
+    if block_laufart and block_laufart != 'other' and laufart != block_laufart:
+        return False
+
+    category = (_norm(run_item.get('kategorie')) or '').lower()
+    size_cat = (block.get('size_category') or '').lower()
+    if size_cat not in ('', 'all') and category != size_cat:
+        return False
+
+    klasse = str(run_item.get('klasse'))
+    if block.get('classes'):
+        if str(klasse) not in [str(c) for c in block.get('classes', [])]:
+            return False
+    return True
+
+
+def _get_run_list_from_schedule(event, schedule):
+    ordered_runs, all_runs = [], event.get('runs', [])
+    run_map = {r['id']: r for r in all_runs if isinstance(r, dict)}
+    seen_ids = set()
+
+    rings = schedule.get('rings') or {}
+    for ring_key in sorted(rings.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
+        ring_data = rings[ring_key]
+        for block in ring_data.get('blocks') or []:
+            if block.get('type') != 'run':
+                continue
+            sort_info = block.get('sort') or {}
+            primary = sort_info.get('primary') or {}
+            secondary = sort_info.get('secondary') or {}
+            groups = schedule_planner.expand_size_class_groups(block.get('size_category', 'all'), block.get('classes', []), primary, secondary)
+            for size_val, cls_val in groups:
+                for run_item in all_runs:
+                    if not isinstance(run_item, dict):
+                        continue
+                    if _match_run_to_block(run_item, block) and (_norm(run_item.get('kategorie')).lower() == size_val):
+                        if str(run_item.get('klasse')) != str(cls_val):
+                            continue
+                        run_id = run_item.get('id')
+                        if run_id in seen_ids:
+                            continue
+                        run_item['assigned_ring'] = f"ring_{ring_key}"
+                        if block.get('judge_id'):
+                            run_item['richter_id'] = block.get('judge_id')
+                        seen_ids.add(run_id)
+                        ordered_runs.append(run_map.get(run_id, run_item))
     return ordered_runs
 
 def _place_entries_with_distance(entries, distance):
@@ -332,6 +401,11 @@ def _calculate_run_results(run, settings):
 
 def _calculate_timelines(event, round_to_minutes=None):
     settings = _load_settings()
+    schedule = event.get('schedule')
+    if isinstance(schedule, dict) and schedule.get('rings'):
+        _recalculate_schedule_estimates(event, schedule, settings)
+        return _calculate_timelines_from_schedule(event, schedule, settings, round_to_minutes)
+
     time_per_starter = settings.get('time_per_starter', 90)
     start_times_by_ring, current_times = event.get('start_times_by_ring', {}), {}
     num_rings = event.get('num_rings', 1)
@@ -377,6 +451,88 @@ def _calculate_timelines(event, round_to_minutes=None):
             timelines_by_ring[ring].append(timeline_item)
             current_times[ring] = end_time
     return timelines_by_ring
+
+
+def _calculate_timelines_from_schedule(event, schedule, settings, round_to_minutes=None):
+    num_rings = event.get('num_rings', 1)
+    start_times_by_ring = event.get('start_times_by_ring', {})
+    current_times = {}
+    event_date = event.get('Datum') or datetime.now().strftime('%Y-%m-%d')
+    for ring_num in range(1, num_rings + 1):
+        ring_key = str(ring_num)
+        ring_data = (schedule.get('rings') or {}).get(ring_key, {})
+        start_time_str = ring_data.get('start_time') or start_times_by_ring.get(f"ring_{ring_num}", '07:30')
+        try:
+            current_times[ring_key] = datetime.strptime(f"{event_date} {start_time_str}", '%Y-%m-%d %H:%M')
+        except (ValueError, TypeError):
+            current_times[ring_key] = datetime.now().replace(hour=7, minute=30, second=0, microsecond=0)
+    timelines_by_ring = {str(i): [] for i in range(1, num_rings + 1)}
+
+    def get_times(start_dt, duration_seconds):
+        duration = timedelta(seconds=duration_seconds)
+        end_dt = start_dt + duration
+        if round_to_minutes:
+            def _round_time(dt, n):
+                discard = timedelta(minutes=dt.minute % n, seconds=dt.second, microseconds=dt.microsecond)
+                dt -= discard
+                if discard >= timedelta(minutes=n / 2):
+                    dt += timedelta(minutes=n)
+                return dt
+            return _round_time(start_dt, round_to_minutes), _round_time(end_dt, round_to_minutes)
+        return start_dt, end_dt
+
+    for ring_id, ring_data in (schedule.get('rings') or {}).items():
+        current_time = current_times.get(str(ring_id))
+        if current_time is None:
+            continue
+        for block in ring_data.get('blocks') or []:
+            duration_seconds = 0
+            num_starters = 0
+            if block.get('type') == 'run':
+                estimated = block.get('estimated') or {}
+                duration_seconds = estimated.get('total_seconds', 0)
+                num_starters = estimated.get('participants_total', 0)
+            elif block.get('type') == 'rank_announcement':
+                duration_seconds = block.get('duration_seconds', settings.get('schedule_planning', {}).get('rank_announcement_default_seconds', 300))
+            else:
+                duration_seconds = block.get('duration_seconds', 0)
+
+            start_time, end_time = get_times(current_time, duration_seconds)
+            timeline_item = {
+                'block': block,
+                'start_time': start_time.strftime('%H:%M'),
+                'end_time': end_time.strftime('%H:%M'),
+                'duration': duration_seconds / 60 if duration_seconds else 0,
+                'num_starters': num_starters,
+            }
+            timelines_by_ring[str(ring_id)].append(timeline_item)
+            current_time = end_time
+            current_times[str(ring_id)] = end_time
+    return timelines_by_ring
+
+
+def _collect_participants_by_class(event_runs, block):
+    counts = {}
+    for run in event_runs or []:
+        if not isinstance(run, dict):
+            continue
+        if block.get('type') != 'run':
+            continue
+        if not _match_run_to_block(run, block):
+            continue
+        klasse = str(run.get('klasse'))
+        counts[klasse] = counts.get(klasse, 0) + len(run.get('entries', []))
+    return counts
+
+
+def _recalculate_schedule_estimates(event, schedule, settings):
+    rings = schedule.get('rings') or {}
+    for ring in rings.values():
+        for block in ring.get('blocks') or []:
+            if block.get('type') != 'run':
+                continue
+            participants_by_class = _collect_participants_by_class(event.get('runs', []), block)
+            block['estimated'] = schedule_planner.calculate_estimates(participants_by_class, block, settings)
 
 
 def _to_int(x, default=0):
