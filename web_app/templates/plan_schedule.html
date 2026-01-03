@@ -493,6 +493,15 @@
     } else if (size === 'all') {
       categoryLabel = 'Alle';
     }
+  }
+
+  function toggleBlockTypeFields() {
+    const type = (document.getElementById('block_type').value || '').toLowerCase();
+    const runOnly = document.querySelectorAll('.run-only');
+    const rankOnly = document.querySelectorAll('.rank-only');
+    runOnly.forEach(el => el.style.display = type === 'run' ? '' : 'none');
+    rankOnly.forEach(el => el.style.display = type === 'rank_announcement' ? '' : 'none');
+  }
 
     return [prefix + runTypeLabel, classPart, categoryLabel].filter(Boolean).join(' ');
   }
@@ -505,6 +514,7 @@
         }
       });
     });
+    return values;
   }
 
   function addBlockFromUI() {

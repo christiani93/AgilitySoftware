@@ -3,3 +3,4 @@
 /web_app/__pycache__
 web_app/data/events.json
 /web_app/flask_env
+/planner/__pycache__
