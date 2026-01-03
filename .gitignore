@@ -2,3 +2,4 @@
 /web_app/patches_applied
 /web_app/__pycache__
 web_app/data/events.json
+/web_app/flask_env

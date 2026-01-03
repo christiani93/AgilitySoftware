@@ -182,6 +182,7 @@ def _calculate_run_results(run, settings):
 
     sct_seconds, mct_seconds = None, None
 
+    # Klasse 1: SCT vorgegeben oder aus Geschwindigkeit, MCT = ceil(SCT*1.5)
     if klasse in ["1", "Oldie"]:
         provided_sct = _to_float(laufdaten.get("standardzeit_sct"), None)
         speed = _to_float(laufdaten.get("geschwindigkeit"), None)
