@@ -494,6 +494,7 @@
     } else if (size === 'all') {
       categoryLabel = 'Alle';
     }
+  }
 
     return [prefix + runTypeLabel, classPart, categoryLabel].filter(Boolean).join(' ');
   }
@@ -506,6 +507,7 @@
         }
       });
     });
+    return values;
   }
 
   function addBlockFromUI() {
