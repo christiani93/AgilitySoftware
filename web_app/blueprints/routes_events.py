@@ -5,13 +5,14 @@ import uuid
 import random
 from io import StringIO
 import csv
-from datetime import date
+from datetime import date, datetime
 
 from utils import (
     _load_data, _save_data, _decode_csv_file, _get_active_event_id,
     _get_concrete_run_list, _place_entries_with_distance,
-    _load_settings, _calculate_timelines, get_category_sort_key
+    _load_settings, _calculate_timelines, get_category_sort_key, _recalculate_schedule_estimates
 )
+import planner.schedule_planner as schedule_planner
 
 events_bp = Blueprint('events_bp', __name__, template_folder='../templates', url_prefix='/events')
 
@@ -701,6 +702,14 @@ def plan_schedule(event_id):
     event = next((e for e in _load_data(EVENTS_FILE) if e.get('id') == event_id), None)
     if not event:
         return redirect(url_for('events_bp.events_list'))
+    settings = _load_settings()
+    start_times_by_ring = event.get('start_times_by_ring', {}) or {}
+    schedule = schedule_planner.ensure_schedule_root(event_id, event.get('num_rings', 1), start_times_by_ring, event.get('schedule'))
+    schedule = schedule_planner.ensure_run_titles(schedule)
+    schedule['meta']['updated_by'] = 'system'
+    event['schedule'] = schedule
+    event['start_times_by_ring'] = {f"ring_{k}": v.get('start_time', '07:30') for k, v in (schedule.get('rings') or {}).items()}
+    _recalculate_schedule_estimates(event, schedule, settings)
     timelines_by_ring = _calculate_timelines(event)
     unique_participants = {}
     dog_map = {d['Lizenznummer']: d for d in _load_data(DOGS_FILE) if isinstance(d, dict) and d.get('Lizenznummer')}
@@ -727,17 +736,25 @@ def plan_schedule(event_id):
             'firstname': j.get('firstname') or j.get('vorname') or j.get('Vorname'),
             'lastname': j.get('lastname') or j.get('nachname') or j.get('Nachname'),
         })
+    judge_name_map = {
+        j.get('id'): f"{j.get('firstname', '')} {j.get('lastname', '')}".strip()
+        for j in judges
+        if j.get('id')
+    }
     return render_template('plan_schedule.html',
                            event=event,
                            laufarten=laufarten,
                            kategorien=kategorien,
                            klassen=klassen,
                            judges=judges,
+                           judge_name_map=judge_name_map,
                            possible_classes=["1", "2", "3", "Oldie"],
                            possible_categories=["Small", "Medium", "Intermediate", "Large"],
                            num_rings=event.get('num_rings', 1),
                            preview_list=preview_list,
-                           timelines_by_ring=timelines_by_ring)
+                           timelines_by_ring=timelines_by_ring,
+                           schedule=schedule,
+                           rank_announcement_default=settings.get('schedule_planning', {}).get('rank_announcement_default_seconds', 300))
 
 @events_bp.route('/save_schedule/<event_id>', methods=['POST'])
 def save_schedule(event_id):
@@ -757,71 +774,27 @@ def save_schedule(event_id):
             start_times[ring_key] = value
     event['start_times_by_ring'] = start_times
 
-    # Reihenfolge / Blöcke verarbeiten
-    run_order_data = (form_data.get('run_order_data') or "").strip()
-    run_order = None
-    if run_order_data:
+    schedule_raw = (form_data.get('schedule_json') or form_data.get('run_order_data') or "").strip()
+    schedule_payload = None
+    if schedule_raw:
         try:
-            parsed = json.loads(run_order_data)
-            if isinstance(parsed, list) and parsed:
-                run_order = parsed
+            parsed = json.loads(schedule_raw)
+            if isinstance(parsed, dict):
+                schedule_payload = parsed
         except Exception:
-            run_order = None
+            schedule_payload = None
 
-    if run_order:
-        event['run_order'] = run_order
+    num_rings = event.get('num_rings', 1)
+    settings = _load_settings()
+    schedule_data = schedule_planner.ensure_schedule_root(event_id, num_rings, start_times, schedule_payload or event.get('schedule'))
+    schedule_data = schedule_planner.ensure_run_titles(schedule_data)
+    schedule_data['meta']['last_updated'] = datetime.utcnow().isoformat()
+    schedule_data['meta']['updated_by'] = 'user'
+    _recalculate_schedule_estimates(event, schedule_data, settings)
 
-        # Zuordnungen der Läufe zurücksetzen
-        for run_item in event.get('runs', []):
-            if not isinstance(run_item, dict):
-                continue
-            run_item['assigned_ring'] = None
-            run_item['kat_sort'] = None
-            run_item['kl_sort'] = None
-            # vorhandene run_item['richter_id'] lassen wir absichtlich stehen
-
-        NON_RUN_TYPES = {'pause', 'umbau', 'vorbereitung', 'briefing', 'grossring'}
-        num_rings = event.get('num_rings', 1)
-
-        for block in run_order:
-            if not isinstance(block, dict):
-                continue
-
-            # Nicht-Lauf-Blöcke ignorieren
-            t = _norm(block.get('laufart')).lower()
-            if t in NON_RUN_TYPES:
-                continue
-
-            # Ring bestimmen
-            ring_raw = block.get('ring') or block.get('ring_id') or block.get('ringIndex') or block.get('ringName')
-            ring_key = _norm_ring(ring_raw, num_rings) or _norm_ring(None, num_rings)
-            if not ring_key:
-                continue
-
-            # passende Runs markieren
-            for run_item in event.get('runs', []):
-                if not isinstance(run_item, dict):
-                    continue
-
-                laufart = _norm(run_item.get('laufart')).lower()
-                kategorie = _norm(run_item.get('kategorie')).lower()
-                klasse = str(run_item.get('klasse'))
-
-                block_laufart = _norm(block.get('laufart')).lower()
-                block_kategorie = _norm(block.get('kategorie')).lower()
-                block_klasse = str(block.get('klasse'))
-
-                is_laufart_match = (block_laufart in ("", "alle") or laufart == block_laufart)
-                is_kategorie_match = (block_kategorie in ("", "alle") or kategorie == block_kategorie)
-                is_klasse_match = (block_klasse in ("", "Alle", "alle") or klasse == block_klasse)
-
-                if is_laufart_match and is_kategorie_match and is_klasse_match:
-                    run_item['assigned_ring'] = ring_key
-                    run_item['kat_sort'] = block.get('kat_sort')
-                    run_item['kl_sort'] = block.get('kl_sort')
-                    # Richter optional vom Block auf den Lauf übernehmen
-                    if block.get('richter_id'):
-                        run_item['richter_id'] = block.get('richter_id')
+    event['schedule'] = schedule_data
+    event['start_times_by_ring'] = start_times
+    event['run_order'] = []
 
     _save_data(EVENTS_FILE, events)
     flash("Zeitplan erfolgreich gespeichert.", "success")
