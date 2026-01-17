@@ -363,6 +363,7 @@
 
 <!-- ====================== SCRIPTS ====================== -->
 <script>
+  (() => {
   const JUDGE_NAME_MAP = {
     {% for j in judges|sort(attribute="firstname") %}
       "{{ j.id }}": "{{ (j.firstname ~ ' ' ~ j.lastname).strip()|e }}"{% if not loop.last %},{% endif %}
@@ -493,14 +494,6 @@
     } else if (size === 'all') {
       categoryLabel = 'Alle';
     }
-  }
-
-  function toggleBlockTypeFields() {
-    const type = (document.getElementById('block_type').value || '').toLowerCase();
-    const runOnly = document.querySelectorAll('.run-only');
-    const rankOnly = document.querySelectorAll('.rank-only');
-    runOnly.forEach(el => el.style.display = type === 'run' ? '' : 'none');
-    rankOnly.forEach(el => el.style.display = type === 'rank_announcement' ? '' : 'none');
   }
 
     return [prefix + runTypeLabel, classPart, categoryLabel].filter(Boolean).join(' ');
@@ -679,5 +672,6 @@
     badgeEl.querySelector('.judge-name').textContent = name;
     badgeEl.style.display = '';
   }
+  })();
 </script>
 {% endblock %}
