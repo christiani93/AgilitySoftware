@@ -510,6 +510,12 @@
     return values;
   }
 
+  function getSortValue(block, level, key, fallback) {
+    if (!block || !block.sort || !block.sort[level]) return fallback;
+    const value = block.sort[level][key];
+    return value || fallback;
+  }
+
   function addBlockFromUI() {
     const type = document.getElementById('block_type').value || 'run';
     const ringKey = currentRingKey();
@@ -620,7 +626,7 @@
     btnDel.className = 'btn btn-sm btn-outline-danger';
     btnDel.textContent = 'Entfernen';
     btnDel.addEventListener('click', () => {
-      const blocks = scheduleState.rings[ringKey]?.blocks || [];
+      const blocks = scheduleState.rings[ringKey] ? (scheduleState.rings[ringKey].blocks || []) : [];
       const idx = blocks.indexOf(block);
       if (idx >= 0) {
         blocks.splice(idx, 1);
@@ -639,7 +645,11 @@
     if (block.type === 'run') {
       details.push(`Format: ${block.run_format || 'normal'} | Laufart: ${block.timing_run_type}`);
       details.push(`Kategorie: ${block.size_category} | Klassen: ${(block.classes || []).join(', ')}`);
-      const sortText = `${(block.sort?.primary?.field || 'none')} (${block.sort?.primary?.direction || 'asc'}) / ${(block.sort?.secondary?.field || 'none')} (${block.sort?.secondary?.direction || 'asc'})`;
+      const primaryField = getSortValue(block, 'primary', 'field', 'none');
+      const primaryDir = getSortValue(block, 'primary', 'direction', 'asc');
+      const secondaryField = getSortValue(block, 'secondary', 'field', 'none');
+      const secondaryDir = getSortValue(block, 'secondary', 'direction', 'asc');
+      const sortText = `${primaryField} (${primaryDir}) / ${secondaryField} (${secondaryDir})`;
       details.push(`Sortierung: ${sortText}`);
       if (block.estimated) {
         details.push(`Teilnehmer: ${block.estimated.participants_total || 0}, Dauer ca.: ${(block.estimated.total_seconds || 0) / 60} min`);
