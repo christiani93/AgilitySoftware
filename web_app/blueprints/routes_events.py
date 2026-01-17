@@ -736,12 +736,18 @@ def plan_schedule(event_id):
             'firstname': j.get('firstname') or j.get('vorname') or j.get('Vorname'),
             'lastname': j.get('lastname') or j.get('nachname') or j.get('Nachname'),
         })
+    judge_name_map = {
+        j.get('id'): f"{j.get('firstname', '')} {j.get('lastname', '')}".strip()
+        for j in judges
+        if j.get('id')
+    }
     return render_template('plan_schedule.html',
                            event=event,
                            laufarten=laufarten,
                            kategorien=kategorien,
                            klassen=klassen,
                            judges=judges,
+                           judge_name_map=judge_name_map,
                            possible_classes=["1", "2", "3", "Oldie"],
                            possible_categories=["Small", "Medium", "Intermediate", "Large"],
                            num_rings=event.get('num_rings', 1),

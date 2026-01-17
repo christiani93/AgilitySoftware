@@ -364,11 +364,7 @@
 <!-- ====================== SCRIPTS ====================== -->
 <script>
   (() => {
-  const JUDGE_NAME_MAP = {
-    {% for j in judges|sort(attribute="firstname") %}
-      "{{ j.id }}": "{{ (j.firstname ~ ' ' ~ j.lastname).strip()|e }}"{% if not loop.last %},{% endif %}
-    {% endfor %}
-  };
+  const JUDGE_NAME_MAP = {{ (judge_name_map or {}) | tojson }};
   const MAX_RING = {{ num_rings or 1 }};
   const DEFAULT_RANK_DURATION = {{ rank_announcement_default or 300 }};
   const INITIAL_SCHEDULE = {{ (schedule or {}) | tojson }};
