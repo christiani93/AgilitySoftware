@@ -2,14 +2,25 @@
 {% block title %}Zeitplan – {{ event.Bezeichnung }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3">
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <h3 class="mb-0">Zeitplan – {{ event.Bezeichnung }}</h3>
-    <div>
-      <a class="btn btn-outline-secondary me-2" href="{{ url_for('events_bp.events_list') }}">Zurück</a>
-      <button class="btn btn-primary" form="form-save-schedule">Zeitplan speichern</button>
+  <div class="container-fluid py-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h3 class="mb-0">Zeitplan – {{ event.Bezeichnung }}</h3>
+      <div>
+        <a class="btn btn-outline-secondary me-2" href="{{ url_for('events_bp.events_list') }}">Zurück</a>
+        <div class="btn-group me-2" role="group">
+          <a class="btn btn-outline-primary" href="{{ url_for('print_bp.print_schedule', event_id=event.id) }}" target="_blank">Vorbereitungsdrucksachen</a>
+          <button class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Weitere Drucke</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_startlists', event_id=event.id) }}" target="_blank">Startlisten</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_stewardlists', event_id=event.id) }}" target="_blank">Ringschreiberlisten</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_master_steward_list', event_id=event.id) }}" target="_blank">Einweiserlisten</a></li>
+          </ul>
+        </div>
+        <button class="btn btn-primary" form="form-save-schedule">Zeitplan speichern</button>
+      </div>
     </div>
-  </div>
 
   <!-- Konfiguration Kopf -->
   <div class="card mb-3">
@@ -24,12 +35,12 @@
               type="time"
               class="form-control"
               name="start_time_ring_{{ i }}"
-              value="{{ (event.start_times_by_ring or {}).get(ring_key, '07:30') }}"
+              value="{{ (event.start_times_by_ring or {}).get(ring_key, (schedule.rings or {}).get(i|string, {}).get('start_time', '07:30')) }}"
               required>
           </div>
           {% endfor %}
           <!-- Hidden: hier landet der JSON-Plan -->
-          <input type="hidden" name="run_order_data" id="run_order_data">
+          <input type="hidden" name="schedule_json" id="schedule_json">
         </div>
       </form>
     </div>
@@ -43,12 +54,8 @@
         <div class="col-12 col-md-2">
           <label class="form-label">Block-Typ</label>
           <select id="block_type" class="form-select">
-            <option value="Lauf" selected>Lauf</option>
-            <option value="Briefing">Briefing</option>
-            <option value="Umbau">Umbau</option>
-            <option value="Pause">Pause</option>
-            <option value="Vorbereitung">Vorbereitung</option>
-            <option value="Grossring">Grossring</option>
+            <option value="run" selected>Lauf</option>
+            <option value="rank_announcement">Rangverkündigung</option>
           </select>
         </div>
 
@@ -56,51 +63,129 @@
           <label class="form-label">Ring</label>
           <select id="ring_select" class="form-select">
             {% for i in range(1, (num_rings or 1)+1) %}
-              <option value="ring_{{ i }}">Ring {{ i }}</option>
+              <option value="{{ i }}">Ring {{ i }}</option>
             {% endfor %}
           </select>
         </div>
 
-        <!-- Nur für Lauf -->
-        <div class="col-12 col-md-2 lauf-only">
-          <label class="form-label">Laufart</label>
-          <select id="laufart_select" class="form-select">
-            <option value="Alle">Alle</option>
-            {% for la in laufarten %}
-              <option value="{{ la }}">{{ la }}</option>
-            {% endfor %}
+        <div class="col-12 col-md-2 run-only">
+          <label class="form-label">Titel</label>
+          <input id="block_title" type="text" class="form-control" placeholder="Bezeichnung">
+        </div>
+
+        <div class="col-12 col-md-2 run-only">
+          <label class="form-label">Format</label>
+          <select id="run_format" class="form-select">
+            <option value="normal">Normal</option>
+            <option value="open">Open</option>
+            <option value="other">Other</option>
           </select>
         </div>
 
-        <div class="col-12 col-md-2 lauf-only">
+        <div class="col-12 col-md-2 run-only">
+          <label class="form-label">Zeit-Laufart</label>
+          <select id="timing_run_type" class="form-select">
+            <option value="agility">Agility</option>
+            <option value="jumping">Jumping</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-2 run-only">
           <label class="form-label">Kategorie</label>
-          <select id="kategorie_select" class="form-select">
-            <option value="Alle">Alle</option>
-            {% for kat in kategorien %}
-              <option value="{{ kat }}">{{ kat }}</option>
-            {% endfor %}
+          <select id="size_category" class="form-select">
+            <option value="all">Alle</option>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="large">Large</option>
           </select>
         </div>
 
-        <div class="col-12 col-md-2 lauf-only">
-          <label class="form-label">Klasse</label>
-          <select id="klasse_select" class="form-select">
-            <option value="Alle">Alle</option>
-            {% for kl in klassen %}
-              <option value="{{ kl }}">{{ kl }}</option>
+        <div class="col-12 col-md-3 run-only">
+          <label class="form-label">Klassen</label>
+          <div class="d-flex gap-2 align-items-center flex-wrap">
+            {% for kl in ['1','2','3'] %}
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="class_{{ kl }}" value="{{ kl }}" checked>
+                <label class="form-check-label" for="class_{{ kl }}">{{ kl }}</label>
+              </div>
             {% endfor %}
-          </select>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-3 run-only">
+          <label class="form-label">Sortierung</label>
+          <div class="d-flex flex-column gap-1">
+            <div class="d-flex gap-1 align-items-center">
+              <span class="small text-muted">Primär</span>
+              <select id="sort_primary_field" class="form-select form-select-sm w-auto">
+                <option value="none">Keine</option>
+                <option value="category">Kategorie</option>
+                <option value="class">Klasse</option>
+              </select>
+              <select id="sort_primary_dir" class="form-select form-select-sm w-auto">
+                <option value="asc">asc</option>
+                <option value="desc">desc</option>
+              </select>
+            </div>
+            <div class="d-flex gap-1 align-items-center">
+              <span class="small text-muted">Sekundär</span>
+              <select id="sort_secondary_field" class="form-select form-select-sm w-auto">
+                <option value="none">Keine</option>
+                <option value="category">Kategorie</option>
+                <option value="class">Klasse</option>
+              </select>
+              <select id="sort_secondary_dir" class="form-select form-select-sm w-auto">
+                <option value="asc">asc</option>
+                <option value="desc">desc</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div class="col-12 col-md-2">
           <label class="form-label">Richter</label>
-          <!-- Sortierung nach Vorname -->
           <select id="richter_select" class="form-select">
             <option value="">— keiner —</option>
             {% for j in judges|sort(attribute="firstname") %}
               <option value="{{ j.id }}">{{ (j.firstname ~ ' ' ~ j.lastname).strip() }}</option>
             {% endfor %}
           </select>
+        </div>
+
+        <div class="col-12 col-md-2 rank-only" style="display:none;">
+          <label class="form-label">Dauer (Sekunden)</label>
+          <input id="rank_duration" type="number" class="form-control" value="{{ rank_announcement_default or 300 }}" min="0">
+        </div>
+
+        <div class="col-12 col-md-3 rank-only" style="display:none;">
+          <label class="form-label">Gilt für Kategorien</label>
+          <div class="d-flex flex-wrap gap-2">
+            {% for cat in ['small','medium','intermediate','large'] %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="rank_cat_{{ cat }}" value="{{ cat }}" checked>
+                <label class="form-check-label" for="rank_cat_{{ cat }}">{{ cat.capitalize() }}</label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="col-12 col-md-3 rank-only" style="display:none;">
+          <label class="form-label">Gilt für Klassen</label>
+          <div class="d-flex flex-wrap gap-2">
+            {% for kl in ['1','2','3'] %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="rank_class_{{ kl }}" value="{{ kl }}" checked>
+                <label class="form-check-label" for="rank_class_{{ kl }}">{{ kl }}</label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="col-12 run-only">
+          <label class="form-label">Notizen</label>
+          <input id="block_notes" type="text" class="form-control" placeholder="Optional">
         </div>
 
         <div class="col-12">
@@ -126,6 +211,47 @@
     </div>
     {% endfor %}
   </div>
+
+  {% if timelines_by_ring %}
+  <div class="card mb-3">
+    <div class="card-header">Zeitplan-Vorschau (berechnete Timeline)</div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for ring, timeline in timelines_by_ring.items()|sort %}
+        <div class="col-12 col-xl-6">
+          <h6 class="mb-2">Ring {{ ring }} – Start {{ (event.start_times_by_ring or {}).get('ring_' ~ ring, '07:30') }}</h6>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 15%;">Start</th>
+                  <th style="width: 15%;">Ende</th>
+                  <th>Segment</th>
+                  <th style="width: 20%;">Block</th>
+                  <th style="width: 10%;">Starter</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in timeline %}
+                  <tr>
+                    <td>{{ item.start_time }}</td>
+                    <td>{{ item.end_time }}</td>
+                    <td>{{ item.label }}</td>
+                    <td>{{ item.block.title or item.block.type }}</td>
+                    <td>{% if item.num_starters %}{{ item.num_starters }}{% endif %}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="5" class="text-muted">Keine Segmente vorhanden.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Startnummern-Schema und Vergabe (wiederhergestellt) -->
   <div class="row mb-3">
@@ -237,24 +363,20 @@
 
 <!-- ====================== SCRIPTS ====================== -->
 <script>
-  // Richter-Map für sofortige Anzeige
+  (() => {
   const JUDGE_NAME_MAP = {
     {% for j in judges|sort(attribute="firstname") %}
       "{{ j.id }}": "{{ (j.firstname ~ ' ' ~ j.lastname).strip()|e }}"{% if not loop.last %},{% endif %}
     {% endfor %}
   };
-  const INITIAL_RUN_ORDER = {{ (event.run_order or []) | tojson }};
   const MAX_RING = {{ num_rings or 1 }};
+  const DEFAULT_RANK_DURATION = {{ rank_announcement_default or 300 }};
+  const INITIAL_SCHEDULE = {{ (schedule or {}) | tojson }};
 
-  // Nicht-Lauf Typen – müssen exakt mit dem Server übereinstimmen
-  const NON_RUN_TYPES = ["briefing","umbau","vorbereitung","pause","grossring"];
-
-  // interner Zustand: Plan je Ring
-  const RUN_ORDER = []; // flache Liste aller Blöcke (mit .ring)
-  const ringContainers = {}; // ring_key -> DOM-Container
+  const ringContainers = {};
+  const scheduleState = ensureScheduleStructure(deepClone(INITIAL_SCHEDULE));
 
   document.addEventListener('DOMContentLoaded', () => {
-    // Ring-Container referenzieren
     document.querySelectorAll('[data-role="ring-list"]').forEach(el => {
       const wrap = el.closest('[data-ring]');
       if (wrap) {
@@ -262,120 +384,246 @@
       }
     });
 
-    // UI-Logik: Lauf-Felder nur zeigen, wenn Typ "Lauf"
-    const typeSel = document.getElementById('block_type');
-    const laufOnly = document.querySelectorAll('.lauf-only');
-    function toggleLaufFields() {
-      const isRun = (typeSel.value || '').toLowerCase() === 'lauf';
-      laufOnly.forEach(el => el.style.display = isRun ? '' : 'none');
-    }
-    typeSel.addEventListener('change', toggleLaufFields);
-    toggleLaufFields();
+    document.getElementById('block_type').addEventListener('change', toggleBlockTypeFields);
+    toggleBlockTypeFields();
 
-    // Button: Block hinzufügen
     document.getElementById('btn-add-block').addEventListener('click', (e) => {
       e.preventDefault();
       addBlockFromUI();
     });
 
-    // Beim Absenden: JSON in hidden setzen
     document.getElementById('form-save-schedule').addEventListener('submit', () => {
-      document.getElementById('run_order_data').value = JSON.stringify(RUN_ORDER);
+      saveScheduleToInput();
     });
 
-    // Bestehende Reihenfolge initial anzeigen (wiederhergestellt)
-    hydrateScheduleFromServer();
+    bindStartTimeInputs();
+    ensureRunTitles();
+    renderSchedule();
   });
 
+  function deepClone(obj) {
+    try { return structuredClone(obj); } catch (e) { return JSON.parse(JSON.stringify(obj || {})); }
+  }
+
+  function ensureScheduleStructure(data) {
+    const result = data && typeof data === 'object' ? data : {};
+    result.schedule_version = result.schedule_version || 1;
+    result.event_id = result.event_id || '{{ event.id }}';
+    result.meta = result.meta || {};
+    result.rings = result.rings || {};
+    for (let i = 1; i <= MAX_RING; i++) {
+      const key = String(i);
+      if (!result.rings[key]) {
+        result.rings[key] = { start_time: '07:30', blocks: [] };
+      }
+      result.rings[key].blocks = result.rings[key].blocks || [];
+    }
+    return result;
+  }
+
+  function bindStartTimeInputs() {
+    for (let i = 1; i <= MAX_RING; i++) {
+      const input = document.querySelector(`[name="start_time_ring_${i}"]`);
+      if (!input) continue;
+      const ringKey = String(i);
+      if (scheduleState.rings[ringKey]) {
+        input.value = scheduleState.rings[ringKey].start_time || input.value;
+      }
+      input.addEventListener('change', (e) => {
+        if (scheduleState.rings[ringKey]) {
+          scheduleState.rings[ringKey].start_time = e.target.value || '07:30';
+          saveScheduleToInput();
+        }
+      });
+    }
+  }
+
+  function toggleBlockTypeFields() {
+    const type = (document.getElementById('block_type').value || '').toLowerCase();
+    const runOnly = document.querySelectorAll('.run-only');
+    const rankOnly = document.querySelectorAll('.rank-only');
+    runOnly.forEach(el => el.style.display = type === 'run' ? '' : 'none');
+    rankOnly.forEach(el => el.style.display = type === 'rank_announcement' ? '' : 'none');
+  }
+
   function currentRingKey() {
-    const sel = document.getElementById('ring_select');
-    return sel?.value || 'ring_1';
+    return String(document.getElementById('ring_select').value || '1');
+  }
+
+  function collectSelectedClasses() {
+    const values = [];
+    document.querySelectorAll('input[id^="class_"]').forEach(el => {
+      if (el.checked) values.push(el.value);
+    });
+    return values;
+  }
+
+  function collectRankCategories() {
+    const values = [];
+    document.querySelectorAll('input[id^="rank_cat_"]').forEach(el => {
+      if (el.checked) values.push(el.value);
+    });
+    return values;
+  }
+
+  function collectRankClasses() {
+    const values = [];
+    document.querySelectorAll('input[id^="rank_class_"]').forEach(el => {
+      if (el.checked) values.push(el.value);
+    });
+    return values;
+  }
+
+  function capitalize(word) {
+    if (!word) return '';
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  }
+
+  function generateRunTitle(block) {
+    const runTypeLabel = { agility: 'Agility', jumping: 'Jumping' }[String(block.timing_run_type || '').toLowerCase()] || 'Other';
+    const prefix = (block.run_format || '').toLowerCase() === 'open' ? 'Open ' : '';
+    const classPart = (block.classes || []).join('+');
+
+    const sortPrimary = (block.sort || {}).primary || {};
+    let categoryLabel = '';
+    const size = String(block.size_category || '').toLowerCase();
+    if (size && size !== 'all') {
+      categoryLabel = capitalize(size);
+    } else if ((sortPrimary.field || '') === 'category') {
+      categoryLabel = (sortPrimary.direction || '').toLowerCase() === 'desc' ? 'Absteigend' : 'Aufsteigend';
+    } else if (size === 'all') {
+      categoryLabel = 'Alle';
+    }
+
+    return [prefix + runTypeLabel, classPart, categoryLabel].filter(Boolean).join(' ');
+  }
+
+  function ensureRunTitles() {
+    Object.values(scheduleState.rings || {}).forEach(ring => {
+      (ring.blocks || []).forEach(block => {
+        if (block.type === 'run' && (!block.title || !String(block.title).trim())) {
+          block.title = generateRunTitle(block);
+        }
+      });
+    });
   }
 
   function addBlockFromUI() {
-    const typeVal = (document.getElementById('block_type').value || '').trim();
-    const ringVal = currentRingKey();
-    const judgeId = (document.getElementById('richter_select').value || '').trim();
+    const type = document.getElementById('block_type').value || 'run';
+    const ringKey = currentRingKey();
+    const blocks = scheduleState.rings[ringKey].blocks;
 
-    let block = { ring: ringVal, richter_id: judgeId };
-
-    if (typeVal && typeVal.toLowerCase() !== 'lauf') {
-      // Nicht-Lauf Block – genau so abspeichern, dass der Server ihn als Nicht-Lauf erkennt
-      block.laufart   = typeVal;   // "Briefing", "Umbau", "Pause", "Vorbereitung", "Grossring"
-      block.kategorie = 'Alle';
-      block.klasse    = 'Alle';
+    if (type === 'rank_announcement') {
+      const appliesTo = {
+        size_categories: collectRankCategories(),
+        classes: collectRankClasses(),
+      };
+      const block = {
+        id: `blk_${Date.now()}`,
+        type: 'rank_announcement',
+        title: document.getElementById('block_title').value || 'Rangverkündigung',
+        duration_seconds: parseInt(document.getElementById('rank_duration').value || DEFAULT_RANK_DURATION, 10) || DEFAULT_RANK_DURATION,
+        notes: document.getElementById('block_notes').value || '',
+        applies_to: appliesTo,
+        applies_to_block_ids: [],
+      };
+      blocks.push(block);
     } else {
-      // Lauf-Filter
-      block.laufart   = (document.getElementById('laufart_select').value || 'Alle').trim();
-      block.kategorie = (document.getElementById('kategorie_select').value || 'Alle').trim();
-      block.klasse    = (document.getElementById('klasse_select').value || 'Alle').trim();
+      const tentativeBlock = {
+        run_format: document.getElementById('run_format').value || 'normal',
+        timing_run_type: document.getElementById('timing_run_type').value || 'agility',
+        size_category: document.getElementById('size_category').value || 'all',
+        classes: collectSelectedClasses(),
+        sort: {
+          primary: {
+            field: document.getElementById('sort_primary_field').value || 'none',
+            direction: document.getElementById('sort_primary_dir').value || 'asc',
+          },
+          secondary: {
+            field: document.getElementById('sort_secondary_field').value || 'none',
+            direction: document.getElementById('sort_secondary_dir').value || 'asc',
+          }
+        }
+      };
+      const block = {
+        id: `blk_${Date.now()}`,
+        type: 'run',
+        title: document.getElementById('block_title').value || '',
+        run_format: tentativeBlock.run_format,
+        timing_run_type: tentativeBlock.timing_run_type,
+        size_category: tentativeBlock.size_category,
+        classes: tentativeBlock.classes,
+        judge_id: document.getElementById('richter_select').value || '',
+        sort: tentativeBlock.sort,
+        estimated: {
+          participants_total: 0,
+          changeover_seconds: 0,
+          briefing_seconds: 0,
+          prep_pause_seconds: 0,
+          run_seconds: 0,
+          total_seconds: 0,
+        },
+        notes: document.getElementById('block_notes').value || '',
+      };
+      if (!block.title.trim()) {
+        block.title = generateRunTitle({ ...block });
+      }
+      blocks.push(block);
     }
 
-    RUN_ORDER.push(block);
-    const card = renderBlockCard(block);
-    renderJudgeBadge(card, block.richter_id);
+    renderSchedule();
   }
 
-  // Überträgt vorhandene Blocks aus dem Backend wieder in die UI
-  function hydrateScheduleFromServer() {
-    if (!Array.isArray(INITIAL_RUN_ORDER)) return;
-    INITIAL_RUN_ORDER.forEach(rawBlock => {
-      const ringKey = normalizeRing(rawBlock.ring || rawBlock.ring_id || rawBlock.ringIndex || rawBlock.ringName);
-      const block = { ...rawBlock, ring: ringKey };
-      RUN_ORDER.push(block);
-      const card = renderBlockCard(block);
-      renderJudgeBadge(card, block.richter_id);
+  function saveScheduleToInput() {
+    document.getElementById('schedule_json').value = JSON.stringify(scheduleState);
+  }
+
+  function renderSchedule() {
+    Object.entries(scheduleState.rings).forEach(([ringKey, ringData]) => {
+      const host = ringContainers[`ring_${ringKey}`] || ringContainers[ringKey];
+      if (!host) return;
+      host.innerHTML = '';
+      (ringData.blocks || []).forEach(block => {
+        host.appendChild(renderBlockCard(block, ringKey));
+      });
     });
+    saveScheduleToInput();
   }
 
-  function normalizeRing(value) {
-    if (!value) return 'ring_1';
-    const match = String(value).match(/(\d+)/);
-    const ringNo = match ? Math.min(Math.max(parseInt(match[1], 10) || 1, 1), MAX_RING) : 1;
-    return `ring_${ringNo}`;
-  }
-
-  function renderBlockCard(block) {
-    const ring = block.ring || 'ring_1';
-    const host = ringContainers[ring];
-    if (!host) return null;
-
-    const isNonRun = NON_RUN_TYPES.includes((block.laufart || '').toLowerCase());
-
+  function renderBlockCard(block, ringKey) {
     const card = document.createElement('div');
     card.className = 'card shadow-sm';
-    card.style.borderLeft = isNonRun ? '4px solid #6c757d' : '4px solid #0d6efd';
+    card.style.borderLeft = block.type === 'run' ? '4px solid #0d6efd' : '4px solid #6c757d';
     card.style.padding = '0';
     card.style.overflow = 'hidden';
-    card.dataset.ring = ring;
+    card.dataset.ring = ringKey;
 
     const header = document.createElement('div');
     header.className = 'card-body py-2 px-3 d-flex flex-wrap align-items-center justify-content-between';
 
     const title = document.createElement('div');
     title.className = 'fw-semibold';
-    title.textContent = isNonRun
-      ? `${block.laufart}`
-      : `${block.laufart} ${block.kategorie} ${block.klasse}`;
+    title.textContent = block.title || block.type;
 
     const right = document.createElement('div');
     right.className = 'd-flex align-items-center gap-2';
 
-    // EIN Badge für Richtername (kein Doppel)
     const badge = document.createElement('span');
     badge.className = 'badge bg-light text-dark ms-2';
-    badge.setAttribute('data-role', 'judge-badge');
     badge.innerHTML = 'R: <span class="judge-name"></span>';
+    renderJudgeBadge(badge, block.judge_id);
     right.appendChild(badge);
 
     const btnDel = document.createElement('button');
     btnDel.className = 'btn btn-sm btn-outline-danger';
     btnDel.textContent = 'Entfernen';
     btnDel.addEventListener('click', () => {
-      // aus RUN_ORDER entfernen (erstes passendes entfernen)
-      const idx = RUN_ORDER.indexOf(block);
-      if (idx >= 0) RUN_ORDER.splice(idx, 1);
-      card.remove();
+      const blocks = scheduleState.rings[ringKey]?.blocks || [];
+      const idx = blocks.indexOf(block);
+      if (idx >= 0) {
+        blocks.splice(idx, 1);
+        renderSchedule();
+      }
     });
 
     right.appendChild(btnDel);
@@ -383,17 +631,45 @@
     header.appendChild(right);
     card.appendChild(header);
 
-    host.appendChild(card);
+    const body = document.createElement('div');
+    body.className = 'card-body py-2 px-3';
+    const details = [];
+    if (block.type === 'run') {
+      details.push(`Format: ${block.run_format || 'normal'} | Laufart: ${block.timing_run_type}`);
+      details.push(`Kategorie: ${block.size_category} | Klassen: ${(block.classes || []).join(', ')}`);
+      const sortText = `${(block.sort?.primary?.field || 'none')} (${block.sort?.primary?.direction || 'asc'}) / ${(block.sort?.secondary?.field || 'none')} (${block.sort?.secondary?.direction || 'asc'})`;
+      details.push(`Sortierung: ${sortText}`);
+      if (block.estimated) {
+        details.push(`Teilnehmer: ${block.estimated.participants_total || 0}, Dauer ca.: ${(block.estimated.total_seconds || 0) / 60} min`);
+      }
+    } else {
+      details.push(`Dauer: ${(block.duration_seconds || DEFAULT_RANK_DURATION)} Sekunden`);
+      const catInfo = (block.applies_to && block.applies_to.size_categories && block.applies_to.size_categories.length)
+        ? block.applies_to.size_categories.join(', ')
+        : 'alle';
+      const clsInfo = (block.applies_to && block.applies_to.classes && block.applies_to.classes.length)
+        ? block.applies_to.classes.join(', ')
+        : 'alle';
+      details.push(`Gilt für Kategorien: ${catInfo}`);
+      details.push(`Gilt für Klassen: ${clsInfo}`);
+    }
+    details.filter(Boolean).forEach(text => {
+      const p = document.createElement('div');
+      p.className = 'small text-muted';
+      p.textContent = text;
+      body.appendChild(p);
+    });
+    card.appendChild(body);
     return card;
   }
 
-  function renderJudgeBadge(cardEl, judgeId) {
-    const badge = cardEl?.querySelector('[data-role="judge-badge"]');
-    if (!badge) return;
-    if (!judgeId) { badge.style.display = 'none'; return; }
+  function renderJudgeBadge(badgeEl, judgeId) {
+    if (!badgeEl) return;
+    if (!judgeId) { badgeEl.style.display = 'none'; return; }
     const name = JUDGE_NAME_MAP[judgeId] || ('ID:' + judgeId);
-    badge.querySelector('.judge-name').textContent = name;
-    badge.style.display = '';
+    badgeEl.querySelector('.judge-name').textContent = name;
+    badgeEl.style.display = '';
   }
+  })();
 </script>
 {% endblock %}

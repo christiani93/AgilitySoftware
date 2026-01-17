@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="60" viewBox="0 0 160 60" role="img" aria-label="Club Logo">
+  <defs>
+    <linearGradient id="gradClub" x1="0%" x2="100%" y1="0%" y2="0%">
+      <stop offset="0%" stop-color="#20c997" />
+      <stop offset="100%" stop-color="#63e6be" />
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="156" height="56" rx="10" fill="url(#gradClub)" stroke="#1aa179" stroke-width="2" />
+  <text x="80" y="36" font-family="Arial, sans-serif" font-size="18" fill="#ffffff" text-anchor="middle" font-weight="bold">
+    Club
+  </text>
+</svg>
