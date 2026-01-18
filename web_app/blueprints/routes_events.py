@@ -804,6 +804,17 @@ def add_schedule_block(event_id):
         }
     else:
         classes = request.form.getlist('classes')
+        size_categories = request.form.getlist('size_categories')
+        normalized_sizes = [s for s in size_categories if s]
+        if len(normalized_sizes) == 1:
+            size_category = normalized_sizes[0]
+            size_categories = []
+        elif len(normalized_sizes) == 0 or len(normalized_sizes) >= 4:
+            size_category = 'all'
+            size_categories = []
+        else:
+            size_category = 'all'
+            size_categories = normalized_sizes
         sort = {
             'primary': {
                 'field': request.form.get('sort_primary_field') or 'none',
@@ -820,7 +831,8 @@ def add_schedule_block(event_id):
             'title': title,
             'run_format': request.form.get('run_format') or 'normal',
             'timing_run_type': request.form.get('timing_run_type') or 'agility',
-            'size_category': request.form.get('size_category') or 'all',
+            'size_category': size_category,
+            'size_categories': size_categories,
             'classes': classes,
             'judge_id': request.form.get('judge_id') or '',
             'sort': sort,

@@ -171,9 +171,14 @@ def _match_run_to_block(run_item, block):
         return False
 
     category = (_norm(run_item.get('kategorie')) or '').lower()
-    size_cat = (block.get('size_category') or '').lower()
-    if size_cat not in ('', 'all') and category != size_cat:
-        return False
+    size_categories = [normalize_size(s) for s in (block.get('size_categories') or []) if normalize_size(s)]
+    if size_categories:
+        if category not in size_categories:
+            return False
+    else:
+        size_cat = (block.get('size_category') or '').lower()
+        if size_cat not in ('', 'all') and category != size_cat:
+            return False
 
     klasse = str(run_item.get('klasse'))
     if block.get('classes'):
@@ -196,7 +201,13 @@ def _get_run_list_from_schedule(event, schedule):
             sort_info = block.get('sort') or {}
             primary = sort_info.get('primary') or {}
             secondary = sort_info.get('secondary') or {}
-            groups = schedule_planner.expand_size_class_groups(block.get('size_category', 'all'), block.get('classes', []), primary, secondary)
+            groups = schedule_planner.expand_size_class_groups(
+                block.get('size_category', 'all'),
+                block.get('classes', []),
+                primary,
+                secondary,
+                block.get('size_categories', []),
+            )
             for size_val, cls_val in groups:
                 for run_item in all_runs:
                     if not isinstance(run_item, dict):

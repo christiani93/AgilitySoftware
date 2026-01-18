@@ -92,15 +92,16 @@
             </select>
           </div>
 
-          <div class="col-12 col-md-2">
-            <label class="form-label">Kategorie (run)</label>
-            <select name="size_category" class="form-select">
-              <option value="all">Alle</option>
-              <option value="small">Small</option>
-              <option value="medium">Medium</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="large">Large</option>
-            </select>
+          <div class="col-12 col-md-3">
+            <label class="form-label">Kategorien (run)</label>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+              {% for cat in ['small','medium','intermediate','large'] %}
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="size_cat_{{ cat }}" name="size_categories" value="{{ cat }}" checked>
+                  <label class="form-check-label" for="size_cat_{{ cat }}">{{ cat.capitalize() }}</label>
+                </div>
+              {% endfor %}
+            </div>
           </div>
 
           <div class="col-12 col-md-3">
@@ -233,7 +234,9 @@
               <div class="card-body py-2 px-3">
                 {% if block.type == 'run' %}
                   <div class="small text-muted">Format: {{ block.run_format or 'normal' }} | Laufart: {{ block.timing_run_type }}</div>
-                  <div class="small text-muted">Kategorie: {{ block.size_category }} | Klassen: {{ (block.classes or [])|join(', ') }}</div>
+                  {% set size_list = block.size_categories or [] %}
+                  {% set size_display = size_list|join(', ') if size_list else block.size_category %}
+                  <div class="small text-muted">Kategorie: {{ size_display }} | Klassen: {{ (block.classes or [])|join(', ') }}</div>
                   {% set primary = (block.sort or {}).get('primary', {}) %}
                   {% set secondary = (block.sort or {}).get('secondary', {}) %}
                   <div class="small text-muted">Sortierung: {{ primary.get('field', 'none') }} ({{ primary.get('direction', 'asc') }}) / {{ secondary.get('field', 'none') }} ({{ secondary.get('direction', 'asc') }})</div>

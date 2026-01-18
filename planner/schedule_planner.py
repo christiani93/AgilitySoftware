@@ -75,8 +75,12 @@ def _ordered_classes(direction: str) -> List[str]:
     return CLASS_ORDER_ASC
 
 
-def expand_size_class_groups(size_category: str, classes: List[str], primary_sort: Dict, secondary_sort: Dict) -> List[Tuple[str, str]]:
-    target_sizes = CATEGORY_ORDER_ASC if normalize_size(size_category) == "all" else [normalize_size(size_category)]
+def expand_size_class_groups(size_category: str, classes: List[str], primary_sort: Dict, secondary_sort: Dict,
+                             size_categories: List[str] = None) -> List[Tuple[str, str]]:
+    if size_categories:
+        target_sizes = [normalize_size(s) for s in size_categories if normalize_size(s)]
+    else:
+        target_sizes = CATEGORY_ORDER_ASC if normalize_size(size_category) == "all" else [normalize_size(size_category)]
     class_values = [normalize_class(c) for c in (classes or [])] or CLASS_ORDER_ASC
 
     size_order = target_sizes
@@ -198,9 +202,14 @@ def _match_run_to_block(run_item, block):
         return False
 
     category = normalize_size(run_item.get("kategorie"))
-    size_cat = (block.get("size_category") or "").lower()
-    if size_cat not in ("", "all") and category != size_cat:
-        return False
+    size_categories = [normalize_size(s) for s in (block.get("size_categories") or []) if normalize_size(s)]
+    if size_categories:
+        if category not in size_categories:
+            return False
+    else:
+        size_cat = (block.get("size_category") or "").lower()
+        if size_cat not in ("", "all") and category != size_cat:
+            return False
 
     klasse = str(run_item.get("klasse"))
     if block.get("classes"):

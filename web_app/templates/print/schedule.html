@@ -52,10 +52,38 @@
                         <td>{{ item.end_time }}</td>
                         <td>
                             <strong>{{ item.label }}</strong>
-                            {% if item.block.title %}<div class="small text-muted">{{ item.block.title }}</div>{% endif %}
                             {% if item.block.type == 'run' %}
-                              <div class="small text-muted">{{ item.block.size_category|capitalize }} – Klassen: {{ (item.block.classes or [])|join('+') }}</div>
-                            {% elif item.block.type == 'rank_announcement' %}
+                              {% set run_type = (item.block.timing_run_type or '').lower() %}
+                              {% set run_type_label = 'Agility' if run_type == 'agility' else 'Jumping' if run_type == 'jumping' else 'Other' %}
+                              {% set run_prefix = 'Open ' if (item.block.run_format or '').lower() == 'open' else '' %}
+                              {% set class_part = (item.block.classes or [])|join('+') %}
+                              {% set primary = (item.block.sort or {}).get('primary', {}) %}
+                              {% set direction = (primary.get('direction', 'asc') or 'asc') %}
+                              {% set size_order = ['small','medium','intermediate','large'] %}
+                              {% if direction == 'desc' %}
+                                {% set size_order = ['large','intermediate','medium','small'] %}
+                              {% endif %}
+                              {% set selected_sizes = item.block.size_categories or [] %}
+                              {% if not selected_sizes %}
+                                {% if item.block.size_category and item.block.size_category != 'all' %}
+                                  {% set selected_sizes = [item.block.size_category] %}
+                                {% else %}
+                                  {% set selected_sizes = size_order %}
+                                {% endif %}
+                              {% endif %}
+                              {% set size_map = {'small':'S','medium':'M','intermediate':'I','large':'L'} %}
+                              {% set ns = namespace(parts=[]) %}
+                              {% for size in size_order %}
+                                {% if size in selected_sizes %}
+                                  {% set ns.parts = ns.parts + [size_map.get(size, size)] %}
+                                {% endif %}
+                              {% endfor %}
+                              {% set short_label = ns.parts|join('/') %}
+                              <div class="small text-muted">{{ run_prefix }}{{ run_type_label }}{% if class_part %} {{ class_part }}{% endif %}{% if short_label %} {{ short_label }}{% endif %}</div>
+                            {% elif item.block.title %}
+                              <div class="small text-muted">{{ item.block.title }}</div>
+                            {% endif %}
+                            {% if item.block.type == 'rank_announcement' %}
                               {% set applies = item.block.get('applies_to', {}) %}
                               <div class="small text-muted">Kategorien: {{ (applies.get('size_categories') or ['alle'])|join(', ') }}</div>
                               <div class="small text-muted">Klassen: {{ (applies.get('classes') or ['alle'])|join(', ') }}</div>
