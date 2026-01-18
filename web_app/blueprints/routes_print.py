@@ -1,11 +1,11 @@
 # blueprints/routes_print.py
 from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, Response
 from datetime import datetime
-import math
 import csv
 import io
-from utils import (_load_data, _calculate_run_results, _load_settings, 
-                   _get_concrete_run_list, _calculate_timelines, get_category_sort_key)
+from utils import (_load_data, _calculate_run_results, _load_settings,
+                   _calculate_timelines, get_category_sort_key)
+from planner.print_order import get_ordered_runs_for_print, build_briefing_sessions
 
 print_bp = Blueprint('print_bp', __name__, template_folder='../templates')
 
@@ -27,37 +27,6 @@ def _get_enriched_participants(event):
     
     return participants_with_data
 
-def _get_runs_grouped_by_cat_class(event):
-    """
-    Gruppiert alle Läufe eines Events nach Kategorie und Klasse, 
-    wobei die Reihenfolge der Läufe dem Zeitplan entspricht.
-    """
-    runs_in_order = _get_concrete_run_list(event)
-    grouped_runs = {}
-
-    all_cats = sorted(list(set(r['kategorie'] for r in runs_in_order if r.get('kategorie'))), key=get_category_sort_key)
-    
-    for cat in all_cats:
-        grouped_runs[cat] = {}
-        all_classes_in_cat = sorted(list(set(str(r['klasse']) for r in runs_in_order if r.get('kategorie') == cat)), key=lambda x: (x.isdigit(), int(x) if x.isdigit() else 99))
-        for cls in all_classes_in_cat:
-            grouped_runs[cat][cls] = []
-
-    for run in runs_in_order:
-        if run.get('laufart') in ['Pause', 'Umbau', 'Briefing', 'Vorbereitung', 'Grossring']:
-            continue
-
-        cat = run.get('kategorie', 'N/A')
-        cls = str(run.get('klasse', 'N/A'))
-        
-        if run.get('entries'):
-            run['entries'] = sorted(run.get('entries', []), key=lambda x: int(x.get('Startnummer', 9999)))
-            
-        if cat in grouped_runs and cls in grouped_runs[cat]:
-            grouped_runs[cat][cls].append(run)
-            
-    return grouped_runs
-
 @print_bp.route('/print/schedule/<event_id>')
 def print_schedule(event_id):
     """Druckansicht für den Zeitplan."""
@@ -72,56 +41,26 @@ def print_briefing_groups(event_id):
     """Druckansicht für die Begehungsgruppen, neu strukturiert pro Begehung."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    run_order, all_runs_map = event.get('run_order', []), {r['id']: r for r in event.get('runs', [])}
-    briefing_sessions, briefing_indices = [], [i for i, block in enumerate(run_order) if block.get('laufart') == 'Briefing']
-    
-    for i, start_index in enumerate(briefing_indices):
-        end_index = briefing_indices[i+1] if i + 1 < len(briefing_indices) else len(run_order)
-        briefing_block, session_scope = run_order[start_index], run_order[start_index + 1 : end_index]
-        participants_in_session = []
-        for block in session_scope:
-            if block.get('laufart') in ['Pause', 'Umbau', 'Briefing', 'Vorbereitung', 'Grossring']: continue
-            matching_runs = [r for r in event.get('runs', []) if r.get('laufart') == block.get('laufart') and (block.get('kategorie') == 'Alle' or r.get('kategorie') == block.get('kategorie')) and (block.get('klasse') == 'Alle' or str(r.get('klasse')) == str(block.get('klasse')))]
-            for run in matching_runs:
-                participants_in_session.extend(run.get('entries', []))
-        participants_with_startnummer = {p['Lizenznummer']: p for p in participants_in_session if p.get('Startnummer')}.values()
-        if not participants_with_startnummer: continue
-        sorted_participants = sorted(participants_with_startnummer, key=lambda x: int(x.get('Startnummer', 9999)))
-        groups = []
-        if sorted_participants:
-            num_groups = math.ceil(len(sorted_participants) / 50.0)
-            chunk_size = 50
-            for j in range(int(num_groups)):
-                group_entries = sorted_participants[j*chunk_size : (j+1)*chunk_size]
-                if group_entries:
-                    groups.append({'group_index': j + 1, 'start_nr_von': group_entries[0].get('Startnummer'), 'start_nr_bis': group_entries[-1].get('Startnummer'), 'participants': group_entries})
-        briefing_sessions.append({'title': briefing_block.get('label', f"Begehung {i+1}"), 'groups': groups})
-    return render_template('print/briefing_groups.html', event=event, briefing_sessions=briefing_sessions)
+    briefing_sessions = build_briefing_sessions(event)
+    briefing_blocks = [block for block in event.get('run_order', []) if block.get('laufart') == 'Briefing']
+    briefing_hint = "Nur 1 Begehung geplant." if len(briefing_blocks) <= 1 else None
+    return render_template('print/briefing_groups.html', event=event, briefing_sessions=briefing_sessions, briefing_hint=briefing_hint)
 
 @print_bp.route('/print/startlists/<event_id>')
 def print_startlists(event_id):
-    """Offizielle Startliste, gruppiert nach Kat/Kl, sortiert nach Startnummer."""
+    """Offizielle Startliste, sortiert nach Zeitplan-Reihenfolge."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    participants, grouped_participants = _get_enriched_participants(event), {}
-    for p in participants:
-        cat, cls = p.get('Kategorie', 'N/A'), str(p.get('Klasse', 'N/A'))
-        if cat not in grouped_participants: grouped_participants[cat] = {}
-        if cls not in grouped_participants[cat]: grouped_participants[cat][cls] = []
-        grouped_participants[cat][cls].append(p)
-    sorted_grouped_participants = {cat: grouped_participants[cat] for cat in sorted(grouped_participants.keys(), key=get_category_sort_key)}
-    for cat, classes in sorted_grouped_participants.items():
-        for cls, participants_list in classes.items():
-            participants_list.sort(key=lambda p: int(p.get('Startnummer', 9999)))
-    return render_template('print_startlists.html', event=event, grouped_entries=sorted_grouped_participants)
+    ordered_runs = get_ordered_runs_for_print(event)
+    return render_template('print_startlists.html', event=event, ordered_runs=ordered_runs)
 
 @print_bp.route('/print/stewardlists/<event_id>')
 def print_stewardlists(event_id):
-    """Ringschreiber-Listen, gruppiert nach Kat/Kl."""
+    """Ringschreiber-Listen in Zeitplan-Reihenfolge."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    grouped_runs = _get_runs_grouped_by_cat_class(event)
-    return render_template('print/scribe_list.html', event=event, title="Ringschreiberlisten", grouped_runs=grouped_runs, judges=_load_data('judges.json'))
+    ordered_runs = get_ordered_runs_for_print(event)
+    return render_template('print/scribe_list.html', event=event, title="Ringschreiberlisten", ordered_runs=ordered_runs, judges=_load_data('judges.json'))
 
 @print_bp.route('/print/master_steward_list/<event_id>')
 def print_master_steward_list(event_id):
@@ -134,11 +73,11 @@ def print_master_steward_list(event_id):
         if cat not in grouped_participants: grouped_participants[cat] = {}
         if cls not in grouped_participants[cat]: grouped_participants[cat][cls] = []
         grouped_participants[cat][cls].append(p)
-    final_grouped_data, all_runs_in_order, sorted_cats = {}, _get_concrete_run_list(event), sorted(grouped_participants.keys(), key=get_category_sort_key)
+    final_grouped_data, ordered_runs, sorted_cats = {}, get_ordered_runs_for_print(event), sorted(grouped_participants.keys(), key=get_category_sort_key)
     for cat in sorted_cats:
         final_grouped_data[cat] = {}
         for cls, participants_in_group in grouped_participants[cat].items():
-            runs_for_group = [r for r in all_runs_in_order if r.get('kategorie') == cat and str(r.get('klasse')) == cls]
+            runs_for_group = [r for r in ordered_runs if r.get('kategorie') == cat and str(r.get('klasse')) == cls]
             participant_run_map = {p['Lizenznummer']: {r['id']: False for r in runs_for_group} for p in participants_in_group}
             for run in runs_for_group:
                 for entry in run.get('entries', []):
