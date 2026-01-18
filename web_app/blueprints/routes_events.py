@@ -756,6 +756,167 @@ def plan_schedule(event_id):
                            schedule=schedule,
                            rank_announcement_default=settings.get('schedule_planning', {}).get('rank_announcement_default_seconds', 300))
 
+
+@events_bp.route('/plan_schedule/<event_id>/add_block', methods=['POST'])
+def add_schedule_block(event_id):
+    events = _load_data(EVENTS_FILE)
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        flash("Event nicht gefunden.", "error")
+        return redirect(url_for('events_bp.events_list'))
+
+    settings = _load_settings()
+    start_times = event.get('start_times_by_ring', {}) or {}
+    num_rings = event.get('num_rings', 1)
+    schedule_data = schedule_planner.ensure_schedule_root(event_id, num_rings, start_times, event.get('schedule'))
+
+    ring_key = str(request.form.get('ring') or '1')
+    ring_data = schedule_data.get('rings', {}).setdefault(ring_key, {
+        'start_time': start_times.get(f"ring_{ring_key}", "07:30"),
+        'blocks': [],
+    })
+    blocks = ring_data.setdefault('blocks', [])
+
+    block_type = (request.form.get('block_type') or 'run').strip().lower()
+    block_id = f"blk_{uuid.uuid4().hex[:8]}"
+    title = (request.form.get('title') or '').strip()
+    notes = (request.form.get('notes') or '').strip()
+
+    if block_type == 'rank_announcement':
+        try:
+            duration_seconds = int(request.form.get('rank_duration') or 0)
+        except ValueError:
+            duration_seconds = 0
+        if duration_seconds <= 0:
+            duration_seconds = settings.get('schedule_planning', {}).get('rank_announcement_default_seconds', 300)
+        applies_to = {
+            'size_categories': request.form.getlist('rank_categories'),
+            'classes': request.form.getlist('rank_classes'),
+        }
+        block = {
+            'id': block_id,
+            'type': 'rank_announcement',
+            'title': title or 'Rangverkündigung',
+            'duration_seconds': duration_seconds,
+            'notes': notes,
+            'applies_to': applies_to,
+            'applies_to_block_ids': [],
+        }
+    else:
+        classes = request.form.getlist('classes')
+        sort = {
+            'primary': {
+                'field': request.form.get('sort_primary_field') or 'none',
+                'direction': request.form.get('sort_primary_dir') or 'asc',
+            },
+            'secondary': {
+                'field': request.form.get('sort_secondary_field') or 'none',
+                'direction': request.form.get('sort_secondary_dir') or 'asc',
+            },
+        }
+        block = {
+            'id': block_id,
+            'type': 'run',
+            'title': title,
+            'run_format': request.form.get('run_format') or 'normal',
+            'timing_run_type': request.form.get('timing_run_type') or 'agility',
+            'size_category': request.form.get('size_category') or 'all',
+            'classes': classes,
+            'judge_id': request.form.get('judge_id') or '',
+            'sort': sort,
+            'estimated': {
+                'participants_total': 0,
+                'changeover_seconds': 0,
+                'briefing_seconds': 0,
+                'prep_pause_seconds': 0,
+                'run_seconds': 0,
+                'total_seconds': 0,
+            },
+            'notes': notes,
+        }
+        if not block['title']:
+            block['title'] = schedule_planner.generate_run_title(block)
+
+    blocks.append(block)
+    schedule_data = schedule_planner.ensure_run_titles(schedule_data)
+    schedule_data['meta']['last_updated'] = datetime.utcnow().isoformat()
+    schedule_data['meta']['updated_by'] = 'user'
+    _recalculate_schedule_estimates(event, schedule_data, settings)
+
+    event['schedule'] = schedule_data
+    event['start_times_by_ring'] = start_times
+    _save_data(EVENTS_FILE, events)
+    flash("Block hinzugefügt.", "success")
+    return redirect(url_for('events_bp.plan_schedule', event_id=event_id))
+
+
+@events_bp.route('/plan_schedule/<event_id>/delete_block', methods=['POST'])
+def delete_schedule_block(event_id):
+    events = _load_data(EVENTS_FILE)
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        flash("Event nicht gefunden.", "error")
+        return redirect(url_for('events_bp.events_list'))
+
+    settings = _load_settings()
+    start_times = event.get('start_times_by_ring', {}) or {}
+    num_rings = event.get('num_rings', 1)
+    schedule_data = schedule_planner.ensure_schedule_root(event_id, num_rings, start_times, event.get('schedule'))
+
+    ring_key = str(request.form.get('ring') or '1')
+    block_id = (request.form.get('block_id') or '').strip()
+    ring_blocks = (schedule_data.get('rings') or {}).get(ring_key, {}).get('blocks', [])
+    original_len = len(ring_blocks)
+    ring_blocks[:] = [block for block in ring_blocks if block.get('id') != block_id]
+
+    if len(ring_blocks) == original_len:
+        flash("Block nicht gefunden.", "warning")
+    else:
+        schedule_data['meta']['last_updated'] = datetime.utcnow().isoformat()
+        schedule_data['meta']['updated_by'] = 'user'
+        _recalculate_schedule_estimates(event, schedule_data, settings)
+        event['schedule'] = schedule_data
+        _save_data(EVENTS_FILE, events)
+        flash("Block entfernt.", "success")
+
+    return redirect(url_for('events_bp.plan_schedule', event_id=event_id))
+
+
+@events_bp.route('/plan_schedule/<event_id>/move_block', methods=['POST'])
+def move_schedule_block(event_id):
+    events = _load_data(EVENTS_FILE)
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        flash("Event nicht gefunden.", "error")
+        return redirect(url_for('events_bp.events_list'))
+
+    settings = _load_settings()
+    start_times = event.get('start_times_by_ring', {}) or {}
+    num_rings = event.get('num_rings', 1)
+    schedule_data = schedule_planner.ensure_schedule_root(event_id, num_rings, start_times, event.get('schedule'))
+
+    ring_key = str(request.form.get('ring') or '1')
+    direction = (request.form.get('direction') or '').lower()
+    block_id = (request.form.get('block_id') or '').strip()
+    ring_blocks = (schedule_data.get('rings') or {}).get(ring_key, {}).get('blocks', [])
+
+    index = next((i for i, block in enumerate(ring_blocks) if block.get('id') == block_id), None)
+    if index is None:
+        flash("Block nicht gefunden.", "warning")
+        return redirect(url_for('events_bp.plan_schedule', event_id=event_id))
+
+    if direction == 'up' and index > 0:
+        ring_blocks[index - 1], ring_blocks[index] = ring_blocks[index], ring_blocks[index - 1]
+    elif direction == 'down' and index < len(ring_blocks) - 1:
+        ring_blocks[index + 1], ring_blocks[index] = ring_blocks[index], ring_blocks[index + 1]
+
+    schedule_data['meta']['last_updated'] = datetime.utcnow().isoformat()
+    schedule_data['meta']['updated_by'] = 'user'
+    _recalculate_schedule_estimates(event, schedule_data, settings)
+    event['schedule'] = schedule_data
+    _save_data(EVENTS_FILE, events)
+    return redirect(url_for('events_bp.plan_schedule', event_id=event_id))
+
 @events_bp.route('/save_schedule/<event_id>', methods=['POST'])
 def save_schedule(event_id):
     events = _load_data(EVENTS_FILE)
