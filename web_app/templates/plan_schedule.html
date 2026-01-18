@@ -2,14 +2,25 @@
 {% block title %}Zeitplan – {{ event.Bezeichnung }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3">
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <h3 class="mb-0">Zeitplan – {{ event.Bezeichnung }}</h3>
-    <div>
-      <a class="btn btn-outline-secondary me-2" href="{{ url_for('events_bp.events_list') }}">Zurück</a>
-      <button class="btn btn-primary" form="form-save-schedule">Zeitplan speichern</button>
+  <div class="container-fluid py-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h3 class="mb-0">Zeitplan – {{ event.Bezeichnung }}</h3>
+      <div>
+        <a class="btn btn-outline-secondary me-2" href="{{ url_for('events_bp.events_list') }}">Zurück</a>
+        <div class="btn-group me-2" role="group">
+          <a class="btn btn-outline-primary" href="{{ url_for('print_bp.print_schedule', event_id=event.id) }}" target="_blank">Vorbereitungsdrucksachen</a>
+          <button class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Weitere Drucke</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_startlists', event_id=event.id) }}" target="_blank">Startlisten</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_stewardlists', event_id=event.id) }}" target="_blank">Ringschreiberlisten</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_master_steward_list', event_id=event.id) }}" target="_blank">Einweiserlisten</a></li>
+          </ul>
+        </div>
+        <button class="btn btn-primary" form="form-save-schedule">Zeitplan speichern</button>
+      </div>
     </div>
-  </div>
 
   <!-- Konfiguration Kopf -->
   <div class="card mb-3">
@@ -24,12 +35,12 @@
               type="time"
               class="form-control"
               name="start_time_ring_{{ i }}"
-              value="{{ (event.start_times_by_ring or {}).get(ring_key, '07:30') }}"
+              value="{{ (event.start_times_by_ring or {}).get(ring_key, (schedule.rings or {}).get(i|string, {}).get('start_time', '07:30')) }}"
               required>
           </div>
           {% endfor %}
           <!-- Hidden: hier landet der JSON-Plan -->
-          <input type="hidden" name="run_order_data" id="run_order_data">
+          <input type="hidden" name="schedule_json" id="schedule_json">
         </div>
       </form>
     </div>
@@ -39,93 +50,253 @@
   <div class="card mb-3">
     <div class="card-header">Block hinzufügen</div>
     <div class="card-body">
-      <div class="row g-3">
-        <div class="col-12 col-md-2">
-          <label class="form-label">Block-Typ</label>
-          <select id="block_type" class="form-select">
-            <option value="Lauf" selected>Lauf</option>
-            <option value="Briefing">Briefing</option>
-            <option value="Umbau">Umbau</option>
-            <option value="Pause">Pause</option>
-            <option value="Vorbereitung">Vorbereitung</option>
-            <option value="Grossring">Grossring</option>
-          </select>
-        </div>
+      <form method="post" action="{{ url_for('events_bp.add_schedule_block', event_id=event.id) }}">
+        <div class="row g-3">
+          <div class="col-12 col-md-2">
+            <label class="form-label">Block-Typ</label>
+            <select name="block_type" class="form-select">
+              <option value="run" selected>Lauf</option>
+              <option value="rank_announcement">Rangverkündigung</option>
+            </select>
+          </div>
 
-        <div class="col-12 col-md-2">
-          <label class="form-label">Ring</label>
-          <select id="ring_select" class="form-select">
-            {% for i in range(1, (num_rings or 1)+1) %}
-              <option value="ring_{{ i }}">Ring {{ i }}</option>
-            {% endfor %}
-          </select>
-        </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label">Ring</label>
+            <select name="ring" class="form-select">
+              {% for i in range(1, (num_rings or 1)+1) %}
+                <option value="{{ i }}">Ring {{ i }}</option>
+              {% endfor %}
+            </select>
+          </div>
 
-        <!-- Nur für Lauf -->
-        <div class="col-12 col-md-2 lauf-only">
-          <label class="form-label">Laufart</label>
-          <select id="laufart_select" class="form-select">
-            <option value="Alle">Alle</option>
-            {% for la in laufarten %}
-              <option value="{{ la }}">{{ la }}</option>
-            {% endfor %}
-          </select>
-        </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label">Titel (optional)</label>
+            <input name="title" type="text" class="form-control" placeholder="Bezeichnung">
+          </div>
 
-        <div class="col-12 col-md-2 lauf-only">
-          <label class="form-label">Kategorie</label>
-          <select id="kategorie_select" class="form-select">
-            <option value="Alle">Alle</option>
-            {% for kat in kategorien %}
-              <option value="{{ kat }}">{{ kat }}</option>
-            {% endfor %}
-          </select>
-        </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label">Format (run)</label>
+            <select name="run_format" class="form-select">
+              <option value="normal">Normal</option>
+              <option value="open">Open</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
 
-        <div class="col-12 col-md-2 lauf-only">
-          <label class="form-label">Klasse</label>
-          <select id="klasse_select" class="form-select">
-            <option value="Alle">Alle</option>
-            {% for kl in klassen %}
-              <option value="{{ kl }}">{{ kl }}</option>
-            {% endfor %}
-          </select>
-        </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label">Zeit-Laufart (run)</label>
+            <select name="timing_run_type" class="form-select">
+              <option value="agility">Agility</option>
+              <option value="jumping">Jumping</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
 
-        <div class="col-12 col-md-2">
-          <label class="form-label">Richter</label>
-          <!-- Sortierung nach Vorname -->
-          <select id="richter_select" class="form-select">
-            <option value="">— keiner —</option>
-            {% for j in judges|sort(attribute="firstname") %}
-              <option value="{{ j.id }}">{{ (j.firstname ~ ' ' ~ j.lastname).strip() }}</option>
-            {% endfor %}
-          </select>
-        </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label">Kategorie (run)</label>
+            <select name="size_category" class="form-select">
+              <option value="all">Alle</option>
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
 
-        <div class="col-12">
-          <button id="btn-add-block" class="btn btn-success">Block hinzufügen</button>
+          <div class="col-12 col-md-3">
+            <label class="form-label">Klassen (run)</label>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+              {% for kl in ['1','2','3'] %}
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="class_{{ kl }}" name="classes" value="{{ kl }}" checked>
+                  <label class="form-check-label" for="class_{{ kl }}">{{ kl }}</label>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <label class="form-label">Sortierung (run)</label>
+            <div class="d-flex flex-column gap-1">
+              <div class="d-flex gap-1 align-items-center">
+                <span class="small text-muted">Primär</span>
+                <select name="sort_primary_field" class="form-select form-select-sm w-auto">
+                  <option value="none">Keine</option>
+                  <option value="category">Kategorie</option>
+                  <option value="class">Klasse</option>
+                </select>
+                <select name="sort_primary_dir" class="form-select form-select-sm w-auto">
+                  <option value="asc">asc</option>
+                  <option value="desc">desc</option>
+                </select>
+              </div>
+              <div class="d-flex gap-1 align-items-center">
+                <span class="small text-muted">Sekundär</span>
+                <select name="sort_secondary_field" class="form-select form-select-sm w-auto">
+                  <option value="none">Keine</option>
+                  <option value="category">Kategorie</option>
+                  <option value="class">Klasse</option>
+                </select>
+                <select name="sort_secondary_dir" class="form-select form-select-sm w-auto">
+                  <option value="asc">asc</option>
+                  <option value="desc">desc</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-2">
+            <label class="form-label">Richter (run)</label>
+            <select name="judge_id" class="form-select">
+              <option value="">— keiner —</option>
+              {% for j in judges|sort(attribute="firstname") %}
+                <option value="{{ j.id }}">{{ (j.firstname ~ ' ' ~ j.lastname).strip() }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-12 col-md-2">
+            <label class="form-label">Dauer (Sekunden, Rangverk.)</label>
+            <input name="rank_duration" type="number" class="form-control" value="{{ rank_announcement_default or 300 }}" min="0">
+          </div>
+
+          <div class="col-12 col-md-3">
+            <label class="form-label">Gilt für Kategorien (Rangverk.)</label>
+            <div class="d-flex flex-wrap gap-2">
+              {% for cat in ['small','medium','intermediate','large'] %}
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="rank_cat_{{ cat }}" name="rank_categories" value="{{ cat }}" checked>
+                  <label class="form-check-label" for="rank_cat_{{ cat }}">{{ cat.capitalize() }}</label>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <label class="form-label">Gilt für Klassen (Rangverk.)</label>
+            <div class="d-flex flex-wrap gap-2">
+              {% for kl in ['1','2','3'] %}
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="rank_class_{{ kl }}" name="rank_classes" value="{{ kl }}" checked>
+                  <label class="form-check-label" for="rank_class_{{ kl }}">{{ kl }}</label>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Notizen</label>
+            <input name="notes" type="text" class="form-control" placeholder="Optional">
+          </div>
+
+          <div class="col-12">
+            <button class="btn btn-success" type="submit">Block hinzufügen</button>
+          </div>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 
   <!-- Zeitplan je Ring -->
   <div class="row" id="schedule-rows">
     {% for i in range(1, (num_rings or 1)+1) %}
+    {% set ring_key = i|string %}
+    {% set ring_data = (schedule.rings or {}).get(ring_key, {}) %}
     <div class="col-12 col-xl-6">
       <div class="card mb-3" data-ring="ring_{{ i }}">
         <div class="card-header d-flex align-items-center justify-content-between">
           <strong>Ring {{ i }}</strong>
           <small class="text-muted">Start: {{ (event.start_times_by_ring or {}).get('ring_' ~ i, '07:30') }}</small>
         </div>
-        <div class="card-body">
-          <div class="d-grid gap-2" data-role="ring-list"></div>
+        <div class="card-body d-flex flex-column gap-2">
+          {% for block in ring_data.blocks or [] %}
+            <div class="card shadow-sm" style="border-left: 4px solid {{ '#0d6efd' if block.type == 'run' else '#6c757d' }};">
+              <div class="card-body py-2 px-3 d-flex flex-wrap align-items-center justify-content-between">
+                <div class="fw-semibold">{{ block.title or block.type }}</div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-light text-dark ms-2">
+                    R: {{ (judge_name_map or {}).get(block.judge_id, '—') }}
+                  </span>
+                  <form method="post" action="{{ url_for('events_bp.move_schedule_block', event_id=event.id) }}" class="m-0">
+                    <input type="hidden" name="ring" value="{{ ring_key }}">
+                    <input type="hidden" name="block_id" value="{{ block.id }}">
+                    <button class="btn btn-sm btn-outline-secondary" name="direction" value="up" title="Nach oben">↑</button>
+                    <button class="btn btn-sm btn-outline-secondary" name="direction" value="down" title="Nach unten">↓</button>
+                  </form>
+                  <form method="post" action="{{ url_for('events_bp.delete_schedule_block', event_id=event.id) }}" class="m-0">
+                    <input type="hidden" name="ring" value="{{ ring_key }}">
+                    <input type="hidden" name="block_id" value="{{ block.id }}">
+                    <button class="btn btn-sm btn-outline-danger">Entfernen</button>
+                  </form>
+                </div>
+              </div>
+              <div class="card-body py-2 px-3">
+                {% if block.type == 'run' %}
+                  <div class="small text-muted">Format: {{ block.run_format or 'normal' }} | Laufart: {{ block.timing_run_type }}</div>
+                  <div class="small text-muted">Kategorie: {{ block.size_category }} | Klassen: {{ (block.classes or [])|join(', ') }}</div>
+                  {% set primary = (block.sort or {}).get('primary', {}) %}
+                  {% set secondary = (block.sort or {}).get('secondary', {}) %}
+                  <div class="small text-muted">Sortierung: {{ primary.get('field', 'none') }} ({{ primary.get('direction', 'asc') }}) / {{ secondary.get('field', 'none') }} ({{ secondary.get('direction', 'asc') }})</div>
+                  {% if block.estimated %}
+                    <div class="small text-muted">Teilnehmer: {{ block.estimated.participants_total or 0 }}, Dauer ca.: {{ (block.estimated.total_seconds or 0) / 60 }} min</div>
+                  {% endif %}
+                {% else %}
+                  <div class="small text-muted">Dauer: {{ block.duration_seconds or (rank_announcement_default or 300) }} Sekunden</div>
+                  {% set applies_to = block.applies_to or {} %}
+                  <div class="small text-muted">Gilt für Kategorien: {{ (applies_to.size_categories or ['alle'])|join(', ') }}</div>
+                  <div class="small text-muted">Gilt für Klassen: {{ (applies_to.classes or ['alle'])|join(', ') }}</div>
+                {% endif %}
+              </div>
+            </div>
+          {% else %}
+            <div class="text-muted">Noch keine Blöcke geplant.</div>
+          {% endfor %}
         </div>
       </div>
     </div>
     {% endfor %}
   </div>
+
+  {% if timelines_by_ring %}
+  <div class="card mb-3">
+    <div class="card-header">Zeitplan-Vorschau (berechnete Timeline)</div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for ring, timeline in timelines_by_ring.items()|sort %}
+        <div class="col-12 col-xl-6">
+          <h6 class="mb-2">Ring {{ ring }} – Start {{ (event.start_times_by_ring or {}).get('ring_' ~ ring, '07:30') }}</h6>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 15%;">Start</th>
+                  <th style="width: 15%;">Ende</th>
+                  <th>Segment</th>
+                  <th style="width: 20%;">Block</th>
+                  <th style="width: 10%;">Starter</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in timeline %}
+                  <tr>
+                    <td>{{ item.start_time }}</td>
+                    <td>{{ item.end_time }}</td>
+                    <td>{{ item.label }}</td>
+                    <td>{{ item.block.title or item.block.type }}</td>
+                    <td>{% if item.num_starters %}{{ item.num_starters }}{% endif %}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="5" class="text-muted">Keine Segmente vorhanden.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Startnummern-Schema und Vergabe (wiederhergestellt) -->
   <div class="row mb-3">
@@ -235,165 +406,4 @@
   </div>
 </div>
 
-<!-- ====================== SCRIPTS ====================== -->
-<script>
-  // Richter-Map für sofortige Anzeige
-  const JUDGE_NAME_MAP = {
-    {% for j in judges|sort(attribute="firstname") %}
-      "{{ j.id }}": "{{ (j.firstname ~ ' ' ~ j.lastname).strip()|e }}"{% if not loop.last %},{% endif %}
-    {% endfor %}
-  };
-  const INITIAL_RUN_ORDER = {{ (event.run_order or []) | tojson }};
-  const MAX_RING = {{ num_rings or 1 }};
-
-  // Nicht-Lauf Typen – müssen exakt mit dem Server übereinstimmen
-  const NON_RUN_TYPES = ["briefing","umbau","vorbereitung","pause","grossring"];
-
-  // interner Zustand: Plan je Ring
-  const RUN_ORDER = []; // flache Liste aller Blöcke (mit .ring)
-  const ringContainers = {}; // ring_key -> DOM-Container
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // Ring-Container referenzieren
-    document.querySelectorAll('[data-role="ring-list"]').forEach(el => {
-      const wrap = el.closest('[data-ring]');
-      if (wrap) {
-        ringContainers[wrap.getAttribute('data-ring')] = el;
-      }
-    });
-
-    // UI-Logik: Lauf-Felder nur zeigen, wenn Typ "Lauf"
-    const typeSel = document.getElementById('block_type');
-    const laufOnly = document.querySelectorAll('.lauf-only');
-    function toggleLaufFields() {
-      const isRun = (typeSel.value || '').toLowerCase() === 'lauf';
-      laufOnly.forEach(el => el.style.display = isRun ? '' : 'none');
-    }
-    typeSel.addEventListener('change', toggleLaufFields);
-    toggleLaufFields();
-
-    // Button: Block hinzufügen
-    document.getElementById('btn-add-block').addEventListener('click', (e) => {
-      e.preventDefault();
-      addBlockFromUI();
-    });
-
-    // Beim Absenden: JSON in hidden setzen
-    document.getElementById('form-save-schedule').addEventListener('submit', () => {
-      document.getElementById('run_order_data').value = JSON.stringify(RUN_ORDER);
-    });
-
-    // Bestehende Reihenfolge initial anzeigen (wiederhergestellt)
-    hydrateScheduleFromServer();
-  });
-
-  function currentRingKey() {
-    const sel = document.getElementById('ring_select');
-    return sel?.value || 'ring_1';
-  }
-
-  function addBlockFromUI() {
-    const typeVal = (document.getElementById('block_type').value || '').trim();
-    const ringVal = currentRingKey();
-    const judgeId = (document.getElementById('richter_select').value || '').trim();
-
-    let block = { ring: ringVal, richter_id: judgeId };
-
-    if (typeVal && typeVal.toLowerCase() !== 'lauf') {
-      // Nicht-Lauf Block – genau so abspeichern, dass der Server ihn als Nicht-Lauf erkennt
-      block.laufart   = typeVal;   // "Briefing", "Umbau", "Pause", "Vorbereitung", "Grossring"
-      block.kategorie = 'Alle';
-      block.klasse    = 'Alle';
-    } else {
-      // Lauf-Filter
-      block.laufart   = (document.getElementById('laufart_select').value || 'Alle').trim();
-      block.kategorie = (document.getElementById('kategorie_select').value || 'Alle').trim();
-      block.klasse    = (document.getElementById('klasse_select').value || 'Alle').trim();
-    }
-
-    RUN_ORDER.push(block);
-    const card = renderBlockCard(block);
-    renderJudgeBadge(card, block.richter_id);
-  }
-
-  // Überträgt vorhandene Blocks aus dem Backend wieder in die UI
-  function hydrateScheduleFromServer() {
-    if (!Array.isArray(INITIAL_RUN_ORDER)) return;
-    INITIAL_RUN_ORDER.forEach(rawBlock => {
-      const ringKey = normalizeRing(rawBlock.ring || rawBlock.ring_id || rawBlock.ringIndex || rawBlock.ringName);
-      const block = { ...rawBlock, ring: ringKey };
-      RUN_ORDER.push(block);
-      const card = renderBlockCard(block);
-      renderJudgeBadge(card, block.richter_id);
-    });
-  }
-
-  function normalizeRing(value) {
-    if (!value) return 'ring_1';
-    const match = String(value).match(/(\d+)/);
-    const ringNo = match ? Math.min(Math.max(parseInt(match[1], 10) || 1, 1), MAX_RING) : 1;
-    return `ring_${ringNo}`;
-  }
-
-  function renderBlockCard(block) {
-    const ring = block.ring || 'ring_1';
-    const host = ringContainers[ring];
-    if (!host) return null;
-
-    const isNonRun = NON_RUN_TYPES.includes((block.laufart || '').toLowerCase());
-
-    const card = document.createElement('div');
-    card.className = 'card shadow-sm';
-    card.style.borderLeft = isNonRun ? '4px solid #6c757d' : '4px solid #0d6efd';
-    card.style.padding = '0';
-    card.style.overflow = 'hidden';
-    card.dataset.ring = ring;
-
-    const header = document.createElement('div');
-    header.className = 'card-body py-2 px-3 d-flex flex-wrap align-items-center justify-content-between';
-
-    const title = document.createElement('div');
-    title.className = 'fw-semibold';
-    title.textContent = isNonRun
-      ? `${block.laufart}`
-      : `${block.laufart} ${block.kategorie} ${block.klasse}`;
-
-    const right = document.createElement('div');
-    right.className = 'd-flex align-items-center gap-2';
-
-    // EIN Badge für Richtername (kein Doppel)
-    const badge = document.createElement('span');
-    badge.className = 'badge bg-light text-dark ms-2';
-    badge.setAttribute('data-role', 'judge-badge');
-    badge.innerHTML = 'R: <span class="judge-name"></span>';
-    right.appendChild(badge);
-
-    const btnDel = document.createElement('button');
-    btnDel.className = 'btn btn-sm btn-outline-danger';
-    btnDel.textContent = 'Entfernen';
-    btnDel.addEventListener('click', () => {
-      // aus RUN_ORDER entfernen (erstes passendes entfernen)
-      const idx = RUN_ORDER.indexOf(block);
-      if (idx >= 0) RUN_ORDER.splice(idx, 1);
-      card.remove();
-    });
-
-    right.appendChild(btnDel);
-    header.appendChild(title);
-    header.appendChild(right);
-    card.appendChild(header);
-
-    host.appendChild(card);
-    return card;
-  }
-
-  function renderJudgeBadge(cardEl, judgeId) {
-    const badge = cardEl?.querySelector('[data-role="judge-badge"]');
-    if (!badge) return;
-    if (!judgeId) { badge.style.display = 'none'; return; }
-    const name = JUDGE_NAME_MAP[judgeId] || ('ID:' + judgeId);
-    badge.querySelector('.judge-name').textContent = name;
-    badge.style.display = '';
-  }
-</script>
 {% endblock %}
