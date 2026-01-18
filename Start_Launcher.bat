@@ -2,8 +2,66 @@
 setlocal EnableExtensions EnableDelayedExpansion
 title AgilitySoftware Launcher
 
-REM Immer in den Ordner wechseln, in dem diese BAT liegt
-cd /d "%~dp0"
+set "SCRIPT_DIR=%~dp0"
+set "IS_UNC=0"
+set "ROOT_DIR=%SCRIPT_DIR%"
+
+echo ============================================
+echo   AgilitySoftware Launcher - Diagnose
+echo ============================================
+echo SCRIPT_DIR: %SCRIPT_DIR%
+echo Current CD: %CD%
+
+if "%SCRIPT_DIR:~0,2%"=="\\" set "IS_UNC=1"
+echo UNC erkannt: %IS_UNC%
+
+if "%IS_UNC%"=="1" (
+    echo UNC-Start erkannt. Versuche Mapping auf V: ...
+    set "UNC_SHARE=%SCRIPT_DIR%"
+    if /i "%UNC_SHARE:~-1%"=="\" set "UNC_SHARE=%UNC_SHARE:~0,-1%"
+
+    set "V_STATUS="
+    for /f "tokens=1,2,3,*" %%A in ('net use ^| findstr /i "^V:"') do (
+        set "V_STATUS=%%A"
+        set "V_REMOTE=%%D"
+    )
+
+    if not defined V_STATUS (
+        echo V: ist frei. Mappe V: -> %UNC_SHARE%
+        net use V: "%UNC_SHARE%" /persistent:no >nul 2>&1
+        if errorlevel 1 (
+            echo FEHLER: Mapping auf V: fehlgeschlagen.
+            pause
+            exit /b 1
+        )
+        set "ROOT_DIR=V:\"
+    ) else (
+        echo V: ist belegt.
+        echo V: zeigt auf: %V_REMOTE%
+        if /i "%V_REMOTE%"=="%UNC_SHARE%" (
+            echo V: zeigt bereits auf das gleiche Share. Verwende V:.
+            set "ROOT_DIR=V:\"
+        ) else (
+            echo FEHLER: V: ist belegt und zeigt auf ein anderes Share.
+            echo Bitte V: freigeben oder Launcher lokal starten.
+            pause
+            exit /b 1
+        )
+    )
+) else (
+    echo Kein UNC-Start erkannt.
+)
+
+echo ROOT_DIR: %ROOT_DIR%
+cd /d "%ROOT_DIR%"
+if errorlevel 1 (
+    echo FEHLER: Konnte nicht in ROOT_DIR wechseln.
+    pause
+    exit /b 1
+)
+echo Aktuelles CD nach Wechsel: %CD%
+echo.
+pause
 
 :menu
 cls
@@ -46,10 +104,10 @@ echo ============================================
 echo   Hauptsystem starten
 echo ============================================
 echo.
-if exist "Start_AgilitySoftware.bat" (
+if exist "%ROOT_DIR%Start_AgilitySoftware.bat" (
     echo Starte Hauptsystem in eigenem Fenster...
     echo.
-    start "Agility Main" cmd /k "cd /d \"%~dp0\" ^& Start_AgilitySoftware.bat"
+    start "Agility Main" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_AgilitySoftware.bat\""
 ) else (
     echo FEHLER: Start_AgilitySoftware.bat nicht gefunden.
 )
@@ -61,9 +119,9 @@ REM ------------------------------------------------
 REM  Ringe starten (je eigenes Fenster)
 REM ------------------------------------------------
 :ring1
-if exist "Start_Ring_1.bat" (
+if exist "%ROOT_DIR%Start_Ring_1.bat" (
     echo Starte Ring 1...
-    start "Ring 1" "Start_Ring_1.bat"
+    start "Ring 1" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_1.bat\""
 ) else (
     echo FEHLER: Start_Ring_1.bat nicht gefunden.
     echo Tipp: Im Launcher Option [S] ausfuehren, um die Skripte zu erzeugen.
@@ -72,9 +130,9 @@ pause
 goto menu
 
 :ring2
-if exist "Start_Ring_2.bat" (
+if exist "%ROOT_DIR%Start_Ring_2.bat" (
     echo Starte Ring 2...
-    start "Ring 2" "Start_Ring_2.bat"
+    start "Ring 2" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_2.bat\""
 ) else (
     echo FEHLER: Start_Ring_2.bat nicht gefunden.
     echo Tipp: Im Launcher Option [S] ausfuehren, um die Skripte zu erzeugen.
@@ -83,9 +141,9 @@ pause
 goto menu
 
 :ring3
-if exist "Start_Ring_3.bat" (
+if exist "%ROOT_DIR%Start_Ring_3.bat" (
     echo Starte Ring 3...
-    start "Ring 3" "Start_Ring_3.bat"
+    start "Ring 3" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_3.bat\""
 ) else (
     echo FEHLER: Start_Ring_3.bat nicht gefunden.
     echo Tipp: Im Launcher Option [S] ausfuehren, um die Skripte zu erzeugen.
@@ -95,9 +153,9 @@ goto menu
 
 :all_rings
 echo Starte alle Ringe (1-3)...
-if exist "Start_Ring_1.bat" start "Ring 1" "Start_Ring_1.bat"
-if exist "Start_Ring_2.bat" start "Ring 2" "Start_Ring_2.bat"
-if exist "Start_Ring_3.bat" start "Ring 3" "Start_Ring_3.bat"
+if exist "%ROOT_DIR%Start_Ring_1.bat" start "Ring 1" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_1.bat\""
+if exist "%ROOT_DIR%Start_Ring_2.bat" start "Ring 2" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_2.bat\""
+if exist "%ROOT_DIR%Start_Ring_3.bat" start "Ring 3" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_3.bat\""
 echo Alle vorhandenen Ring-Skripte wurden gestartet (sofern vorhanden).
 pause
 goto menu
@@ -111,12 +169,10 @@ echo ============================================
 echo   DEV-Ring (Start_Ring_dev.bat)
 echo ============================================
 echo.
-if exist "Start_Ring_dev.bat" (
+if exist "%ROOT_DIR%Start_Ring_dev.bat" (
     echo Starte DEV-Ring in eigenem Fenster...
     echo.
-    REM Wir sind bereits im Projekt-Root (cd /d "%~dp0" am Anfang des Launchers)
-    REM -> also reicht ein einfacher start-Aufruf ohne cmd /k-Magie
-    start "Ring DEV" "Start_Ring_dev.bat"
+    start "Ring DEV" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_dev.bat\""
 ) else (
     echo FEHLER: Start_Ring_dev.bat nicht gefunden.
 )
@@ -166,7 +222,7 @@ REM ------------------------------------------------
 :write_ring_script
 set "RING_NO=%1"
 set "RING_PORT=%2"
-set "RING_FILE=Start_Ring_%RING_NO%.bat"
+set "RING_FILE=%ROOT_DIR%Start_Ring_%RING_NO%.bat"
 
 (
 echo @echo off

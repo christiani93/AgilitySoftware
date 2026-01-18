@@ -36,7 +36,7 @@
                                 <span class="badge bg-primary rounded-pill me-2">{{ p.Startnummer }}</span>
                                 {{ p.Hundefuehrer }} mit {{ p.Hundename }}
                             </div>
-                            <form action="{{ url_for('events_bp.remove_participant_from_event_form', event_id=event.id, license_nr=p.Lizenznummer) }}" method="POST" onsubmit="return confirm('Teilnehmer wirklich aus allen Läufen entfernen?');">
+                            <form action="{{ url_for('events_bp.remove_participant_from_event', event_id=event.id, license_nr=p.Lizenznummer) }}" method="POST" onsubmit="return confirm('Teilnehmer wirklich aus allen Läufen entfernen?');">
                                 <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
                             </form>
                         </li>
