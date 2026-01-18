@@ -1,5 +1,6 @@
 # utils.py
 import os
+import sys
 import json
 import csv
 from io import StringIO
@@ -8,10 +9,25 @@ import math
 import uuid
 import random
 
+# Ensure project root is on the path so sibling packages (e.g., planner) resolve
+PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
+
+import planner.schedule_planner as schedule_planner
+from planner.schedule_planner import upgrade_settings
+
 CATEGORY_SORT_ORDER = {'Large': 0, 'Intermediate': 1, 'Medium': 2, 'Small': 3}
 
 def get_category_sort_key(category_name):
     return CATEGORY_SORT_ORDER.get(category_name, 99)
+
+
+def _norm(value):
+    try:
+        return str(value or '').strip()
+    except Exception:
+        return ''
 
 
 def _to_float(value, default=0.0):
@@ -63,6 +79,7 @@ def _load_settings():
     settings = _load_data('settings.json', defaults)
     for key, value in defaults.items():
         settings.setdefault(key, value)
+    settings = upgrade_settings(settings)
     return settings
 
 def _get_active_event_id():
@@ -119,6 +136,13 @@ def _get_concrete_run_list(event):
     for run in all_runs:
         if 'id' not in run: run['id'] = str(uuid.uuid4())
     run_map = {r['id']: r for r in all_runs}
+
+    schedule = event.get('schedule')
+    if isinstance(schedule, dict) and schedule.get('rings'):
+        schedule_runs = _get_run_list_from_schedule(event, schedule)
+        if schedule_runs:
+            return schedule_runs
+
     for block in run_order:
         if block.get('laufart') in ['Pause', 'Umbau', 'Briefing', 'Vorbereitung', 'Grossring']:
             ordered_runs.append(block)
@@ -137,6 +161,68 @@ def _get_concrete_run_list(event):
             block_runs.sort(key=lambda r: (class_order.get(str(r.get('klasse')), 99)), reverse=(kl_sort == 'desc'))
             
         ordered_runs.extend(block_runs)
+    return ordered_runs
+
+
+def _match_run_to_block(run_item, block):
+    laufart = (_norm(run_item.get('laufart')) or '').lower()
+    block_laufart = (block.get('timing_run_type') or '').lower()
+    if block_laufart and block_laufart != 'other' and laufart != block_laufart:
+        return False
+
+    category = (_norm(run_item.get('kategorie')) or '').lower()
+    size_categories = [normalize_size(s) for s in (block.get('size_categories') or []) if normalize_size(s)]
+    if size_categories:
+        if category not in size_categories:
+            return False
+    else:
+        size_cat = (block.get('size_category') or '').lower()
+        if size_cat not in ('', 'all') and category != size_cat:
+            return False
+
+    klasse = str(run_item.get('klasse'))
+    if block.get('classes'):
+        if str(klasse) not in [str(c) for c in block.get('classes', [])]:
+            return False
+    return True
+
+
+def _get_run_list_from_schedule(event, schedule):
+    ordered_runs, all_runs = [], event.get('runs', [])
+    run_map = {r['id']: r for r in all_runs if isinstance(r, dict)}
+    seen_ids = set()
+
+    rings = schedule.get('rings') or {}
+    for ring_key in sorted(rings.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
+        ring_data = rings[ring_key]
+        for block in ring_data.get('blocks') or []:
+            if block.get('type') != 'run':
+                continue
+            sort_info = block.get('sort') or {}
+            primary = sort_info.get('primary') or {}
+            secondary = sort_info.get('secondary') or {}
+            groups = schedule_planner.expand_size_class_groups(
+                block.get('size_category', 'all'),
+                block.get('classes', []),
+                primary,
+                secondary,
+                block.get('size_categories', []),
+            )
+            for size_val, cls_val in groups:
+                for run_item in all_runs:
+                    if not isinstance(run_item, dict):
+                        continue
+                    if _match_run_to_block(run_item, block) and (_norm(run_item.get('kategorie')).lower() == size_val):
+                        if str(run_item.get('klasse')) != str(cls_val):
+                            continue
+                        run_id = run_item.get('id')
+                        if run_id in seen_ids:
+                            continue
+                        run_item['assigned_ring'] = f"ring_{ring_key}"
+                        if block.get('judge_id'):
+                            run_item['richter_id'] = block.get('judge_id')
+                        seen_ids.add(run_id)
+                        ordered_runs.append(run_map.get(run_id, run_item))
     return ordered_runs
 
 def _place_entries_with_distance(entries, distance):
@@ -332,6 +418,11 @@ def _calculate_run_results(run, settings):
 
 def _calculate_timelines(event, round_to_minutes=None):
     settings = _load_settings()
+    schedule = event.get('schedule')
+    if isinstance(schedule, dict) and schedule.get('rings'):
+        _recalculate_schedule_estimates(event, schedule, settings)
+        return _calculate_timelines_from_schedule(event, schedule, settings, round_to_minutes)
+
     time_per_starter = settings.get('time_per_starter', 90)
     start_times_by_ring, current_times = event.get('start_times_by_ring', {}), {}
     num_rings = event.get('num_rings', 1)
@@ -377,6 +468,31 @@ def _calculate_timelines(event, round_to_minutes=None):
             timelines_by_ring[ring].append(timeline_item)
             current_times[ring] = end_time
     return timelines_by_ring
+
+
+def _calculate_timelines_from_schedule(event, schedule, settings, round_to_minutes=None):
+    return schedule_planner.compute_computed_timeline(
+        schedule,
+        event_runs=event.get('runs', []),
+        settings=settings,
+        start_times_by_ring=event.get('start_times_by_ring', {}),
+        event_date=event.get('Datum') or datetime.now().strftime('%Y-%m-%d'),
+        round_to_minutes=round_to_minutes,
+    )
+
+
+def _collect_participants_by_class(event_runs, block):
+    return schedule_planner.collect_participants_by_class(event_runs, block)
+
+
+def _recalculate_schedule_estimates(event, schedule, settings):
+    rings = schedule.get('rings') or {}
+    for ring in rings.values():
+        for block in ring.get('blocks') or []:
+            if block.get('type') != 'run':
+                continue
+            participants_by_class = _collect_participants_by_class(event.get('runs', []), block)
+            block['estimated'] = schedule_planner.calculate_estimates(participants_by_class, block, settings)
 
 
 def _to_int(x, default=0):
