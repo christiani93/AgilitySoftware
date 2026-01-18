@@ -49,7 +49,8 @@ echo.
 if exist "Start_AgilitySoftware.bat" (
     echo Starte Hauptsystem in eigenem Fenster...
     echo.
-    start "Agility Main" cmd /k "cd /d \"%~dp0\" ^& Start_AgilitySoftware.bat"
+    set "ROOT_DIR=%~dp0"
+    start "Agility Main" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_AgilitySoftware.bat\""
 ) else (
     echo FEHLER: Start_AgilitySoftware.bat nicht gefunden.
 )
