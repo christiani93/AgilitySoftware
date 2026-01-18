@@ -1,13 +1,18 @@
-@echo off
+@echo on
 setlocal EnableExtensions EnableDelayedExpansion
-title AgilitySoftware Launcher
+title AgilitySoftware Launcher DEBUG
+cd /d "%~dp0"
+echo SCRIPT=%~f0
+echo DP0=%~dp0
+echo CD=%CD%
+echo.
 
 set "SCRIPT_DIR=%~dp0"
 set "IS_UNC=0"
 set "ROOT_DIR=%SCRIPT_DIR%"
 
 echo ============================================
-echo   AgilitySoftware Launcher - Kurzdiagnose
+echo   AgilitySoftware Launcher - Diagnose
 echo ============================================
 echo SCRIPT_DIR: %SCRIPT_DIR%
 echo Current CD: %CD%
@@ -19,8 +24,10 @@ if "%IS_UNC%"=="1" (
     echo UNC-Start erkannt. Versuche Mapping auf V: ...
     set "UNC_SHARE=%SCRIPT_DIR%"
     if /i "%UNC_SHARE:~-1%"=="\" set "UNC_SHARE=%UNC_SHARE:~0,-1%"
+    echo UNC_SHARE: %UNC_SHARE%
 
     set "V_STATUS="
+    set "V_REMOTE="
     for /f "tokens=1,2,3,*" %%A in ('net use ^| findstr /i "^V:"') do (
         set "V_STATUS=%%A"
         set "V_REMOTE=%%D"
@@ -95,9 +102,6 @@ if "%opt%"=="9" goto quit
 
 goto menu
 
-REM ------------------------------------------------
-REM  Hauptsystem in eigenem Fenster starten
-REM ------------------------------------------------
 :main
 cls
 echo ============================================
@@ -115,9 +119,6 @@ echo.
 pause
 goto menu
 
-REM ------------------------------------------------
-REM  Ringe starten (je eigenes Fenster)
-REM ------------------------------------------------
 :ring1
 if exist "%ROOT_DIR%Start_Ring_1.bat" (
     echo Starte Ring 1...
@@ -160,9 +161,6 @@ echo Alle vorhandenen Ring-Skripte wurden gestartet (sofern vorhanden).
 pause
 goto menu
 
-REM ------------------------------------------------
-REM  DEV-Ring in eigenem Fenster
-REM ------------------------------------------------
 :dev_ring
 cls
 echo ============================================
@@ -180,9 +178,6 @@ echo.
 pause
 goto menu
 
-REM ------------------------------------------------
-REM  Server-IP setzen und Start_Ring_1/2/3.bat erzeugen
-REM ------------------------------------------------
 :setup_rings
 cls
 echo ============================================
@@ -215,10 +210,6 @@ echo Ring-Skripte wurden erzeugt/aktualisiert.
 pause
 goto menu
 
-REM ------------------------------------------------
-REM  Hilfsroutine: Ring-Skript schreiben (mit venv-Erstellung)
-REM  Aufruf: call :write_ring_script <RingNummer> <Port>
-REM ------------------------------------------------
 :write_ring_script
 set "RING_NO=%1"
 set "RING_PORT=%2"
@@ -301,9 +292,6 @@ echo exit /b 0
 
 goto :eof
 
-REM ------------------------------------------------
-REM  Python-Check
-REM ------------------------------------------------
 :check_python
 cls
 echo ============================================
@@ -340,4 +328,6 @@ goto menu
 
 :quit
 endlocal
+echo Launcher beendet.
+pause
 exit /b 0
