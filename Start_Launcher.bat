@@ -4,64 +4,22 @@ title AgilitySoftware Launcher
 
 set "SCRIPT_DIR=%~dp0"
 set "IS_UNC=0"
-set "ROOT_DIR=%SCRIPT_DIR%"
-
-echo ============================================
-echo   AgilitySoftware Launcher - Kurzdiagnose
-echo ============================================
-echo SCRIPT_DIR: %SCRIPT_DIR%
-echo Current CD: %CD%
-
 if "%SCRIPT_DIR:~0,2%"=="\\" set "IS_UNC=1"
-echo UNC erkannt: %IS_UNC%
 
 if "%IS_UNC%"=="1" (
-    echo UNC-Start erkannt. Versuche Mapping auf V: ...
-    set "UNC_SHARE=%SCRIPT_DIR%"
-    if /i "%UNC_SHARE:~-1%"=="\" set "UNC_SHARE=%UNC_SHARE:~0,-1%"
-
-    set "V_STATUS="
-    for /f "tokens=1,2,3,*" %%A in ('net use ^| findstr /i "^V:"') do (
-        set "V_STATUS=%%A"
-        set "V_REMOTE=%%D"
-    )
-
-    if not defined V_STATUS (
-        echo V: ist frei. Mappe V: -> %UNC_SHARE%
-        net use V: "%UNC_SHARE%" /persistent:no >nul 2>&1
-        if errorlevel 1 (
-            echo FEHLER: Mapping auf V: fehlgeschlagen.
-            pause
-            exit /b 1
-        )
-        set "ROOT_DIR=V:\"
-    ) else (
-        echo V: ist belegt.
-        echo V: zeigt auf: %V_REMOTE%
-        if /i "%V_REMOTE%"=="%UNC_SHARE%" (
-            echo V: zeigt bereits auf das gleiche Share. Verwende V:.
-            set "ROOT_DIR=V:\"
-        ) else (
-            echo FEHLER: V: ist belegt und zeigt auf ein anderes Share.
-            echo Bitte V: freigeben oder Launcher lokal starten.
-            pause
-            exit /b 1
-        )
-    )
-) else (
-    echo Kein UNC-Start erkannt.
-)
-
-echo ROOT_DIR: %ROOT_DIR%
-cd /d "%ROOT_DIR%"
-if errorlevel 1 (
-    echo FEHLER: Konnte nicht in ROOT_DIR wechseln.
+    echo FEHLER: UNC-Pfad erkannt. Bitte das Projekt auf ein lokales Laufwerk kopieren.
+    echo Pfad: %SCRIPT_DIR%
     pause
     exit /b 1
 )
-echo Aktuelles CD nach Wechsel: %CD%
-echo.
-pause
+
+REM Immer in den Ordner wechseln, in dem diese BAT liegt
+cd /d "%SCRIPT_DIR%" || (
+    echo FEHLER: Konnte nicht in den Projektordner wechseln.
+    echo Pfad: %SCRIPT_DIR%
+    pause
+    exit /b 1
+)
 
 :menu
 cls
