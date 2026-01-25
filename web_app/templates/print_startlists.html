@@ -16,6 +16,8 @@
 
         .group-container { page-break-after: always; }
         .group-container:last-child { page-break-after: auto; }
+
+        .run-meta { font-size: 10pt; margin: 0 0 8px 0; color: #555; }
         
         table { width: 100%; border-collapse: collapse; font-size: 10pt; }
         th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
@@ -30,34 +32,41 @@
     </header>
 
     <main>
-        {% for cat, classes in grouped_entries.items()|sort %}
-            {% for cls, entries in classes.items()|sort %}
-                <div class="group-container">
-                    <h3>Kategorie: {{ cat }} - Klasse: {{ cls }}</h3>
+        {% for run in ordered_runs %}
+            <div class="group-container">
+                <h3>{{ run.name }}</h3>
+                <p class="run-meta">Kategorie: {{ run.kategorie or 'N/A' }} | Klasse: {{ run.klasse or 'N/A' }}</p>
+                {% if run.entries %}
                     <table>
                         <thead>
                             <tr>
                                 <th style="width:10%;">Start-Nr.</th>
-                                <th style="width:30%;">Hundeführer</th>
-                                <th style="width:30%;">Hund</th>
-                                <th style="width:15%;">Kategorie</th>
-                                <th style="width:15%;">Klasse</th>
+                                <th style="width:35%;">Hundeführer</th>
+                                <th style="width:35%;">Hund</th>
+                                <th style="width:10%;">Kategorie</th>
+                                <th style="width:10%;">Klasse</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for entry in entries %}
+                            {% for entry in run.entries %}
                                 <tr>
                                     <td><strong>{{ entry.Startnummer }}</strong></td>
                                     <td>{{ entry.Hundefuehrer }}</td>
                                     <td>{{ entry.Hundename }} ({{ entry.Lizenznummer }})</td>
-                                    <td>{{ entry.Kategorie }}</td>
-                                    <td>{{ entry.Klasse }}</td>
+                                    <td>{{ run.kategorie or 'N/A' }}</td>
+                                    <td>{{ run.klasse or 'N/A' }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
-                </div>
-            {% endfor %}
+                {% else %}
+                    <p>Keine Startenden für diesen Lauf.</p>
+                {% endif %}
+            </div>
+        {% else %}
+            <p style="text-align: center; font-weight: bold; margin-top: 2cm;">
+                Keine Läufe im Zeitplan gefunden.
+            </p>
         {% endfor %}
     </main>
 </body>

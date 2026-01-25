@@ -28,13 +28,16 @@
     {% include 'print/_print_header.html' %}
 
     <main>
+        {% if briefing_hint %}
+            <p><strong>{{ briefing_hint }}</strong></p>
+        {% endif %}
         {# NEU: Schleife über "Begehungen" statt "Läufe" (Punkt 4) #}
         {% for session in briefing_sessions %}
             <div class="session-container page-break">
                 <h3>{{ session.title }}</h3>
                 {% if session.groups %}
                     {% for group in session.groups %}
-                        <h4>Gruppe {{ group.group_index }} (Starter {{ group.start_nr_von }} - {{ group.start_nr_bis }})</h4>
+                        <h4>{{ session.title }} – Gruppe {{ group.group_index }} (Startnr. {{ group.start_nr_von }} - {{ group.start_nr_bis }})</h4>
                         <ul>
                             {% for entry in group.participants %}
                                 <li>{{ entry.Startnummer }} - {{ entry.Hundefuehrer }}</li>

@@ -1,10 +1,14 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
-title AgilitySoftware Launcher
+title AgilitySoftware Launcher (DEBUG)
 
+echo [DEBUG] Initialisiere Launcher...
 set "SCRIPT_DIR=%~dp0"
 set "IS_UNC=0"
 if "%SCRIPT_DIR:~0,2%"=="\\" set "IS_UNC=1"
+
+echo [DEBUG] SCRIPT_DIR=%SCRIPT_DIR%
+echo [DEBUG] IS_UNC=%IS_UNC%
 
 if "%IS_UNC%"=="1" (
     echo FEHLER: UNC-Pfad erkannt. Bitte das Projekt auf ein lokales Laufwerk kopieren.
@@ -13,7 +17,6 @@ if "%IS_UNC%"=="1" (
     exit /b 1
 )
 
-REM Immer in den Ordner wechseln, in dem diese BAT liegt
 cd /d "%SCRIPT_DIR%" || (
     echo FEHLER: Konnte nicht in den Projektordner wechseln.
     echo Pfad: %SCRIPT_DIR%
@@ -24,7 +27,7 @@ cd /d "%SCRIPT_DIR%" || (
 :menu
 cls
 echo ============================================
-echo        AgilitySoftware - Launcher
+echo        AgilitySoftware - Launcher (DEBUG)
 echo ============================================
 echo.
 echo  [1] Hauptsystem starten      (Start_AgilitySoftware.bat)
@@ -40,6 +43,8 @@ echo.
 choice /c 12345DSCQ /n /m "Auswahl: "
 
 set "opt=%errorlevel%"
+
+echo [DEBUG] Auswahl=%opt%
 
 if "%opt%"=="1" goto main
 if "%opt%"=="2" goto ring1
@@ -68,6 +73,8 @@ if exist "Start_AgilitySoftware.bat" (
     start "Agility Main" cmd /k "cd /d ""%~dp0"" & call ""Start_AgilitySoftware.bat"""
 ) else (
     echo FEHLER: Start_AgilitySoftware.bat nicht gefunden.
+    pause
+    exit /b 1
 )
 echo.
 pause
@@ -83,6 +90,8 @@ if exist "Start_Ring_1.bat" (
 ) else (
     echo FEHLER: Start_Ring_1.bat nicht gefunden.
     echo Tipp: Im Launcher Option [S] ausfuehren, um die Skripte zu erzeugen.
+    pause
+    exit /b 1
 )
 pause
 goto menu
@@ -94,6 +103,8 @@ if exist "Start_Ring_2.bat" (
 ) else (
     echo FEHLER: Start_Ring_2.bat nicht gefunden.
     echo Tipp: Im Launcher Option [S] ausfuehren, um die Skripte zu erzeugen.
+    pause
+    exit /b 1
 )
 pause
 goto menu
@@ -105,6 +116,8 @@ if exist "Start_Ring_3.bat" (
 ) else (
     echo FEHLER: Start_Ring_3.bat nicht gefunden.
     echo Tipp: Im Launcher Option [S] ausfuehren, um die Skripte zu erzeugen.
+    pause
+    exit /b 1
 )
 pause
 goto menu
@@ -135,6 +148,8 @@ if exist "Start_Ring_dev.bat" (
     start "Ring DEV" cmd /k "cd /d ""%~dp0"" & call ""Start_Ring_dev.bat"""
 ) else (
     echo FEHLER: Start_Ring_dev.bat nicht gefunden.
+    pause
+    exit /b 1
 )
 echo.
 pause
@@ -169,6 +184,12 @@ pause
 call :write_ring_script 1 5001
 call :write_ring_script 2 5002
 call :write_ring_script 3 5003
+
+if errorlevel 1 (
+    echo FEHLER: Ring-Skripte konnten nicht erzeugt werden.
+    pause
+    exit /b 1
+)
 
 echo.
 echo Ring-Skripte wurden erzeugt/aktualisiert.
@@ -259,6 +280,12 @@ echo endlocal
 echo exit /b 0
 ) > "%RING_FILE%"
 
+if errorlevel 1 (
+    echo FEHLER: Schreiben von %RING_FILE% fehlgeschlagen.
+    pause
+    exit /b 1
+)
+
 goto :eof
 
 REM ------------------------------------------------
@@ -299,5 +326,7 @@ pause
 goto menu
 
 :quit
+echo Beenden...
+pause
 endlocal
 exit /b 0
