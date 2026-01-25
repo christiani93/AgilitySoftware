@@ -62,10 +62,9 @@ echo ============================================
 echo   Hauptsystem starten
 echo ============================================
 echo.
-if exist "Start_AgilitySoftware.bat" (
+if exist "%ROOT_DIR%Start_AgilitySoftware.bat" (
     echo Starte Hauptsystem in eigenem Fenster...
     echo.
-    set "ROOT_DIR=%~dp0"
     start "Agility Main" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_AgilitySoftware.bat\""
 ) else (
     echo FEHLER: Start_AgilitySoftware.bat nicht gefunden.
@@ -78,9 +77,9 @@ REM ------------------------------------------------
 REM  Ringe starten (je eigenes Fenster)
 REM ------------------------------------------------
 :ring1
-if exist "Start_Ring_1.bat" (
+if exist "%ROOT_DIR%Start_Ring_1.bat" (
     echo Starte Ring 1...
-    start "Ring 1" "Start_Ring_1.bat"
+    start "Ring 1" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_1.bat\""
 ) else (
     echo FEHLER: Start_Ring_1.bat nicht gefunden.
     echo Tipp: Im Launcher Option [S] ausfuehren, um die Skripte zu erzeugen.
@@ -89,9 +88,9 @@ pause
 goto menu
 
 :ring2
-if exist "Start_Ring_2.bat" (
+if exist "%ROOT_DIR%Start_Ring_2.bat" (
     echo Starte Ring 2...
-    start "Ring 2" "Start_Ring_2.bat"
+    start "Ring 2" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_2.bat\""
 ) else (
     echo FEHLER: Start_Ring_2.bat nicht gefunden.
     echo Tipp: Im Launcher Option [S] ausfuehren, um die Skripte zu erzeugen.
@@ -100,9 +99,9 @@ pause
 goto menu
 
 :ring3
-if exist "Start_Ring_3.bat" (
+if exist "%ROOT_DIR%Start_Ring_3.bat" (
     echo Starte Ring 3...
-    start "Ring 3" "Start_Ring_3.bat"
+    start "Ring 3" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_3.bat\""
 ) else (
     echo FEHLER: Start_Ring_3.bat nicht gefunden.
     echo Tipp: Im Launcher Option [S] ausfuehren, um die Skripte zu erzeugen.
@@ -112,9 +111,9 @@ goto menu
 
 :all_rings
 echo Starte alle Ringe (1-3)...
-if exist "Start_Ring_1.bat" start "Ring 1" "Start_Ring_1.bat"
-if exist "Start_Ring_2.bat" start "Ring 2" "Start_Ring_2.bat"
-if exist "Start_Ring_3.bat" start "Ring 3" "Start_Ring_3.bat"
+if exist "%ROOT_DIR%Start_Ring_1.bat" start "Ring 1" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_1.bat\""
+if exist "%ROOT_DIR%Start_Ring_2.bat" start "Ring 2" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_2.bat\""
+if exist "%ROOT_DIR%Start_Ring_3.bat" start "Ring 3" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_3.bat\""
 echo Alle vorhandenen Ring-Skripte wurden gestartet (sofern vorhanden).
 pause
 goto menu
@@ -128,12 +127,10 @@ echo ============================================
 echo   DEV-Ring (Start_Ring_dev.bat)
 echo ============================================
 echo.
-if exist "Start_Ring_dev.bat" (
+if exist "%ROOT_DIR%Start_Ring_dev.bat" (
     echo Starte DEV-Ring in eigenem Fenster...
     echo.
-    REM Wir sind bereits im Projekt-Root (cd /d "%~dp0" am Anfang des Launchers)
-    REM -> also reicht ein einfacher start-Aufruf ohne cmd /k-Magie
-    start "Ring DEV" "Start_Ring_dev.bat"
+    start "Ring DEV" cmd /k "cd /d \"%ROOT_DIR%\" && \"%ROOT_DIR%Start_Ring_dev.bat\""
 ) else (
     echo FEHLER: Start_Ring_dev.bat nicht gefunden.
 )
@@ -183,7 +180,7 @@ REM ------------------------------------------------
 :write_ring_script
 set "RING_NO=%1"
 set "RING_PORT=%2"
-set "RING_FILE=Start_Ring_%RING_NO%.bat"
+set "RING_FILE=%ROOT_DIR%Start_Ring_%RING_NO%.bat"
 
 (
 echo @echo off
