@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, abort, request, redirect, url_for,
 from datetime import datetime
 import csv
 import io
-from utils import (_load_data, _calculate_run_results, _load_settings,
+from utils import (_load_data, _save_data, _calculate_run_results, _load_settings,
                    _calculate_timelines, get_category_sort_key)
 from planner.print_order import get_ordered_runs_for_print, build_briefing_sessions
 
@@ -32,7 +32,20 @@ def print_schedule(event_id):
     """Druckansicht für den Zeitplan."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
+    try:
+        timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
+    except Exception:
+        timelines_by_ring = None
+    if not timelines_by_ring:
+        fallback_event = dict(event)
+        fallback_event.pop('schedule', None)
+        try:
+            timelines_by_ring = _calculate_timelines(fallback_event, round_to_minutes=5)
+        except Exception:
+            timelines_by_ring = None
+    if not timelines_by_ring:
+        num_rings = event.get('num_rings') or 1
+        timelines_by_ring = {str(ring): [] for ring in range(1, num_rings + 1)}
     judges_map = {j['id']: f"{j.get('firstname', '')} {j.get('lastname', '')}" for j in _load_data('judges.json')}
     return render_template('print/schedule.html', event=event, timelines_by_ring=timelines_by_ring, judges_map=judges_map)
 

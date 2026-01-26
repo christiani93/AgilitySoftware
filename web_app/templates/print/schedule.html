@@ -33,7 +33,7 @@
     <main>
         {% for ring, timeline in timelines_by_ring.items()|sort %}
         <div class="ring-page">
-            <h3>Zeitplan Ring {{ ring }} (Start: {{ event.start_times_by_ring.get('ring_' + ring, 'N/A') }})</h3>
+            <h3>Zeitplan Ring {{ ring }} (Start: {{ (event.start_times_by_ring or {}).get('ring_' + ring, 'N/A') }})</h3>
             <table>
                 <thead>
                     <tr>
