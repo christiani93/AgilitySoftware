@@ -16,6 +16,7 @@
             <li><a class="dropdown-item" href="{{ url_for('print_bp.print_startlists', event_id=event.id) }}" target="_blank">Startlisten</a></li>
             <li><a class="dropdown-item" href="{{ url_for('print_bp.print_stewardlists', event_id=event.id) }}" target="_blank">Ringschreiberlisten</a></li>
             <li><a class="dropdown-item" href="{{ url_for('print_bp.print_master_steward_list', event_id=event.id) }}" target="_blank">Einweiserlisten</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_schedule', event_id=event.id) }}" target="_blank">Zeitplan</a></li>
           </ul>
         </div>
         <button class="btn btn-primary" form="form-save-schedule">Zeitplan speichern</button>
