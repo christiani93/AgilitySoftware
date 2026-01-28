@@ -9,6 +9,13 @@ from planner.print_order import get_ordered_runs_for_print, build_briefing_sessi
 
 print_bp = Blueprint('print_bp', __name__, template_folder='../templates')
 
+@print_bp.route('/print/<event_id>')
+def print_index(event_id):
+    """Übersichtsseite für Vorbereitungsdrucksachen."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+    return render_template('print/index.html', event=event)
+
 def _get_enriched_participants(event):
     """Hilfsfunktion, um Teilnehmerdaten mit Kategorie und Klasse anzureichern."""
     all_entries = [entry for run in event.get('runs', []) for entry in run.get('entries', []) if entry.get('Startnummer')]
@@ -156,7 +163,7 @@ def print_award_list(event_id):
     for run in runs_to_print:
         results = _calculate_run_results(run, settings)
         award_data.append({'name': run.get('name'), 'full_judge_name': judges_map.get(run.get('richter_id'), 'N/A'), 'rankings': results})
-    return render_template('print_award_list.html', event_name=event.get('Bezeichnung'), award_data=award_data, event_id=event_id)
+    return render_template('print_award_list.html', event=event, event_name=event.get('Bezeichnung'), award_data=award_data, event_id=event_id)
 
 @print_bp.route('/print/tkamo_export/<event_id>')
 def tkamo_export(event_id):
