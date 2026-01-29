@@ -5,11 +5,6 @@
     <div class="print-header__titles">
         <div class="print-header__title">{{ title }}</div>
         <div class="print-header__subtitle">{{ event.Bezeichnung }} - {{ event.Datum | format_date }}</div>
-        <div class="print-header__meta">
-            <div>Richter: {{ header_judge if header_judge is defined else '—' }}</div>
-            <div>Parcoursdaten: {{ header_course if header_course is defined else '—' }}</div>
-            <div>SCT/MCT: {{ header_sct_mct if header_sct_mct is defined else '—' }}</div>
-        </div>
     </div>
     <div class="print-header__logo print-header__logo--right">
         <div class="print-header__logo-box">Vereinslogo</div>
