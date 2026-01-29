@@ -5,31 +5,38 @@
     <title>Startliste - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; }
-        @page { size: A4; margin: 2.5cm 1.5cm 1.5cm 1.5cm; }
-        
-        /* NEU: Wiederholender Header (Punkt 2) */
-        .print-header { position: fixed; top: 0; left: 0; right: 0; height: 2cm; text-align: center; }
-        .print-header h1, .print-header h2 { margin: 0; }
-        .print-header h2 { font-size: 1.2em; }
-        .print-header h1 { font-size: 1em; color: #666; font-weight: normal; }
-        main { padding-top: 2cm; }
+        :root { --print-header-height: 90px; }
+        @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
+
+        .print-header { position: fixed; top: 0; left: 0; right: 0; height: var(--print-header-height); display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: #fff; z-index: 10; }
+        .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
+        .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .print-header__titles { text-align: center; flex: 1; font-size: 10pt; }
+        .print-header__title { font-size: 1.1em; font-weight: 600; }
+        .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
+        .print-header__meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 9pt; color: #444; }
+        main { margin-top: calc(var(--print-header-height) + 20px); }
 
         .group-container { page-break-after: always; }
         .group-container:last-child { page-break-after: auto; }
 
         .run-meta { font-size: 10pt; margin: 0 0 8px 0; color: #555; }
         
-        table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+        table { width: 100%; border-collapse: collapse; font-size: 10pt; page-break-inside: auto; }
         th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
         th { background-color: #f2f2f2; }
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
         h3 { background-color: #e9ecef; font-size: 14pt; padding: 8px; text-align: left; margin-top: 1cm; margin-bottom: 5px;}
+
+        @media print {
+            body { margin: 0; }
+        }
     </style>
 </head>
 <body>
-    <header class="print-header">
-        <h1>{{ event.Bezeichnung }} - {{ event.Datum | format_date }}</h1>
-        <h2>Offizielle Startliste</h2>
-    </header>
+    {% set title = 'Offizielle Startliste' %}
+    {% include 'print/_print_header.html' %}
 
     <main>
         {% for run in ordered_runs %}

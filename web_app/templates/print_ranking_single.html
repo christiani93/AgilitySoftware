@@ -5,8 +5,15 @@
     <title>Rangliste: {{ run.name }}</title>
     <style>
         body { font-family: sans-serif; }
-        @page { size: A4; margin: 1.5cm; }
-        .info-header { display: flex; justify-content: space-around; font-size: 10pt; margin-bottom: 1cm; border-bottom: 1px solid #ccc; padding-bottom: 5px;}
+        @page { size: A4; margin: 2.5cm 1.5cm 1.5cm 1.5cm; }
+        .print-header { position: fixed; top: 0; left: 0; right: 0; height: 3cm; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
+        .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .print-header__titles { text-align: center; flex: 1; font-size: 10pt; }
+        .print-header__title { font-size: 1.1em; font-weight: 600; }
+        .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
+        .print-header__meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 9pt; color: #444; }
+        main { padding-top: 3.3cm; }
         table { width: 100%; border-collapse: collapse; font-size: 9pt; }
         th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
         th { background-color: #f2f2f2; }
@@ -15,16 +22,13 @@
 </head>
 <body>
     {% set title = "Rangliste: " ~ run.name %}
+    {% set judge = (judges|selectattr('id', 'equalto', run.richter_id)|first) %}
+    {% set header_judge = judge.firstname ~ ' ' ~ judge.lastname if judge else 'N/A' %}
+    {% set header_course = (run.get('laufdaten', {}).get('parcours_laenge', '___') ~ 'm / ' ~ run.get('laufdaten', {}).get('anzahl_hindernisse', '___') ~ ' Geräte') %}
+    {% set header_sct_mct = (run.get('laufdaten', {}).get('standardzeit_sct_gerundet', '___') ~ 's / ' ~ run.get('laufdaten', {}).get('maximalzeit_mct_gerundet', '___') ~ 's') %}
     {% include 'print/_print_header.html' %}
 
-    <div class="info-header">
-        {% set judge = (judges|selectattr('id', 'equalto', run.richter_id)|first) %}
-        <span>Richter: {{ judge.firstname ~ ' ' ~ judge.lastname if judge else 'N/A' }}</span>
-        <span>Parcours: {{ run.get('laufdaten', {}).get('parcours_laenge', '___') }}m</span>
-        <span>Standardzeit: {{ run.get('laufdaten', {}).get('standardzeit_sct_gerundet', '___') }}s</span>
-        <span>Maximalzeit: {{ run.get('laufdaten', {}).get('maximalzeit_mct_gerundet', '___') }}s</span>
-    </div>
-
+    <main>
     <table>
         <thead>
             <tr>
@@ -57,5 +61,6 @@
             {% endfor %}
         </tbody>
     </table>
+    </main>
 </body>
 </html>
