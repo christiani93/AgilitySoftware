@@ -2,12 +2,11 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Teilnehmerliste - {{ event.Bezeichnung }}</title>
+    <title>Vorbereitungsdrucksachen - {{ event.Bezeichnung }}</title>
     <style>
-        body{font-family: sans-serif;}
-        table{width: 100%; border-collapse: collapse;}
-        th, td{border: 1px solid #ddd; padding: 8px; text-align: left;}
-        th{background-color: #f2f2f2;}
+        body { font-family: sans-serif; }
+        @page { size: A4; margin: 2.5cm 1.5cm 1.5cm 1.5cm; }
+
         .print-header { position: fixed; top: 0; left: 0; right: 0; height: 3cm; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
         .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
         .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
@@ -15,36 +14,26 @@
         .print-header__title { font-size: 1.1em; font-weight: 600; }
         .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
         .print-header__meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 9pt; color: #444; }
+
         main { padding-top: 3.3cm; }
+        ul { list-style: none; padding: 0; margin: 1cm 0; }
+        li { margin-bottom: 0.5cm; }
+        a { color: #111; text-decoration: none; font-size: 12pt; }
+        a span { border-bottom: 1px solid #999; }
     </style>
 </head>
 <body>
-    {% set title = 'Teilnehmerliste (alphabetisch)' %}
+    {% set title = 'Vorbereitungsdrucksachen' %}
     {% include 'print/_print_header.html' %}
 
     <main>
-    <table>
-        <thead>
-            <tr>
-                <th>Hundeführer</th>
-                <th>Hund</th>
-                <th>Lizenz</th>
-                <th>Start-Nr.</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for p in participants %}
-            <tr>
-                <td>{{ p.Hundefuehrer_Nachname }}, {{ p.Hundefuehrer_Vorname }}</td>
-                <td>{{ p.Hundename }}</td>
-                <td>{{ p.Lizenznummer }}</td>
-                <td><strong>{{ p.Startnummer or '-' }}</strong></td>
-            </tr>
-            {% else %}
-            <tr><td colspan="4">Keine Teilnehmer gefunden.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <p>Bitte wählen:</p>
+        <ul>
+            <li><a href="{{ url_for('print_bp.print_startlists', event_id=event.id) }}" target="_blank"><span>Startlisten</span></a></li>
+            <li><a href="{{ url_for('print_bp.print_master_steward_list', event_id=event.id) }}" target="_blank"><span>Einweiserlisten</span></a></li>
+            <li><a href="{{ url_for('print_bp.print_stewardlists', event_id=event.id) }}" target="_blank"><span>Ringschreiberlisten</span></a></li>
+            <li><a href="{{ url_for('print_bp.print_schedule', event_id=event.id) }}" target="_blank"><span>Zeitplan</span></a></li>
+        </ul>
     </main>
 </body>
 </html>
