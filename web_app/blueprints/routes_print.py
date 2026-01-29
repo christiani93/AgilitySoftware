@@ -5,7 +5,12 @@ import csv
 import io
 from utils import (_load_data, _save_data, _calculate_run_results, _load_settings,
                    _calculate_timelines, get_category_sort_key)
-from planner.print_order import get_ordered_runs_for_print, build_briefing_sessions
+from planner.print_order import get_ordered_runs_for_print
+from planner.briefing_groups import (
+    build_briefing_sessions as build_schedule_briefing_sessions,
+    collect_participants_for_session,
+    split_into_groups,
+)
 
 print_bp = Blueprint('print_bp', __name__, template_folder='../templates')
 
@@ -56,15 +61,52 @@ def print_schedule(event_id):
     judges_map = {j['id']: f"{j.get('firstname', '')} {j.get('lastname', '')}" for j in _load_data('judges.json')}
     return render_template('print/schedule.html', event=event, timelines_by_ring=timelines_by_ring, judges_map=judges_map)
 
+@print_bp.route('/print/briefing_groups')
 @print_bp.route('/print/briefing_groups/<event_id>')
-def print_briefing_groups(event_id):
+def print_briefing_groups(event_id=None):
     """Druckansicht für die Begehungsgruppen, neu strukturiert pro Begehung."""
-    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
-    if not event: abort(404)
-    briefing_sessions = build_briefing_sessions(event)
-    briefing_blocks = [block for block in event.get('run_order', []) if block.get('laufart') == 'Briefing']
-    briefing_hint = "Nur 1 Begehung geplant." if len(briefing_blocks) <= 1 else None
-    return render_template('print/briefing_groups.html', event=event, briefing_sessions=briefing_sessions, briefing_hint=briefing_hint)
+    events = _load_data('events.json')
+    if event_id is None:
+        event = events[0] if events else None
+    else:
+        event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+
+    settings = _load_settings()
+    group_size = (settings.get('briefing') or {}).get('group_size', 50)
+
+    schedule = event.get('schedule') or {}
+    rings = schedule.get('rings') or {}
+    dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
+    sessions_by_ring = []
+
+    for ring_key in sorted(rings.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
+        ring_data = rings.get(ring_key) or {}
+        blocks = ring_data.get('blocks') or []
+        sessions = build_schedule_briefing_sessions(blocks)
+        ring_sessions = []
+        for index, session in enumerate(sessions, start=1):
+            participants = collect_participants_for_session(session, event)
+            for entry in participants:
+                dog_info = dogs_map.get(entry.get('Lizenznummer'), {})
+                entry.setdefault('Kategorie', dog_info.get('Kategorie'))
+                entry.setdefault('Klasse', dog_info.get('Klasse'))
+            groups = split_into_groups(participants, group_size)
+            ring_sessions.append({
+                "title": session.get("title") or f"Briefing {index}",
+                "session_index": index,
+                "participant_count": len(participants),
+                "group_count": len(groups),
+                "group_size": group_size,
+                "groups": groups,
+            })
+        sessions_by_ring.append({
+            "ring": ring_key,
+            "sessions": ring_sessions,
+        })
+
+    return render_template('print/briefing_groups.html', event=event, sessions_by_ring=sessions_by_ring)
 
 @print_bp.route('/print/startlists/<event_id>')
 def print_startlists(event_id):
