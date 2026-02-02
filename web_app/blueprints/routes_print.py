@@ -78,12 +78,19 @@ def print_briefing_groups(event_id=None):
 
     schedule = event.get('schedule') or {}
     rings = schedule.get('rings') or {}
+    schedule_blocks_count = 0
+    briefing_blocks_count = 0
     dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
     sessions_by_ring = []
 
     for ring_key in sorted(rings.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
         ring_data = rings.get(ring_key) or {}
         blocks = ring_data.get('blocks') or []
+        schedule_blocks_count += len(blocks)
+        briefing_blocks_count += sum(
+            1 for block in blocks
+            if (block.get('type') or '').lower() == 'briefing' or block.get('laufart') == 'Briefing'
+        )
         sessions = build_schedule_briefing_sessions(blocks)
         ring_sessions = []
         for index, session in enumerate(sessions, start=1):
@@ -106,7 +113,18 @@ def print_briefing_groups(event_id=None):
             "sessions": ring_sessions,
         })
 
-    return render_template('print/briefing_groups.html', event=event, sessions_by_ring=sessions_by_ring)
+    sessions_count = sum(len(ring_data.get('sessions', [])) for ring_data in sessions_by_ring)
+    debug_enabled = request.args.get('debug') == '1'
+    return render_template(
+        'print/briefing_groups.html',
+        event=event,
+        sessions_by_ring=sessions_by_ring,
+        schedule=schedule,
+        schedule_blocks_count=schedule_blocks_count,
+        briefing_blocks_count=briefing_blocks_count,
+        sessions_count=sessions_count,
+        debug_enabled=debug_enabled,
+    )
 
 @print_bp.route('/print/startlists/<event_id>')
 def print_startlists(event_id):

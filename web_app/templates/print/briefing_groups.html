@@ -23,6 +23,7 @@
 
         .session-container { page-break-inside: avoid; margin-bottom: 1.5cm; }
         .page-break { page-break-after: always; }
+        h1 { font-size: 18pt; margin: 0 0 12px; }
         h3 { font-size: 16pt; margin-bottom: 10px; border-bottom: 2px solid #333; padding-bottom: 5px; }
         h4 { font-size: 12pt; margin-top: 15px; margin-bottom: 5px; }
         table { width: 100%; border-collapse: collapse; font-size: 9pt; }
@@ -45,6 +46,13 @@
         <tbody>
             <tr>
                 <td>
+        <h1>Briefing-Gruppen</h1>
+        {% if debug_enabled %}
+            <p><strong>Debug:</strong> schedule_blocks={{ schedule_blocks_count }}, briefing_blocks={{ briefing_blocks_count }}, sessions={{ sessions_count }}</p>
+        {% endif %}
+        {% if sessions_count == 0 %}
+            <p><strong>Keine Briefing-Blöcke im Zeitplan gefunden.</strong></p>
+        {% endif %}
         {% for ring_data in sessions_by_ring %}
             {% for session in ring_data.sessions %}
                 <div class="session-container page-break">
