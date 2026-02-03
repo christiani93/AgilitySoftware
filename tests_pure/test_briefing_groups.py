@@ -1,10 +1,12 @@
 from planner.briefing_groups import (
+    apply_group_summaries,
     build_briefing_sessions,
     build_briefing_sessions_from_timeline,
     collect_participants_for_session,
     is_briefing_block,
+    session_title_from_run_blocks,
     split_into_groups,
-    summarize_group_ranges,
+    summarize_group_ranges_with_occurrences,
 )
 
 
@@ -103,7 +105,7 @@ def test_range_summarization():
         {"Startnummer": "4", "Kategorie": "Large", "Klasse": "2"},
         {"Startnummer": "5", "Kategorie": "Large", "Klasse": "3"},
     ]
-    summary = summarize_group_ranges(participants)
+    summary = summarize_group_ranges_with_occurrences(participants, {})
     assert summary == "L1, L2, L3"
 
 
@@ -114,5 +116,28 @@ def test_range_summarization_with_split_segment():
         {"Startnummer": "3", "Kategorie": "Intermediate", "Klasse": "3"},
         {"Startnummer": "4", "Kategorie": "Large", "Klasse": "3"},
     ]
-    summary = summarize_group_ranges(participants)
+    summary = summarize_group_ranges_with_occurrences(participants, {})
     assert summary == "L3 1–2, I3, L3 4"
+
+
+def test_occurrence_based_ranges():
+    participants = [_entry(idx, f"L{idx}", f"H{idx}") for idx in range(1, 111)]
+    for entry in participants:
+        entry["Kategorie"] = "Large"
+        entry["Klasse"] = "2"
+    groups = split_into_groups(participants, group_size=50, group_count=3)
+    apply_group_summaries(groups)
+    assert groups[0]["summary"].startswith("L2 ")
+    assert groups[1]["summary"].startswith("L2 ")
+    assert groups[2]["summary"].startswith("L2 ")
+
+
+def test_session_title_uses_first_run_title():
+    run_blocks = [{
+        "type": "run",
+        "timing_run_type": "agility",
+        "size_category": "large",
+        "classes": ["1"],
+    }]
+    title = session_title_from_run_blocks(run_blocks)
+    assert title and "Agility" in title

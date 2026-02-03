@@ -147,6 +147,10 @@ def _even_group_sizes(total: int, group_count: int) -> List[int]:
 
 
 def summarize_group_ranges(participants: List[Dict]) -> str:
+    return summarize_group_ranges_with_occurrences(participants, {})
+
+
+def build_group_segments(participants: List[Dict]) -> List[Dict]:
     segments = []
     current = None
     for entry in participants:
@@ -159,6 +163,11 @@ def summarize_group_ranges(participants: List[Dict]) -> str:
             segments.append(current)
         else:
             current["end"] = start_nr
+    return segments
+
+
+def summarize_group_ranges_with_occurrences(participants: List[Dict], occurrences: Dict[str, int]) -> str:
+    segments = build_group_segments(participants)
     label_counts = {}
     for segment in segments:
         label_counts[segment["label"]] = label_counts.get(segment["label"], 0) + 1
@@ -168,10 +177,11 @@ def summarize_group_ranges(participants: List[Dict]) -> str:
         start = segment.get("start")
         end = segment.get("end")
         label = segment["label"]
-        if len(segments) == 1:
+        show_range = label_counts.get(label, 0) > 1 or occurrences.get(label, 0) > 1
+        if not show_range and len(segments) == 1:
             formatted.append(label)
             continue
-        if label_counts.get(label, 0) > 1:
+        if show_range:
             if start == end:
                 formatted.append(f"{label} {start}")
             else:
@@ -179,6 +189,31 @@ def summarize_group_ranges(participants: List[Dict]) -> str:
         else:
             formatted.append(label)
     return ", ".join(formatted)
+
+
+def apply_group_summaries(groups: List[Dict]) -> None:
+    occurrences: Dict[str, int] = {}
+    for group in groups:
+        labels = {segment["label"] for segment in build_group_segments(group.get("participants", []))}
+        for label in labels:
+            occurrences[label] = occurrences.get(label, 0) + 1
+
+    for group in groups:
+        participants = group.get("participants", [])
+        group["summary"] = summarize_group_ranges_with_occurrences(participants, occurrences)
+
+
+def session_title_from_run_blocks(run_blocks: List[Dict]) -> str | None:
+    if not run_blocks:
+        return None
+    first = run_blocks[0]
+    title = (first.get("title") or "").strip()
+    if title:
+        return title
+    try:
+        return schedule_planner.generate_run_title(first)
+    except Exception:
+        return None
 
 
 def split_into_groups(participants: List[Dict], group_size: int, group_count: int | None = None) -> List[Dict]:
@@ -205,6 +240,6 @@ def split_into_groups(participants: List[Dict], group_size: int, group_count: in
             "start_nr_von": group_entries[0].get("Startnummer"),
             "start_nr_bis": group_entries[-1].get("Startnummer"),
             "participants": group_entries,
-            "summary": summarize_group_ranges(group_entries),
+            "summary": "",
         })
     return groups

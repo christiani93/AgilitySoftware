@@ -66,7 +66,7 @@
         {% for ring_data in sessions_by_ring %}
             {% for session in ring_data.sessions %}
                 <div class="session-container page-break">
-                    <h3>Briefing – Ring {{ ring_data.ring }} – Session {{ session.session_index }}</h3>
+                    <h3>Briefing – Ring {{ ring_data.ring }}{% if session.title %} – {{ session.title }}{% endif %}</h3>
                     <p>Teilnehmer: {{ session.participant_count }} | Gruppen: {{ session.group_count }} | Gruppengröße: {{ session.group_size }}</p>
                     {% if session.groups %}
                         {% for group in session.groups %}

@@ -7,10 +7,12 @@ from utils import (_load_data, _save_data, _calculate_run_results, _load_setting
                    _calculate_timelines, get_category_sort_key)
 from planner.print_order import get_ordered_runs_for_print
 from planner.briefing_groups import (
+    apply_group_summaries,
     build_briefing_sessions,
     build_briefing_sessions_from_timeline,
     collect_participants_for_session,
     is_briefing_block,
+    session_title_from_run_blocks,
     split_into_groups,
 )
 
@@ -124,8 +126,10 @@ def print_briefing_groups(event_id=None):
                 entry.setdefault('Kategorie', dog_info.get('Kategorie'))
                 entry.setdefault('Klasse', dog_info.get('Klasse'))
             groups = split_into_groups(participants, group_size, group_count)
+            apply_group_summaries(groups)
+            session_title = session_title_from_run_blocks(session.get("run_blocks", []))
             ring_sessions.append({
-                "title": session.get("title") or f"Briefing {index}",
+                "title": session_title or session.get("title") or f"Briefing {index}",
                 "session_index": index,
                 "participant_count": len(participants),
                 "group_count": len(groups),
