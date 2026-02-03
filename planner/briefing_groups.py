@@ -7,7 +7,6 @@ from __future__ import annotations
 from typing import Dict, Iterable, List, Tuple
 
 from planner import schedule_planner
-from web_app.utils import get_category_sort_key
 
 NON_RUN_LAUFARTS = {"Pause", "Umbau", "Briefing", "Vorbereitung", "Grossring"}
 
@@ -31,11 +30,8 @@ def _category_label(category: str) -> str:
     return mapping.get(value, value[:1].upper() if value else "")
 
 
-def _participant_sort_key(entry: Dict) -> Tuple[int, str, int]:
-    category = entry.get("Kategorie") or entry.get("kategorie") or ""
-    category_key = get_category_sort_key(category)
-    klasse = str(entry.get("Klasse") or entry.get("klasse") or "")
-    return (category_key, klasse, _startnummer_key(entry))
+def _participant_sort_key(entry: Dict) -> Tuple[int]:
+    return (_startnummer_key(entry),)
 
 
 def _normalize_category(value: str) -> str:
@@ -278,13 +274,13 @@ def session_title_from_run_blocks(run_blocks: List[Dict]) -> str | None:
 
 def split_into_groups(participants: List[Dict], group_size: int, group_count: int | None = None) -> List[Dict]:
     """Split participants into evenly sized groups."""
-    sorted_participants = sorted(participants, key=_participant_sort_key)
-    group_count = _calculate_group_count(len(sorted_participants), group_size, group_count)
-    sizes = _even_group_sizes(len(sorted_participants), group_count)
+    ordered_participants = list(participants)
+    group_count = _calculate_group_count(len(ordered_participants), group_size, group_count)
+    sizes = _even_group_sizes(len(ordered_participants), group_count)
     groups: List[Dict] = []
     offset = 0
     for group_index, size in enumerate(sizes, start=1):
-        group_entries = sorted_participants[offset:offset + size]
+        group_entries = ordered_participants[offset:offset + size]
         offset += size
         if not group_entries:
             groups.append({
