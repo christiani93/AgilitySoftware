@@ -120,14 +120,18 @@ def print_briefing_groups(event_id=None):
         sessions = build_briefing_sessions_from_timeline(timeline_items)
         ring_sessions = []
         for index, session in enumerate(sessions, start=1):
-            participants = collect_participants_for_session(session, event)
+            sort_settings = None
+            run_blocks = session.get("run_blocks", [])
+            if run_blocks:
+                sort_settings = (run_blocks[0].get("sort") or {})
+            participants = collect_participants_for_session(session, event, sort_settings)
             for entry in participants:
                 dog_info = dogs_map.get(entry.get('Lizenznummer'), {})
                 entry.setdefault('Kategorie', dog_info.get('Kategorie'))
                 entry.setdefault('Klasse', dog_info.get('Klasse'))
             groups = split_into_groups(participants, group_size, group_count)
             apply_group_summaries(groups)
-            session_title = session_title_from_run_blocks(session.get("run_blocks", []))
+            session_title = session_title_from_run_blocks(run_blocks)
             ring_sessions.append({
                 "title": session_title or session.get("title") or f"Briefing {index}",
                 "session_index": index,

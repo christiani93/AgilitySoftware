@@ -2,6 +2,7 @@ from planner.briefing_groups import (
     apply_group_summaries,
     build_briefing_sessions,
     build_briefing_sessions_from_timeline,
+    build_participant_sort_key,
     collect_participants_for_session,
     is_briefing_block,
     session_title_from_run_blocks,
@@ -141,3 +142,65 @@ def test_session_title_uses_first_run_title():
     }]
     title = session_title_from_run_blocks(run_blocks)
     assert title and "Agility" in title
+
+
+def test_sort_category_asc():
+    participants = [
+        {"Kategorie": "Large", "Klasse": "1", "Startnummer": "1"},
+        {"Kategorie": "Small", "Klasse": "1", "Startnummer": "2"},
+        {"Kategorie": "Medium", "Klasse": "1", "Startnummer": "3"},
+        {"Kategorie": "Intermediate", "Klasse": "1", "Startnummer": "4"},
+    ]
+    key = build_participant_sort_key({"primary": {"field": "category", "direction": "asc"}})
+    sorted_entries = [p["Kategorie"] for p in sorted(participants, key=key)]
+    assert sorted_entries == ["Small", "Medium", "Intermediate", "Large"]
+
+
+def test_sort_category_desc():
+    participants = [
+        {"Kategorie": "Large", "Klasse": "1", "Startnummer": "1"},
+        {"Kategorie": "Small", "Klasse": "1", "Startnummer": "2"},
+        {"Kategorie": "Medium", "Klasse": "1", "Startnummer": "3"},
+        {"Kategorie": "Intermediate", "Klasse": "1", "Startnummer": "4"},
+    ]
+    key = build_participant_sort_key({"primary": {"field": "category", "direction": "desc"}})
+    sorted_entries = [p["Kategorie"] for p in sorted(participants, key=key)]
+    assert sorted_entries == ["Large", "Intermediate", "Medium", "Small"]
+
+
+def test_sort_class_asc_desc():
+    participants = [
+        {"Kategorie": "Large", "Klasse": "1", "Startnummer": "1"},
+        {"Kategorie": "Large", "Klasse": "3", "Startnummer": "2"},
+        {"Kategorie": "Large", "Klasse": "2", "Startnummer": "3"},
+    ]
+    asc_key = build_participant_sort_key({"primary": {"field": "class", "direction": "asc"}})
+    desc_key = build_participant_sort_key({"primary": {"field": "class", "direction": "desc"}})
+    assert [p["Klasse"] for p in sorted(participants, key=asc_key)] == ["1", "2", "3"]
+    assert [p["Klasse"] for p in sorted(participants, key=desc_key)] == ["3", "2", "1"]
+
+
+def test_primary_secondary_combo():
+    participants = [
+        {"Kategorie": "Large", "Klasse": "1", "Startnummer": "1"},
+        {"Kategorie": "Large", "Klasse": "3", "Startnummer": "2"},
+        {"Kategorie": "Large", "Klasse": "2", "Startnummer": "3"},
+        {"Kategorie": "Intermediate", "Klasse": "1", "Startnummer": "4"},
+        {"Kategorie": "Intermediate", "Klasse": "3", "Startnummer": "5"},
+        {"Kategorie": "Medium", "Klasse": "2", "Startnummer": "6"},
+        {"Kategorie": "Small", "Klasse": "1", "Startnummer": "7"},
+    ]
+    key = build_participant_sort_key({
+        "primary": {"field": "category", "direction": "desc"},
+        "secondary": {"field": "class", "direction": "desc"},
+    })
+    sorted_entries = [(p["Kategorie"], p["Klasse"]) for p in sorted(participants, key=key)]
+    assert sorted_entries == [
+        ("Large", "3"),
+        ("Large", "2"),
+        ("Large", "1"),
+        ("Intermediate", "3"),
+        ("Intermediate", "1"),
+        ("Medium", "2"),
+        ("Small", "1"),
+    ]

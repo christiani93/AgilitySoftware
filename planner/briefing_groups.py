@@ -38,6 +38,64 @@ def _participant_sort_key(entry: Dict) -> Tuple[int, str, int]:
     return (category_key, klasse, _startnummer_key(entry))
 
 
+def _normalize_category(value: str) -> str:
+    value = (value or "").strip().lower()
+    mapping = {
+        "small": "small",
+        "s": "small",
+        "medium": "medium",
+        "m": "medium",
+        "intermediate": "intermediate",
+        "i": "intermediate",
+        "large": "large",
+        "l": "large",
+    }
+    return mapping.get(value, value)
+
+
+def _category_rank(category: str, direction: str) -> int:
+    ranks = {"small": 0, "medium": 1, "intermediate": 2, "large": 3}
+    value = ranks.get(_normalize_category(category), 99)
+    if (direction or "asc").lower() == "desc":
+        return -value
+    return value
+
+
+def _class_rank(klasse: str, direction: str) -> int:
+    ranks = {"1": 0, "2": 1, "3": 2}
+    value = ranks.get(str(klasse), 99)
+    if (direction or "asc").lower() == "desc":
+        return -value
+    return value
+
+
+def build_participant_sort_key(sort_settings: Dict) -> callable:
+    primary = (sort_settings or {}).get("primary") or {}
+    secondary = (sort_settings or {}).get("secondary") or {}
+    primary_field = (primary.get("field") or "none").lower()
+    secondary_field = (secondary.get("field") or "none").lower()
+    primary_dir = (primary.get("direction") or "asc").lower()
+    secondary_dir = (secondary.get("direction") or "asc").lower()
+
+    def _key(entry: Dict) -> Tuple:
+        parts = []
+        if primary_field == "category":
+            parts.append(_category_rank(entry.get("Kategorie") or entry.get("kategorie"), primary_dir))
+        elif primary_field == "class":
+            parts.append(_class_rank(entry.get("Klasse") or entry.get("klasse"), primary_dir))
+
+        if secondary_field == "category":
+            parts.append(_category_rank(entry.get("Kategorie") or entry.get("kategorie"), secondary_dir))
+        elif secondary_field == "class":
+            parts.append(_class_rank(entry.get("Klasse") or entry.get("klasse"), secondary_dir))
+
+        if not parts:
+            return (_startnummer_key(entry),)
+        return tuple(parts + [_startnummer_key(entry)])
+
+    return _key
+
+
 def _text_matches_briefing(value: str) -> bool:
     lowered = (value or "").lower()
     return any(token in lowered for token in ("brief", "begeh", "walkthrough", "inspection"))
@@ -115,7 +173,7 @@ def _match_run_to_block(run_item: Dict, block: Dict) -> bool:
     return True
 
 
-def collect_participants_for_session(session: Dict, event: Dict) -> List[Dict]:
+def collect_participants_for_session(session: Dict, event: Dict, sort_settings: Dict | None = None) -> List[Dict]:
     """Collect unique participants for a session based on its run blocks."""
     participants: Dict[str, Dict] = {}
     runs = event.get("runs", []) or []
@@ -129,6 +187,8 @@ def collect_participants_for_session(session: Dict, event: Dict) -> List[Dict]:
                     if not license_no:
                         continue
                     participants.setdefault(license_no, entry)
+    if sort_settings:
+        return sorted(participants.values(), key=build_participant_sort_key(sort_settings))
     return sorted(participants.values(), key=_participant_sort_key)
 
 
