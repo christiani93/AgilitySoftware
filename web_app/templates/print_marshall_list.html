@@ -5,22 +5,31 @@
     <title>Einweiserlisten - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; }
-        @page { size: A4 landscape; margin: 1.5cm; }
+        @page { size: A4 landscape; margin: 2.5cm 1.5cm 1.5cm 1.5cm; }
+        .print-header { position: fixed; top: 0; left: 0; right: 0; height: 3cm; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
+        .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .print-header__titles { text-align: center; flex: 1; font-size: 10pt; }
+        .print-header__title { font-size: 1.1em; font-weight: 600; }
+        .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
+        .print-header__meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 9pt; color: #444; }
         .page-break { page-break-after: always; }
         .ring-block { margin-bottom: 1cm; }
         table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 5px; }
         th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: middle; }
         th { background-color: #f2f2f2; }
-        h1, h2, h3 { text-align: center; margin: 0; padding: 0; }
-        h2 { margin-bottom: 10px; }
+        h3 { text-align: center; margin: 0; padding: 0; }
         h3 { text-align: left; background-color: #e9ecef; padding: 5px; margin-top: 20px;}
         h4 { margin: 10px 0 5px 0; }
         .checkbox { width: 25px; height: 25px; border: 1px solid black; display: inline-block; }
+        main { padding-top: 3.3cm; }
     </style>
 </head>
 <body>
-    <h1>Einweiserlisten (Abhaklisten)</h1>
-    <h2>{{ event.Bezeichnung }} - {{ event.Datum | format_date }}</h2>
+    {% set title = 'Einweiserlisten (Abhaklisten)' %}
+    {% include 'print/_print_header.html' %}
+
+    <main>
 
     {% for ring, runs in runs_by_ring.items()|sort %}
         <div class="ring-block">
@@ -54,5 +63,6 @@
         </div>
         {% if not loop.last %}<div class="page-break"></div>{% endif %}
     {% endfor %}
+    </main>
 </body>
 </html>
