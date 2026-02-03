@@ -1,4 +1,10 @@
-from planner.briefing_groups import build_briefing_sessions, collect_participants_for_session, split_into_groups
+from planner.briefing_groups import (
+    build_briefing_sessions,
+    build_briefing_sessions_from_timeline,
+    collect_participants_for_session,
+    is_briefing_block,
+    split_into_groups,
+)
 
 
 def _entry(start_nr, license_nr, handler_name):
@@ -52,3 +58,25 @@ def test_collect_participants_and_grouping():
     assert groups[0]["start_nr_bis"] == "5"
     assert groups[1]["start_nr_von"] == "6"
     assert groups[1]["start_nr_bis"] == "7"
+
+
+def test_is_briefing_block_detects_labels():
+    assert is_briefing_block({"type": "briefing"})
+    assert is_briefing_block({"segment_type": "briefing"})
+    assert is_briefing_block({"label": "Begehung Ring 1"})
+    assert is_briefing_block({"title": "Briefing Pause"})
+    assert not is_briefing_block({"type": "run"})
+
+
+def test_build_sessions_from_timeline_items():
+    timeline_items = [
+        {"segment_type": "briefing", "label": "Briefing"},
+        {"segment_type": "run", "block": {"type": "run", "timing_run_type": "agility", "size_category": "large", "classes": ["1"]}},
+        {"segment_type": "briefing", "label": "Briefing 2"},
+        {"segment_type": "run", "block": {"type": "run", "timing_run_type": "jumping", "size_category": "large", "classes": ["1"]}},
+    ]
+
+    sessions = build_briefing_sessions_from_timeline(timeline_items)
+    assert len(sessions) == 2
+    assert len(sessions[0]["run_blocks"]) == 1
+    assert len(sessions[1]["run_blocks"]) == 1

@@ -19,11 +19,24 @@ def _startnummer_key(entry: Dict) -> int:
         return 9999
 
 
-def _is_briefing_block(block: Dict) -> bool:
-    return (block.get("type") or "").lower() == "briefing" or block.get("laufart") == "Briefing"
+def _text_matches_briefing(value: str) -> bool:
+    lowered = (value or "").lower()
+    return any(token in lowered for token in ("brief", "begeh", "walkthrough", "inspection"))
 
 
-def _is_run_block(block: Dict) -> bool:
+def is_briefing_block(block: Dict) -> bool:
+    """Return True if block looks like a briefing block."""
+    for key in ("segment_type", "type", "kind", "block_type", "laufart"):
+        value = (block.get(key) or "").lower()
+        if value in {"briefing", "briefing_time", "begehung", "walkthrough", "inspection"}:
+            return True
+    for key in ("title", "label", "name"):
+        if _text_matches_briefing(block.get(key) or ""):
+            return True
+    return False
+
+
+def is_run_block(block: Dict) -> bool:
     block_type = (block.get("type") or "").lower()
     if block_type:
         return block_type == "run"
@@ -36,7 +49,7 @@ def build_briefing_sessions(schedule_blocks: Iterable[Dict]) -> List[Dict]:
     sessions: List[Dict] = []
     current = None
     for block in schedule_blocks or []:
-        if _is_briefing_block(block):
+        if is_briefing_block(block):
             current = {
                 "briefing_block": block,
                 "run_blocks": [],
@@ -44,7 +57,26 @@ def build_briefing_sessions(schedule_blocks: Iterable[Dict]) -> List[Dict]:
             }
             sessions.append(current)
             continue
-        if _is_run_block(block) and current is not None:
+        if is_run_block(block) and current is not None:
+            current["run_blocks"].append(block)
+    return sessions
+
+
+def build_briefing_sessions_from_timeline(timeline_items: Iterable[Dict]) -> List[Dict]:
+    """Return ordered briefing sessions based on computed timeline items."""
+    sessions: List[Dict] = []
+    current = None
+    for item in timeline_items or []:
+        if is_briefing_block(item):
+            current = {
+                "briefing_block": item,
+                "run_blocks": [],
+                "title": item.get("label") or item.get("title") or "Briefing",
+            }
+            sessions.append(current)
+            continue
+        if (item.get("segment_type") or "").lower() == "run" and current is not None:
+            block = item.get("block") or {}
             current["run_blocks"].append(block)
     return sessions
 

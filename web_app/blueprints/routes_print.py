@@ -7,8 +7,10 @@ from utils import (_load_data, _save_data, _calculate_run_results, _load_setting
                    _calculate_timelines, get_category_sort_key)
 from planner.print_order import get_ordered_runs_for_print
 from planner.briefing_groups import (
-    build_briefing_sessions as build_schedule_briefing_sessions,
+    build_briefing_sessions,
+    build_briefing_sessions_from_timeline,
     collect_participants_for_session,
+    is_briefing_block,
     split_into_groups,
 )
 
@@ -76,22 +78,41 @@ def print_briefing_groups(event_id=None):
     settings = _load_settings()
     group_size = (settings.get('briefing') or {}).get('group_size', 50)
 
+    try:
+        timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
+    except Exception:
+        timelines_by_ring = None
+    if not timelines_by_ring:
+        fallback_event = dict(event)
+        fallback_event.pop('schedule', None)
+        try:
+            timelines_by_ring = _calculate_timelines(fallback_event, round_to_minutes=5)
+        except Exception:
+            timelines_by_ring = None
+    if not timelines_by_ring:
+        num_rings = event.get('num_rings') or 1
+        timelines_by_ring = {str(ring): [] for ring in range(1, num_rings + 1)}
+
     schedule = event.get('schedule') or {}
-    rings = schedule.get('rings') or {}
     schedule_blocks_count = 0
     briefing_blocks_count = 0
     dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
     sessions_by_ring = []
+    debug_block_samples = []
+    debug_block_types = set()
 
-    for ring_key in sorted(rings.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
-        ring_data = rings.get(ring_key) or {}
-        blocks = ring_data.get('blocks') or []
-        schedule_blocks_count += len(blocks)
-        briefing_blocks_count += sum(
-            1 for block in blocks
-            if (block.get('type') or '').lower() == 'briefing' or block.get('laufart') == 'Briefing'
-        )
-        sessions = build_schedule_briefing_sessions(blocks)
+    for ring_key in sorted(timelines_by_ring.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
+        timeline_items = timelines_by_ring.get(ring_key) or []
+        schedule_blocks_count += len(timeline_items)
+        for item in timeline_items:
+            debug_block_types.add(item.get('segment_type') or item.get('type') or item.get('block_type') or '')
+            if len(debug_block_samples) < 10:
+                debug_block_samples.append({
+                    'segment_type': item.get('segment_type'),
+                    'label': item.get('label') or item.get('title'),
+                })
+        briefing_blocks_count += sum(1 for item in timeline_items if is_briefing_block(item))
+        sessions = build_briefing_sessions_from_timeline(timeline_items)
         ring_sessions = []
         for index, session in enumerate(sessions, start=1):
             participants = collect_participants_for_session(session, event)
@@ -124,6 +145,8 @@ def print_briefing_groups(event_id=None):
         briefing_blocks_count=briefing_blocks_count,
         sessions_count=sessions_count,
         debug_enabled=debug_enabled,
+        debug_block_samples=debug_block_samples,
+        debug_block_types=sorted([value for value in debug_block_types if value]),
     )
 
 @print_bp.route('/print/startlists/<event_id>')

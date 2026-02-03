@@ -49,6 +49,16 @@
         <h1>Briefing-Gruppen</h1>
         {% if debug_enabled %}
             <p><strong>Debug:</strong> schedule_blocks={{ schedule_blocks_count }}, briefing_blocks={{ briefing_blocks_count }}, sessions={{ sessions_count }}</p>
+            {% if debug_block_types %}
+                <p><strong>Block-Typen:</strong> {{ debug_block_types|join(', ') }}</p>
+            {% endif %}
+            {% if debug_block_samples %}
+                <ul>
+                    {% for block in debug_block_samples %}
+                        <li>{{ block.segment_type or '' }} {{ block.label or '' }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         {% endif %}
         {% if sessions_count == 0 %}
             <p><strong>Keine Briefing-Blöcke im Zeitplan gefunden.</strong></p>
