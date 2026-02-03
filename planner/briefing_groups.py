@@ -187,23 +187,50 @@ def _match_run_to_block(run_item: Dict, block: Dict) -> bool:
     return True
 
 
+def _has_sort_settings(sort_settings: Dict) -> bool:
+    primary_field = ((sort_settings or {}).get("primary") or {}).get("field") or "none"
+    secondary_field = ((sort_settings or {}).get("secondary") or {}).get("field") or "none"
+    return primary_field.lower() != "none" or secondary_field.lower() != "none"
+
+
+def get_sort_settings_from_run_blocks(run_blocks: Iterable[Dict]) -> Tuple[Dict, Dict]:
+    for block in run_blocks or []:
+        settings = get_sort_settings_from_run_block(block)
+        if _has_sort_settings(settings):
+            return settings, block
+    return {
+        "primary": {"field": "none", "direction": "asc"},
+        "secondary": {"field": "none", "direction": "asc"},
+    }, {}
+
+
 def collect_participants_for_session(session: Dict, event: Dict, sort_settings: Dict | None = None) -> List[Dict]:
     """Collect unique participants for a session based on its run blocks."""
-    participants: Dict[str, Dict] = {}
+    participants: List[Dict] = []
     runs = event.get("runs", []) or []
     for block in session.get("run_blocks", []) or []:
         for run in runs:
             if not isinstance(run, dict):
                 continue
             if _match_run_to_block(run, block):
-                for entry in run.get("entries", []) or []:
-                    license_no = entry.get("Lizenznummer")
-                    if not license_no:
-                        continue
-                    participants.setdefault(license_no, entry)
+                participants.extend(run.get("entries", []) or [])
+    return sort_and_dedup_participants(participants, sort_settings)
+
+
+def sort_and_dedup_participants(participants: List[Dict], sort_settings: Dict | None = None) -> List[Dict]:
     if sort_settings:
-        return sorted(participants.values(), key=build_participant_sort_key(sort_settings))
-    return sorted(participants.values(), key=_participant_sort_key)
+        sorted_participants = sorted(participants, key=build_participant_sort_key(sort_settings))
+    else:
+        sorted_participants = sorted(participants, key=_participant_sort_key)
+    seen = set()
+    ordered = []
+    for entry in sorted_participants:
+        license_no = entry.get("Lizenznummer")
+        if not license_no or license_no in seen:
+            continue
+        seen.add(license_no)
+        ordered.append(entry)
+    return ordered
 
 
 def _calculate_group_count(total: int, group_size: int, group_count: int | None) -> int:

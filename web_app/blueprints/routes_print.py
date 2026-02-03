@@ -11,7 +11,7 @@ from planner.briefing_groups import (
     build_briefing_sessions,
     build_briefing_sessions_from_timeline,
     collect_participants_for_session,
-    get_sort_settings_from_run_block,
+    get_sort_settings_from_run_blocks,
     is_briefing_block,
     session_title_from_run_blocks,
     split_into_groups,
@@ -121,12 +121,8 @@ def print_briefing_groups(event_id=None):
         sessions = build_briefing_sessions_from_timeline(timeline_items)
         ring_sessions = []
         for index, session in enumerate(sessions, start=1):
-            sort_settings = None
             run_blocks = session.get("run_blocks", [])
-            raw_sort_block = {}
-            if run_blocks:
-                raw_sort_block = run_blocks[0]
-                sort_settings = get_sort_settings_from_run_block(raw_sort_block)
+            sort_settings, raw_sort_block = get_sort_settings_from_run_blocks(run_blocks)
             participants = collect_participants_for_session(session, event, sort_settings)
             for entry in participants:
                 dog_info = dogs_map.get(entry.get('Lizenznummer'), {})
