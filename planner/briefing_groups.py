@@ -75,21 +75,39 @@ def build_participant_sort_key(sort_settings: Dict) -> callable:
 
     def _key(entry: Dict) -> Tuple:
         parts = []
-        if primary_field == "category":
+        if primary_field in ("category", "class") or secondary_field in ("category", "class"):
             parts.append(_category_rank(entry.get("Kategorie") or entry.get("kategorie"), primary_dir))
-        elif primary_field == "class":
-            parts.append(_class_rank(entry.get("Klasse") or entry.get("klasse"), primary_dir))
-
-        if secondary_field == "category":
-            parts.append(_category_rank(entry.get("Kategorie") or entry.get("kategorie"), secondary_dir))
-        elif secondary_field == "class":
-            parts.append(_class_rank(entry.get("Klasse") or entry.get("klasse"), secondary_dir))
+            class_dir = secondary_dir if secondary_field == "class" else primary_dir
+            parts.append(_class_rank(entry.get("Klasse") or entry.get("klasse"), class_dir))
 
         if not parts:
             return (_startnummer_key(entry),)
         return tuple(parts + [_startnummer_key(entry)])
 
     return _key
+
+
+def get_sort_settings_from_run_block(block: Dict) -> Dict:
+    candidates = [
+        {
+            "primary": {"field": block.get("primary_sort_field"), "direction": block.get("primary_sort_dir")},
+            "secondary": {"field": block.get("secondary_sort_field"), "direction": block.get("secondary_sort_dir")},
+        },
+        {
+            "primary": {"field": block.get("sort_primary_field"), "direction": block.get("sort_primary_dir")},
+            "secondary": {"field": block.get("sort_secondary_field"), "direction": block.get("sort_secondary_dir")},
+        },
+        {
+            "primary": {"field": (block.get("sort") or {}).get("primary", {}).get("field"), "direction": (block.get("sort") or {}).get("primary", {}).get("direction")},
+            "secondary": {"field": (block.get("sort") or {}).get("secondary", {}).get("field"), "direction": (block.get("sort") or {}).get("secondary", {}).get("direction")},
+        },
+    ]
+    for candidate in candidates:
+        primary_field = (candidate["primary"]["field"] or "none").lower()
+        secondary_field = (candidate["secondary"]["field"] or "none").lower()
+        if primary_field != "none" or secondary_field != "none":
+            return candidate
+    return {"primary": {"field": "none", "direction": "asc"}, "secondary": {"field": "none", "direction": "asc"}}
 
 
 def _text_matches_briefing(value: str) -> bool:

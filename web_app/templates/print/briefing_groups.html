@@ -21,8 +21,7 @@
         .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
         .print-header__meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 9pt; color: #444; }
 
-        .session-container { page-break-inside: avoid; margin-bottom: 1.5cm; }
-        .page-break { page-break-after: always; }
+        .session-container { break-inside: avoid; page-break-inside: avoid; margin-bottom: 1.5cm; }
         h1 { font-size: 18pt; margin: 0 0 12px; }
         h3 { font-size: 16pt; margin-bottom: 10px; border-bottom: 2px solid #333; padding-bottom: 5px; }
         h4 { font-size: 12pt; margin-top: 15px; margin-bottom: 5px; }
@@ -67,6 +66,12 @@
             {% for session in ring_data.sessions %}
                 <div class="session-container page-break">
                     <h3>Briefing – Ring {{ ring_data.ring }}{% if session.title %} – {{ session.title }}{% endif %}</h3>
+                    {% if session.sort_settings %}
+                        <p><strong>Sort:</strong> primary={{ session.sort_settings.primary.field }} {{ session.sort_settings.primary.direction }}, secondary={{ session.sort_settings.secondary.field }} {{ session.sort_settings.secondary.direction }}</p>
+                    {% endif %}
+                    {% if debug_enabled and session.raw_sort_block %}
+                        <p><strong>Run-Block:</strong> {{ session.raw_sort_block }}</p>
+                    {% endif %}
                     <p>Teilnehmer: {{ session.participant_count }} | Gruppen: {{ session.group_count }} | Gruppengröße: {{ session.group_size }}</p>
                     {% if session.groups %}
                         {% for group in session.groups %}

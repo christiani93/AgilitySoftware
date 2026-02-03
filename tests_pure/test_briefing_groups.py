@@ -4,6 +4,7 @@ from planner.briefing_groups import (
     build_briefing_sessions_from_timeline,
     build_participant_sort_key,
     collect_participants_for_session,
+    get_sort_settings_from_run_block,
     is_briefing_block,
     session_title_from_run_blocks,
     split_into_groups,
@@ -204,3 +205,17 @@ def test_primary_secondary_combo():
         ("Medium", "2"),
         ("Small", "1"),
     ]
+
+
+def test_get_sort_settings_from_run_block():
+    block = {
+        "primary_sort_field": "category",
+        "primary_sort_dir": "desc",
+        "secondary_sort_field": "class",
+        "secondary_sort_dir": "desc",
+    }
+    settings = get_sort_settings_from_run_block(block)
+    assert settings["primary"]["field"] == "category"
+    assert settings["primary"]["direction"] == "desc"
+    assert settings["secondary"]["field"] == "class"
+    assert settings["secondary"]["direction"] == "desc"

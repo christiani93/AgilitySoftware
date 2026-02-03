@@ -11,6 +11,7 @@ from planner.briefing_groups import (
     build_briefing_sessions,
     build_briefing_sessions_from_timeline,
     collect_participants_for_session,
+    get_sort_settings_from_run_block,
     is_briefing_block,
     session_title_from_run_blocks,
     split_into_groups,
@@ -122,8 +123,10 @@ def print_briefing_groups(event_id=None):
         for index, session in enumerate(sessions, start=1):
             sort_settings = None
             run_blocks = session.get("run_blocks", [])
+            raw_sort_block = {}
             if run_blocks:
-                sort_settings = (run_blocks[0].get("sort") or {})
+                raw_sort_block = run_blocks[0]
+                sort_settings = get_sort_settings_from_run_block(raw_sort_block)
             participants = collect_participants_for_session(session, event, sort_settings)
             for entry in participants:
                 dog_info = dogs_map.get(entry.get('Lizenznummer'), {})
@@ -139,6 +142,23 @@ def print_briefing_groups(event_id=None):
                 "group_count": len(groups),
                 "group_size": group_size,
                 "groups": groups,
+                "sort_settings": sort_settings,
+                "raw_sort_block": {
+                    "type": raw_sort_block.get("type"),
+                    "segment_type": raw_sort_block.get("segment_type"),
+                    "laufart": raw_sort_block.get("laufart"),
+                    "title": raw_sort_block.get("title"),
+                    "label": raw_sort_block.get("label"),
+                    "sort": raw_sort_block.get("sort"),
+                    "primary_sort_field": raw_sort_block.get("primary_sort_field"),
+                    "primary_sort_dir": raw_sort_block.get("primary_sort_dir"),
+                    "secondary_sort_field": raw_sort_block.get("secondary_sort_field"),
+                    "secondary_sort_dir": raw_sort_block.get("secondary_sort_dir"),
+                    "sort_primary_field": raw_sort_block.get("sort_primary_field"),
+                    "sort_primary_dir": raw_sort_block.get("sort_primary_dir"),
+                    "sort_secondary_field": raw_sort_block.get("sort_secondary_field"),
+                    "sort_secondary_dir": raw_sort_block.get("sort_secondary_dir"),
+                },
             })
         sessions_by_ring.append({
             "ring": ring_key,
