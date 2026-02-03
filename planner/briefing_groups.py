@@ -159,14 +159,25 @@ def summarize_group_ranges(participants: List[Dict]) -> str:
             segments.append(current)
         else:
             current["end"] = start_nr
+    label_counts = {}
+    for segment in segments:
+        label_counts[segment["label"]] = label_counts.get(segment["label"], 0) + 1
+
     formatted = []
     for segment in segments:
         start = segment.get("start")
         end = segment.get("end")
-        if start == end:
-            formatted.append(f"{segment['label']} {start}")
+        label = segment["label"]
+        if len(segments) == 1:
+            formatted.append(label)
+            continue
+        if label_counts.get(label, 0) > 1:
+            if start == end:
+                formatted.append(f"{label} {start}")
+            else:
+                formatted.append(f"{label} {start}–{end}")
         else:
-            formatted.append(f"{segment['label']} {start}–{end}")
+            formatted.append(label)
     return ", ".join(formatted)
 
 

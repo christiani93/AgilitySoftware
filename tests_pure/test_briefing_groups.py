@@ -104,4 +104,15 @@ def test_range_summarization():
         {"Startnummer": "5", "Kategorie": "Large", "Klasse": "3"},
     ]
     summary = summarize_group_ranges(participants)
-    assert summary == "L1 1–2, L2 3–4, L3 5"
+    assert summary == "L1, L2, L3"
+
+
+def test_range_summarization_with_split_segment():
+    participants = [
+        {"Startnummer": "1", "Kategorie": "Large", "Klasse": "3"},
+        {"Startnummer": "2", "Kategorie": "Large", "Klasse": "3"},
+        {"Startnummer": "3", "Kategorie": "Intermediate", "Klasse": "3"},
+        {"Startnummer": "4", "Kategorie": "Large", "Klasse": "3"},
+    ]
+    summary = summarize_group_ranges(participants)
+    assert summary == "L3 1–2, I3, L3 4"

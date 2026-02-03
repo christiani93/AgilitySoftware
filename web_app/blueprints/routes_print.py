@@ -79,7 +79,7 @@ def print_briefing_groups(event_id=None):
     briefing_settings = settings.get('briefing') or {}
     group_size = briefing_settings.get('group_size', 50)
     group_count = briefing_settings.get('group_count')
-    show_participants_table = briefing_settings.get('show_participants_table', True)
+    show_participants_table = briefing_settings.get('show_participants_table', False)
 
     try:
         timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
