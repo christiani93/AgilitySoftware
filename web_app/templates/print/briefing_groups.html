@@ -70,29 +70,31 @@
                     <p>Teilnehmer: {{ session.participant_count }} | Gruppen: {{ session.group_count }} | Gruppengröße: {{ session.group_size }}</p>
                     {% if session.groups %}
                         {% for group in session.groups %}
-                            <h4>Gruppe {{ group.group_index }} (Startnr. {{ group.start_nr_von }} – {{ group.start_nr_bis }})</h4>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th style="width: 10%;">Start-Nr.</th>
-                                        <th style="width: 30%;">Hundeführer</th>
-                                        <th style="width: 30%;">Hund</th>
-                                        <th style="width: 15%;">Kategorie</th>
-                                        <th style="width: 15%;">Klasse</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for entry in group.participants %}
+                            <h4>Gruppe {{ group.group_index }}{% if group.summary %}: {{ group.summary }}{% endif %}</h4>
+                            {% if show_participants_table %}
+                                <table>
+                                    <thead>
                                         <tr>
-                                            <td>{{ entry.Startnummer }}</td>
-                                            <td>{{ entry.Hundefuehrer }}</td>
-                                            <td>{{ entry.Hundename }}</td>
-                                            <td>{{ entry.Kategorie or '' }}</td>
-                                            <td>{{ entry.Klasse or '' }}</td>
+                                            <th style="width: 10%;">Start-Nr.</th>
+                                            <th style="width: 30%;">Hundeführer</th>
+                                            <th style="width: 30%;">Hund</th>
+                                            <th style="width: 15%;">Kategorie</th>
+                                            <th style="width: 15%;">Klasse</th>
                                         </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {% for entry in group.participants %}
+                                            <tr>
+                                                <td>{{ entry.Startnummer }}</td>
+                                                <td>{{ entry.Hundefuehrer }}</td>
+                                                <td>{{ entry.Hundename }}</td>
+                                                <td>{{ entry.Kategorie or '' }}</td>
+                                                <td>{{ entry.Klasse or '' }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% endif %}
                         {% endfor %}
                     {% else %}
                         <p>Für diese Begehung sind keine Teilnehmer geplant.</p>

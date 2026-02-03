@@ -4,9 +4,10 @@ Pure-Python utilities that can be imported without Flask.
 """
 from __future__ import annotations
 
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Tuple
 
 from planner import schedule_planner
+from web_app.utils import get_category_sort_key
 
 NON_RUN_LAUFARTS = {"Pause", "Umbau", "Briefing", "Vorbereitung", "Grossring"}
 
@@ -17,6 +18,24 @@ def _startnummer_key(entry: Dict) -> int:
         return int(value)
     except (TypeError, ValueError):
         return 9999
+
+
+def _category_label(category: str) -> str:
+    value = (category or "").strip()
+    mapping = {
+        "Small": "S",
+        "Medium": "M",
+        "Intermediate": "I",
+        "Large": "L",
+    }
+    return mapping.get(value, value[:1].upper() if value else "")
+
+
+def _participant_sort_key(entry: Dict) -> Tuple[int, str, int]:
+    category = entry.get("Kategorie") or entry.get("kategorie") or ""
+    category_key = get_category_sort_key(category)
+    klasse = str(entry.get("Klasse") or entry.get("klasse") or "")
+    return (category_key, klasse, _startnummer_key(entry))
 
 
 def _text_matches_briefing(value: str) -> bool:
@@ -110,23 +129,71 @@ def collect_participants_for_session(session: Dict, event: Dict) -> List[Dict]:
                     if not license_no:
                         continue
                     participants.setdefault(license_no, entry)
-    return sorted(participants.values(), key=_startnummer_key)
+    return sorted(participants.values(), key=_participant_sort_key)
 
 
-def split_into_groups(participants: List[Dict], group_size: int) -> List[Dict]:
-    """Split participants into groups of the given size."""
+def _calculate_group_count(total: int, group_size: int, group_count: int | None) -> int:
+    if group_count and group_count > 0:
+        return group_count
     if group_size <= 0:
         group_size = 50
-    sorted_participants = sorted(participants, key=_startnummer_key)
+    return max(1, (total + group_size - 1) // group_size)
+
+
+def _even_group_sizes(total: int, group_count: int) -> List[int]:
+    base = total // group_count
+    rest = total % group_count
+    return [(base + 1 if idx < rest else base) for idx in range(group_count)]
+
+
+def summarize_group_ranges(participants: List[Dict]) -> str:
+    segments = []
+    current = None
+    for entry in participants:
+        category = entry.get("Kategorie") or entry.get("kategorie") or ""
+        klasse = str(entry.get("Klasse") or entry.get("klasse") or "")
+        label = f"{_category_label(category)}{klasse}"
+        start_nr = entry.get("Startnummer")
+        if current is None or current["label"] != label:
+            current = {"label": label, "start": start_nr, "end": start_nr}
+            segments.append(current)
+        else:
+            current["end"] = start_nr
+    formatted = []
+    for segment in segments:
+        start = segment.get("start")
+        end = segment.get("end")
+        if start == end:
+            formatted.append(f"{segment['label']} {start}")
+        else:
+            formatted.append(f"{segment['label']} {start}–{end}")
+    return ", ".join(formatted)
+
+
+def split_into_groups(participants: List[Dict], group_size: int, group_count: int | None = None) -> List[Dict]:
+    """Split participants into evenly sized groups."""
+    sorted_participants = sorted(participants, key=_participant_sort_key)
+    group_count = _calculate_group_count(len(sorted_participants), group_size, group_count)
+    sizes = _even_group_sizes(len(sorted_participants), group_count)
     groups: List[Dict] = []
-    for group_index, offset in enumerate(range(0, len(sorted_participants), group_size), start=1):
-        group_entries = sorted_participants[offset:offset + group_size]
+    offset = 0
+    for group_index, size in enumerate(sizes, start=1):
+        group_entries = sorted_participants[offset:offset + size]
+        offset += size
         if not group_entries:
+            groups.append({
+                "group_index": group_index,
+                "start_nr_von": None,
+                "start_nr_bis": None,
+                "participants": [],
+                "summary": "",
+            })
             continue
         groups.append({
             "group_index": group_index,
             "start_nr_von": group_entries[0].get("Startnummer"),
             "start_nr_bis": group_entries[-1].get("Startnummer"),
             "participants": group_entries,
+            "summary": summarize_group_ranges(group_entries),
         })
     return groups

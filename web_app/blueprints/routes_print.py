@@ -76,7 +76,10 @@ def print_briefing_groups(event_id=None):
         abort(404)
 
     settings = _load_settings()
-    group_size = (settings.get('briefing') or {}).get('group_size', 50)
+    briefing_settings = settings.get('briefing') or {}
+    group_size = briefing_settings.get('group_size', 50)
+    group_count = briefing_settings.get('group_count')
+    show_participants_table = briefing_settings.get('show_participants_table', True)
 
     try:
         timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
@@ -120,7 +123,7 @@ def print_briefing_groups(event_id=None):
                 dog_info = dogs_map.get(entry.get('Lizenznummer'), {})
                 entry.setdefault('Kategorie', dog_info.get('Kategorie'))
                 entry.setdefault('Klasse', dog_info.get('Klasse'))
-            groups = split_into_groups(participants, group_size)
+            groups = split_into_groups(participants, group_size, group_count)
             ring_sessions.append({
                 "title": session.get("title") or f"Briefing {index}",
                 "session_index": index,
@@ -147,6 +150,7 @@ def print_briefing_groups(event_id=None):
         debug_enabled=debug_enabled,
         debug_block_samples=debug_block_samples,
         debug_block_types=sorted([value for value in debug_block_types if value]),
+        show_participants_table=show_participants_table,
     )
 
 @print_bp.route('/print/startlists/<event_id>')

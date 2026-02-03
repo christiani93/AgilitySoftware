@@ -4,6 +4,7 @@ from planner.briefing_groups import (
     collect_participants_for_session,
     is_briefing_block,
     split_into_groups,
+    summarize_group_ranges,
 )
 
 
@@ -80,3 +81,27 @@ def test_build_sessions_from_timeline_items():
     assert len(sessions) == 2
     assert len(sessions[0]["run_blocks"]) == 1
     assert len(sessions[1]["run_blocks"]) == 1
+
+
+def test_even_group_split_110_into_3():
+    participants = [_entry(idx, f"L{idx}", f"H{idx}") for idx in range(1, 111)]
+    groups = split_into_groups(participants, group_size=50, group_count=3)
+    assert [len(group["participants"]) for group in groups] == [37, 37, 36]
+
+
+def test_group_count_from_size():
+    participants = [_entry(idx, f"L{idx}", f"H{idx}") for idx in range(1, 111)]
+    groups = split_into_groups(participants, group_size=50)
+    assert len(groups) == 3
+
+
+def test_range_summarization():
+    participants = [
+        {"Startnummer": "1", "Kategorie": "Large", "Klasse": "1"},
+        {"Startnummer": "2", "Kategorie": "Large", "Klasse": "1"},
+        {"Startnummer": "3", "Kategorie": "Large", "Klasse": "2"},
+        {"Startnummer": "4", "Kategorie": "Large", "Klasse": "2"},
+        {"Startnummer": "5", "Kategorie": "Large", "Klasse": "3"},
+    ]
+    summary = summarize_group_ranges(participants)
+    assert summary == "L1 1–2, L2 3–4, L3 5"
