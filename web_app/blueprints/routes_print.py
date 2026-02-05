@@ -12,7 +12,6 @@ from planner.briefing_groups import (
     build_briefing_sessions_from_timeline,
     collect_participants_for_session,
     dedup_preserve_order,
-    format_participant_debug,
     get_sort_settings_from_run_blocks,
     is_briefing_block,
     session_title_from_run_blocks,
@@ -107,19 +106,9 @@ def print_briefing_groups(event_id=None):
     briefing_blocks_count = 0
     dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
     sessions_by_ring = []
-    debug_block_samples = []
-    debug_block_types = set()
-
     for ring_key in sorted(timelines_by_ring.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
         timeline_items = timelines_by_ring.get(ring_key) or []
         schedule_blocks_count += len(timeline_items)
-        for item in timeline_items:
-            debug_block_types.add(item.get('segment_type') or item.get('type') or item.get('block_type') or '')
-            if len(debug_block_samples) < 10:
-                debug_block_samples.append({
-                    'segment_type': item.get('segment_type'),
-                    'label': item.get('label') or item.get('title'),
-                })
         briefing_blocks_count += sum(1 for item in timeline_items if is_briefing_block(item))
         sessions = build_briefing_sessions_from_timeline(timeline_items)
         ring_sessions = []
@@ -135,22 +124,17 @@ def print_briefing_groups(event_id=None):
             participants_sorted = sort_participants(participants, sort_settings)
             groups = split_into_groups(participants_sorted, group_size, group_count)
             apply_group_summaries(groups)
-            sorted_first_30 = ", ".join(
-                format_participant_debug(entry) for entry in participants_sorted[:30]
-            )
-            for group in groups:
-                head_entries = group.get("participants", [])[:5]
-                group["debug_head"] = ", ".join(format_participant_debug(entry) for entry in head_entries)
+            group_sizes = [len(group.get("participants", []) or []) for group in groups]
+            group_sizes_label = "/".join(str(size) for size in group_sizes) if group_sizes else "—"
             session_title = session_title_from_run_blocks(run_blocks)
             ring_sessions.append({
                 "title": session_title or session.get("title") or f"Briefing {index}",
                 "session_index": index,
                 "participant_count": len(participants_sorted),
                 "group_count": len(groups),
-                "group_size": group_size,
+                "group_sizes_label": group_sizes_label,
                 "groups": groups,
                 "sort_settings": sort_settings,
-                "sorted_first_30": sorted_first_30,
                 "raw_sort_block": {
                     "type": raw_sort_block.get("type"),
                     "segment_type": raw_sort_block.get("segment_type"),
@@ -174,7 +158,6 @@ def print_briefing_groups(event_id=None):
         })
 
     sessions_count = sum(len(ring_data.get('sessions', [])) for ring_data in sessions_by_ring)
-    debug_enabled = request.args.get('debug') == '1'
     return render_template(
         'print/briefing_groups.html',
         event=event,
@@ -183,9 +166,7 @@ def print_briefing_groups(event_id=None):
         schedule_blocks_count=schedule_blocks_count,
         briefing_blocks_count=briefing_blocks_count,
         sessions_count=sessions_count,
-        debug_enabled=debug_enabled,
-        debug_block_samples=debug_block_samples,
-        debug_block_types=sorted([value for value in debug_block_types if value]),
+        debug_enabled=False,
         show_participants_table=show_participants_table,
     )
 
