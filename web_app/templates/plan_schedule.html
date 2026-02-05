@@ -14,8 +14,11 @@
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="{{ url_for('print_bp.print_startlists', event_id=event.id) }}" target="_blank">Startlisten</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_startlists_by_schedule', event_id=event.id) }}" target="_blank">Startlisten (nach Zeitplan)</a></li>
             <li><a class="dropdown-item" href="{{ url_for('print_bp.print_stewardlists', event_id=event.id) }}" target="_blank">Ringschreiberlisten</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_stewardlists_by_schedule', event_id=event.id) }}" target="_blank">Ringschreiberlisten (nach Zeitplan)</a></li>
             <li><a class="dropdown-item" href="{{ url_for('print_bp.print_master_steward_list', event_id=event.id) }}" target="_blank">Einweiserlisten</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('print_bp.print_master_steward_list_by_schedule', event_id=event.id) }}" target="_blank">Einweiserliste (nach Zeitplan)</a></li>
             <li><a class="dropdown-item" href="{{ url_for('print_bp.print_schedule', event_id=event.id) }}" target="_blank">Zeitplan</a></li>
           </ul>
         </div>

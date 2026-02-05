@@ -6,6 +6,10 @@ import io
 from utils import (_load_data, _save_data, _calculate_run_results, _load_settings,
                    _calculate_timelines, get_category_sort_key)
 from planner.print_order import get_ordered_runs_for_print
+from planner.print_schedule_order import (
+    build_schedule_print_sections,
+    build_schedule_steward_sections,
+)
 from planner.briefing_groups import (
     apply_group_summaries,
     build_briefing_sessions,
@@ -178,6 +182,16 @@ def print_startlists(event_id):
     ordered_runs = get_ordered_runs_for_print(event)
     return render_template('print_startlists.html', event=event, ordered_runs=ordered_runs)
 
+
+@print_bp.route('/print/startlists_by_schedule/<event_id>')
+def print_startlists_by_schedule(event_id):
+    """Startliste nach Zeitplan-Reihenfolge."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+    sections = build_schedule_print_sections(event)
+    return render_template('print/startlists_by_schedule.html', event=event, sections=sections)
+
 @print_bp.route('/print/stewardlists/<event_id>')
 def print_stewardlists(event_id):
     """Ringschreiber-Listen in Zeitplan-Reihenfolge."""
@@ -185,6 +199,22 @@ def print_stewardlists(event_id):
     if not event: abort(404)
     ordered_runs = get_ordered_runs_for_print(event)
     return render_template('print/scribe_list.html', event=event, title="Ringschreiberlisten", ordered_runs=ordered_runs, judges=_load_data('judges.json'))
+
+
+@print_bp.route('/print/stewardlists_by_schedule/<event_id>')
+def print_stewardlists_by_schedule(event_id):
+    """Ringschreiber-Listen nach Zeitplan-Reihenfolge."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+    sections = build_schedule_print_sections(event)
+    return render_template(
+        'print/scribe_list_by_schedule.html',
+        event=event,
+        title="Ringschreiberlisten (nach Zeitplan)",
+        sections=sections,
+        judges=_load_data('judges.json'),
+    )
 
 @print_bp.route('/print/master_steward_list/<event_id>')
 def print_master_steward_list(event_id):
@@ -210,6 +240,16 @@ def print_master_steward_list(event_id):
             participants_in_group.sort(key=lambda p: int(p.get('Startnummer', 9999)))
             final_grouped_data[cat][cls] = {'participants': participants_in_group, 'runs': runs_for_group, 'run_map': participant_run_map}
     return render_template('print/master_steward_list.html', event=event, final_grouped_data=final_grouped_data)
+
+
+@print_bp.route('/print/master_steward_list_by_schedule/<event_id>')
+def print_master_steward_list_by_schedule(event_id):
+    """Master-Einweiserliste nach Zeitplan-Reihenfolge."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+    sections = build_schedule_steward_sections(event)
+    return render_template('print/master_steward_list_by_schedule.html', event=event, sections=sections)
 
 @print_bp.route('/print/participant_list/<event_id>')
 def print_participant_list(event_id):
