@@ -5,52 +5,119 @@
     <title>Begehungsgruppen - {{ event.Bezeichnung }}</title>
      <style>
         body { font-family: sans-serif; }
-        @page { size: A4; margin: 2.5cm 1.5cm 1.5cm 1.5cm; }
+        @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
 
-        .print-header { position: fixed; top: 0; left: 0; right: 0; height: 2.6cm; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-        .print-header__logo img { max-height: 2.2cm; width: auto; }
-        .print-header__titles { text-align: center; flex: 1; }
-        .print-header__titles h1, .print-header__titles h2 { margin: 0; }
-        .print-header__titles h2 { font-size: 1.2em; }
-        .print-header__titles h1 { font-size: 1em; color: #666; font-weight: normal; }
-        main { padding-top: 3cm; }
+        .page-table { width: 100%; border-collapse: collapse; }
+        .page-table thead { display: table-header-group; }
+        .page-table tbody { display: table-row-group; }
+        .page-table > tbody > tr > td { padding: 0; }
+        .page-table thead td { border-bottom: none; }
 
-        .session-container { page-break-inside: avoid; margin-bottom: 1.5cm; }
-        .page-break { page-break-after: always; }
+        .print-header { position: static !important; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
+        .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .print-header__titles { text-align: center; flex: 1; font-size: 10pt; }
+        .print-header__title { font-size: 1.1em; font-weight: 600; }
+        .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
+        .print-header__meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 9pt; color: #444; }
+
+        .session-container { break-inside: avoid; page-break-inside: avoid; margin-bottom: 1.5cm; }
+        h1 { font-size: 18pt; margin: 0 0 12px; }
         h3 { font-size: 16pt; margin-bottom: 10px; border-bottom: 2px solid #333; padding-bottom: 5px; }
         h4 { font-size: 12pt; margin-top: 15px; margin-bottom: 5px; }
-        ul { list-style-type: none; padding-left: 0; column-count: 2; column-gap: 20px; }
-        li { padding: 2px 0; font-size: 9pt;}
+        table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+        th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
     </style>
 </head>
 <body>
     {% set title = 'Einteilung Begehungsgruppen' %}
-    {% include 'print/_print_header.html' %}
-
-    <main>
-        {% if briefing_hint %}
-            <p><strong>{{ briefing_hint }}</strong></p>
-        {% endif %}
-        {# NEU: Schleife über "Begehungen" statt "Läufe" (Punkt 4) #}
-        {% for session in briefing_sessions %}
-            <div class="session-container page-break">
-                <h3>{{ session.title }}</h3>
-                {% if session.groups %}
-                    {% for group in session.groups %}
-                        <h4>{{ session.title }} – Gruppe {{ group.group_index }} (Startnr. {{ group.start_nr_von }} - {{ group.start_nr_bis }})</h4>
-                        <ul>
-                            {% for entry in group.participants %}
-                                <li>{{ entry.Startnummer }} - {{ entry.Hundefuehrer }}</li>
-                            {% endfor %}
-                        </ul>
+    <table class="page-table">
+        <thead>
+            <tr>
+                <td>
+                    {% include 'print/_print_header.html' %}
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+        <h1>Briefing-Gruppen</h1>
+        {% if debug_enabled %}
+            <p><strong>Debug:</strong> schedule_blocks={{ schedule_blocks_count }}, briefing_blocks={{ briefing_blocks_count }}, sessions={{ sessions_count }}</p>
+            {% if debug_block_types %}
+                <p><strong>Block-Typen:</strong> {{ debug_block_types|join(', ') }}</p>
+            {% endif %}
+            {% if debug_block_samples %}
+                <ul>
+                    {% for block in debug_block_samples %}
+                        <li>{{ block.segment_type or '' }} {{ block.label or '' }}</li>
                     {% endfor %}
-                {% else %}
-                    <p>Für diese Begehung sind keine Teilnehmer geplant.</p>
-                {% endif %}
-            </div>
+                </ul>
+            {% endif %}
+        {% endif %}
+        {% if sessions_count == 0 %}
+            <p><strong>Keine Briefing-Blöcke im Zeitplan gefunden.</strong></p>
+        {% endif %}
+        {% for ring_data in sessions_by_ring %}
+            {% for session in ring_data.sessions %}
+                <div class="session-container">
+                    <h3>Briefing – Ring {{ ring_data.ring }}{% if session.title %} – {{ session.title }}{% endif %}</h3>
+                    {% if session.sort_settings %}
+                        <p><strong>Sort:</strong> primary={{ session.sort_settings.primary.field }} {{ session.sort_settings.primary.direction }}, secondary={{ session.sort_settings.secondary.field }} {{ session.sort_settings.secondary.direction }}</p>
+                    {% endif %}
+                    {% if debug_enabled and session.sorted_first_30 %}
+                        <p><strong>Sorted first 30:</strong> {{ session.sorted_first_30 }}</p>
+                    {% endif %}
+                    {% if debug_enabled and session.raw_sort_block %}
+                        <p><strong>Run-Block:</strong> {{ session.raw_sort_block }}</p>
+                    {% endif %}
+                    <p>Teilnehmer: {{ session.participant_count }} | Gruppen: {{ session.group_count }} | Gruppengröße: {{ session.group_size }}</p>
+                    {% if session.groups %}
+                        {% for group in session.groups %}
+                            <h4>Gruppe {{ group.group_index }}{% if group.summary %}: {{ group.summary }}{% endif %}</h4>
+                            {% if debug_enabled and group.debug_head %}
+                                <p><strong>Group head:</strong> {{ group.debug_head }}</p>
+                            {% endif %}
+                            {% if show_participants_table %}
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 10%;">Start-Nr.</th>
+                                            <th style="width: 30%;">Hundeführer</th>
+                                            <th style="width: 30%;">Hund</th>
+                                            <th style="width: 15%;">Kategorie</th>
+                                            <th style="width: 15%;">Klasse</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for entry in group.participants %}
+                                            <tr>
+                                                <td>{{ entry.Startnummer }}</td>
+                                                <td>{{ entry.Hundefuehrer }}</td>
+                                                <td>{{ entry.Hundename }}</td>
+                                                <td>{{ entry.Kategorie or '' }}</td>
+                                                <td>{{ entry.Klasse or '' }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p>Für diese Begehung sind keine Teilnehmer geplant.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
         {% else %}
             <p>Keine Begehungen im Zeitplan gefunden.</p>
         {% endfor %}
-    </main>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </body>
 </html>
