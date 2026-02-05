@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Dict, Iterable, List
 
-from web_app.utils import _get_concrete_run_list
+from web_app.utils import _get_concrete_run_list, get_category_sort_key
 
 NON_RUN_TYPES = {
     "Pause",
@@ -32,17 +32,38 @@ def _copy_run_with_sorted_entries(run: Dict) -> Dict:
     return run_copy
 
 
+def _fallback_run_sort_key(run: Dict) -> tuple:
+    return (
+        run.get("assigned_ring") or "",
+        run.get("laufart") or "",
+        get_category_sort_key(run.get("kategorie", "")),
+        str(run.get("klasse") or ""),
+        run.get("name") or "",
+        run.get("id") or "",
+    )
+
+
 def get_ordered_runs_for_print(event: Dict) -> List[Dict]:
     """Return runs in print order based on the concrete schedule.
 
     Filters non-run blocks (Pause/Umbau/Briefing/etc.) and sorts entries by start number.
+    Falls back to event.runs ordering when schedule/run_order is incomplete.
     """
-    ordered_runs = []
-    for run in _get_concrete_run_list(event):
-        if run.get("laufart") in NON_RUN_TYPES:
-            continue
-        ordered_runs.append(_copy_run_with_sorted_entries(run))
-    return ordered_runs
+    try:
+        concrete_runs = _get_concrete_run_list(event)
+    except Exception:
+        concrete_runs = []
+
+    ordered_runs = [
+        run for run in concrete_runs
+        if run.get("laufart") not in NON_RUN_TYPES
+    ]
+
+    if not ordered_runs:
+        fallback_runs = list(event.get("runs", []) or [])
+        ordered_runs = sorted(fallback_runs, key=_fallback_run_sort_key)
+
+    return [_copy_run_with_sorted_entries(run) for run in ordered_runs]
 
 
 def group_runs_by_timeplan_sections(ordered_runs: Iterable[Dict]) -> List[Dict]:
