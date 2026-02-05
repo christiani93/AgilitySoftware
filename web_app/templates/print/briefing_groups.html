@@ -69,6 +69,9 @@
                     {% if session.sort_settings %}
                         <p><strong>Sort:</strong> primary={{ session.sort_settings.primary.field }} {{ session.sort_settings.primary.direction }}, secondary={{ session.sort_settings.secondary.field }} {{ session.sort_settings.secondary.direction }}</p>
                     {% endif %}
+                    {% if debug_enabled and session.sorted_first_30 %}
+                        <p><strong>Sorted first 30:</strong> {{ session.sorted_first_30 }}</p>
+                    {% endif %}
                     {% if debug_enabled and session.raw_sort_block %}
                         <p><strong>Run-Block:</strong> {{ session.raw_sort_block }}</p>
                     {% endif %}
@@ -76,6 +79,9 @@
                     {% if session.groups %}
                         {% for group in session.groups %}
                             <h4>Gruppe {{ group.group_index }}{% if group.summary %}: {{ group.summary }}{% endif %}</h4>
+                            {% if debug_enabled and group.debug_head %}
+                                <p><strong>Group head:</strong> {{ group.debug_head }}</p>
+                            {% endif %}
                             {% if show_participants_table %}
                                 <table>
                                     <thead>

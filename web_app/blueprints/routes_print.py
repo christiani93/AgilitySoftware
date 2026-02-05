@@ -11,9 +11,12 @@ from planner.briefing_groups import (
     build_briefing_sessions,
     build_briefing_sessions_from_timeline,
     collect_participants_for_session,
+    dedup_preserve_order,
+    format_participant_debug,
     get_sort_settings_from_run_blocks,
     is_briefing_block,
     session_title_from_run_blocks,
+    sort_participants,
     split_into_groups,
 )
 
@@ -123,22 +126,31 @@ def print_briefing_groups(event_id=None):
         for index, session in enumerate(sessions, start=1):
             run_blocks = session.get("run_blocks", [])
             sort_settings, raw_sort_block = get_sort_settings_from_run_blocks(run_blocks)
-            participants = collect_participants_for_session(session, event, sort_settings)
+            participants = collect_participants_for_session(session, event)
             for entry in participants:
                 dog_info = dogs_map.get(entry.get('Lizenznummer'), {})
                 entry.setdefault('Kategorie', dog_info.get('Kategorie'))
                 entry.setdefault('Klasse', dog_info.get('Klasse'))
-            groups = split_into_groups(participants, group_size, group_count)
+            participants = dedup_preserve_order(participants)
+            participants_sorted = sort_participants(participants, sort_settings)
+            groups = split_into_groups(participants_sorted, group_size, group_count)
             apply_group_summaries(groups)
+            sorted_first_30 = ", ".join(
+                format_participant_debug(entry) for entry in participants_sorted[:30]
+            )
+            for group in groups:
+                head_entries = group.get("participants", [])[:5]
+                group["debug_head"] = ", ".join(format_participant_debug(entry) for entry in head_entries)
             session_title = session_title_from_run_blocks(run_blocks)
             ring_sessions.append({
                 "title": session_title or session.get("title") or f"Briefing {index}",
                 "session_index": index,
-                "participant_count": len(participants),
+                "participant_count": len(participants_sorted),
                 "group_count": len(groups),
                 "group_size": group_size,
                 "groups": groups,
                 "sort_settings": sort_settings,
+                "sorted_first_30": sorted_first_30,
                 "raw_sort_block": {
                     "type": raw_sort_block.get("type"),
                     "segment_type": raw_sort_block.get("segment_type"),

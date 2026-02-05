@@ -110,6 +110,32 @@ def get_sort_settings_from_run_block(block: Dict) -> Dict:
     return {"primary": {"field": "none", "direction": "asc"}, "secondary": {"field": "none", "direction": "asc"}}
 
 
+def sort_participants(participants: List[Dict], sort_settings: Dict | None = None) -> List[Dict]:
+    if sort_settings:
+        return sorted(participants, key=build_participant_sort_key(sort_settings))
+    return sorted(participants, key=_participant_sort_key)
+
+
+def dedup_preserve_order(participants: List[Dict]) -> List[Dict]:
+    seen = set()
+    ordered = []
+    for entry in participants:
+        license_no = entry.get("Lizenznummer")
+        if not license_no or license_no in seen:
+            continue
+        seen.add(license_no)
+        ordered.append(entry)
+    return ordered
+
+
+def format_participant_debug(entry: Dict) -> str:
+    category = entry.get("Kategorie") or entry.get("kategorie") or ""
+    klasse = str(entry.get("Klasse") or entry.get("klasse") or "")
+    label = f"{_category_label(category)}{klasse}"
+    start_nr = entry.get("Startnummer")
+    return f"{label}:{start_nr}"
+
+
 def _text_matches_briefing(value: str) -> bool:
     lowered = (value or "").lower()
     return any(token in lowered for token in ("brief", "begeh", "walkthrough", "inspection"))
@@ -204,7 +230,7 @@ def get_sort_settings_from_run_blocks(run_blocks: Iterable[Dict]) -> Tuple[Dict,
     }, {}
 
 
-def collect_participants_for_session(session: Dict, event: Dict, sort_settings: Dict | None = None) -> List[Dict]:
+def collect_participants_for_session(session: Dict, event: Dict) -> List[Dict]:
     """Collect unique participants for a session based on its run blocks."""
     participants: List[Dict] = []
     runs = event.get("runs", []) or []
@@ -214,23 +240,12 @@ def collect_participants_for_session(session: Dict, event: Dict, sort_settings: 
                 continue
             if _match_run_to_block(run, block):
                 participants.extend(run.get("entries", []) or [])
-    return sort_and_dedup_participants(participants, sort_settings)
+    return participants
 
 
 def sort_and_dedup_participants(participants: List[Dict], sort_settings: Dict | None = None) -> List[Dict]:
-    if sort_settings:
-        sorted_participants = sorted(participants, key=build_participant_sort_key(sort_settings))
-    else:
-        sorted_participants = sorted(participants, key=_participant_sort_key)
-    seen = set()
-    ordered = []
-    for entry in sorted_participants:
-        license_no = entry.get("Lizenznummer")
-        if not license_no or license_no in seen:
-            continue
-        seen.add(license_no)
-        ordered.append(entry)
-    return ordered
+    deduped = dedup_preserve_order(participants)
+    return sort_participants(deduped, sort_settings)
 
 
 def _calculate_group_count(total: int, group_size: int, group_count: int | None) -> int:
