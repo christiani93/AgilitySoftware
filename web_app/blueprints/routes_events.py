@@ -1,6 +1,8 @@
 # blueprints/routes_events.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, Response, jsonify, abort
+from werkzeug.utils import secure_filename
 import json
+import os
 import uuid
 import random
 from io import StringIO
@@ -648,6 +650,116 @@ def manage_runs(event_id):
         run_judges[run.get('id')] = resolve_judge_name(event, run, judges)
 
     return render_template('manage_runs.html', event=event, judges=judges, run_judges=run_judges)
+
+@events_bp.route('/debug_import_official_startnumbers/<event_id>', methods=['POST'])
+def debug_import_official_startnumbers(event_id):
+    # Event existiert?
+    events = _load_data(EVENTS_FILE)
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        flash("Event nicht gefunden.", "error")
+        return redirect(url_for('events_bp.events_list'))
+
+    # File upload
+    f = request.files.get("startlist_json")
+    if not f or not f.filename:
+        flash("Keine Datei ausgewählt (startlist_all_combined.json).", "warning")
+        return redirect(url_for('events_bp.manage_runs', event_id=event_id))
+
+    filename = secure_filename(f.filename)
+    if not filename.lower().endswith(".json"):
+        flash("Bitte eine JSON-Datei hochladen (startlist_all_combined.json).", "warning")
+        return redirect(url_for('events_bp.manage_runs', event_id=event_id))
+
+    # Optional sort
+    sort_entries = (request.form.get("sort_entries") == "1")
+
+    # JSON laden
+    try:
+        combined = json.load(f)
+        if not isinstance(combined, list):
+            raise ValueError("JSON ist nicht eine Liste")
+    except Exception as ex:
+        flash(f"JSON konnte nicht gelesen werden: {ex}", "error")
+        return redirect(url_for('events_bp.manage_runs', event_id=event_id))
+
+    def as_int(v):
+        if isinstance(v, int):
+            return v
+        if isinstance(v, str) and v.strip().isdigit():
+            return int(v.strip())
+        return None
+
+    # Mapping Lizenz -> Startnummer
+    by_license = {}
+    for row in combined:
+        if not isinstance(row, dict):
+            continue
+        lic = _norm(row.get("license"))
+        sn = as_int(row.get("start_no"))
+        if not lic or sn is None:
+            continue
+
+        if lic in by_license and by_license[lic].get("Startnummer_offiziell") != sn:
+            # Konflikt sichtbar lassen
+            by_license[lic]["Konflikt_Startnummern"] = sorted(list({by_license[lic]["Startnummer_offiziell"], sn}))
+            continue
+
+        by_license[lic] = {
+            "Startnummer_offiziell": sn,
+            "Quelle": row.get("quelle"),
+            "raw_line": row.get("raw_line"),
+        }
+
+    # Dogs updaten
+    dogs = _load_data(DOGS_FILE)
+    updated_dogs = 0
+    for d in dogs or []:
+        if not isinstance(d, dict):
+            continue
+        lic = _norm(d.get("Lizenznummer"))
+        if not lic:
+            continue
+        info = by_license.get(lic)
+        if not info:
+            continue
+        d["Startnummer_offiziell"] = info["Startnummer_offiziell"]
+        d["Startnummer_offiziell_quelle"] = info.get("Quelle")
+        updated_dogs += 1
+    _save_data(DOGS_FILE, dogs)
+
+    # Events / Entries updaten (nur dieses Event)
+    updated_entries = 0
+    for r in event.get("runs", []) or []:
+        entries = r.get("entries", []) or []
+        for e in entries:
+            if not isinstance(e, dict):
+                continue
+            lic = _norm(e.get("Lizenznummer"))
+            if not lic:
+                continue
+            info = by_license.get(lic)
+            if not info:
+                continue
+            e["Startnummer_offiziell"] = info["Startnummer_offiziell"]
+            updated_entries += 1
+
+        if sort_entries and entries:
+            def key(x):
+                v = as_int(x.get("Startnummer_offiziell"))
+                return (0, v) if v is not None else (1, 999999)
+            r["entries"] = sorted(entries, key=key)
+
+    _save_data(EVENTS_FILE, events)
+
+    # Debug-File speichern (für 1:1 Vergleich)
+    _save_data("debug_startnumbers_offiziell.json", by_license)
+
+    flash(
+        f"✅ Offizielle Startnummern importiert: {len(by_license)} | Dogs updated: {updated_dogs} | Entries updated: {updated_entries}",
+        "success",
+    )
+    return redirect(url_for('events_bp.manage_runs', event_id=event_id))
 
 @events_bp.route('/edit_run/<event_id>/<uuid:run_id>', methods=['GET', 'POST'])
 def edit_run(event_id, run_id):
