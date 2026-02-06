@@ -10,6 +10,44 @@
     </div>
 </div>
 
+<hr>
+<h3>Debug / Test</h3>
+<p class="text-muted" style="max-width: 900px;">
+    Startlisten-JSON hochladen und daraus ein neues Test-Event erstellen.
+</p>
+<form method="post"
+      action="{{ url_for('events_bp.debug_import_create_event') }}"
+      enctype="multipart/form-data"
+      style="border: 1px solid #ddd; padding: 12px; border-radius: 8px; max-width: 900px;">
+    <div class="mb-2">
+        <label class="form-label"><b>startlist_all_combined.json</b></label>
+        <input type="file" name="startlist_file" accept=".json" required class="form-control">
+    </div>
+    <div class="mb-2">
+        <label class="form-label">Event-Name (optional)</label>
+        <input type="text" name="event_name" class="form-control" placeholder="TEST-Import 2025-01-01 10:00">
+    </div>
+    <div class="form-check mb-1">
+        <input class="form-check-input" type="checkbox" name="create_participants" value="1" checked id="debug-create-participants">
+        <label class="form-check-label" for="debug-create-participants">Teilnehmer anlegen (dogs + handlers)</label>
+    </div>
+    <div class="form-check mb-1">
+        <input class="form-check-input" type="checkbox" name="create_runs" value="1" checked id="debug-create-runs">
+        <label class="form-check-label" for="debug-create-runs">Läufe anlegen (Agility/Jumping pro Klasse/Kategorie)</label>
+    </div>
+    <div class="form-check mb-1">
+        <input class="form-check-input" type="checkbox" name="add_entries" value="1" checked id="debug-add-entries">
+        <label class="form-check-label" for="debug-add-entries">Entries hinzufügen</label>
+    </div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="sort_entries" value="1" id="debug-sort-entries">
+        <label class="form-check-label" for="debug-sort-entries">Entries nach offizieller Startnummer sortieren</label>
+    </div>
+    <button type="submit" class="btn btn-warning">
+        Startlisten-JSON → Test-Event erstellen
+    </button>
+</form>
+
 <ul class="list-group">
     {% for event in events|sort(attribute='Datum', reverse=True) %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
