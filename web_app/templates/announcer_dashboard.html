@@ -82,6 +82,11 @@ document.addEventListener('DOMContentLoaded', function () {
             fetchAndRenderRing(`Ring ${data.ring_id}`);
         }
     });
+    socket.on('current_run_changed', function(data) {
+        if (data.event_id === eventId && data.ring_id) {
+            fetchAndRenderRing(`Ring ${data.ring_id}`);
+        }
+    });
 
     initialLoad();
 });
