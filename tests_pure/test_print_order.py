@@ -28,6 +28,24 @@ def test_print_order_follows_run_order():
     assert [run["id"] for run in ordered] == ["ag1", "ag2", "jump1"]
 
 
+def test_print_order_falls_back_to_event_runs_when_missing_order():
+    event = {
+        "runs": [
+            {"id": "jump_small", "laufart": "Jumping", "kategorie": "Small", "klasse": "1", "entries": [_entry(2, "S1", "B"), _entry(1, "S2", "A")]},
+            {"id": "ag_large", "laufart": "Agility", "kategorie": "Large", "klasse": "1", "entries": [_entry(3, "L1", "C")]},
+            {"id": "ag_small", "laufart": "Agility", "kategorie": "Small", "klasse": "1", "entries": [_entry(4, "S3", "D")]},
+        ],
+        "run_order": [],
+    }
+
+    ordered = get_ordered_runs_for_print(event)
+
+    assert [run["id"] for run in ordered] == ["ag_large", "ag_small", "jump_small"]
+    assert [entry["Startnummer"] for entry in ordered[0]["entries"]] == ["3"]
+    assert [entry["Startnummer"] for entry in ordered[1]["entries"]] == ["4"]
+    assert [entry["Startnummer"] for entry in ordered[2]["entries"]] == ["1", "2"]
+
+
 def test_briefing_sessions_split_by_briefing_blocks():
     event = {
         "runs": [

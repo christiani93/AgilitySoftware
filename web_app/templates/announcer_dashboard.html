@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     socket.on('connect', function() {
+        socket.emit('join_room', {room: `event:${eventId}`});
         console.log('Socket.IO connected!');
     });
 
@@ -91,6 +92,11 @@ document.addEventListener('DOMContentLoaded', function () {
             fetchAndRenderRing(data.ring_name);
             // NEU: Zeitplan ebenfalls aktualisieren
             fetchAndRenderSchedule();
+        }
+    });
+    socket.on('current_run_changed', function(data) {
+        if (data.event_id === eventId && data.ring_id) {
+            fetchAndRenderRing(`Ring ${data.ring_id}`);
         }
     });
 

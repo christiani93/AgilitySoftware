@@ -3,11 +3,34 @@ from flask import Blueprint, render_template, abort, request, redirect, url_for,
 from datetime import datetime
 import csv
 import io
-from utils import (_load_data, _calculate_run_results, _load_settings,
+from utils import (_load_data, _save_data, _calculate_run_results, _load_settings,
                    _calculate_timelines, get_category_sort_key)
-from planner.print_order import get_ordered_runs_for_print, build_briefing_sessions
+from planner.print_order import get_ordered_runs_for_print
+from planner.print_schedule_order import (
+    build_schedule_print_sections,
+    build_schedule_steward_sections,
+)
+from planner.briefing_groups import (
+    apply_group_summaries,
+    build_briefing_sessions,
+    build_briefing_sessions_from_timeline,
+    collect_participants_for_session,
+    dedup_preserve_order,
+    get_sort_settings_from_run_blocks,
+    is_briefing_block,
+    session_title_from_run_blocks,
+    sort_participants,
+    split_into_groups,
+)
 
 print_bp = Blueprint('print_bp', __name__, template_folder='../templates')
+
+@print_bp.route('/print/<event_id>')
+def print_index(event_id):
+    """Übersichtsseite für Vorbereitungsdrucksachen."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+    return render_template('print/index.html', event=event)
 
 def _get_enriched_participants(event):
     """Hilfsfunktion, um Teilnehmerdaten mit Kategorie und Klasse anzureichern."""
@@ -32,19 +55,124 @@ def print_schedule(event_id):
     """Druckansicht für den Zeitplan."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
+    try:
+        timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
+    except Exception:
+        timelines_by_ring = None
+    if not timelines_by_ring:
+        fallback_event = dict(event)
+        fallback_event.pop('schedule', None)
+        try:
+            timelines_by_ring = _calculate_timelines(fallback_event, round_to_minutes=5)
+        except Exception:
+            timelines_by_ring = None
+    if not timelines_by_ring:
+        num_rings = event.get('num_rings') or 1
+        timelines_by_ring = {str(ring): [] for ring in range(1, num_rings + 1)}
     judges_map = {j['id']: f"{j.get('firstname', '')} {j.get('lastname', '')}" for j in _load_data('judges.json')}
     return render_template('print/schedule.html', event=event, timelines_by_ring=timelines_by_ring, judges_map=judges_map)
 
+@print_bp.route('/print/briefing_groups')
 @print_bp.route('/print/briefing_groups/<event_id>')
-def print_briefing_groups(event_id):
+def print_briefing_groups(event_id=None):
     """Druckansicht für die Begehungsgruppen, neu strukturiert pro Begehung."""
-    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
-    if not event: abort(404)
-    briefing_sessions = build_briefing_sessions(event)
-    briefing_blocks = [block for block in event.get('run_order', []) if block.get('laufart') == 'Briefing']
-    briefing_hint = "Nur 1 Begehung geplant." if len(briefing_blocks) <= 1 else None
-    return render_template('print/briefing_groups.html', event=event, briefing_sessions=briefing_sessions, briefing_hint=briefing_hint)
+    events = _load_data('events.json')
+    if event_id is None:
+        event = events[0] if events else None
+    else:
+        event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+
+    settings = _load_settings()
+    briefing_settings = settings.get('briefing') or {}
+    group_size = briefing_settings.get('group_size', 50)
+    group_count = briefing_settings.get('group_count')
+    show_participants_table = briefing_settings.get('show_participants_table', False)
+
+    try:
+        timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
+    except Exception:
+        timelines_by_ring = None
+    if not timelines_by_ring:
+        fallback_event = dict(event)
+        fallback_event.pop('schedule', None)
+        try:
+            timelines_by_ring = _calculate_timelines(fallback_event, round_to_minutes=5)
+        except Exception:
+            timelines_by_ring = None
+    if not timelines_by_ring:
+        num_rings = event.get('num_rings') or 1
+        timelines_by_ring = {str(ring): [] for ring in range(1, num_rings + 1)}
+
+    schedule = event.get('schedule') or {}
+    schedule_blocks_count = 0
+    briefing_blocks_count = 0
+    dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
+    sessions_by_ring = []
+    for ring_key in sorted(timelines_by_ring.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
+        timeline_items = timelines_by_ring.get(ring_key) or []
+        schedule_blocks_count += len(timeline_items)
+        briefing_blocks_count += sum(1 for item in timeline_items if is_briefing_block(item))
+        sessions = build_briefing_sessions_from_timeline(timeline_items)
+        ring_sessions = []
+        for index, session in enumerate(sessions, start=1):
+            run_blocks = session.get("run_blocks", [])
+            sort_settings, raw_sort_block = get_sort_settings_from_run_blocks(run_blocks)
+            participants = collect_participants_for_session(session, event)
+            for entry in participants:
+                dog_info = dogs_map.get(entry.get('Lizenznummer'), {})
+                entry.setdefault('Kategorie', dog_info.get('Kategorie'))
+                entry.setdefault('Klasse', dog_info.get('Klasse'))
+            participants = dedup_preserve_order(participants)
+            participants_sorted = sort_participants(participants, sort_settings)
+            groups = split_into_groups(participants_sorted, group_size, group_count)
+            apply_group_summaries(groups)
+            group_sizes = [len(group.get("participants", []) or []) for group in groups]
+            group_sizes_label = "/".join(str(size) for size in group_sizes) if group_sizes else "—"
+            session_title = session_title_from_run_blocks(run_blocks)
+            ring_sessions.append({
+                "title": session_title or session.get("title") or f"Briefing {index}",
+                "session_index": index,
+                "participant_count": len(participants_sorted),
+                "group_count": len(groups),
+                "group_sizes_label": group_sizes_label,
+                "groups": groups,
+                "sort_settings": sort_settings,
+                "raw_sort_block": {
+                    "type": raw_sort_block.get("type"),
+                    "segment_type": raw_sort_block.get("segment_type"),
+                    "laufart": raw_sort_block.get("laufart"),
+                    "title": raw_sort_block.get("title"),
+                    "label": raw_sort_block.get("label"),
+                    "sort": raw_sort_block.get("sort"),
+                    "primary_sort_field": raw_sort_block.get("primary_sort_field"),
+                    "primary_sort_dir": raw_sort_block.get("primary_sort_dir"),
+                    "secondary_sort_field": raw_sort_block.get("secondary_sort_field"),
+                    "secondary_sort_dir": raw_sort_block.get("secondary_sort_dir"),
+                    "sort_primary_field": raw_sort_block.get("sort_primary_field"),
+                    "sort_primary_dir": raw_sort_block.get("sort_primary_dir"),
+                    "sort_secondary_field": raw_sort_block.get("sort_secondary_field"),
+                    "sort_secondary_dir": raw_sort_block.get("sort_secondary_dir"),
+                },
+            })
+        sessions_by_ring.append({
+            "ring": ring_key,
+            "sessions": ring_sessions,
+        })
+
+    sessions_count = sum(len(ring_data.get('sessions', [])) for ring_data in sessions_by_ring)
+    return render_template(
+        'print/briefing_groups.html',
+        event=event,
+        sessions_by_ring=sessions_by_ring,
+        schedule=schedule,
+        schedule_blocks_count=schedule_blocks_count,
+        briefing_blocks_count=briefing_blocks_count,
+        sessions_count=sessions_count,
+        debug_enabled=False,
+        show_participants_table=show_participants_table,
+    )
 
 @print_bp.route('/print/startlists/<event_id>')
 def print_startlists(event_id):
@@ -54,6 +182,16 @@ def print_startlists(event_id):
     ordered_runs = get_ordered_runs_for_print(event)
     return render_template('print_startlists.html', event=event, ordered_runs=ordered_runs)
 
+
+@print_bp.route('/print/startlists_by_schedule/<event_id>')
+def print_startlists_by_schedule(event_id):
+    """Startliste nach Zeitplan-Reihenfolge."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+    sections = build_schedule_print_sections(event)
+    return render_template('print/startlists_by_schedule.html', event=event, sections=sections)
+
 @print_bp.route('/print/stewardlists/<event_id>')
 def print_stewardlists(event_id):
     """Ringschreiber-Listen in Zeitplan-Reihenfolge."""
@@ -61,6 +199,22 @@ def print_stewardlists(event_id):
     if not event: abort(404)
     ordered_runs = get_ordered_runs_for_print(event)
     return render_template('print/scribe_list.html', event=event, title="Ringschreiberlisten", ordered_runs=ordered_runs, judges=_load_data('judges.json'))
+
+
+@print_bp.route('/print/stewardlists_by_schedule/<event_id>')
+def print_stewardlists_by_schedule(event_id):
+    """Ringschreiber-Listen nach Zeitplan-Reihenfolge."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+    sections = build_schedule_print_sections(event)
+    return render_template(
+        'print/scribe_list_by_schedule.html',
+        event=event,
+        title="Ringschreiberlisten (nach Zeitplan)",
+        sections=sections,
+        judges=_load_data('judges.json'),
+    )
 
 @print_bp.route('/print/master_steward_list/<event_id>')
 def print_master_steward_list(event_id):
@@ -86,6 +240,16 @@ def print_master_steward_list(event_id):
             participants_in_group.sort(key=lambda p: int(p.get('Startnummer', 9999)))
             final_grouped_data[cat][cls] = {'participants': participants_in_group, 'runs': runs_for_group, 'run_map': participant_run_map}
     return render_template('print/master_steward_list.html', event=event, final_grouped_data=final_grouped_data)
+
+
+@print_bp.route('/print/master_steward_list_by_schedule/<event_id>')
+def print_master_steward_list_by_schedule(event_id):
+    """Master-Einweiserliste nach Zeitplan-Reihenfolge."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+    sections = build_schedule_steward_sections(event)
+    return render_template('print/master_steward_list_by_schedule.html', event=event, sections=sections)
 
 @print_bp.route('/print/participant_list/<event_id>')
 def print_participant_list(event_id):
@@ -143,7 +307,7 @@ def print_award_list(event_id):
     for run in runs_to_print:
         results = _calculate_run_results(run, settings)
         award_data.append({'name': run.get('name'), 'full_judge_name': judges_map.get(run.get('richter_id'), 'N/A'), 'rankings': results})
-    return render_template('print_award_list.html', event_name=event.get('Bezeichnung'), award_data=award_data, event_id=event_id)
+    return render_template('print_award_list.html', event=event, event_name=event.get('Bezeichnung'), award_data=award_data, event_id=event_id)
 
 @print_bp.route('/print/tkamo_export/<event_id>')
 def tkamo_export(event_id):
