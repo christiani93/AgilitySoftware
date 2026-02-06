@@ -11,6 +11,7 @@ from extensions import socketio
 from utils import (_load_data, _save_data, _get_active_event,
                    _calculate_run_results, _load_settings, _get_active_event_id,
                    _calculate_timelines)
+import planner.schedule_planner as schedule_planner
 
 live_bp = Blueprint('live_bp', __name__, template_folder='../templates')
 
@@ -74,6 +75,36 @@ def _norm_ring_strict(val, default_one=True):
 # --- END HELPERS ---
 
 
+def _schedule_runs_for_ring(event, ring_key):
+    schedule = event.get("schedule") or {}
+    rings = schedule.get("rings") or {}
+    ring_data = rings.get(str(ring_key)) or {}
+    blocks = ring_data.get("blocks") or []
+    debug = []
+    runs_for_ring = []
+    seen_ids = set()
+    for block in blocks:
+        block_type = (block.get("type") or block.get("block_type") or "").lower()
+        if block_type != "run":
+            debug.append(f"skip:{block_type or 'unknown'}")
+            continue
+        matched = [
+            run for run in event.get("runs", []) or []
+            if isinstance(run, dict) and schedule_planner._match_run_to_block(run, block)
+        ]
+        if not matched:
+            debug.append(f"no_match:{block.get('title') or block.get('label') or block.get('laufart') or 'run'}")
+            continue
+        for run in matched:
+            run_id = run.get("id")
+            if run_id and run_id in seen_ids:
+                continue
+            if run_id:
+                seen_ids.add(run_id)
+            runs_for_ring.append(run)
+    return runs_for_ring, debug
+
+
 # --- END FIXED HEADER ---
 
 @live_bp.route('/debug/live_state')
@@ -119,7 +150,19 @@ def live_event_dashboard():
         _save_data('active_event.json', {})
         return redirect(url_for('events_bp.events_list'))
     runs_by_ring = {}
-    if event.get('run_order'):
+    debug_messages = []
+    schedule = event.get("schedule") or {}
+    schedule_rings = schedule.get("rings") or {}
+    if schedule_rings:
+        for ring_key in sorted(schedule_rings.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
+            runs_for_ring, debug = _schedule_runs_for_ring(event, ring_key)
+            ring_label = f"Ring {ring_key}"
+            runs_by_ring[ring_label] = runs_for_ring
+            if not runs_for_ring and debug:
+                debug_messages.append(f"{ring_label}: {', '.join(debug)}")
+        if debug_messages:
+            flash("Zeitplan vorhanden, aber keine Lauf-Blöcke gefunden: " + " | ".join(debug_messages), "warning")
+    elif event.get('run_order'):
         all_rings = sorted(list(set(r['assigned_ring'] for r in event.get('runs', []) if r.get('assigned_ring'))))
         for ring_num in all_rings:
             runs_by_ring[f"Ring {ring_num}"] = [r for r in event.get('runs', []) if r.get('assigned_ring') == ring_num]
@@ -311,10 +354,21 @@ def ring_pc_dashboard(ring_number):
     ring_name = f"Ring {ring_number}"
     target = _norm_ring_strict(ring_number)
     runs_for_ring = []
-    for r in event.get('runs', []):
-        assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
-        if assigned and _norm_ring_strict(assigned) == target:
-            runs_for_ring.append(r)
+    schedule = event.get("schedule") or {}
+    schedule_rings = schedule.get("rings") or {}
+    if schedule_rings:
+        ring_key = str(ring_number)
+        runs_for_ring, debug = _schedule_runs_for_ring(event, ring_key)
+        if not runs_for_ring and debug:
+            flash(
+                f"Zeitplan gefunden, aber keine Lauf-Blöcke für {ring_name}: {', '.join(debug)}",
+                "warning",
+            )
+    else:
+        for r in event.get('runs', []):
+            assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
+            if assigned and _norm_ring_strict(assigned) == target:
+                runs_for_ring.append(r)
     return render_template('ring_pc_dashboard.html', event=event, ring_name=ring_name, runs=runs_for_ring)
 
 @live_bp.route('/api/render_announcer_schedule/<event_id>')
