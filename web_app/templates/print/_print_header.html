@@ -1,14 +1,12 @@
-{% set event_logo_src = event.get('logo_url') or url_for('static', filename='img/event_logo.svg') %}
-{% set club_logo_src = event.get('club_logo_url') or url_for('static', filename='img/club_logo.svg') %}
 <div class="print-header">
     <div class="print-header__logo">
-        <img src="{{ event_logo_src }}" alt="Event Logo">
+        <div class="print-header__logo-box">Eventlogo</div>
     </div>
     <div class="print-header__titles">
-        <h1>{{ title }}</h1>
-        <h2>{{ event.Bezeichnung }} - {{ event.Datum | format_date }}</h2>
+        <div class="print-header__title">{{ title }}</div>
+        <div class="print-header__subtitle">{{ event.Bezeichnung }} - {{ event.Datum | format_date }}</div>
     </div>
     <div class="print-header__logo print-header__logo--right">
-        <img src="{{ club_logo_src }}" alt="Vereinslogo">
+        <div class="print-header__logo-box">Vereinslogo</div>
     </div>
 </div>
