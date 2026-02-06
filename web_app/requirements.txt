@@ -20,6 +20,7 @@ MarkupSafe==3.0.2
 openpyxl==3.1.5
 packaging==25.0
 pefile==2023.2.7
+pdfplumber==0.11.4
 pycparser==2.22
 pyinstaller==6.15.0
 pyinstaller-hooks-contrib==2025.8
