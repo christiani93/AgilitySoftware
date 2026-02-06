@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import math
 import uuid
 import random
+import re
 
 # Ensure project root is on the path so sibling packages (e.g., planner) resolve
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
@@ -554,6 +555,200 @@ def resolve_judge_name(event, run, judges, schedule_block=None):
     if judge_id:
         return judge_name(judges, judge_id)
     return '—'
+
+
+def _ring_label_for_display(ring_number: int):
+    try:
+        ring_num = int(ring_number)
+    except Exception:
+        ring_num = ring_number
+    return f"Ring {ring_num}"
+
+
+def _ring_state_keys(ring_number: int):
+    label = _ring_label_for_display(ring_number)
+    return [label, f"Ring ring_{ring_number}"]
+
+
+def _load_live_state():
+    data = _load_data("live_state.json")
+    return data if isinstance(data, dict) else {}
+
+
+def _first_name_from_name(name: str):
+    if not name:
+        return ""
+    if "," in name:
+        name = name.split(",", 1)[1]
+    return (name.strip().split() or [""])[0]
+
+
+def _extract_first_name(entry: dict):
+    for key in ("Vorname", "vorname", "firstname", "FirstName"):
+        if entry.get(key):
+            return entry.get(key)
+    for key in ("Hundeführer", "Hundefuehrer", "Hundefuehrer_Name", "Hundeführer_Name"):
+        if entry.get(key):
+            return _first_name_from_name(entry.get(key))
+    return ""
+
+
+def _extract_dog_name(entry: dict):
+    for key in ("Hundename", "hundename", "dog_name"):
+        if entry.get(key):
+            return entry.get(key)
+    return ""
+
+
+def format_ring_name(entry: dict):
+    first = _extract_first_name(entry or {})
+    dog = _extract_dog_name(entry or {})
+    if first and dog:
+        return f"{first} {dog}"
+    return first or dog or "—"
+
+
+def _format_time(value):
+    try:
+        return f"{float(value):.2f}"
+    except Exception:
+        return "—"
+
+
+def _format_total_errors(entry: dict):
+    total = (entry or {}).get("fehler_total")
+    if total is None:
+        total = (entry or {}).get("fehler_total_gerundet")
+    if total is None:
+        return "—"
+    try:
+        return f"{float(total):.2f}"
+    except Exception:
+        return str(total)
+
+
+def collect_ring_numbers(event: dict):
+    rings = set()
+    schedule_rings = (event or {}).get("schedule", {}).get("rings") or {}
+    for key in schedule_rings.keys():
+        digits = re.sub(r"[^0-9]", "", str(key))
+        if digits:
+            rings.add(int(digits))
+    if not rings:
+        for ring in (event or {}).get("rings", []) or []:
+            digits = re.sub(r"[^0-9]", "", str(ring))
+            if digits:
+                rings.add(int(digits))
+    if not rings:
+        for run in (event or {}).get("runs", []) or []:
+            assigned = run.get("assigned_ring") or run.get("ring") or run.get("ring_id") or run.get("ringName")
+            digits = re.sub(r"[^0-9]", "", str(assigned or ""))
+            if digits:
+                rings.add(int(digits))
+    if not rings:
+        rings.add(int((event or {}).get("num_rings", 1) or 1))
+    return sorted(rings)
+
+
+def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_ranking=10, max_last_results=3):
+    ring_label = _ring_label_for_display(ring_number)
+    view = {
+        "ring_no": ring_number,
+        "ring_label": ring_label,
+        "current_run": None,
+        "startlist": [],
+        "ranking": [],
+        "last_results": [],
+        "current_starter": {},
+        "next_starter": {},
+    }
+    if not event:
+        return view
+
+    state = _load_live_state()
+    evt_id = event.get("id") or event.get("event_id") or ""
+    active = None
+    for key in _ring_state_keys(ring_number):
+        active = (state.get(evt_id, {}) or {}).get(key)
+        if active:
+            break
+
+    run = None
+    run_block = None
+    if active:
+        run_id = active.get("run_id")
+        if run_id:
+            run = next((r for r in event.get("runs", []) if r.get("id") == run_id), None)
+        run_block_id = active.get("run_block_id")
+        if run_block_id:
+            schedule = event.get("schedule") or {}
+            for ring_data in (schedule.get("rings") or {}).values():
+                for block in ring_data.get("blocks") or []:
+                    if block.get("id") == run_block_id:
+                        run_block = block
+                        break
+                if run_block:
+                    break
+
+    if not run:
+        schedule = event.get("schedule") or {}
+        ring_key = str(ring_number)
+        ring_data = (schedule.get("rings") or {}).get(ring_key)
+        blocks = (ring_data or {}).get("blocks") or []
+        run_blocks = [b for b in blocks if (b.get("type") or "").lower() == "run"]
+        for block in run_blocks:
+            for candidate in event.get("runs", []) or []:
+                if schedule_planner._match_run_to_block(candidate, block):
+                    run = candidate
+                    run_block = block
+                    break
+            if run:
+                break
+
+    if not run:
+        return view
+
+    judges = _load_data("judges.json")
+    run_block = run_block or _find_schedule_block_for_run(event, run)
+    judge_name_value = resolve_judge_name(event, run, judges, run_block)
+    laufdaten = run.get("laufdaten", {}) or {}
+    sct = laufdaten.get("standardzeit_sct_gerundet") or laufdaten.get("standardzeit_sct_berechnet") or laufdaten.get("standardzeit_sct")
+    mct = laufdaten.get("maximalzeit_mct_gerundet") or laufdaten.get("maximalzeit_mct_berechnet") or laufdaten.get("maximalzeit_mct")
+
+    view["current_run"] = {
+        "id": run.get("id"),
+        "title": run.get("name") or "",
+        "judge_name": judge_name_value,
+        "sct": sct or "—",
+        "mct": mct or "—",
+        "parcours_laenge": laufdaten.get("parcours_laenge") or "—",
+        "hindernisse": laufdaten.get("anzahl_hindernisse") or "—",
+        "klasse": run.get("klasse"),
+        "kategorie": run.get("kategorie"),
+        "laufart": run.get("laufart"),
+    }
+
+    entries = run.get("entries", []) or []
+    entries_sorted = sorted(entries, key=lambda e: _to_int(e.get("Startnummer"), default=999999))
+    view["startlist"] = entries_sorted[:max_startlist]
+
+    settings = _load_settings()
+    results = _calculate_run_results(run, settings)
+    ranking = [r for r in results if r.get("platz")]
+    ranking.sort(key=lambda r: _to_int(r.get("platz"), default=999999))
+    view["ranking"] = ranking[:max_ranking]
+
+    last_results = sorted(
+        [res for res in results if res.get("platz")],
+        key=lambda x: x.get("timestamp", 0),
+        reverse=True,
+    )[:max_last_results]
+    view["last_results"] = last_results
+
+    view["current_starter"] = run.get("current_starter") or {}
+    view["next_starter"] = run.get("next_starter") or {}
+
+    return view
 
 
 def _apply_sct_mct_factors(laufdaten: dict, settings: dict):

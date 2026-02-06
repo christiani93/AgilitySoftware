@@ -53,7 +53,7 @@
                 <button id="activate-display-btn" class="bg-yellow-400 text-black p-2 rounded hover:bg-yellow-500 disabled:opacity-50" title="Diesen Lauf für Monitore aktivieren" disabled>
                     <i class="fas fa-bullhorn"></i>
                 </button>
-                <a id="edit-run-btn" href="#" class="bg-gray-500 text-white p-2 rounded hover:bg-gray-600 disabled:opacity-50" title="Lauf-Einstellungen öffnen" aria-disabled="true">Lauf-Einstellungen</a>
+                <a id="btn-edit-run" href="#" class="bg-gray-500 text-white p-2 rounded hover:bg-gray-600 disabled:opacity-50" title="Lauf-Einstellungen öffnen" aria-disabled="true">Lauf-Einstellungen</a>
             </div>
             <div id="ring-server-status" class="mt-3 text-sm text-gray-500">Verbinde mit Ring-Server...</div>
             <div id="live-info" class="mt-2 p-3 bg-gray-200 text-black rounded">
@@ -124,7 +124,7 @@
       starterList : document.getElementById("starter-list-container"),
       statusDiv   : document.getElementById("ring-server-status"),
       activateBtn : document.getElementById("activate-display-btn"),
-      editRunBtn  : document.getElementById("edit-run-btn"),
+      editRunBtn  : document.getElementById("btn-edit-run"),
       resetBtn    : document.getElementById("reset-run-btn"),
       modal       : document.getElementById("result-modal"),
       info: {

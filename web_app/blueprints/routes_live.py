@@ -10,7 +10,9 @@ from pathlib import Path
 from extensions import socketio
 from utils import (_load_data, _save_data, _get_active_event,
                    _calculate_run_results, _load_settings, _get_active_event_id,
-                   _calculate_timelines, resolve_judge_name, resolve_judge_id, _to_int)
+                   _calculate_timelines, resolve_judge_name, resolve_judge_id, _to_int,
+                   build_ring_view_model, collect_ring_numbers, format_ring_name,
+                   _format_time, _format_total_errors)
 import planner.schedule_planner as schedule_planner
 
 live_bp = Blueprint('live_bp', __name__, template_folder='../templates')
@@ -343,7 +345,8 @@ def show_ranking(event_id, run_id):
 def announcer_dashboard(event_id):
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    return render_template('announcer_dashboard.html', event=event, kiosk_mode=True)
+    ring_numbers = collect_ring_numbers(event)
+    return render_template('announcer_dashboard.html', event=event, ring_numbers=ring_numbers, kiosk_mode=True)
 @live_bp.route('/live/set_active_announcer_run/<event_id>/<uuid:run_id>')
 def set_active_announcer_run(event_id, run_id):
     # Setzt den aktiven Lauf für Sprecher/Monitore.
@@ -463,18 +466,17 @@ def render_announcer_schedule(event_id):
 
 @live_bp.route('/api/render_speaker_panel_content/<event_id>/<ring_name>')
 def render_speaker_panel_content(event_id, ring_name):
-    try:
-        norm_req = _norm_ring_strict(ring_name)
-    except Exception:
-        norm_req = 'ring_1'
     events = _load_data('events.json')
     event = next((e for e in events if isinstance(e, dict) and e.get('id') == event_id), None)
-    ring_label = _ring_label_for_display(ring=norm_req)
+    digits = re.sub(r"[^0-9]", "", str(ring_name))
+    ring_number = int(digits) if digits else 1
+    ring_label = _ring_label_for_display(ring_number=ring_number)
     if not event:
         return Response(f"<div class='speaker-panel'><h2>{ring_label}</h2><p>Event nicht gefunden.</p></div>", mimetype='text/html')
 
-    data = _get_live_data_for_ring(event, ring_label)
-    if not data:
+    view = build_ring_view_model(event, ring_number, max_last_results=3)
+    current_run = view.get("current_run")
+    if not current_run:
         html = (
             "<div class='card shadow-sm'>"
             "<div class='card-body text-center'>"
@@ -484,101 +486,45 @@ def render_speaker_panel_content(event_id, ring_name):
         )
         return Response(html, mimetype='text/html')
 
-    run = data.get("run") or {}
-    laufdaten = run.get("laufdaten", {}) or {}
-    settings = _load_settings()
-    _calculate_run_results(run, settings)
-
-    def _first_name_from_name(name: str):
-        if not name:
-            return ""
-        if "," in name:
-            name = name.split(",", 1)[1]
-        return (name.strip().split() or [""])[0]
-
-    def _extract_first_name(entry: dict):
-        for key in ("Vorname", "vorname", "firstname", "FirstName"):
-            if entry.get(key):
-                return entry.get(key)
-        for key in ("Hundeführer", "Hundefuehrer", "Hundefuehrer_Name", "Hundeführer_Name"):
-            if entry.get(key):
-                return _first_name_from_name(entry.get(key))
-        return ""
-
-    def _extract_dog_name(entry: dict):
-        for key in ("Hundename", "hundename", "dog_name"):
-            if entry.get(key):
-                return entry.get(key)
-        return ""
-
-    def _format_name(entry: dict):
-        first = _extract_first_name(entry)
-        dog = _extract_dog_name(entry)
-        if first and dog:
-            return f"{first} {dog}"
-        return first or dog or "—"
-
-    def _format_time(value):
-        try:
-            return f"{float(value):.2f}"
-        except Exception:
-            return "—"
-
-    def _format_total_errors(entry: dict):
-        total = entry.get("fehler_total")
-        if total is None:
-            total = entry.get("fehler_total_gerundet")
-        if total is None:
-            return "—"
-        try:
-            return f"{float(total):.2f}"
-        except Exception:
-            return str(total)
-
-    sct = laufdaten.get("standardzeit_sct_gerundet") or laufdaten.get("standardzeit_sct_berechnet") or laufdaten.get("standardzeit_sct")
-    mct = laufdaten.get("maximalzeit_mct_gerundet") or laufdaten.get("maximalzeit_mct_berechnet") or laufdaten.get("maximalzeit_mct")
-    course_len = laufdaten.get("parcours_laenge") or "—"
-    obstacles = laufdaten.get("anzahl_hindernisse") or "—"
-
     meta_bits = []
-    if run.get("klasse"):
-        meta_bits.append(f"Klasse: {run.get('klasse')}")
-    if run.get("kategorie"):
-        meta_bits.append(f"Kategorie: {run.get('kategorie')}")
-    if run.get("laufart"):
-        meta_bits.append(f"Laufart: {run.get('laufart')}")
+    if current_run.get("klasse"):
+        meta_bits.append(f"Klasse: {current_run.get('klasse')}")
+    if current_run.get("kategorie"):
+        meta_bits.append(f"Kategorie: {current_run.get('kategorie')}")
+    if current_run.get("laufart"):
+        meta_bits.append(f"Laufart: {current_run.get('laufart')}")
     meta_line = " | ".join(meta_bits) if meta_bits else "—"
 
-    last_results = (data.get("last_results") or [])[:3]
-    current_starter = data.get("current_starter") or {}
-    next_starter = data.get("next_starter") or {}
+    current_starter = view.get("current_starter") or {}
+    next_starter = view.get("next_starter") or {}
 
     parts = [
         "<div class='card shadow-sm h-100'>",
         "<div class='card-body'>",
-        f"<h5 class='mb-1'>{ring_label} – {data.get('run_name','')}</h5>",
-        f"<div class='text-muted small mb-2'><strong>Richter:</strong> {data.get('judge_name','—')}</div>",
+        f"<h5 class='mb-1'>{ring_label} – {current_run.get('title','')}</h5>",
+        f"<div class='text-muted small mb-2'><strong>Richter:</strong> {current_run.get('judge_name','—')}</div>",
         "<div class='small text-muted mb-2'>",
-        f"SCT {sct or '—'} s · MCT {mct or '—'} s · {course_len} m · {obstacles} Geräte",
+        f"SCT {current_run.get('sct','—')} s · MCT {current_run.get('mct','—')} s · {current_run.get('parcours_laenge','—')} m · {current_run.get('hindernisse','—')} Geräte",
         "</div>",
         f"<div class='small text-muted mb-3'>{meta_line}</div>",
         "<div class='text-uppercase small text-muted'>Aktueller Starter</div>",
-        f"<div class='h4 fw-semibold mb-1'>{_format_name(current_starter)}</div>",
+        f"<div class='h4 fw-semibold mb-1'>{format_ring_name(current_starter)}</div>",
         "<div class='small text-muted mb-3'>",
-        f"Am Start: {_format_name(current_starter)}",
+        f"Am Start: {format_ring_name(current_starter)}",
         "<br>",
-        f"Bereit: {_format_name(next_starter)}",
+        f"Bereit: {format_ring_name(next_starter)}",
         "</div>",
         "<div class='fw-semibold mb-2'>Letzte 3 Ergebnisse</div>",
     ]
 
+    last_results = view.get("last_results") or []
     if last_results:
         parts.append("<div class='d-flex flex-column gap-1'>")
         for res in last_results:
             platz = res.get("platz") or "—"
             parts.append(
                 "<div class='d-flex justify-content-between align-items-center'>"
-                f"<span>{platz} – {_format_name(res)}</span>"
+                f"<span>{platz} – {format_ring_name(res)}</span>"
                 f"<span class='text-muted small'>Fehler {_format_total_errors(res)} · Zeit {_format_time(res.get('zeit_total') or res.get('zeit'))} s</span>"
                 "</div>"
             )
@@ -621,105 +567,37 @@ def render_ring_monitor_content(ring_number: int):
     event = _get_active_event()
     if not event:
         return Response("<div class='ring-monitor'><p>Kein aktives Event.</p></div>", mimetype='text/html')
-    data = _get_live_data_for_ring(event, ring_label)
-    if not data:
+    view = build_ring_view_model(event, ring_number)
+    current_run = view.get("current_run")
+    if not current_run:
         html = f"<div class='ring-monitor'><h2>{ring_label}</h2><p>Kein Lauf wurde für diesen Ring aktiviert.</p></div>"
         return Response(html, mimetype='text/html')
-    run = data.get("run") or {}
-    laufdaten = run.get("laufdaten", {}) or {}
-    settings = _load_settings()
-    results = _calculate_run_results(run, settings)
-
-    def _first_name_from_name(name: str):
-        if not name:
-            return ""
-        if "," in name:
-            name = name.split(",", 1)[1]
-        return (name.strip().split() or [""])[0]
-
-    def _extract_first_name(entry: dict):
-        for key in ("Vorname", "vorname", "firstname", "FirstName"):
-            if entry.get(key):
-                return entry.get(key)
-        for key in ("Hundeführer", "Hundefuehrer", "Hundefuehrer_Name", "Hundeführer_Name"):
-            if entry.get(key):
-                return _first_name_from_name(entry.get(key))
-        return ""
-
-    def _extract_dog_name(entry: dict):
-        for key in ("Hundename", "hundename", "dog_name"):
-            if entry.get(key):
-                return entry.get(key)
-        return ""
-
-    def _format_name(entry: dict):
-        first = _extract_first_name(entry)
-        dog = _extract_dog_name(entry)
-        if first and dog:
-            return f"{first} {dog}"
-        return first or dog or "—"
-
-    def _format_time(value):
-        try:
-            return f"{float(value):.2f}"
-        except Exception:
-            return "—"
-
-    def _format_total_errors(entry: dict):
-        total = entry.get("fehler_total")
-        if total is None:
-            total = entry.get("fehler_total_gerundet")
-        if total is None:
-            return "—"
-        try:
-            return f"{float(total):.2f}"
-        except Exception:
-            return str(total)
-
-    start_entries = run.get("entries", []) or []
-    start_entries = sorted(
-        start_entries,
-        key=lambda e: _to_int(e.get("Startnummer"), default=999999)
-    )
-    start_entries = start_entries[:10]
-
-    ranked_results = [r for r in results if r.get("platz")]
-    ranked_results.sort(key=lambda r: _to_int(r.get("platz"), default=999999))
-    ranked_results = ranked_results[:10]
-
-    last_results = (data.get("last_results") or [])[:3]
-
-    sct = laufdaten.get("standardzeit_sct_gerundet") or laufdaten.get("standardzeit_sct_berechnet") or laufdaten.get("standardzeit_sct")
-    mct = laufdaten.get("maximalzeit_mct_gerundet") or laufdaten.get("maximalzeit_mct_berechnet") or laufdaten.get("maximalzeit_mct")
-    course_len = laufdaten.get("parcours_laenge") or "—"
-    obstacles = laufdaten.get("anzahl_hindernisse") or "—"
-
     meta_bits = []
-    if run.get("klasse"):
-        meta_bits.append(f"Klasse: {run.get('klasse')}")
-    if run.get("kategorie"):
-        meta_bits.append(f"Kategorie: {run.get('kategorie')}")
-    if run.get("laufart"):
-        meta_bits.append(f"Laufart: {run.get('laufart')}")
+    if current_run.get("klasse"):
+        meta_bits.append(f"Klasse: {current_run.get('klasse')}")
+    if current_run.get("kategorie"):
+        meta_bits.append(f"Kategorie: {current_run.get('kategorie')}")
+    if current_run.get("laufart"):
+        meta_bits.append(f"Laufart: {current_run.get('laufart')}")
     meta_line = " | ".join(meta_bits) if meta_bits else "—"
 
-    current_starter = data.get("current_starter") or {}
-    current_label = _format_name(current_starter)
+    current_starter = view.get("current_starter") or {}
+    current_label = format_ring_name(current_starter)
     current_startno = current_starter.get("Startnummer")
     current_startno_display = f"#{current_startno}" if current_startno else ""
 
     parts = [
         "<div class='ring-monitor'>",
         "<div class='mb-3'>",
-        f"<h2 class='h3 mb-1'>{ring_label} – {data.get('run_name','')}</h2>",
-        f"<div class='text-muted mb-2'><strong>Richter:</strong> {data.get('judge_name','—')}</div>",
+        f"<h2 class='h3 mb-1'>{ring_label} – {current_run.get('title','')}</h2>",
+        f"<div class='text-muted mb-2'><strong>Richter:</strong> {current_run.get('judge_name','—')}</div>",
         "<div class='card shadow-sm mb-3'>",
         "<div class='card-body py-2'>",
         "<div class='row text-center'>",
-        f"<div class='col-6 col-md'><div class='small text-muted'>Parcourslänge</div><div class='fw-semibold'>{course_len} m</div></div>",
-        f"<div class='col-6 col-md'><div class='small text-muted'>Geräte</div><div class='fw-semibold'>{obstacles}</div></div>",
-        f"<div class='col-6 col-md'><div class='small text-muted'>SCT</div><div class='fw-semibold'>{sct or '—'} s</div></div>",
-        f"<div class='col-6 col-md'><div class='small text-muted'>MCT</div><div class='fw-semibold'>{mct or '—'} s</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>Parcourslänge</div><div class='fw-semibold'>{current_run.get('parcours_laenge','—')} m</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>Geräte</div><div class='fw-semibold'>{current_run.get('hindernisse','—')}</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>SCT</div><div class='fw-semibold'>{current_run.get('sct','—')} s</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>MCT</div><div class='fw-semibold'>{current_run.get('mct','—')} s</div></div>",
         "</div>",
         f"<div class='mt-2 small text-muted'>{meta_line}</div>",
         "</div></div>",
@@ -731,13 +609,14 @@ def render_ring_monitor_content(ring_number: int):
         "<ul class='list-group list-group-flush'>",
     ]
 
+    start_entries = view.get("startlist") or []
     if start_entries:
         for entry in start_entries:
             startno = entry.get("Startnummer")
             startno_display = f"#{startno}" if startno else ""
             parts.append(
                 "<li class='list-group-item d-flex justify-content-between align-items-center'>"
-                f"<span class='fw-semibold'>{_format_name(entry)}</span>"
+                f"<span class='fw-semibold'>{format_ring_name(entry)}</span>"
                 f"<span class='small text-muted'>{startno_display}</span>"
                 "</li>"
             )
@@ -757,12 +636,13 @@ def render_ring_monitor_content(ring_number: int):
         "<tbody>",
     ])
 
+    ranked_results = view.get("ranking") or []
     if ranked_results:
         for res in ranked_results:
             parts.append(
                 "<tr>"
                 f"<td>{res.get('platz')}</td>"
-                f"<td>{_format_name(res)}</td>"
+                f"<td>{format_ring_name(res)}</td>"
                 f"<td>{_format_total_errors(res)}</td>"
                 f"<td>{_format_time(res.get('zeit_total'))}</td>"
                 "</tr>"
@@ -782,13 +662,14 @@ def render_ring_monitor_content(ring_number: int):
         "<div class='card-body py-2'>",
     ])
 
+    last_results = view.get("last_results") or []
     if last_results:
         parts.append("<div class='d-flex flex-column gap-2'>")
         for res in last_results:
             platz = res.get("platz") or "—"
             parts.append(
                 "<div class='d-flex justify-content-between align-items-center'>"
-                f"<span class='fw-semibold'>{platz} – {_format_name(res)}</span>"
+                f"<span class='fw-semibold'>{platz} – {format_ring_name(res)}</span>"
                 f"<span class='text-muted small'>Fehler {_format_total_errors(res)} · Zeit {_format_time(res.get('zeit_total') or res.get('zeit'))} s</span>"
                 "</div>"
             )
