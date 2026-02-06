@@ -47,4 +47,32 @@
     {% endfor %}
 </div>
 
+<hr>
+<h3>Debug / Test</h3>
+<p style="max-width: 900px;">
+  Importiert Startnummern aus einer <b>PDF-Startliste</b> (exportiert als <code>startlist_all_combined.json</code>).
+  Es werden nur Debug-Felder gesetzt (<code>Startnummer_offiziell</code>), deine normale Startnummernlogik bleibt unberührt.
+</p>
+
+<form method="POST"
+      action="{{ url_for('events_bp.debug_import_official_startnumbers', event_id=event.id) }}"
+      enctype="multipart/form-data"
+      style="border: 1px solid #ddd; padding: 12px; border-radius: 8px; max-width: 900px;">
+  <div style="margin-bottom: 8px;">
+    <label><b>startlist_all_combined.json</b></label><br>
+    <input type="file" name="startlist_json" accept=".json" required>
+  </div>
+
+  <div style="margin-bottom: 8px;">
+    <label>
+      <input type="checkbox" name="sort_entries" value="1">
+      Entries pro Lauf nach <b>offizieller Startnummer</b> sortieren (Debug)
+    </label>
+  </div>
+
+  <button type="submit" class="btn btn-warning">
+    📥 Offizielle Startnummern (Debug) importieren
+  </button>
+</form>
+
 {% endblock %}
