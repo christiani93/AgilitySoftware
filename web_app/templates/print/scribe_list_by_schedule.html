@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Ringschreiberlisten - {{ event.Bezeichnung }}</title>
+    <title>Ringschreiberlisten (Zeitplan) - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
@@ -25,7 +25,6 @@
         .run-container:last-child { page-break-after: auto; }
 
         h4 { text-align: center; font-size: 14pt; margin:0; }
-        /* NEU: Grösserer Platz für Laufvorgaben (Punkt 1.2) */
         .run-meta-info { text-align: center; font-size: 10pt; margin-bottom: 10px; padding: 5px; border: 1px solid #ccc; border-radius: 5px; background-color: #f8f9fa !important; }
 
         table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
@@ -33,14 +32,14 @@
         thead th { background-color: #e9ecef !important; font-size: 11pt; }
         thead { display: table-header-group; }
         tr { page-break-inside: avoid; page-break-after: auto; }
-        
+
         @media print {
             body { margin: 0; }
         }
     </style>
 </head>
 <body>
-    {% set title = title or 'Ringschreiberlisten' %}
+    {% set title = title or 'Ringschreiberlisten (nach Zeitplan)' %}
     <table class="page-table">
         <thead>
             <tr>
@@ -52,16 +51,11 @@
         <tbody>
             <tr>
                 <td>
-        {% for run in ordered_runs %}
+        {% for section in sections %}
              <div class="run-container">
-                <h4 class="mt-4 text-center">{{ run.name }}</h4>
-                {# NEU: Platzhalter für Geräteanzahl hinzugefügt (Punkt 1.1) #}
+                <h4 class="mt-4 text-center">Ring {{ section.ring }} – {{ section.title }}</h4>
                 <p class="run-meta-info">
-                    Richter: {% set judge = judges|selectattr('id', 'equalto', run.richter_id)|first %}{{ judge.lastname if judge else '___' }} | 
-                    Parcourslänge: {{ run.laufdaten.parcours_laenge or '___' }}m | 
-                    Anz. Geräte: {{ run.laufdaten.anzahl_hindernisse or '___' }} <br>
-                    Standardzeit (SCT): {{ run.laufdaten.standardzeit_sct or '___' }}s | 
-                    Maximalzeit (MCT): {{ run.laufdaten.maximalzeit_mct or '___' }}s
+                    Richter: {% set judge = judges|selectattr('id', 'equalto', section.block.judge_id)|first %}{{ judge.lastname if judge else '___' }}
                 </p>
                 <table class="table table-sm">
                     <thead class="table-light">
@@ -76,7 +70,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for entry in run.entries %}
+                        {% for entry in section.participants %}
                         <tr>
                             <td>{{ entry.Startnummer }}</td>
                             <td><strong>{{ entry.Hundefuehrer }}</strong><br><small>{{ entry.Hundename }}</small></td>
