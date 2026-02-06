@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Startliste - {{ event.Bezeichnung }}</title>
+    <title>Startliste (Zeitplan) - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; }
         @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
@@ -24,8 +24,6 @@
         .group-container { page-break-after: always; }
         .group-container:last-child { page-break-after: auto; }
 
-        .run-meta { font-size: 10pt; margin: 0 0 8px 0; color: #555; }
-        
         table { width: 100%; border-collapse: collapse; font-size: 10pt; page-break-inside: auto; }
         th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
         th { background-color: #f2f2f2; }
@@ -39,7 +37,7 @@
     </style>
 </head>
 <body>
-    {% set title = 'Offizielle Startliste' %}
+    {% set title = 'Offizielle Startliste (nach Zeitplan)' %}
     <table class="page-table">
         <thead>
             <tr>
@@ -51,11 +49,10 @@
         <tbody>
             <tr>
                 <td>
-        {% for run in ordered_runs %}
+        {% for section in sections %}
             <div class="group-container">
-                <h3>{{ run.name }}</h3>
-                <p class="run-meta">Kategorie: {{ run.kategorie or 'N/A' }} | Klasse: {{ run.klasse or 'N/A' }}</p>
-                {% if run.entries %}
+                <h3>Ring {{ section.ring }} – {{ section.title }}</h3>
+                {% if section.participants %}
                     <table>
                         <thead>
                             <tr>
@@ -67,19 +64,19 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for entry in run.entries %}
+                            {% for entry in section.participants %}
                                 <tr>
                                     <td><strong>{{ entry.Startnummer }}</strong></td>
                                     <td>{{ entry.Hundefuehrer }}</td>
                                     <td>{{ entry.Hundename }} ({{ entry.Lizenznummer }})</td>
-                                    <td>{{ run.kategorie or 'N/A' }}</td>
-                                    <td>{{ run.klasse or 'N/A' }}</td>
+                                    <td>{{ entry.Kategorie or '' }}</td>
+                                    <td>{{ entry.Klasse or '' }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 {% else %}
-                    <p>Keine Startenden für diesen Lauf.</p>
+                    <p>Keine Startenden für diesen Block.</p>
                 {% endif %}
             </div>
         {% else %}
