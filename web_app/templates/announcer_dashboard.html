@@ -2,16 +2,15 @@
 {% block title %}Sprecher Dashboard: {{ event.Bezeichnung }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid announcer-container">
-
-    {# NEU: Container für den dynamisch geladenen Zeitplan #}
-    <div id="schedule-container" class="row mb-4 no-print">
-        <div class="col-12 text-center">
-            <p>Lade Zeitplan...</p>
-        </div>
+{% set schedule_rings = event.get('schedule', {}).get('rings', {}) %}
+{% set ring_numbers = schedule_rings.keys()|list if schedule_rings else range(1, (event.get('num_rings', 1) | int) + 1) %}
+<div class="container-fluid announcer-container py-4">
+    <div class="mb-4 text-center">
+        <h2 class="fw-bold mb-1">Sprecherdisplay</h2>
+        <div class="text-muted">{{ event.Bezeichnung }}{% if event.Datum %} · {{ event.Datum }}{% endif %}</div>
     </div>
 
-    <div id="dashboard-container" class="row">
+    <div id="dashboard-container" class="row g-3">
         <div class="col-12 text-center p-5">
             <h2><i class="fas fa-spinner fa-spin me-2"></i>Lade Live-Daten...</h2>
         </div>
@@ -23,9 +22,15 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const dashboardContainer = document.getElementById('dashboard-container');
-    const scheduleContainer = document.getElementById('schedule-container');
     const eventId = '{{ event.id }}';
     const socket = io();
+    const ringNumbers = {{ ring_numbers | list | tojson }};
+
+    function ringColClass(count) {
+        if (count <= 1) return 'col-12';
+        if (count === 2) return 'col-12 col-md-6';
+        return 'col-12 col-md-6 col-lg-4';
+    }
 
     function fetchAndRenderRing(ringName) {
         fetch(`{{ url_for('live_bp.render_speaker_panel_content', event_id=event.id, ring_name='__RING_NAME__') }}`.replace('__RING_NAME__', ringName))
@@ -35,53 +40,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 let col = document.getElementById(colId);
                 if (!col) {
                     col = document.createElement('div');
-                    col.className = 'col-lg mb-4';
+                    col.className = `${ringColClass(ringNumbers.length)} mb-2`;
                     col.id = colId;
                     dashboardContainer.appendChild(col);
                 }
                 col.innerHTML = html;
             });
     }
-
-    function fetchAndRenderSchedule() {
-        fetch(`{{ url_for('live_bp.render_announcer_schedule', event_id=event.id) }}`)
-            .then(response => response.text())
-            .then(html => {
-                scheduleContainer.innerHTML = html;
-            });
-    }
     
     function initialLoad() {
-        // Leere den Platzhalter
         dashboardContainer.innerHTML = '';
-        
-        fetchAndRenderSchedule();
-        
-        // Ring-Spalten basierend auf Zeitplan laden
-        fetch("{{ url_for('live_bp.render_announcer_schedule', event_id=event.id) }}")
-            .then(res => res.text())
-            .then(html => {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
-                const ringDivs = tempDiv.querySelectorAll('.col-md-6');
-                const numRings = ringDivs.length;
-                if (numRings > 0) {
-                    dashboardContainer.innerHTML = ''; // Clear loading spinner
-                    ringDivs.forEach(div => {
-                        const ringName = div.querySelector('h6').textContent.replace('Zeitplan ', '');
-                        const col = document.createElement('div');
-                        col.className = `col-lg-${12 / numRings} mb-4`;
-                        col.id = `ring-col-${ringName.replace(' ', '-')}`;
-                        dashboardContainer.appendChild(col);
-                        fetchAndRenderRing(ringName);
-                    });
-                } else {
-                     dashboardContainer.innerHTML = '<div class="col-12 alert alert-warning">Keine Ringe für dieses Event konfiguriert.</div>';
-                }
-            });
+
+        if (!ringNumbers.length) {
+            dashboardContainer.innerHTML = '<div class="col-12 alert alert-warning">Keine Ringe für dieses Event konfiguriert.</div>';
+            return;
+        }
+
+        ringNumbers.forEach(num => {
+            const ringName = `Ring ${num}`;
+            const col = document.createElement('div');
+            col.className = `${ringColClass(ringNumbers.length)} mb-2`;
+            col.id = `ring-col-${ringName.replace(' ', '-')}`;
+            dashboardContainer.appendChild(col);
+            fetchAndRenderRing(ringName);
+        });
     }
 
     socket.on('connect', function() {
+        socket.emit('join_room', {room: `event:${eventId}`});
         console.log('Socket.IO connected!');
     });
 
@@ -89,8 +75,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (data.event_id === eventId) {
             console.log('Update received for ring:', data.ring_name);
             fetchAndRenderRing(data.ring_name);
-            // NEU: Zeitplan ebenfalls aktualisieren
-            fetchAndRenderSchedule();
+        }
+    });
+    socket.on('current_run_changed', function(data) {
+        if (data.event_id === eventId && data.ring_id) {
+            fetchAndRenderRing(`Ring ${data.ring_id}`);
         }
     });
 

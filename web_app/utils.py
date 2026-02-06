@@ -219,7 +219,7 @@ def _get_run_list_from_schedule(event, schedule):
                         if run_id in seen_ids:
                             continue
                         run_item['assigned_ring'] = f"ring_{ring_key}"
-                        if block.get('judge_id'):
+                        if block.get('judge_id') and not (run_item.get('judge_id') or run_item.get('richter_id')):
                             run_item['richter_id'] = block.get('judge_id')
                         seen_ids.add(run_id)
                         ordered_runs.append(run_map.get(run_id, run_item))
@@ -526,6 +526,34 @@ def judge_name(judges, judge_id):
     except Exception:
         pass
     return 'Unbekannt'
+
+
+def _find_schedule_block_for_run(event, run):
+    schedule = event.get('schedule') or {}
+    for ring_data in (schedule.get('rings') or {}).values():
+        for block in ring_data.get('blocks') or []:
+            if (block.get('type') or '').lower() != 'run':
+                continue
+            if schedule_planner._match_run_to_block(run, block):
+                return block
+    return None
+
+
+def resolve_judge_id(event, run, schedule_block=None):
+    judge_id = run.get('judge_id') or run.get('richter_id')
+    if judge_id:
+        return judge_id
+    block = schedule_block or _find_schedule_block_for_run(event, run)
+    if block:
+        return block.get('judge_id') or block.get('richter_id')
+    return None
+
+
+def resolve_judge_name(event, run, judges, schedule_block=None):
+    judge_id = resolve_judge_id(event, run, schedule_block)
+    if judge_id:
+        return judge_name(judges, judge_id)
+    return '—'
 
 
 def _apply_sct_mct_factors(laufdaten: dict, settings: dict):

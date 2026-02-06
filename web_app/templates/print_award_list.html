@@ -8,6 +8,14 @@
         body {
             font-family: sans-serif;
         }
+        .print-header { position: fixed; top: 0; left: 0; right: 0; height: 3cm; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
+        .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .print-header__titles { text-align: center; flex: 1; font-size: 10pt; }
+        .print-header__title { font-size: 1.1em; font-weight: 600; }
+        .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
+        .print-header__meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 9pt; color: #444; }
+        main { padding-top: 3.3cm; }
         /* --- START DER ÄNDERUNG --- */
         .award-list {
             margin-top: 2rem;
@@ -84,7 +92,10 @@
 </head>
 <body>
 
-<div class="container my-4">
+{% set title = 'Rangverkündigung' %}
+{% include 'print/_print_header.html' %}
+
+<main class="container my-4">
     <div class="text-center no-print mb-4">
         <button onclick="window.print();" class="btn btn-primary">Drucken</button>
         <button id="toggle-ranks-btn" class="btn btn-secondary">Alle Ränge anzeigen</button>
@@ -144,7 +155,7 @@
     {# --- ENDE DER ÄNDERUNG --- #}
     {% endfor %}
 
-</div>
+</main>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

@@ -10,7 +10,8 @@ from pathlib import Path
 from extensions import socketio
 from utils import (_load_data, _save_data, _get_active_event,
                    _calculate_run_results, _load_settings, _get_active_event_id,
-                   _calculate_timelines)
+                   _calculate_timelines, resolve_judge_name, resolve_judge_id, _to_int)
+import planner.schedule_planner as schedule_planner
 
 live_bp = Blueprint('live_bp', __name__, template_folder='../templates')
 
@@ -74,6 +75,67 @@ def _norm_ring_strict(val, default_one=True):
 # --- END HELPERS ---
 
 
+def _schedule_runs_for_ring(event, ring_key):
+    schedule = event.get("schedule") or {}
+    rings = schedule.get("rings") or {}
+    ring_data = rings.get(str(ring_key)) or {}
+    blocks = ring_data.get("blocks") or []
+    debug = []
+    runs_for_ring = []
+    seen_ids = set()
+    for block in blocks:
+        block_type = (block.get("type") or block.get("block_type") or "").lower()
+        if block_type != "run":
+            debug.append(f"skip:{block_type or 'unknown'}")
+            continue
+        matched = [
+            run for run in event.get("runs", []) or []
+            if isinstance(run, dict) and schedule_planner._match_run_to_block(run, block)
+        ]
+        if not matched:
+            debug.append(f"no_match:{block.get('title') or block.get('label') or block.get('laufart') or 'run'}")
+            continue
+        for run in matched:
+            run_id = run.get("id")
+            if run_id and run_id in seen_ids:
+                continue
+            if run_id:
+                seen_ids.add(run_id)
+            runs_for_ring.append(run)
+    return runs_for_ring, debug
+
+
+def _find_run_block_for_run(event, run, ring_key: str | None = None):
+    schedule = event.get("schedule") or {}
+    rings = schedule.get("rings") or {}
+    ring_keys = [ring_key] if ring_key is not None else list(rings.keys())
+    for key in ring_keys:
+        ring_data = rings.get(str(key)) or {}
+        for block in ring_data.get("blocks") or []:
+            block_type = (block.get("type") or block.get("block_type") or "").lower()
+            if block_type != "run":
+                continue
+            if schedule_planner._match_run_to_block(run, block):
+                return block, str(key)
+    return None, None
+
+
+def _persist_current_run(events, event_id, ring_key, run_block_id):
+    updated = False
+    for event in events:
+        if event.get("id") != event_id:
+            continue
+        current = event.get("current_run_blocks") or {}
+        current[str(ring_key)] = {
+            "run_block_id": run_block_id,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        event["current_run_blocks"] = current
+        updated = True
+        break
+    return updated
+
+
 # --- END FIXED HEADER ---
 
 @live_bp.route('/debug/live_state')
@@ -94,6 +156,7 @@ def _get_live_data_for_ring(event, ring_name):
         return None
 
     run_id = active.get('run_id')
+    run_block_id = active.get('run_block_id')
     run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None)
     if not run:
         return None
@@ -104,9 +167,30 @@ def _get_live_data_for_ring(event, ring_name):
         [res for res in all_results if res.get('platz')],
         key=lambda x: x.get('timestamp', 0), reverse=True
     )[:5]
+    judges = _load_data('judges.json')
+    run_block = None
+    if run_block_id:
+        schedule = event.get("schedule") or {}
+        for ring_key, ring_data in (schedule.get("rings") or {}).items():
+            for block in ring_data.get("blocks") or []:
+                if block.get("id") == run_block_id:
+                    run_block = block
+                    break
+            if run_block:
+                break
+    if not run_block:
+        run_block, _ = _find_run_block_for_run(event, run)
+    judge_name = resolve_judge_name(event, run, judges, run_block)
 
-
-
+    return {
+        "run": run,
+        "run_name": run.get("name"),
+        "run_block_id": run_block_id,
+        "judge_name": judge_name,
+        "current_starter": run.get("current_starter"),
+        "next_starter": run.get("next_starter"),
+        "last_results": last_results,
+    }
 @live_bp.route('/live_dashboard')
 def live_event_dashboard():
     event_id = _get_active_event_id()
@@ -119,7 +203,24 @@ def live_event_dashboard():
         _save_data('active_event.json', {})
         return redirect(url_for('events_bp.events_list'))
     runs_by_ring = {}
-    if event.get('run_order'):
+    debug_messages = []
+    schedule = event.get("schedule") or {}
+    schedule_rings = schedule.get("rings") or {}
+    if schedule_rings:
+        judges = _load_data('judges.json')
+        for ring_key in sorted(schedule_rings.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
+            runs_for_ring, debug = _schedule_runs_for_ring(event, ring_key)
+            ring_label = f"Ring {ring_key}"
+            for run in runs_for_ring:
+                run_block, _ = _find_run_block_for_run(event, run, ring_key)
+                run["richter_id"] = resolve_judge_id(event, run, run_block)
+                run["judge_display"] = resolve_judge_name(event, run, judges, run_block)
+            runs_by_ring[ring_label] = runs_for_ring
+            if not runs_for_ring and debug:
+                debug_messages.append(f"{ring_label}: {', '.join(debug)}")
+        if debug_messages:
+            flash("Zeitplan vorhanden, aber keine Lauf-Blöcke gefunden: " + " | ".join(debug_messages), "warning")
+    elif event.get('run_order'):
         all_rings = sorted(list(set(r['assigned_ring'] for r in event.get('runs', []) if r.get('assigned_ring'))))
         for ring_num in all_rings:
             runs_by_ring[f"Ring {ring_num}"] = [r for r in event.get('runs', []) if r.get('assigned_ring') == ring_num]
@@ -221,6 +322,7 @@ def show_ranking(event_id, run_id):
     settings = _load_settings()
     rankings = _calculate_run_results(run, settings)
     judges = _load_data('judges.json')
+    judge_display = resolve_judge_name(event, run, judges)
 
     laufdaten = run.get('laufdaten', {})
     sct_display = laufdaten.get('standardzeit_sct_gerundet') or laufdaten.get('standardzeit_sct_berechnet') or laufdaten.get('standardzeit_sct') or 'N/A'
@@ -232,6 +334,7 @@ def show_ranking(event_id, run_id):
         run=run,
         rankings=rankings,
         judges=judges,
+        judge_display=judge_display,
         sct_display=sct_display,
         mct_display=mct_display,
     )
@@ -249,17 +352,22 @@ def set_active_announcer_run(event_id, run_id):
 
     event = _get_active_event()
     run = next((r for r in (event.get('runs', []) if event else []) if r.get('id') == run_id), None)
+    ring_hint = request.args.get('ring')
 
-    if not event or not run or not run.get('assigned_ring'):
+    if not event or not run:
         flash('Lauf konnte nicht für Sprecher/Monitore aktiviert werden.', 'warning')
         return redirect(url_for('live_bp.live_event_dashboard'))
 
-    # kanonisches Label "Ring N"
-    try:
-        n = int(re.sub(r"[^0-9]", "", str(run.get('assigned_ring'))))
-    except Exception:
-        n = 1
-    ring_label = f"Ring {n}"
+    run_block = None
+    ring_key = None
+    if ring_hint:
+        run_block, ring_key = _find_run_block_for_run(event, run, str(ring_hint))
+    if not run_block:
+        run_block, ring_key = _find_run_block_for_run(event, run)
+    if not ring_key:
+        assigned_ring = run.get('assigned_ring') or run.get('ring') or run.get('ring_id') or run.get('ringName')
+        ring_key = re.sub(r"[^0-9]", "", str(assigned_ring or "1")) or "1"
+    ring_label = f"Ring {ring_key}"
 
     # State laden
     state = _load_live_state()
@@ -274,20 +382,33 @@ def set_active_announcer_run(event_id, run_id):
     # z.B. "Ring ring_1", "ring_1", "Ring 01", etc.
     to_delete = []
     for k in list(by_event.keys()):
-        if re.sub(r"[^0-9]", "", str(k) or "") == str(n) and k != ring_label:
+        if re.sub(r"[^0-9]", "", str(k) or "") == str(ring_key) and k != ring_label:
             to_delete.append(k)
     for k in to_delete:
         by_event.pop(k, None)
 
+    judges = _load_data('judges.json')
+    judge_name = resolve_judge_name(event, run, judges, run_block)
     # Setzen
-    by_event[ring_label] = {'run_id': run.get('id'), 'run_name': run.get('name')}
+    by_event[ring_label] = {
+        'run_id': run.get('id'),
+        'run_name': run.get('name'),
+        'run_block_id': run_block.get('id') if run_block else None,
+        'judge_name': judge_name,
+    }
     state[evt_id] = by_event
     _save_live_state(state)
+    events = _load_data('events.json')
+    if _persist_current_run(events, evt_id, ring_key, run_block.get('id') if run_block else None):
+        _save_data('events.json', events)
 
     # Echtzeit-Update
     try:
         from extensions import socketio
-        socketio.emit('announcer_update', {'event_id': evt_id, 'ring_name': ring_label})
+        ring_room = f"event:{evt_id}:ring:{ring_key}"
+        socketio.emit('announcer_update', {'event_id': evt_id, 'ring_name': ring_label}, room=ring_room)
+        socketio.emit('current_run_changed', {'event_id': evt_id, 'ring_id': ring_key, 'run_block_id': run_block.get('id') if run_block else None}, room=ring_room)
+        socketio.emit('current_run_changed', {'event_id': evt_id, 'ring_id': ring_key, 'run_block_id': run_block.get('id') if run_block else None}, room=f"event:{evt_id}")
     except Exception:
         pass
 
@@ -295,7 +416,7 @@ def set_active_announcer_run(event_id, run_id):
 
     # Falls vom Ring-PC aufgerufen, zurück zum Ring-Dashboard
     if 'from_ring_pc' in request.args:
-        return redirect(url_for('live_bp.ring_pc_dashboard', ring_number=n))
+        return redirect(url_for('live_bp.ring_pc_dashboard', ring_number=int(ring_key)))
     return redirect(url_for('live_bp.live_run_entry', event_id=event_id, run_id=run_id))
 
 @live_bp.route('/ring_monitor/<int:ring_number>')
@@ -311,10 +432,25 @@ def ring_pc_dashboard(ring_number):
     ring_name = f"Ring {ring_number}"
     target = _norm_ring_strict(ring_number)
     runs_for_ring = []
-    for r in event.get('runs', []):
-        assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
-        if assigned and _norm_ring_strict(assigned) == target:
-            runs_for_ring.append(r)
+    schedule = event.get("schedule") or {}
+    schedule_rings = schedule.get("rings") or {}
+    if schedule_rings:
+        ring_key = str(ring_number)
+        runs_for_ring, debug = _schedule_runs_for_ring(event, ring_key)
+        judges = _load_data('judges.json')
+        for run in runs_for_ring:
+            run_block, _ = _find_run_block_for_run(event, run, ring_key)
+            run["judge_display"] = resolve_judge_name(event, run, judges, run_block)
+        if not runs_for_ring and debug:
+            flash(
+                f"Zeitplan gefunden, aber keine Lauf-Blöcke für {ring_name}: {', '.join(debug)}",
+                "warning",
+            )
+    else:
+        for r in event.get('runs', []):
+            assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
+            if assigned and _norm_ring_strict(assigned) == target:
+                runs_for_ring.append(r)
     return render_template('ring_pc_dashboard.html', event=event, ring_name=ring_name, runs=runs_for_ring)
 
 @live_bp.route('/api/render_announcer_schedule/<event_id>')
@@ -327,218 +463,131 @@ def render_announcer_schedule(event_id):
 
 @live_bp.route('/api/render_speaker_panel_content/<event_id>/<ring_name>')
 def render_speaker_panel_content(event_id, ring_name):
-# 1) Versuche aktiven Lauf per State
     try:
         norm_req = _norm_ring_strict(ring_name)
     except Exception:
         norm_req = 'ring_1'
-    try:
-        events = _load_data('events.json')
-    except Exception:
-        events = []
-    event = next((e for e in events if isinstance(e, dict) and e.get('id') == event_id), None)
-
-    # Wenn Event vorhanden und State aktiv -> zeige aktiven Lauf kurzformatig
-    if event:
-        # Suche aktive Daten per tolerantem Label
-        ring_label_display = _ring_label_for_display(ring=norm_req)
-        data = _get_live_data_for_ring(event, ring_label_display)
-        if not data:
-            # evtl. "Ring 1" vs "Ring ring_1"
-            data = _get_live_data_for_ring(event, f"Ring {re.sub(r'[^0-9]','', ring_label_display)}") if re else None
-        if data:
-            parts = [f"<div class='speaker-panel'><h2>{ring_label_display} – {data.get('run_name','')}</h2>"]
-            def _fmt(p):
-                if not p: return '-'
-                return f"{p.get('Startnummer','')} – {p.get('Hundeführer','')} mit {p.get('Hundename','')} ({p.get('Lizenznummer','')})"
-            parts.append(f"<p><strong>Am Start:</strong> {_fmt(data.get('current_starter'))}</p>")
-            parts.append(f"<p><strong>Bereit:</strong> {_fmt(data.get('next_starter'))}</p>")
-            last = data.get('last_results') or []
-            if last:
-                parts.append('<h3>Letzte Resultate</h3><ul>')
-                for r in last:
-                    parts.append(f"<li>{r.get('Startnummer','')} – {r.get('hundename','')} : {r.get('zeit','?')}s, P={r.get('platz','-')}</li>")
-                parts.append('</ul>')
-            parts.append('</div>')
-            return Response(''.join(parts), mimetype='text/html')
-
-    # 2) Fallback: alter Zeitplan wie bisher
-    try:
-        from utils import _get_concrete_run_list
-    except Exception:
-        _get_concrete_run_list = None
-    if not event:
-        return Response(
-            f"<div class='speaker-panel'><h2>{_ring_label_for_display(ring=norm_req)}</h2><p>Event nicht gefunden.</p></div>",
-            mimetype='text/html'
-        )
-    ring_runs = []
-    if _get_concrete_run_list:
-        try:
-            schedule_runs = _get_concrete_run_list(event)
-            for r in schedule_runs:
-                assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
-                if assigned and _norm_ring_strict(assigned) == norm_req:
-                    ring_runs.append(r)
-        except Exception:
-            pass
-    if not ring_runs:
-        for r in event.get('runs', []):
-            assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
-            if assigned and _norm_ring_strict(assigned) == norm_req:
-                ring_runs.append(r)
-    if not ring_runs and int(event.get('num_rings', 1)) == 1:
-        ring_runs = event.get('runs', []) or []
-    out = [f"<div class='speaker-panel'><h2>{_ring_label_for_display(ring=norm_req)}</h2>"]
-    if not ring_runs:
-        out.append('<p>Keine Läufe für diesen Ring.</p></div>')
-        return Response(''.join(out), mimetype='text/html')
-    out.append('<ol>')
-    for r in ring_runs[:30]:
-        title = r.get('name') or f"{r.get('laufart','?')} {r.get('kategorie','?')} {r.get('klasse','?')}"
-        out.append(f"<li>{title}</li>")
-    out.append('</ol></div>')
-    return Response(''.join(out), mimetype='text/html')
-
-    out.append("<ol>")
-    for r in ring_runs[:30]:
-        title = r.get('name') or f"{r.get('laufart','?')} {r.get('kategorie','?')} {r.get('klasse','?')}"
-        out.append(f"<li>{title}</li>")
-    out.append("</ol></div>")
-    return Response(''.join(out), mimetype='text/html')
-
-
-    ring_label = _ring_label_for_display(ring=ring_name)
     events = _load_data('events.json')
     event = next((e for e in events if isinstance(e, dict) and e.get('id') == event_id), None)
+    ring_label = _ring_label_for_display(ring=norm_req)
     if not event:
         return Response(f"<div class='speaker-panel'><h2>{ring_label}</h2><p>Event nicht gefunden.</p></div>", mimetype='text/html')
 
-    state = _load_live_state()
-    active = None
-    evt_id = event.get('id') or event.get('event_id') or ''
-    for _k in _ring_state_keys(ring_label):
-        active = (state.get(evt_id, {}) or {}).get(_k)
-        if active:
-            break
-
-    if active:
-        # Live-Ansicht wie beim Ringmonitor, aber als Sprecher-Panel
-        run_id = active.get('run_id')
-        run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None)
-        if run:
-            settings = _load_settings()
-            all_results = _calculate_run_results(run, settings)
-
-            last_results = sorted(
-                [res for res in all_results if res.get('platz')],
-                key=lambda x: x.get('timestamp', 0),
-                reverse=True
-            )[:5]
-
-            def _num(v):
-                try:
-                    return int(v)
-                except Exception:
-                    return 999999
-
-            participants = sorted(run.get('entries', []), key=lambda x: _num(x.get('Startnummer')))
-            pending = [p for p in participants if not p.get('result')]
-            current_starter = pending[0] if pending else None
-            next_starter = pending[1] if len(pending) > 1 else None
-
-            def _fmt(p):
-                if not p:
-                    return '-'
-                return f"{p.get('Startnummer','')} – {p.get('Hundeführer','')} mit {p.get('Hundename','')} ({p.get('Lizenznummer','')})"
-
-            parts = [f"<div class='speaker-panel'><h2>{ring_label} – {run.get('name','')}</h2>"]
-            parts.append(f"<p><strong>Am Start:</strong> {_fmt(current_starter)}</p>")
-            parts.append(f"<p><strong>Bereit:</strong> {_fmt(next_starter)}</p>")
-            if last_results:
-                parts.append("<h3>Letzte Resultate</h3><ul>")
-                for r in last_results:
-                    parts.append(f"<li>{r.get('Startnummer','')} – {r.get('hundename','')} : {r.get('zeit','?')}s, P={r.get('platz','-')}</li>")
-                parts.append("</ul>")
-            parts.append("</div>")
-            return Response(''.join(parts), mimetype='text/html')
-
-    # 2) Fallback: Plan-Liste für den Ring (wie bisher)
-    norm_req = _norm_ring_strict(ring_name)
-    try:
-        from utils import _get_concrete_run_list
-    except Exception:
-        _get_concrete_run_list = None
-
-    ring_runs = []
-    if _get_concrete_run_list:
-        try:
-            schedule_runs = _get_concrete_run_list(event)
-            for r in schedule_runs:
-                assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
-                if assigned and _norm_ring_strict(assigned) == norm_req:
-                    ring_runs.append(r)
-        except Exception:
-            pass
-    if not ring_runs:
-        for r in event.get('runs', []):
-            assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
-            if assigned and _norm_ring_strict(assigned) == norm_req:
-                ring_runs.append(r)
-    if not ring_runs and int(event.get('num_rings', 1)) == 1:
-        ring_runs = event.get('runs', []) or []
-
-    out = [f"<div class='speaker-panel'><h2>{ring_label}</h2>"]
-    if not ring_runs:
-        out.append("<p>Keine Läufe für diesen Ring.</p></div>")
-        return Response(''.join(out), mimetype='text/html')
-
-    out.append("<ol>")
-    for r in ring_runs[:30]:
-        title = r.get('name') or f"{r.get('laufart','?')} {r.get('kategorie','?')} {r.get('klasse','?')}"
-        out.append(f"<li>{title}</li>")
-    out.append("</ol></div>")
-    return Response(''.join(out), mimetype='text/html')
-
-
-    try:
-        from utils import _get_concrete_run_list
-    except Exception:
-        _get_concrete_run_list = None
-    events = _load_data('events.json')
-    event = next((e for e in events if isinstance(e, dict) and e.get('id') == event_id), None)
-    if not event:
-        return Response(
-            f"<div class='speaker-panel'><h2>{_ring_label_for_display(ring=norm_req)}</h2><p>Event nicht gefunden.</p></div>",
-            mimetype='text/html'
+    data = _get_live_data_for_ring(event, ring_label)
+    if not data:
+        html = (
+            "<div class='card shadow-sm'>"
+            "<div class='card-body text-center'>"
+            f"<h5 class='mb-1'>{ring_label}</h5>"
+            "<div class='text-muted'>Kein Lauf aktiv.</div>"
+            "</div></div>"
         )
-    ring_runs = []
-    if _get_concrete_run_list:
+        return Response(html, mimetype='text/html')
+
+    run = data.get("run") or {}
+    laufdaten = run.get("laufdaten", {}) or {}
+    settings = _load_settings()
+    _calculate_run_results(run, settings)
+
+    def _first_name_from_name(name: str):
+        if not name:
+            return ""
+        if "," in name:
+            name = name.split(",", 1)[1]
+        return (name.strip().split() or [""])[0]
+
+    def _extract_first_name(entry: dict):
+        for key in ("Vorname", "vorname", "firstname", "FirstName"):
+            if entry.get(key):
+                return entry.get(key)
+        for key in ("Hundeführer", "Hundefuehrer", "Hundefuehrer_Name", "Hundeführer_Name"):
+            if entry.get(key):
+                return _first_name_from_name(entry.get(key))
+        return ""
+
+    def _extract_dog_name(entry: dict):
+        for key in ("Hundename", "hundename", "dog_name"):
+            if entry.get(key):
+                return entry.get(key)
+        return ""
+
+    def _format_name(entry: dict):
+        first = _extract_first_name(entry)
+        dog = _extract_dog_name(entry)
+        if first and dog:
+            return f"{first} {dog}"
+        return first or dog or "—"
+
+    def _format_time(value):
         try:
-            schedule_runs = _get_concrete_run_list(event)
-            for r in schedule_runs:
-                assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
-                if assigned and _norm_ring_strict(assigned) == norm_req:
-                    ring_runs.append(r)
+            return f"{float(value):.2f}"
         except Exception:
-            pass
-    if not ring_runs:
-        for r in event.get('runs', []):
-            assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
-            if assigned and _norm_ring_strict(assigned) == norm_req:
-                ring_runs.append(r)
-    if not ring_runs and int(event.get('num_rings', 1)) == 1:
-        ring_runs = event.get('runs', []) or []
-    out = [f"<div class='speaker-panel'><h2>{_ring_label_for_display(ring=norm_req)}</h2>"]
-    if not ring_runs:
-        out.append('<p>Keine Läufe für diesen Ring.</p></div>')
-        return Response(''.join(out), mimetype='text/html')
-    out.append('<ol>')
-    for r in ring_runs[:30]:
-        title = r.get('name') or f"{r.get('laufart','?')} {r.get('kategorie','?')} {r.get('klasse','?')}"
-        out.append(f"<li>{title}</li>")
-    out.append('</ol></div>')
-    return Response(''.join(out), mimetype='text/html')
+            return "—"
+
+    def _format_total_errors(entry: dict):
+        total = entry.get("fehler_total")
+        if total is None:
+            total = entry.get("fehler_total_gerundet")
+        if total is None:
+            return "—"
+        try:
+            return f"{float(total):.2f}"
+        except Exception:
+            return str(total)
+
+    sct = laufdaten.get("standardzeit_sct_gerundet") or laufdaten.get("standardzeit_sct_berechnet") or laufdaten.get("standardzeit_sct")
+    mct = laufdaten.get("maximalzeit_mct_gerundet") or laufdaten.get("maximalzeit_mct_berechnet") or laufdaten.get("maximalzeit_mct")
+    course_len = laufdaten.get("parcours_laenge") or "—"
+    obstacles = laufdaten.get("anzahl_hindernisse") or "—"
+
+    meta_bits = []
+    if run.get("klasse"):
+        meta_bits.append(f"Klasse: {run.get('klasse')}")
+    if run.get("kategorie"):
+        meta_bits.append(f"Kategorie: {run.get('kategorie')}")
+    if run.get("laufart"):
+        meta_bits.append(f"Laufart: {run.get('laufart')}")
+    meta_line = " | ".join(meta_bits) if meta_bits else "—"
+
+    last_results = (data.get("last_results") or [])[:3]
+    current_starter = data.get("current_starter") or {}
+    next_starter = data.get("next_starter") or {}
+
+    parts = [
+        "<div class='card shadow-sm h-100'>",
+        "<div class='card-body'>",
+        f"<h5 class='mb-1'>{ring_label} – {data.get('run_name','')}</h5>",
+        f"<div class='text-muted small mb-2'><strong>Richter:</strong> {data.get('judge_name','—')}</div>",
+        "<div class='small text-muted mb-2'>",
+        f"SCT {sct or '—'} s · MCT {mct or '—'} s · {course_len} m · {obstacles} Geräte",
+        "</div>",
+        f"<div class='small text-muted mb-3'>{meta_line}</div>",
+        "<div class='text-uppercase small text-muted'>Aktueller Starter</div>",
+        f"<div class='h4 fw-semibold mb-1'>{_format_name(current_starter)}</div>",
+        "<div class='small text-muted mb-3'>",
+        f"Am Start: {_format_name(current_starter)}",
+        "<br>",
+        f"Bereit: {_format_name(next_starter)}",
+        "</div>",
+        "<div class='fw-semibold mb-2'>Letzte 3 Ergebnisse</div>",
+    ]
+
+    if last_results:
+        parts.append("<div class='d-flex flex-column gap-1'>")
+        for res in last_results:
+            platz = res.get("platz") or "—"
+            parts.append(
+                "<div class='d-flex justify-content-between align-items-center'>"
+                f"<span>{platz} – {_format_name(res)}</span>"
+                f"<span class='text-muted small'>Fehler {_format_total_errors(res)} · Zeit {_format_time(res.get('zeit_total') or res.get('zeit'))} s</span>"
+                "</div>"
+            )
+        parts.append("</div>")
+    else:
+        parts.append("<div class='text-muted'>Noch keine Ergebnisse.</div>")
+
+    parts.extend(["</div>", "</div>"])
+    return Response(''.join(parts), mimetype='text/html')
 def _ring_label_for_display(ring=None, ring_number=None):
     """Gibt ein robustes Label 'Ring X' zurück und akzeptiert sowohl 'ring' als auch 'ring_number'.
     Normalisiert auch Werte wie 'ring_1', 'Ring 1', '1'."""
@@ -576,18 +625,188 @@ def render_ring_monitor_content(ring_number: int):
     if not data:
         html = f"<div class='ring-monitor'><h2>{ring_label}</h2><p>Kein Lauf wurde für diesen Ring aktiviert.</p></div>"
         return Response(html, mimetype='text/html')
-    parts = [f"<div class='ring-monitor'><h2>{ring_label} – {data.get('run_name','')}</h2>"]
-    def _fmt(p):
-        if not p:
-            return '-'
-        return f"{p.get('Startnummer','')} – {p.get('Hundeführer','')} mit {p.get('Hundename','')} ({p.get('Lizenznummer','')})"
-    parts.append(f"<p><strong>Am Start:</strong> {_fmt(data.get('current_starter'))}</p>")
-    parts.append(f"<p><strong>Bereit:</strong> {_fmt(data.get('next_starter'))}</p>")
-    last = data.get('last_results') or []
-    if last:
-        parts.append('<h3>Letzte Resultate</h3><ul>')
-        for r in last:
-            parts.append(f"<li>{r.get('Startnummer','')} – {r.get('hundename','')} : {r.get('zeit','?')}s, P={r.get('platz','-')}</li>")
-        parts.append('</ul>')
-    parts.append('</div>')
+    run = data.get("run") or {}
+    laufdaten = run.get("laufdaten", {}) or {}
+    settings = _load_settings()
+    results = _calculate_run_results(run, settings)
+
+    def _first_name_from_name(name: str):
+        if not name:
+            return ""
+        if "," in name:
+            name = name.split(",", 1)[1]
+        return (name.strip().split() or [""])[0]
+
+    def _extract_first_name(entry: dict):
+        for key in ("Vorname", "vorname", "firstname", "FirstName"):
+            if entry.get(key):
+                return entry.get(key)
+        for key in ("Hundeführer", "Hundefuehrer", "Hundefuehrer_Name", "Hundeführer_Name"):
+            if entry.get(key):
+                return _first_name_from_name(entry.get(key))
+        return ""
+
+    def _extract_dog_name(entry: dict):
+        for key in ("Hundename", "hundename", "dog_name"):
+            if entry.get(key):
+                return entry.get(key)
+        return ""
+
+    def _format_name(entry: dict):
+        first = _extract_first_name(entry)
+        dog = _extract_dog_name(entry)
+        if first and dog:
+            return f"{first} {dog}"
+        return first or dog or "—"
+
+    def _format_time(value):
+        try:
+            return f"{float(value):.2f}"
+        except Exception:
+            return "—"
+
+    def _format_total_errors(entry: dict):
+        total = entry.get("fehler_total")
+        if total is None:
+            total = entry.get("fehler_total_gerundet")
+        if total is None:
+            return "—"
+        try:
+            return f"{float(total):.2f}"
+        except Exception:
+            return str(total)
+
+    start_entries = run.get("entries", []) or []
+    start_entries = sorted(
+        start_entries,
+        key=lambda e: _to_int(e.get("Startnummer"), default=999999)
+    )
+    start_entries = start_entries[:10]
+
+    ranked_results = [r for r in results if r.get("platz")]
+    ranked_results.sort(key=lambda r: _to_int(r.get("platz"), default=999999))
+    ranked_results = ranked_results[:10]
+
+    last_results = (data.get("last_results") or [])[:3]
+
+    sct = laufdaten.get("standardzeit_sct_gerundet") or laufdaten.get("standardzeit_sct_berechnet") or laufdaten.get("standardzeit_sct")
+    mct = laufdaten.get("maximalzeit_mct_gerundet") or laufdaten.get("maximalzeit_mct_berechnet") or laufdaten.get("maximalzeit_mct")
+    course_len = laufdaten.get("parcours_laenge") or "—"
+    obstacles = laufdaten.get("anzahl_hindernisse") or "—"
+
+    meta_bits = []
+    if run.get("klasse"):
+        meta_bits.append(f"Klasse: {run.get('klasse')}")
+    if run.get("kategorie"):
+        meta_bits.append(f"Kategorie: {run.get('kategorie')}")
+    if run.get("laufart"):
+        meta_bits.append(f"Laufart: {run.get('laufart')}")
+    meta_line = " | ".join(meta_bits) if meta_bits else "—"
+
+    current_starter = data.get("current_starter") or {}
+    current_label = _format_name(current_starter)
+    current_startno = current_starter.get("Startnummer")
+    current_startno_display = f"#{current_startno}" if current_startno else ""
+
+    parts = [
+        "<div class='ring-monitor'>",
+        "<div class='mb-3'>",
+        f"<h2 class='h3 mb-1'>{ring_label} – {data.get('run_name','')}</h2>",
+        f"<div class='text-muted mb-2'><strong>Richter:</strong> {data.get('judge_name','—')}</div>",
+        "<div class='card shadow-sm mb-3'>",
+        "<div class='card-body py-2'>",
+        "<div class='row text-center'>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>Parcourslänge</div><div class='fw-semibold'>{course_len} m</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>Geräte</div><div class='fw-semibold'>{obstacles}</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>SCT</div><div class='fw-semibold'>{sct or '—'} s</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>MCT</div><div class='fw-semibold'>{mct or '—'} s</div></div>",
+        "</div>",
+        f"<div class='mt-2 small text-muted'>{meta_line}</div>",
+        "</div></div>",
+        "</div>",
+        "<div class='row g-3'>",
+        "<div class='col-12 col-lg-6'>",
+        "<div class='card shadow-sm h-100'>",
+        "<div class='card-header bg-light fw-semibold'>Aktuelle Startliste</div>",
+        "<ul class='list-group list-group-flush'>",
+    ]
+
+    if start_entries:
+        for entry in start_entries:
+            startno = entry.get("Startnummer")
+            startno_display = f"#{startno}" if startno else ""
+            parts.append(
+                "<li class='list-group-item d-flex justify-content-between align-items-center'>"
+                f"<span class='fw-semibold'>{_format_name(entry)}</span>"
+                f"<span class='small text-muted'>{startno_display}</span>"
+                "</li>"
+            )
+    else:
+        parts.append("<li class='list-group-item text-muted'>Keine Startliste verfügbar.</li>")
+
+    parts.extend([
+        "</ul>",
+        "</div>",
+        "</div>",
+        "<div class='col-12 col-lg-6'>",
+        "<div class='card shadow-sm h-100'>",
+        "<div class='card-header bg-light fw-semibold'>Aktuelle Rangliste</div>",
+        "<div class='table-responsive'>",
+        "<table class='table table-sm mb-0'>",
+        "<thead><tr><th>Platz</th><th>Name</th><th>Gesamtfehler</th><th>Zeit</th></tr></thead>",
+        "<tbody>",
+    ])
+
+    if ranked_results:
+        for res in ranked_results:
+            parts.append(
+                "<tr>"
+                f"<td>{res.get('platz')}</td>"
+                f"<td>{_format_name(res)}</td>"
+                f"<td>{_format_total_errors(res)}</td>"
+                f"<td>{_format_time(res.get('zeit_total'))}</td>"
+                "</tr>"
+            )
+    else:
+        parts.append("<tr><td colspan='4' class='text-muted'>Noch keine Rangliste verfügbar.</td></tr>")
+
+    parts.extend([
+        "</tbody>",
+        "</table>",
+        "</div>",
+        "</div>",
+        "</div>",
+        "</div>",
+        "<div class='card shadow-sm mt-3'>",
+        "<div class='card-header bg-light fw-semibold'>Letzte 3 Ergebnisse</div>",
+        "<div class='card-body py-2'>",
+    ])
+
+    if last_results:
+        parts.append("<div class='d-flex flex-column gap-2'>")
+        for res in last_results:
+            platz = res.get("platz") or "—"
+            parts.append(
+                "<div class='d-flex justify-content-between align-items-center'>"
+                f"<span class='fw-semibold'>{platz} – {_format_name(res)}</span>"
+                f"<span class='text-muted small'>Fehler {_format_total_errors(res)} · Zeit {_format_time(res.get('zeit_total') or res.get('zeit'))} s</span>"
+                "</div>"
+            )
+        parts.append("</div>")
+    else:
+        parts.append("<div class='text-muted'>Noch keine Ergebnisse.</div>")
+
+    parts.extend([
+        "</div>",
+        "</div>",
+        "<div class='card bg-dark text-white mt-3'>",
+        "<div class='card-body text-center'>",
+        "<div class='text-uppercase small text-muted'>Aktueller Starter</div>",
+        f"<div class='display-6 fw-semibold'>{current_label}</div>",
+        f"<div class='text-muted'>{current_startno_display}</div>",
+        "</div>",
+        "</div>",
+        "</div>",
+    ])
+
     return Response(''.join(parts), mimetype='text/html')
