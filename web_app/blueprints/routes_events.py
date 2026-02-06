@@ -263,6 +263,28 @@ def _find_run_for(event, laufart_code: str, kategorie: str, klasse: str):
 
     return None
 
+def _norm_klasse(v: str) -> str:
+    return str(v or "").strip()
+
+def _parse_disc(d):
+    d = (d or "").upper()
+    codes = set()
+    for tok in d.split():
+        if tok == "A":
+            codes.add("A")
+        if tok == "J":
+            codes.add("J")
+    return sorted(codes)
+
+def norm_cat(v: str) -> str:
+    return _norm_cat(v)
+
+def norm_klasse(v: str) -> str:
+    return _norm_klasse(v)
+
+def parse_disc(d):
+    return _parse_disc(d)
+
 CSV_ALIASES = {
     "h-kl-eingabe": {"h kl eingabe", "h-kl-eingabe", "klasse"},
     "h-lizenz":     {"h lizenz", "h-lizenz", "lizenz", "lizenznummer"},
@@ -760,6 +782,231 @@ def events_list():
     events = _load_data(EVENTS_FILE)
     active_id = _get_active_event_id()
     return render_template('events_list.html', events=events, active_event_id=active_id)
+
+@events_bp.route('/debug_import_create_event', methods=['POST'])
+def debug_import_create_event():
+    f = request.files.get("startlist_file")
+    if not f or not f.filename:
+        flash("Keine Datei ausgewählt (startlist_all_combined.json).", "warning")
+        return redirect(url_for('events_bp.events_list'))
+
+    filename = (f.filename or "").lower().strip()
+    if not filename.endswith(".json"):
+        flash("Bitte eine JSON-Datei hochladen (startlist_all_combined.json).", "warning")
+        return redirect(url_for('events_bp.events_list'))
+
+    event_name = (request.form.get("event_name") or "").strip()
+    create_participants = (request.form.get("create_participants") == "1")
+    create_runs = (request.form.get("create_runs") == "1")
+    add_entries = (request.form.get("add_entries") == "1")
+    sort_entries = (request.form.get("sort_entries") == "1")
+
+    try:
+        combined = json.load(f)
+        if not isinstance(combined, list):
+            raise ValueError("JSON ist nicht eine Liste")
+    except Exception as ex:
+        flash(f"JSON konnte nicht gelesen werden: {ex}", "error")
+        return redirect(url_for('events_bp.events_list'))
+
+    rows = []
+    cats = set()
+    classes = set()
+    for row in combined:
+        if not isinstance(row, dict):
+            continue
+        lic = _norm(row.get("license") or row.get("Lizenznummer"))
+        sn = row.get("start_no") or row.get("Startnummer") or row.get("startno")
+        try:
+            sn = int(sn)
+        except Exception:
+            sn = None
+        if not lic or sn is None:
+            continue
+
+        cat = norm_cat(row.get("kategorie"))
+        klasse = norm_klasse(row.get("klasse"))
+        disc = parse_disc(row.get("discipline"))
+        if cat:
+            cats.add(cat)
+        if klasse:
+            classes.add(klasse)
+        rows.append({
+            "license": lic,
+            "start_no": sn,
+            "kategorie": cat,
+            "klasse": klasse,
+            "discipline": disc,
+            "dog": (row.get("dog") or "").strip(),
+            "breed": (row.get("breed") or "").strip(),
+            "handler_first": (row.get("handler_first") or "").strip(),
+            "handler_last": (row.get("handler_last") or "").strip(),
+        })
+
+    if not event_name:
+        event_name = f"TEST-Import {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+
+    settings = _load_settings()
+    new_event_id = str(uuid.uuid4())
+    new_event = {
+        "id": new_event_id,
+        "Bezeichnung": event_name,
+        "Datum": datetime.now().date().isoformat(),
+        "VeranstalterClubNr": "",
+        "Turniernummer": "",
+        "num_rings": 1,
+        "Veranstaltungsart": "Meeting",
+        "start_times_by_ring": {"ring_1": "07:30"},
+        "runs": [],
+        "run_order": [],
+        "start_number_schema": settings.get('start_number_schema_template', {}),
+    }
+
+    if create_runs:
+        cat_order = ["S", "M", "I", "L"]
+        class_order = ["1", "2", "3"]
+        for klasse in [k for k in class_order if k in classes]:
+            for cat in [c for c in cat_order if c in cats]:
+                for laufart in ("Agility", "Jumping"):
+                    new_event["runs"].append({
+                        "id": str(uuid.uuid4()),
+                        "name": f"{laufart} {cat}{klasse}",
+                        "laufart": laufart,
+                        "kategorie": cat,
+                        "klasse": klasse,
+                        "entries": [],
+                        "laufdaten": {},
+                    })
+
+    dogs = _load_data(DOGS_FILE) or []
+    handlers = _load_data(HANDLERS_FILE) or []
+    dog_by_license = {d.get("Lizenznummer"): d for d in dogs if isinstance(d, dict) and d.get("Lizenznummer")}
+
+    def handler_key(first, last):
+        return f"{_lc(first)} {_lc(last)}".strip()
+
+    handler_by_name = {}
+    for h in handlers:
+        if not isinstance(h, dict):
+            continue
+        key = handler_key(h.get("Vorname"), h.get("Nachname"))
+        if key:
+            handler_by_name[key] = h
+
+    created_handlers = 0
+    created_dogs = 0
+    updated_dogs = 0
+    created_entries = 0
+
+    def get_handler_id(first, last):
+        nonlocal created_handlers
+        key = handler_key(first, last)
+        if not key:
+            return ""
+        existing = handler_by_name.get(key)
+        if existing:
+            return existing.get("id") or ""
+        new_id = str(uuid.uuid4())
+        new_handler = {
+            "id": new_id,
+            "Vorname": first,
+            "Nachname": last,
+        }
+        handlers.append(new_handler)
+        handler_by_name[key] = new_handler
+        created_handlers += 1
+        return new_id
+
+    for row in rows:
+        lic = row["license"]
+        dog = dog_by_license.get(lic)
+        handler_id = ""
+        if create_participants:
+            handler_id = get_handler_id(row.get("handler_first"), row.get("handler_last"))
+            if not dog:
+                dog = {
+                    "Lizenznummer": lic,
+                    "Hundename": row.get("dog") or lic,
+                    "Rasse": row.get("breed") or "",
+                    "Hundefuehrer_ID": handler_id,
+                    "Kategorie": row.get("kategorie") or "",
+                    "Klasse": row.get("klasse") or "",
+                }
+                dogs.append(dog)
+                dog_by_license[lic] = dog
+                created_dogs += 1
+            else:
+                if row.get("dog"):
+                    dog["Hundename"] = row.get("dog")
+                if row.get("breed"):
+                    dog["Rasse"] = row.get("breed")
+                if handler_id:
+                    dog["Hundefuehrer_ID"] = handler_id
+                if row.get("kategorie"):
+                    dog["Kategorie"] = row.get("kategorie")
+                if row.get("klasse"):
+                    dog["Klasse"] = row.get("klasse")
+                updated_dogs += 1
+
+        if dog:
+            dog["Startnummer_offiziell"] = row.get("start_no")
+
+    if add_entries:
+        for row in rows:
+            cat = row.get("kategorie")
+            klasse = row.get("klasse")
+            dog = dog_by_license.get(row.get("license"))
+            handler_id = ""
+            if dog:
+                handler_id = dog.get("Hundefuehrer_ID") or ""
+            handler = next((h for h in handlers if h.get("id") == handler_id), None)
+            handler_name = ""
+            if handler:
+                handler_name = f"{handler.get('Vorname','')} {handler.get('Nachname','')}".strip()
+
+            for code in row.get("discipline") or []:
+                laufart = "Agility" if code == "A" else "Jumping" if code == "J" else ""
+                if not laufart:
+                    continue
+                run = _find_run_for(new_event, code, cat, klasse)
+                if not run:
+                    continue
+                run.setdefault("entries", [])
+                existing = {_norm(e.get("Lizenznummer")) for e in run["entries"] if isinstance(e, dict)}
+                if row["license"] in existing:
+                    continue
+                run["entries"].append({
+                    "Lizenznummer": row["license"],
+                    "Hundename": row.get("dog") or (dog or {}).get("Hundename", ""),
+                    "Hundefuehrer": handler_name,
+                    "Startnummer_offiziell": row.get("start_no"),
+                    "debug_import": True,
+                })
+                created_entries += 1
+
+        if sort_entries:
+            for run in new_event.get("runs", []) or []:
+                entries = run.get("entries") or []
+                if not isinstance(entries, list):
+                    continue
+                def key(x):
+                    v = x.get("Startnummer_offiziell")
+                    return (0, v) if isinstance(v, int) else (1, 999999)
+                run["entries"] = sorted(entries, key=key)
+
+    events = _load_data(EVENTS_FILE)
+    events.append(new_event)
+    _save_data(EVENTS_FILE, events)
+    _save_data(DOGS_FILE, dogs)
+    _save_data(HANDLERS_FILE, handlers)
+
+    flash(
+        f"✅ Test-Event erstellt: Lizenzen={len(rows)} | Runs erstellt={len(new_event.get('runs', []))} | "
+        f"Hundeführer neu={created_handlers} | Hunde neu={created_dogs} | Hunde updated={updated_dogs} | "
+        f"Entries neu={created_entries}",
+        "success"
+    )
+    return redirect(url_for('events_bp.manage_runs', event_id=new_event_id))
 
 @events_bp.route('/create', methods=['GET', 'POST'])
 def create_event():
