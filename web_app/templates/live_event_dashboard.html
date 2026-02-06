@@ -19,7 +19,7 @@
     <div class="card-body">
         <div class="d-flex flex-wrap gap-2 mb-3">
             <a href="{{ url_for('live_bp.announcer_dashboard', event_id=event.id) }}" target="_blank" class="btn btn-dark"><i class="fas fa-users me-2"></i>Sprecher-Dashboard</a>
-            {% for i in range(1, (event.num_rings or 1) + 1) %}
+            {% for i in ring_numbers %}
             <div class="btn-group">
                 <a href="{{ url_for('live_bp.display_ring_monitor', ring_number=i) }}" target="_blank" class="btn btn-secondary"><i class="fas fa-tv me-2"></i>Ring {{ i }} Monitor</a>
                 <a href="{{ url_for('live_bp.ring_pc_dashboard', ring_number=i) }}" target="_blank" class="btn btn-warning"><i class="fas fa-laptop-code me-2"></i>Ring-PC</a>
@@ -33,12 +33,12 @@
 </div>
 
 <div class="row">
-    {% for ring_name, runs_in_ring in runs_by_ring.items() %}
+    {% for ring in ring_cards %}
     <div class="col-lg-6 mb-4">
         <div class="card shadow-sm h-100">
-            <div class="card-header bg-dark text-white"><h4 class="mb-0">{{ ring_name }}</h4></div>
+            <div class="card-header bg-dark text-white"><h4 class="mb-0">{{ ring.ring_label }}</h4></div>
             <div class="list-group list-group-flush">
-                {% for run in runs_in_ring|sort(attribute='name') %}
+                {% for run in ring.schedule_runs|sort(attribute='name') %}
                 <div class="list-group-item">
                     <div class="d-flex w-100 justify-content-between">
                         <h5 class="mb-1">{{ run.name }}</h5>
@@ -56,9 +56,19 @@
                         <a href="{{ url_for('live_bp.set_active_announcer_run', event_id=event.id, run_id=run.id) }}" class="btn btn-warning btn-sm"><i class="fas fa-bullhorn me-2"></i>Für Sprecher</a>
                     </div>
                 </div>
-                {% else %}
-                 <div class="list-group-item text-muted">Für diesen Ring sind keine Läufe im Zeitplan eingetragen.</div>
                 {% endfor %}
+                {% if ring.current_run and ring.no_schedule %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ ring.current_run.title }}</h5>
+                        <small class="text-muted">Aktiver Lauf</small>
+                    </div>
+                    <p class="mb-1">Richter: {{ ring.current_run.judge_name or '—' }}</p>
+                    <p class="text-muted mb-0">Kein Zeitplan – aktiver Lauf manuell gesetzt.</p>
+                </div>
+                {% elif not ring.schedule_runs %}
+                <div class="list-group-item text-muted">Für diesen Ring sind keine Läufe im Zeitplan eingetragen.</div>
+                {% endif %}
             </div>
         </div>
     </div>

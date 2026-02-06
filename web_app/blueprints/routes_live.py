@@ -12,7 +12,7 @@ from utils import (_load_data, _save_data, _get_active_event,
                    _calculate_run_results, _load_settings, _get_active_event_id,
                    _calculate_timelines, resolve_judge_name, resolve_judge_id, _to_int,
                    build_ring_view_model, collect_ring_numbers, format_ring_name,
-                   _format_time, _format_total_errors)
+                   _format_time, _format_total_errors, get_ring_state)
 import planner.schedule_planner as schedule_planner
 
 live_bp = Blueprint('live_bp', __name__, template_folder='../templates')
@@ -204,30 +204,14 @@ def live_event_dashboard():
         flash(f"Live-Event mit ID {event_id} wurde nicht gefunden.", "warning")
         _save_data('active_event.json', {})
         return redirect(url_for('events_bp.events_list'))
-    runs_by_ring = {}
-    debug_messages = []
-    schedule = event.get("schedule") or {}
-    schedule_rings = schedule.get("rings") or {}
-    if schedule_rings:
-        judges = _load_data('judges.json')
-        for ring_key in sorted(schedule_rings.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
-            runs_for_ring, debug = _schedule_runs_for_ring(event, ring_key)
-            ring_label = f"Ring {ring_key}"
-            for run in runs_for_ring:
-                run_block, _ = _find_run_block_for_run(event, run, ring_key)
-                run["richter_id"] = resolve_judge_id(event, run, run_block)
-                run["judge_display"] = resolve_judge_name(event, run, judges, run_block)
-            runs_by_ring[ring_label] = runs_for_ring
-            if not runs_for_ring and debug:
-                debug_messages.append(f"{ring_label}: {', '.join(debug)}")
-        if debug_messages:
-            flash("Zeitplan vorhanden, aber keine Lauf-Blöcke gefunden: " + " | ".join(debug_messages), "warning")
-    elif event.get('run_order'):
-        all_rings = sorted(list(set(r['assigned_ring'] for r in event.get('runs', []) if r.get('assigned_ring'))))
-        for ring_num in all_rings:
-            runs_by_ring[f"Ring {ring_num}"] = [r for r in event.get('runs', []) if r.get('assigned_ring') == ring_num]
-    judges = _load_data('judges.json')
-    return render_template('live_event_dashboard.html', event=event, runs_by_ring=runs_by_ring, judges=judges)
+    ring_numbers = collect_ring_numbers(event)
+    ring_cards = [get_ring_state(event, ring_number) for ring_number in ring_numbers]
+    return render_template(
+        'live_event_dashboard.html',
+        event=event,
+        ring_numbers=ring_numbers,
+        ring_cards=ring_cards,
+    )
 
 @live_bp.route('/live/run_entry/<event_id>/<uuid:run_id>')
 def live_run_entry(event_id, run_id):

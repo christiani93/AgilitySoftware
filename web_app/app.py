@@ -108,6 +108,11 @@ app.register_blueprint(live_bp)
 app.register_blueprint(print_bp)
 app.register_blueprint(debug_bp)
 
+@app.context_processor
+def inject_current_year():
+    from datetime import datetime
+    return {"current_year": datetime.now().year}
+
 
 @socketio.on('join_room')
 def handle_join_room(data):

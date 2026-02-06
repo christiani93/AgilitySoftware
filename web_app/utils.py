@@ -751,6 +751,46 @@ def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_r
     return view
 
 
+def get_ring_state(event: dict, ring_number: int):
+    ring_label = _ring_label_for_display(ring_number)
+    state = {
+        "ring_number": ring_number,
+        "ring_label": ring_label,
+        "current_run": None,
+        "schedule_runs": [],
+        "no_schedule": True,
+    }
+    if not event:
+        return state
+
+    judges = _load_data("judges.json")
+    schedule = event.get("schedule") or {}
+    ring_data = (schedule.get("rings") or {}).get(str(ring_number)) or {}
+    blocks = ring_data.get("blocks") or []
+    for block in blocks:
+        if (block.get("type") or "").lower() != "run":
+            continue
+        for run in event.get("runs", []) or []:
+            if schedule_planner._match_run_to_block(run, block):
+                run_block = _find_schedule_block_for_run(event, run) or block
+                run["judge_display"] = resolve_judge_name(event, run, judges, run_block)
+                state["schedule_runs"].append(run)
+                break
+    if not state["schedule_runs"]:
+        for run in event.get("runs", []) or []:
+            assigned = run.get("assigned_ring") or run.get("ring") or run.get("ring_id") or run.get("ringName")
+            digits = re.sub(r"[^0-9]", "", str(assigned or ""))
+            if digits and int(digits) == int(ring_number):
+                run_block = _find_schedule_block_for_run(event, run)
+                run["judge_display"] = resolve_judge_name(event, run, judges, run_block)
+                state["schedule_runs"].append(run)
+    state["no_schedule"] = not bool(state["schedule_runs"])
+
+    view = build_ring_view_model(event, ring_number)
+    state["current_run"] = view.get("current_run")
+    return state
+
+
 def _apply_sct_mct_factors(laufdaten: dict, settings: dict):
     '''
     Berechnet SCT/MCT-Faktoren für Klassen 2 und 3 anhand settings['sct_factors'].
