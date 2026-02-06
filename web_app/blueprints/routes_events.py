@@ -948,8 +948,15 @@ def debug_import_create_event():
                     dog["Klasse"] = row.get("klasse")
                 updated_dogs += 1
 
-        if dog:
-            dog["Startnummer_offiziell"] = row.get("start_no")
+        sn = row.get("start_no")
+        if sn is None:
+            sn = row.get("Startnummer")
+        try:
+            sn = int(sn) if sn is not None else None
+        except Exception:
+            sn = None
+        if dog and sn is not None:
+            dog["Startnummer_offiziell"] = sn
 
     if add_entries:
         for row in rows:
@@ -972,14 +979,20 @@ def debug_import_create_event():
                 if not run:
                     continue
                 run.setdefault("entries", [])
-                existing = {_norm(e.get("Lizenznummer")) for e in run["entries"] if isinstance(e, dict)}
+                existing_entries = [e for e in run["entries"] if isinstance(e, dict)]
+                existing = {_norm(e.get("Lizenznummer")) for e in existing_entries}
                 if row["license"] in existing:
+                    for entry in existing_entries:
+                        if _norm(entry.get("Lizenznummer")) == row["license"]:
+                            if sn is not None:
+                                entry["startnummer_offiziell"] = sn
+                            break
                     continue
                 run["entries"].append({
                     "Lizenznummer": row["license"],
                     "Hundename": row.get("dog") or (dog or {}).get("Hundename", ""),
                     "Hundefuehrer": handler_name,
-                    "Startnummer_offiziell": row.get("start_no"),
+                    "startnummer_offiziell": sn,
                     "debug_import": True,
                 })
                 created_entries += 1
@@ -989,16 +1002,23 @@ def debug_import_create_event():
                 entries = run.get("entries") or []
                 if not isinstance(entries, list):
                     continue
-                def key(x):
-                    v = x.get("Startnummer_offiziell")
-                    return (0, v) if isinstance(v, int) else (1, 999999)
-                run["entries"] = sorted(entries, key=key)
+                run["entries"].sort(key=lambda e: e.get("startnummer_offiziell", 999999))
 
     events = _load_data(EVENTS_FILE)
     events.append(new_event)
     _save_data(EVENTS_FILE, events)
     _save_data(DOGS_FILE, dogs)
     _save_data(HANDLERS_FILE, handlers)
+
+    sample = []
+    for r in new_event.get("runs", [])[:2]:
+        for e in (r.get("entries") or [])[:3]:
+            sample.append({
+                "run": r.get("name") or f'{r.get("laufart")} {r.get("kategorie")}{r.get("klasse")}',
+                "license": e.get("Lizenznummer") or e.get("license"),
+                "sn": e.get("startnummer_offiziell"),
+            })
+    _save_data("debug_startnumbers_sample.json", sample)
 
     flash(
         f"✅ Test-Event erstellt: Lizenzen={len(rows)} | Runs erstellt={len(new_event.get('runs', []))} | "
@@ -1312,13 +1332,18 @@ def debug_import_official_startnumbers(event_id):
                     continue
 
                 run.setdefault("entries", [])
-                existing_lics = {_norm(e.get("Lizenznummer")) for e in run["entries"] if isinstance(e, dict)}
+                existing_entries = [e for e in run["entries"] if isinstance(e, dict)]
+                existing_lics = {_norm(e.get("Lizenznummer")) for e in existing_entries}
                 if lic in existing_lics:
+                    for entry in existing_entries:
+                        if _norm(entry.get("Lizenznummer")) == lic:
+                            entry["startnummer_offiziell"] = info["Startnummer_offiziell"]
+                            break
                     continue
 
                 run["entries"].append({
                     "Lizenznummer": lic,
-                    "Startnummer_offiziell": info["Startnummer_offiziell"],
+                    "startnummer_offiziell": info["Startnummer_offiziell"],
                     "debug_import": True
                 })
                 created_entries += 1
@@ -1338,14 +1363,11 @@ def debug_import_official_startnumbers(event_id):
             info = by_license.get(lic)
             if not info:
                 continue
-            e["Startnummer_offiziell"] = info["Startnummer_offiziell"]
+            e["startnummer_offiziell"] = info["Startnummer_offiziell"]
             updated_entries += 1
 
         if sort_entries and entries:
-            def key(x):
-                v = as_int(x.get("Startnummer_offiziell"))
-                return (0, v) if v is not None else (1, 999999)
-            r["entries"] = sorted(entries, key=key)
+            r["entries"].sort(key=lambda e: e.get("startnummer_offiziell", 999999))
 
     _save_data(EVENTS_FILE, events)
 
@@ -1353,6 +1375,15 @@ def debug_import_official_startnumbers(event_id):
     _save_data("debug_startnumbers_offiziell.json", by_license)
     _save_data("debug_startnumbers_unmatched.json", unmatched)
     _save_data("debug_startnumbers_missing_context.json", missing_context)
+    sample = []
+    for r in event.get("runs", [])[:2]:
+        for e in (r.get("entries") or [])[:3]:
+            sample.append({
+                "run": r.get("name") or f'{r.get("laufart")} {r.get("kategorie")}{r.get("klasse")}',
+                "license": e.get("Lizenznummer") or e.get("license"),
+                "sn": e.get("startnummer_offiziell"),
+            })
+    _save_data("debug_startnumbers_sample.json", sample)
 
     flash(
         f"✅ PDF/JSON-Debug import: Lizenzen={len(by_license)} | "
