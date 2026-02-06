@@ -38,9 +38,6 @@ def _norm(s: str) -> str:
 def _lc(s: str) -> str:
     return _norm(s).lower()
 
-def _norm_text(s):
-    return (s or "").strip().lower()
-
 def _parse_discipline_codes(discipline: str):
     # Beispiele: "A J - SUI", "A J S SUI"
     t = discipline.replace("-", " ")
@@ -50,53 +47,6 @@ def _parse_discipline_codes(discipline: str):
         if c in parts:
             codes.append(c)
     return codes
-
-def _guess_run_type_from_code(code: str):
-    # Run-Typ anhand Name erkennen (tolerant)
-    if code == "A":
-        return ["agility", "a ", " a", "ag"]
-    if code == "J":
-        return ["jump", "jumping", "j ", " j"]
-    if code == "S":
-        return ["spiel", "senior", "s ", " s"]
-    return []
-
-def _guess_class_tokens(quelle: str):
-    # quelle: class1/class2/class3 -> Tokens, die in Run-Namen vorkommen könnten
-    q = (quelle or "").lower()
-    if q == "class1":
-        return ["class 1", "klasse 1", "kl 1", "1"]
-    if q == "class2":
-        return ["class 2", "klasse 2", "kl 2", "2"]
-    if q == "class3":
-        return ["class 3", "klasse 3", "kl 3", "3"]
-    return []
-
-def _find_matching_runs(event, code: str, quelle: str):
-    runs = event.get("runs") or []
-    type_tokens = _guess_run_type_from_code(code)
-    class_tokens = _guess_class_tokens(quelle)
-
-    scored = []
-    for r in runs:
-        name = _norm_text(r.get("name") or r.get("title") or r.get("id"))
-        score = 0
-        if any(tok in name for tok in type_tokens):
-            score += 10
-        if any(tok in name for tok in class_tokens):
-            score += 5
-        # auch Kurzformen: Name beginnt mit A/J/S
-        if code and name.startswith(code.lower()):
-            score += 3
-        if score > 0:
-            scored.append((score, r))
-
-    scored.sort(key=lambda x: x[0], reverse=True)
-    # alle Runs mit best-score zurückgeben
-    if not scored:
-        return []
-    best = scored[0][0]
-    return [r for s, r in scored if s == best]
 
 CSV_ALIASES = {
     "h-kl-eingabe": {"h kl eingabe", "h-kl-eingabe", "klasse"},
@@ -771,6 +721,8 @@ def debug_import_official_startnumbers(event_id):
             "Startnummer_offiziell": sn,
             "Quelle": row.get("quelle"),
             "discipline": row.get("discipline"),
+            "kategorie": row.get("kategorie"),
+            "klasse": row.get("klasse"),
             "raw_line": row.get("raw_line"),
             "dog": dog_name,
             "breed": breed,
@@ -858,23 +810,52 @@ def debug_import_official_startnumbers(event_id):
 
     if add_entries_auto:
         for lic, info in by_license.items():
+            kat = info.get("kategorie")
+            cls = info.get("klasse")
             codes = _parse_discipline_codes(info.get("discipline") or "")
+            if not kat or not cls:
+                unmatched.append({
+                    "license": lic,
+                    "reason": "missing_category_class",
+                    "kategorie": kat,
+                    "klasse": cls,
+                })
+                continue
             if not codes:
                 unmatched.append({"license": lic, "reason": "no_discipline"})
                 continue
 
             for code in codes:
-                matches = _find_matching_runs(event, code, info.get("Quelle"))
-                if len(matches) != 1:
+                laufart = "Agility" if code == "A" else "Jumping" if code == "J" else None
+                if not laufart:
                     unmatched.append({
                         "license": lic,
+                        "reason": "unknown_discipline_code",
                         "code": code,
-                        "quelle": info.get("Quelle"),
-                        "matches": len(matches),
                     })
                     continue
 
-                run = matches[0]
+                run = next(
+                    (
+                        r for r in (event.get("runs") or [])
+                        if r.get("kategorie") == kat
+                        and str(r.get("klasse")) == str(cls)
+                        and (r.get("laufart", "").lower().startswith(laufart.lower()))
+                    ),
+                    None
+                )
+
+                if not run:
+                    unmatched.append({
+                        "license": lic,
+                        "reason": "no_matching_run",
+                        "code": code,
+                        "kategorie": kat,
+                        "klasse": cls,
+                        "laufart": laufart,
+                    })
+                    continue
+
                 run.setdefault("entries", [])
                 existing_lics = {_norm(e.get("Lizenznummer")) for e in run["entries"] if isinstance(e, dict)}
                 if lic in existing_lics:
