@@ -8,6 +8,7 @@ from datetime import datetime
 APP_VERSION = "4.4"
 app = Flask(__name__)
 from extensions import socketio
+from flask_socketio import join_room
 app.config['DATA_DIR'] = 'data'
 app.config['SOFTWARE_VERSION'] = APP_VERSION
 app.config['SECRET_KEY'] = 'dein_super_geheimer_schluessel'
@@ -106,6 +107,13 @@ app.register_blueprint(master_data_bp)
 app.register_blueprint(live_bp)
 app.register_blueprint(print_bp)
 app.register_blueprint(debug_bp)
+
+
+@socketio.on('join_room')
+def handle_join_room(data):
+    room = (data or {}).get('room')
+    if room:
+        join_room(room)
 
 if __name__ == '__main__':
     initialize_files()
