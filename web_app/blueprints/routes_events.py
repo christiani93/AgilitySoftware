@@ -1,5 +1,6 @@
 # blueprints/routes_events.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, Response, jsonify, abort
+from werkzeug.utils import secure_filename
 import json
 import os
 import re
