@@ -3,12 +3,15 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.utils import secure_filename
 import json
 import os
+import re
+import tempfile
 import uuid
 import random
 from io import StringIO
 import csv
 import zipfile
 from datetime import date, datetime
+import pdfplumber
 
 from utils import (
     _load_data, _save_data, _decode_csv_file, _get_active_event_id,
@@ -38,15 +41,181 @@ def _norm(s: str) -> str:
 def _lc(s: str) -> str:
     return _norm(s).lower()
 
+HEADER_RE = re.compile(r'^(SMALL|MEDIUM|INTERMEDIATE|LARGE)\s+(\d)\b', re.IGNORECASE)
+
+def _cat_from_word(word: str) -> str:
+    m = {
+        "SMALL": "S",
+        "MEDIUM": "M",
+        "INTERMEDIATE": "I",
+        "LARGE": "L",
+    }
+    return m.get((word or "").upper().strip(), "")
+
+def _parse_header_cat_class(line: str):
+    m = HEADER_RE.match((line or "").strip())
+    if not m:
+        return None, None
+    return _cat_from_word(m.group(1)), m.group(2)
+
 def _parse_discipline_codes(discipline: str):
-    # Beispiele: "A J - SUI", "A J S SUI"
-    t = discipline.replace("-", " ")
+    # z.B. "A J S UKR" oder "A J - SUI" -> ["A","J","S"]
+    t = (discipline or "").replace("-", " ")
     parts = [p.strip().upper() for p in t.split() if p.strip()]
     codes = []
     for c in ["A", "J", "S"]:
         if c in parts:
             codes.append(c)
     return codes
+
+def _parse_entry_line_to_row(line: str):
+    """
+    Erwartetes Muster (aus euren PDFs):
+    <startno> <Nachname> <Vorname> <discipline...> <country> <license> <dog> <breed...>
+    Beispiel:
+    2 MÉTROZ Françoise A J S SUI 16597 Arwen Schnauzer nain noir
+    """
+    raw = line
+    tokens = (line or "").split()
+    if not tokens:
+        return None
+
+    # Startnummer
+    if not tokens[0].isdigit():
+        return None
+    start_no = int(tokens[0])
+    tokens = tokens[1:]
+
+    # Bitch in heat kann als "x" vorkommen (wenn bei dir so markiert)
+    bitch = False
+    if tokens and tokens[0].lower() == "x":
+        bitch = True
+        tokens = tokens[1:]
+
+    # Suche license: erstes "langes" digits token (>=5)
+    lic_idx = None
+    for i, t in enumerate(tokens):
+        if t.isdigit() and len(t) >= 5:
+            lic_idx = i
+            break
+    if lic_idx is None:
+        return None
+    license_no = tokens[lic_idx]
+
+    # Hundename: direkt nach Lizenz
+    dog = tokens[lic_idx + 1] if lic_idx + 1 < len(tokens) else ""
+
+    # Rasse: alles nach Hund
+    breed = " ".join(tokens[lic_idx + 2:]) if lic_idx + 2 < len(tokens) else ""
+
+    # Vor Lizenz steht: Nachname Vorname + discipline/country
+    # Wir nehmen: Nachname = tokens[0], Vorname = tokens[1] (wenn vorhanden)
+    handler_last = tokens[0] if len(tokens) >= 1 else ""
+    handler_first = tokens[1] if len(tokens) >= 2 else ""
+
+    # discipline: zwischen Vorname und Lizenz (nicht perfekt, aber ausreichend für A/J/S)
+    # tokens: [Nachname, Vorname, ... discipline ..., country, license, ...]
+    mid = tokens[2:lic_idx] if lic_idx > 2 else []
+    discipline = " ".join(mid)
+
+    return {
+        "start_no": start_no,
+        "license": license_no,
+        "handler_last": handler_last,
+        "handler_first": handler_first,
+        "discipline": discipline,
+        "dog": dog,
+        "breed": breed,
+        "bitch_in_heat": bitch,
+        "raw_line": raw,
+    }
+
+def _pdf_startlist_to_rows(pdf_path: str):
+    """
+    Liest PDF und liefert combined-rows wie startlist_all_combined.json, aber erweitert:
+    - kategorie (S/M/I/L)
+    - klasse (1/2/3)
+    """
+    combined = []
+    missing_context = []
+
+    current_kat = ""
+    current_cls = ""
+
+    def clean_line(s: str) -> str:
+        return re.sub(r"\s+", " ", (s or "").strip())
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text() or ""
+            for ln in text.splitlines():
+                ln = clean_line(ln)
+                if not ln:
+                    continue
+
+                # Header/Footers überspringen (bei Bedarf erweitern)
+                if ln.startswith("SNr.") or "TEILNEHMERLISTE" in ln or "SWISS AGILITY SUMMITS" in ln:
+                    continue
+                if ln.startswith("Starter:") or "Teams gesamthaft" in ln or "Stand per" in ln:
+                    continue
+
+                # grauer Balken: SMALL 1 etc.
+                kat, cls = _parse_header_cat_class(ln)
+                if kat and cls:
+                    current_kat = kat
+                    current_cls = cls
+                    continue
+
+                # Eintrag?
+                row = _parse_entry_line_to_row(ln)
+                if not row:
+                    continue
+
+                row["kategorie"] = current_kat
+                row["klasse"] = current_cls
+
+                if not current_kat or not current_cls:
+                    missing_context.append({
+                        "raw_line": ln,
+                        "start_no": row.get("start_no"),
+                        "license": row.get("license"),
+                    })
+
+                combined.append(row)
+
+    return combined, missing_context
+
+def _find_run_for(event, laufart_code: str, kategorie: str, klasse: str):
+    """
+    Findet den passenden Run in event.runs anhand:
+    - laufart (Agility/Jumping) aus Code A/J
+    - kategorie S/M/I/L
+    - klasse 1/2/3
+    """
+    if laufart_code == "A":
+        want = "agility"
+    elif laufart_code == "J":
+        want = "jumping"
+    else:
+        return None
+
+    kategorie = (kategorie or "").strip().upper()
+    klasse = str(klasse or "").strip()
+
+    for r in (event.get("runs") or []):
+        la = (r.get("laufart") or "").strip().lower()
+        ka = (r.get("kategorie") or "").strip().upper()
+        kl = str(r.get("klasse") or "").strip()
+
+        if not la.startswith(want):
+            continue
+        if ka != kategorie:
+            continue
+        if kl != klasse:
+            continue
+        return r
+
+    return None
 
 CSV_ALIASES = {
     "h-kl-eingabe": {"h kl eingabe", "h-kl-eingabe", "klasse"},
@@ -669,22 +838,37 @@ def debug_import_official_startnumbers(event_id):
         flash("Event nicht gefunden.", "error")
         return redirect(url_for('events_bp.events_list'))
 
-    f = request.files.get("startlist_json")
+    f = request.files.get("startlist_file")
     if not f or not f.filename:
-        flash("Keine Datei ausgewählt (startlist_all_combined.json).", "warning")
+        flash("Keine Datei ausgewählt (PDF oder JSON).", "warning")
         return redirect(url_for('events_bp.manage_runs', event_id=event_id))
+
+    filename = (f.filename or "").lower().strip()
 
     sort_entries = (request.form.get("sort_entries") == "1")
     create_participants = (request.form.get("create_participants") == "1")
     add_entries_auto = (request.form.get("add_entries_auto") == "1")
 
-    # JSON lesen
+    missing_context = []
     try:
-        combined = json.load(f)
-        if not isinstance(combined, list):
-            raise ValueError("JSON ist nicht eine Liste")
+        if filename.endswith(".pdf"):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                tmp.write(f.read())
+                tmp_path = tmp.name
+            combined, missing_context = _pdf_startlist_to_rows(tmp_path)
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
+        elif filename.endswith(".json"):
+            combined = json.load(f)
+            if not isinstance(combined, list):
+                raise ValueError("JSON ist nicht eine Liste")
+        else:
+            flash("Bitte eine PDF- oder JSON-Datei hochladen.", "warning")
+            return redirect(url_for('events_bp.manage_runs', event_id=event_id))
     except Exception as ex:
-        flash(f"JSON konnte nicht gelesen werden: {ex}", "error")
+        flash(f"Datei konnte nicht verarbeitet werden: {ex}", "error")
         return redirect(url_for('events_bp.manage_runs', event_id=event_id))
 
     def as_int(v):
@@ -699,17 +883,14 @@ def debug_import_official_startnumbers(event_id):
     for row in combined:
         if not isinstance(row, dict):
             continue
-        lic = _norm(row.get("license"))
-        sn = as_int(row.get("start_no"))
+        lic = _norm(row.get("license") or row.get("Lizenznummer"))
+        sn = row.get("start_no") or row.get("Startnummer") or row.get("startno")
+        try:
+            sn = int(sn)
+        except Exception:
+            sn = None
         if not lic or sn is None:
             continue
-
-        # Basisdaten aus PDF-JSON
-        dog_name = (row.get("dog") or "").strip()
-        breed = (row.get("breed") or "").strip()
-        h_first = (row.get("handler_first") or "").strip()
-        h_last = (row.get("handler_last") or "").strip()
-        country = (row.get("country") or "").strip()
 
         if lic in by_license and by_license[lic].get("Startnummer_offiziell") != sn:
             by_license[lic]["Konflikt_Startnummern"] = sorted(
@@ -720,15 +901,15 @@ def debug_import_official_startnumbers(event_id):
         by_license[lic] = {
             "Startnummer_offiziell": sn,
             "Quelle": row.get("quelle"),
-            "discipline": row.get("discipline"),
-            "kategorie": row.get("kategorie"),
-            "klasse": row.get("klasse"),
+            "kategorie": (row.get("kategorie") or "").strip().upper(),
+            "klasse": str(row.get("klasse") or "").strip(),
+            "discipline": (row.get("discipline") or "").strip(),
+            "dog": (row.get("dog") or "").strip(),
+            "breed": (row.get("breed") or "").strip(),
+            "handler_first": (row.get("handler_first") or "").strip(),
+            "handler_last": (row.get("handler_last") or "").strip(),
+            "country": (row.get("country") or "").strip(),
             "raw_line": row.get("raw_line"),
-            "dog": dog_name,
-            "breed": breed,
-            "handler_first": h_first,
-            "handler_last": h_last,
-            "country": country,
         }
 
     # Load master data
@@ -826,25 +1007,7 @@ def debug_import_official_startnumbers(event_id):
                 continue
 
             for code in codes:
-                laufart = "Agility" if code == "A" else "Jumping" if code == "J" else None
-                if not laufart:
-                    unmatched.append({
-                        "license": lic,
-                        "reason": "unknown_discipline_code",
-                        "code": code,
-                    })
-                    continue
-
-                run = next(
-                    (
-                        r for r in (event.get("runs") or [])
-                        if r.get("kategorie") == kat
-                        and str(r.get("klasse")) == str(cls)
-                        and (r.get("laufart", "").lower().startswith(laufart.lower()))
-                    ),
-                    None
-                )
-
+                run = _find_run_for(event, code, kat, cls)
                 if not run:
                     unmatched.append({
                         "license": lic,
@@ -852,7 +1015,6 @@ def debug_import_official_startnumbers(event_id):
                         "code": code,
                         "kategorie": kat,
                         "klasse": cls,
-                        "laufart": laufart,
                     })
                     continue
 
@@ -897,11 +1059,13 @@ def debug_import_official_startnumbers(event_id):
     # debug map speichern
     _save_data("debug_startnumbers_offiziell.json", by_license)
     _save_data("debug_startnumbers_unmatched.json", unmatched)
+    _save_data("debug_startnumbers_missing_context.json", missing_context)
 
     flash(
-        f"✅ PDF-Debug import: Lizenzen={len(by_license)} | "
+        f"✅ PDF/JSON-Debug import: Lizenzen={len(by_license)} | "
         f"Hundeführer neu={created_handlers} | Hunde neu={created_dogs} | Hunde updated={updated_dogs} | "
-        f"Entries neu={created_entries} | Entries updated={updated_entries} | Unmatched={len(unmatched)}",
+        f"Entries neu={created_entries} | Entries updated={updated_entries} | "
+        f"MissingContext={len(missing_context)} | Unmatched={len(unmatched)}",
         "success"
     )
     return redirect(url_for('events_bp.manage_runs', event_id=event_id))
