@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Master-Einweiserliste - {{ event.Bezeichnung }}</title>
+    <title>Master-Einweiserliste (Zeitplan) - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; }
         @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
@@ -13,7 +13,6 @@
         .page-table > tbody > tr > td { padding: 0; }
         .page-table thead td { border-bottom: none; }
 
-        /* NEU: Header, der sich auf jeder Seite wiederholt (Punkt 5) */
         .print-header { position: static !important; display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: none; }
         .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
         .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
@@ -29,7 +28,7 @@
         th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         th.run-header { background-color: #f2f2f2; text-align: center; writing-mode: vertical-lr; transform: rotate(180deg); }
         h3 { background-color: #e9ecef; font-size: 14pt; padding: 8px; text-align: left;}
-        
+
         .checkbox { width: 18px; height: 18px; border: 1px solid black; display: block; margin: auto; }
         .participant-col { width: 60px; }
         .run-col { width: 25px; }
@@ -45,7 +44,7 @@
     </style>
 </head>
 <body>
-    {% set title = 'Master-Einweiserliste' %}
+    {% set title = 'Master-Einweiserliste (nach Zeitplan)' %}
     <table class="page-table">
         <thead>
             <tr>
@@ -57,40 +56,42 @@
         <tbody>
             <tr>
                 <td>
-        {% for cat, classes in final_grouped_data.items()|sort %}
-            {% for cls, group_data in classes.items()|sort %}
-                <div class="group-container">
-                    <h3>Kategorie: {{ cat }} - Klasse: {{ cls }}</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="participant-col" style="writing-mode: horizontal-tb; transform: none; height: auto;">Start-Nr.</th>
-                                <th class="participant-col" style="width: 150px; writing-mode: horizontal-tb; transform: none; height: auto;">Hundeführer</th>
-                                <th class="participant-col" style="width: 120px; writing-mode: horizontal-tb; transform: none; height: auto;">Hund</th>
-                                {% for run in group_data.runs %}
-                                    <th class="run-col run-header"><div>{{ run.name }}</div></th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for p in group_data.participants %}
-                            <tr>
-                                <td><strong>{{ p.Startnummer }}</strong></td>
-                                <td>{{ p.Hundefuehrer }}</td>
-                                <td>{{ p.Hundename }}</td>
-                                {% for run in group_data.runs %}
-                                    <td style="text-align: center;">
-                                        {% if group_data.run_map[p.Lizenznummer][run.id] %}
-                                            <div class="checkbox"></div>
-                                        {% endif %}
-                                    </td>
-                                {% endfor %}
-                            </tr>
+        {% for section in sections %}
+            <div class="group-container">
+                <h3>Ring {{ section.ring }} – {{ section.title }}</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="participant-col" style="writing-mode: horizontal-tb; transform: none; height: auto;">Start-Nr.</th>
+                            <th class="participant-col" style="width: 150px; writing-mode: horizontal-tb; transform: none; height: auto;">Hundeführer</th>
+                            <th class="participant-col" style="width: 120px; writing-mode: horizontal-tb; transform: none; height: auto;">Hund</th>
+                            {% for run in section.runs %}
+                                <th class="run-col run-header"><div>{{ run.name }}</div></th>
                             {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in section.participants %}
+                        <tr>
+                            <td><strong>{{ p.Startnummer }}</strong></td>
+                            <td>{{ p.Hundefuehrer }}</td>
+                            <td>{{ p.Hundename }}</td>
+                            {% for run in section.runs %}
+                                <td style="text-align: center;">
+                                    {% if section.run_map.get(p.Lizenznummer, {}).get(run.id) %}
+                                        <div class="checkbox"></div>
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="text-align: center; font-weight: bold; margin-top: 2cm;">
+                Keine Läufe im Zeitplan gefunden.
+            </p>
         {% endfor %}
                 </td>
             </tr>
