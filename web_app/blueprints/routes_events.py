@@ -642,7 +642,38 @@ def manage_runs(event_id):
     if not event:
         return redirect(url_for('events_bp.events_list'))
     judges = _load_data(JUDGES_FILE)
-    return render_template('manage_runs.html', event=event, judges=judges)
+    judge_lookup = {}
+    for judge in judges or []:
+        if not isinstance(judge, dict):
+            continue
+        judge_id = judge.get('id')
+        if judge_id:
+            first = (judge.get('firstname') or judge.get('vorname') or judge.get('Vorname') or '').strip()
+            last = (judge.get('lastname') or judge.get('nachname') or judge.get('Nachname') or '').strip()
+            judge_lookup[str(judge_id)] = f"{first} {last}".strip()
+
+    def _resolve_judge_name(block):
+        if not block:
+            return "— kein Richter —"
+        name = block.get('judge_name') or block.get('richter_name')
+        if name:
+            return name
+        judge_id = block.get('judge_id') or block.get('richter_id')
+        if judge_id:
+            return judge_lookup.get(str(judge_id), "— kein Richter —")
+        return "— kein Richter —"
+
+    run_judges = {}
+    schedule = event.get('schedule') or {}
+    for ring_data in (schedule.get('rings') or {}).values():
+        for block in ring_data.get('blocks') or []:
+            if (block.get('type') or '').lower() != 'run':
+                continue
+            for run in event.get('runs', []) or []:
+                if schedule_planner._match_run_to_block(run, block):
+                    run_judges[run.get('id')] = _resolve_judge_name(block)
+
+    return render_template('manage_runs.html', event=event, judges=judges, run_judges=run_judges)
 
 @events_bp.route('/edit_run/<event_id>/<uuid:run_id>', methods=['GET', 'POST'])
 def edit_run(event_id, run_id):
