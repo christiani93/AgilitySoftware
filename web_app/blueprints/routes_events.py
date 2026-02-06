@@ -1,12 +1,16 @@
 # blueprints/routes_events.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, Response, jsonify, abort
 import json
+import os
+import re
+import tempfile
 import uuid
 import random
 from io import StringIO
 import csv
 import zipfile
 from datetime import date, datetime
+import pdfplumber
 
 from utils import (
     _load_data, _save_data, _decode_csv_file, _get_active_event_id,
@@ -35,6 +39,228 @@ def _norm(s: str) -> str:
 
 def _lc(s: str) -> str:
     return _norm(s).lower()
+
+HEADER_RE = re.compile(r'^(SMALL|MEDIUM|INTERMEDIATE|LARGE)\s+(\d)\b', re.IGNORECASE)
+
+def _cat_from_word(word: str) -> str:
+    m = {
+        "SMALL": "S",
+        "MEDIUM": "M",
+        "INTERMEDIATE": "I",
+        "LARGE": "L",
+    }
+    return m.get((word or "").upper().strip(), "")
+
+def _parse_header_cat_class(line: str):
+    m = HEADER_RE.match((line or "").strip())
+    if not m:
+        return None, None
+    return _cat_from_word(m.group(1)), m.group(2)
+
+def _parse_discipline_codes(discipline: str):
+    # z.B. "A J S UKR" oder "A J - SUI" -> ["A","J","S"]
+    t = (discipline or "").replace("-", " ")
+    parts = [p.strip().upper() for p in t.split() if p.strip()]
+    codes = []
+    for c in ["A", "J", "S"]:
+        if c in parts:
+            codes.append(c)
+    return codes
+
+def _parse_entry_line_to_row(line: str):
+    """
+    Erwartetes Muster (aus euren PDFs):
+    <startno> <Nachname> <Vorname> <discipline...> <country> <license> <dog> <breed...>
+    Beispiel:
+    2 MÉTROZ Françoise A J S SUI 16597 Arwen Schnauzer nain noir
+    """
+    raw = line
+    tokens = (line or "").split()
+    if not tokens:
+        return None
+
+    # Startnummer
+    if not tokens[0].isdigit():
+        return None
+    start_no = int(tokens[0])
+    tokens = tokens[1:]
+
+    # Bitch in heat kann als "x" vorkommen (wenn bei dir so markiert)
+    bitch = False
+    if tokens and tokens[0].lower() == "x":
+        bitch = True
+        tokens = tokens[1:]
+
+    # Suche license: erstes "langes" digits token (>=5)
+    lic_idx = None
+    for i, t in enumerate(tokens):
+        if t.isdigit() and len(t) >= 5:
+            lic_idx = i
+            break
+    if lic_idx is None:
+        return None
+    license_no = tokens[lic_idx]
+
+    # Hundename: direkt nach Lizenz
+    dog = tokens[lic_idx + 1] if lic_idx + 1 < len(tokens) else ""
+
+    # Rasse: alles nach Hund
+    breed = " ".join(tokens[lic_idx + 2:]) if lic_idx + 2 < len(tokens) else ""
+
+    # Vor Lizenz steht: Nachname Vorname + discipline/country
+    # Wir nehmen: Nachname = tokens[0], Vorname = tokens[1] (wenn vorhanden)
+    handler_last = tokens[0] if len(tokens) >= 1 else ""
+    handler_first = tokens[1] if len(tokens) >= 2 else ""
+
+    # discipline: zwischen Vorname und Lizenz (nicht perfekt, aber ausreichend für A/J/S)
+    # tokens: [Nachname, Vorname, ... discipline ..., country, license, ...]
+    mid = tokens[2:lic_idx] if lic_idx > 2 else []
+    discipline = " ".join(mid)
+
+    return {
+        "start_no": start_no,
+        "license": license_no,
+        "handler_last": handler_last,
+        "handler_first": handler_first,
+        "discipline": discipline,
+        "dog": dog,
+        "breed": breed,
+        "bitch_in_heat": bitch,
+        "raw_line": raw,
+    }
+
+def _get_any(d: dict, *keys, default=""):
+    for k in keys:
+        if isinstance(d, dict) and k in d and d.get(k) not in (None, ""):
+            return d.get(k)
+    return default
+
+def _norm_cat(v: str) -> str:
+    v = (v or "").strip().lower()
+    if v in {"s", "small"} or v.startswith("small"):
+        return "S"
+    if v in {"m", "medium"} or v.startswith("medium"):
+        return "M"
+    if v in {"i", "intermediate"} or v.startswith("intermediate"):
+        return "I"
+    if v in {"l", "large"} or v.startswith("large"):
+        return "L"
+    return (v or "").strip().upper()
+
+def _norm_laufart(v: str) -> str:
+    v = (v or "").strip().lower()
+    if v in {"a", "ag", "agility"} or "agility" in v:
+        return "A"
+    if v in {"j", "jump", "jumping"} or "jump" in v:
+        return "J"
+    return (v or "").strip().upper()
+
+def _pdf_startlist_to_rows(pdf_path: str):
+    """
+    Liest PDF und liefert combined-rows wie startlist_all_combined.json, aber erweitert:
+    - kategorie (S/M/I/L)
+    - klasse (1/2/3)
+    """
+    combined = []
+    missing_context = []
+
+    current_kat = ""
+    current_cls = ""
+
+    def clean_line(s: str) -> str:
+        return re.sub(r"\s+", " ", (s or "").strip())
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text() or ""
+            for ln in text.splitlines():
+                ln = clean_line(ln)
+                if not ln:
+                    continue
+
+                # Header/Footers überspringen (bei Bedarf erweitern)
+                if ln.startswith("SNr.") or "TEILNEHMERLISTE" in ln or "SWISS AGILITY SUMMITS" in ln:
+                    continue
+                if ln.startswith("Starter:") or "Teams gesamthaft" in ln or "Stand per" in ln:
+                    continue
+
+                # grauer Balken: SMALL 1 etc.
+                kat, cls = _parse_header_cat_class(ln)
+                if kat and cls:
+                    current_kat = kat
+                    current_cls = cls
+                    continue
+
+                # Eintrag?
+                row = _parse_entry_line_to_row(ln)
+                if not row:
+                    continue
+
+                row["kategorie"] = current_kat
+                row["klasse"] = current_cls
+
+                if not current_kat or not current_cls:
+                    missing_context.append({
+                        "raw_line": ln,
+                        "start_no": row.get("start_no"),
+                        "license": row.get("license"),
+                    })
+
+                combined.append(row)
+
+    return combined, missing_context
+
+def _find_run_for(event, laufart_code: str, kategorie: str, klasse: str):
+    want_la = (laufart_code or "").strip().upper()
+    want_cat = _norm_cat(kategorie)
+    want_kl = str(klasse or "").strip()
+
+    runs = _get_any(event, "runs", "Runs", default=[])
+    if not isinstance(runs, list):
+        return None
+
+    # 1. Direkter Feldabgleich
+    for r in runs:
+        if not isinstance(r, dict):
+            continue
+
+        la_raw = _get_any(r, "laufart", "Laufart", "type", "Typ", default="")
+        ka_raw = _get_any(r, "kategorie", "Kategorie", default="")
+        kl_raw = _get_any(r, "klasse", "Klasse", default="")
+
+        la = _norm_laufart(la_raw)
+        ka = _norm_cat(ka_raw)
+        kl = str(kl_raw).strip()
+
+        if la == want_la and ka == want_cat and kl == want_kl:
+            return r
+
+    # 2. Fallback: Match über Run-Name
+    for r in runs:
+        name = str(_get_any(r, "name", "Name", "title", "Titel", default="")).lower()
+        if not name:
+            continue
+
+        if want_la == "A" and "agility" not in name and " a" not in name:
+            continue
+        if want_la == "J" and "jump" not in name and " j" not in name:
+            continue
+
+        if want_cat == "S" and "small" not in name:
+            continue
+        if want_cat == "M" and "medium" not in name:
+            continue
+        if want_cat == "I" and "intermediate" not in name:
+            continue
+        if want_cat == "L" and "large" not in name:
+            continue
+
+        if want_kl and want_kl not in name:
+            continue
+
+        return r
+
+    return None
 
 CSV_ALIASES = {
     "h-kl-eingabe": {"h kl eingabe", "h-kl-eingabe", "klasse"},
@@ -648,6 +874,246 @@ def manage_runs(event_id):
         run_judges[run.get('id')] = resolve_judge_name(event, run, judges)
 
     return render_template('manage_runs.html', event=event, judges=judges, run_judges=run_judges)
+
+@events_bp.route('/debug_import_official_startnumbers/<event_id>', methods=['POST'])
+def debug_import_official_startnumbers(event_id):
+    events = _load_data(EVENTS_FILE)
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        flash("Event nicht gefunden.", "error")
+        return redirect(url_for('events_bp.events_list'))
+
+    f = request.files.get("startlist_file")
+    if not f or not f.filename:
+        flash("Keine Datei ausgewählt (PDF oder JSON).", "warning")
+        return redirect(url_for('events_bp.manage_runs', event_id=event_id))
+
+    filename = (f.filename or "").lower().strip()
+
+    sort_entries = (request.form.get("sort_entries") == "1")
+    create_participants = (request.form.get("create_participants") == "1")
+    add_entries_auto = (request.form.get("add_entries_auto") == "1")
+
+    missing_context = []
+    try:
+        if filename.endswith(".pdf"):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                tmp.write(f.read())
+                tmp_path = tmp.name
+            combined, missing_context = _pdf_startlist_to_rows(tmp_path)
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
+        elif filename.endswith(".json"):
+            combined = json.load(f)
+            if not isinstance(combined, list):
+                raise ValueError("JSON ist nicht eine Liste")
+        else:
+            flash("Bitte eine PDF- oder JSON-Datei hochladen.", "warning")
+            return redirect(url_for('events_bp.manage_runs', event_id=event_id))
+    except Exception as ex:
+        flash(f"Datei konnte nicht verarbeitet werden: {ex}", "error")
+        return redirect(url_for('events_bp.manage_runs', event_id=event_id))
+
+    def as_int(v):
+        if isinstance(v, int):
+            return v
+        if isinstance(v, str) and v.strip().isdigit():
+            return int(v.strip())
+        return None
+
+    # Mapping Lizenz -> Startnummer & Daten
+    by_license = {}
+    for row in combined:
+        if not isinstance(row, dict):
+            continue
+        lic = _norm(row.get("license") or row.get("Lizenznummer"))
+        sn = row.get("start_no") or row.get("Startnummer") or row.get("startno")
+        try:
+            sn = int(sn)
+        except Exception:
+            sn = None
+        if not lic or sn is None:
+            continue
+
+        if lic in by_license and by_license[lic].get("Startnummer_offiziell") != sn:
+            by_license[lic]["Konflikt_Startnummern"] = sorted(
+                list({by_license[lic]["Startnummer_offiziell"], sn})
+            )
+            continue
+
+        by_license[lic] = {
+            "Startnummer_offiziell": sn,
+            "Quelle": row.get("quelle"),
+            "kategorie": (row.get("kategorie") or "").strip().upper(),
+            "klasse": str(row.get("klasse") or "").strip(),
+            "discipline": (row.get("discipline") or "").strip(),
+            "dog": (row.get("dog") or "").strip(),
+            "breed": (row.get("breed") or "").strip(),
+            "handler_first": (row.get("handler_first") or "").strip(),
+            "handler_last": (row.get("handler_last") or "").strip(),
+            "country": (row.get("country") or "").strip(),
+            "raw_line": row.get("raw_line"),
+        }
+
+    # Load master data
+    dogs = _load_data(DOGS_FILE) or []
+    handlers = _load_data(HANDLERS_FILE) if 'HANDLERS_FILE' in globals() else _load_data("handlers.json")
+    handlers = handlers or []
+
+    # helper: find/create handler
+    def find_handler_id(first, last, country=""):
+        first_n = (first or "").strip()
+        last_n = (last or "").strip()
+        if not first_n and not last_n:
+            return ""
+
+        # vorhandenen Handler suchen (sehr simpel)
+        for h in handlers:
+            if _norm(h.get("Vorname")) == _norm(first_n) and _norm(h.get("Nachname")) == _norm(last_n):
+                return h.get("id") or h.get("ID") or ""
+
+        # anlegen (debug)
+        new_id = str(uuid.uuid4())
+        handlers.append({
+            "id": new_id,
+            "Vorname": first_n,
+            "Nachname": last_n,
+            "Land": country,
+            "debug_import": True
+        })
+        return new_id
+
+    # 1) Dogs: Startnummern setzen + optional fehlende Dogs anlegen
+    updated_dogs = 0
+    created_dogs = 0
+    created_handlers = 0  # wird indirekt gezählt
+
+    # Index dogs by license
+    dogs_by_lic = {}
+    for d in dogs:
+        lic = _norm(d.get("Lizenznummer"))
+        if lic:
+            dogs_by_lic[lic] = d
+
+    before_handlers_count = len(handlers)
+
+    for lic, info in by_license.items():
+        d = dogs_by_lic.get(lic)
+        if not d and create_participants:
+            hid = find_handler_id(info.get("handler_first"), info.get("handler_last"), info.get("country"))
+            # minimaler Dog-Datensatz (debug)
+            d = {
+                "Lizenznummer": lic,
+                "Hundename": info.get("dog", ""),
+                "Rasse": info.get("breed", ""),
+                "Hundefuehrer_ID": hid,
+                "debug_import": True
+            }
+            dogs.append(d)
+            dogs_by_lic[lic] = d
+            created_dogs += 1
+
+        if d:
+            d["Startnummer_offiziell"] = info["Startnummer_offiziell"]
+            d["Startnummer_offiziell_quelle"] = info.get("Quelle")
+            updated_dogs += 1
+
+    created_handlers = max(0, len(handlers) - before_handlers_count)
+
+    _save_data(DOGS_FILE, dogs)
+    # handlers speichern
+    if 'HANDLERS_FILE' in globals():
+        _save_data(HANDLERS_FILE, handlers)
+    else:
+        _save_data("handlers.json", handlers)
+
+    # 2) Optional: Entries im Event ergänzen
+    updated_entries = 0
+    created_entries = 0
+    unmatched = []
+
+    if add_entries_auto:
+        for lic, info in by_license.items():
+            kat = info.get("kategorie")
+            cls = info.get("klasse")
+            codes = _parse_discipline_codes(info.get("discipline") or "")
+            if not kat or not cls:
+                unmatched.append({
+                    "license": lic,
+                    "reason": "missing_category_class",
+                    "kategorie": kat,
+                    "klasse": cls,
+                })
+                continue
+            if not codes:
+                unmatched.append({"license": lic, "reason": "no_discipline"})
+                continue
+
+            for code in codes:
+                run = _find_run_for(event, code, kat, cls)
+                if not run:
+                    unmatched.append({
+                        "license": lic,
+                        "reason": "no_matching_run",
+                        "code": code,
+                        "kategorie": kat,
+                        "klasse": cls,
+                    })
+                    continue
+
+                run.setdefault("entries", [])
+                existing_lics = {_norm(e.get("Lizenznummer")) for e in run["entries"] if isinstance(e, dict)}
+                if lic in existing_lics:
+                    continue
+
+                run["entries"].append({
+                    "Lizenznummer": lic,
+                    "Startnummer_offiziell": info["Startnummer_offiziell"],
+                    "debug_import": True
+                })
+                created_entries += 1
+
+    # 3) Existing entries: Startnummer setzen + optional sort
+    for r in (event.get("runs") or []):
+        entries = r.get("entries") or []
+        if not isinstance(entries, list):
+            continue
+
+        for e in entries:
+            if not isinstance(e, dict):
+                continue
+            lic = _norm(e.get("Lizenznummer"))
+            if not lic:
+                continue
+            info = by_license.get(lic)
+            if not info:
+                continue
+            e["Startnummer_offiziell"] = info["Startnummer_offiziell"]
+            updated_entries += 1
+
+        if sort_entries and entries:
+            def key(x):
+                v = as_int(x.get("Startnummer_offiziell"))
+                return (0, v) if v is not None else (1, 999999)
+            r["entries"] = sorted(entries, key=key)
+
+    _save_data(EVENTS_FILE, events)
+
+    # debug map speichern
+    _save_data("debug_startnumbers_offiziell.json", by_license)
+    _save_data("debug_startnumbers_unmatched.json", unmatched)
+    _save_data("debug_startnumbers_missing_context.json", missing_context)
+
+    flash(
+        f"✅ PDF/JSON-Debug import: Lizenzen={len(by_license)} | "
+        f"Hundeführer neu={created_handlers} | Hunde neu={created_dogs} | Hunde updated={updated_dogs} | "
+        f"Entries neu={created_entries} | Entries updated={updated_entries} | "
+        f"MissingContext={len(missing_context)} | Unmatched={len(unmatched)}",
+        "success"
+    )
+    return redirect(url_for('events_bp.manage_runs', event_id=event_id))
 
 @events_bp.route('/edit_run/<event_id>/<uuid:run_id>', methods=['GET', 'POST'])
 def edit_run(event_id, run_id):
