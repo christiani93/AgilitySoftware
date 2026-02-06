@@ -425,10 +425,12 @@
         const returnUrl = buildReturnUrl(state.currentRunId);
         ui.editRunBtn.href = `/events/edit_run/${eventId}/${state.currentRunId}?return_url=${returnUrl}`;
         ui.editRunBtn.setAttribute("aria-disabled","false");
+        ui.editRunBtn.setAttribute("title","Lauf-Einstellungen öffnen");
         ui.editRunBtn.classList.remove("disabled:opacity-50");
       } else {
         ui.editRunBtn.href = "#";
         ui.editRunBtn.setAttribute("aria-disabled","true");
+        ui.editRunBtn.setAttribute("title","Bitte Lauf auswählen");
         if (!ui.editRunBtn.classList.contains("disabled:opacity-50")){
           ui.editRunBtn.classList.add("disabled:opacity-50");
         }
@@ -474,6 +476,8 @@
         }
       }
     }
+
+    syncEditRunButton();
 
     // ---- Tastatur F/V wenn 'running' ----
     document.addEventListener("keydown", (e) => {
