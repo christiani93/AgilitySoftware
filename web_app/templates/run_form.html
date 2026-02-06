@@ -5,10 +5,17 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Lauf bearbeiten <small class="text-muted"> - {{ run.name }}</small></h1>
-        <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zurück</a>
+        {% if return_url %}
+            <a href="{{ return_url }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zurück zum Ring-PC</a>
+        {% else %}
+            <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zurück</a>
+        {% endif %}
     </div>
 
     <form method="POST">
+        {% if return_url %}
+            <input type="hidden" name="return_url" value="{{ return_url }}">
+        {% endif %}
         <div class="card shadow-sm">
             <div class="card-body">
                 <div class="row g-3">
@@ -20,7 +27,7 @@
                         <label for="richter_id" class="form-label">Richter</label>
                         <select id="richter_id" name="richter_id" class="form-select">
                             <option value="">Bitte wählen...</option>
-                            {% for judge in judges %}<option value="{{ judge.id }}" {% if run.richter_id == judge.id %}selected{% endif %}>{{ judge.lastname }}, {{ judge.firstname }}</option>{% endfor %}
+                            {% for judge in judges %}<option value="{{ judge.id }}" {% if (run.judge_id or run.richter_id) == judge.id %}selected{% endif %}>{{ judge.lastname }}, {{ judge.firstname }}</option>{% endfor %}
                         </select>
                     </div>
 
