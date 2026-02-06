@@ -10,7 +10,7 @@ from pathlib import Path
 from extensions import socketio
 from utils import (_load_data, _save_data, _get_active_event,
                    _calculate_run_results, _load_settings, _get_active_event_id,
-                   _calculate_timelines, resolve_judge_name, resolve_judge_id)
+                   _calculate_timelines, resolve_judge_name, resolve_judge_id, _to_int)
 import planner.schedule_planner as schedule_planner
 
 live_bp = Blueprint('live_bp', __name__, template_folder='../templates')
@@ -713,19 +713,188 @@ def render_ring_monitor_content(ring_number: int):
     if not data:
         html = f"<div class='ring-monitor'><h2>{ring_label}</h2><p>Kein Lauf wurde für diesen Ring aktiviert.</p></div>"
         return Response(html, mimetype='text/html')
-    parts = [f"<div class='ring-monitor'><h2>{ring_label} – {data.get('run_name','')}</h2>"]
-    parts.append(f"<p><strong>Richter:</strong> {data.get('judge_name','—')}</p>")
-    def _fmt(p):
-        if not p:
-            return '-'
-        return f"{p.get('Startnummer','')} – {p.get('Hundeführer','')} mit {p.get('Hundename','')} ({p.get('Lizenznummer','')})"
-    parts.append(f"<p><strong>Am Start:</strong> {_fmt(data.get('current_starter'))}</p>")
-    parts.append(f"<p><strong>Bereit:</strong> {_fmt(data.get('next_starter'))}</p>")
-    last = data.get('last_results') or []
-    if last:
-        parts.append('<h3>Letzte Resultate</h3><ul>')
-        for r in last:
-            parts.append(f"<li>{r.get('Startnummer','')} – {r.get('hundename','')} : {r.get('zeit','?')}s, P={r.get('platz','-')}</li>")
-        parts.append('</ul>')
-    parts.append('</div>')
+    run = data.get("run") or {}
+    laufdaten = run.get("laufdaten", {}) or {}
+    settings = _load_settings()
+    results = _calculate_run_results(run, settings)
+
+    def _first_name_from_name(name: str):
+        if not name:
+            return ""
+        if "," in name:
+            name = name.split(",", 1)[1]
+        return (name.strip().split() or [""])[0]
+
+    def _extract_first_name(entry: dict):
+        for key in ("Vorname", "vorname", "firstname", "FirstName"):
+            if entry.get(key):
+                return entry.get(key)
+        for key in ("Hundeführer", "Hundefuehrer", "Hundefuehrer_Name", "Hundeführer_Name"):
+            if entry.get(key):
+                return _first_name_from_name(entry.get(key))
+        return ""
+
+    def _extract_dog_name(entry: dict):
+        for key in ("Hundename", "hundename", "dog_name"):
+            if entry.get(key):
+                return entry.get(key)
+        return ""
+
+    def _format_name(entry: dict):
+        first = _extract_first_name(entry)
+        dog = _extract_dog_name(entry)
+        if first and dog:
+            return f"{first} {dog}"
+        return first or dog or "—"
+
+    def _format_time(value):
+        try:
+            return f"{float(value):.2f}"
+        except Exception:
+            return "—"
+
+    def _format_total_errors(entry: dict):
+        total = entry.get("fehler_total")
+        if total is None:
+            total = entry.get("fehler_total_gerundet")
+        if total is None:
+            return "—"
+        try:
+            return f"{float(total):.2f}"
+        except Exception:
+            return str(total)
+
+    start_entries = run.get("entries", []) or []
+    start_entries = sorted(
+        start_entries,
+        key=lambda e: _to_int(e.get("Startnummer"), default=999999)
+    )
+    start_entries = start_entries[:10]
+
+    ranked_results = [r for r in results if r.get("platz")]
+    ranked_results.sort(key=lambda r: _to_int(r.get("platz"), default=999999))
+    ranked_results = ranked_results[:10]
+
+    last_results = (data.get("last_results") or [])[:3]
+
+    sct = laufdaten.get("standardzeit_sct_gerundet") or laufdaten.get("standardzeit_sct_berechnet") or laufdaten.get("standardzeit_sct")
+    mct = laufdaten.get("maximalzeit_mct_gerundet") or laufdaten.get("maximalzeit_mct_berechnet") or laufdaten.get("maximalzeit_mct")
+    course_len = laufdaten.get("parcours_laenge") or "—"
+    obstacles = laufdaten.get("anzahl_hindernisse") or "—"
+
+    meta_bits = []
+    if run.get("klasse"):
+        meta_bits.append(f"Klasse: {run.get('klasse')}")
+    if run.get("kategorie"):
+        meta_bits.append(f"Kategorie: {run.get('kategorie')}")
+    if run.get("laufart"):
+        meta_bits.append(f"Laufart: {run.get('laufart')}")
+    meta_line = " | ".join(meta_bits) if meta_bits else "—"
+
+    current_starter = data.get("current_starter") or {}
+    current_label = _format_name(current_starter)
+    current_startno = current_starter.get("Startnummer")
+    current_startno_display = f"#{current_startno}" if current_startno else ""
+
+    parts = [
+        "<div class='ring-monitor'>",
+        "<div class='mb-3'>",
+        f"<h2 class='h3 mb-1'>{ring_label} – {data.get('run_name','')}</h2>",
+        f"<div class='text-muted mb-2'><strong>Richter:</strong> {data.get('judge_name','—')}</div>",
+        "<div class='card shadow-sm mb-3'>",
+        "<div class='card-body py-2'>",
+        "<div class='row text-center'>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>Parcourslänge</div><div class='fw-semibold'>{course_len} m</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>Geräte</div><div class='fw-semibold'>{obstacles}</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>SCT</div><div class='fw-semibold'>{sct or '—'} s</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>MCT</div><div class='fw-semibold'>{mct or '—'} s</div></div>",
+        "</div>",
+        f"<div class='mt-2 small text-muted'>{meta_line}</div>",
+        "</div></div>",
+        "</div>",
+        "<div class='row g-3'>",
+        "<div class='col-12 col-lg-6'>",
+        "<div class='card shadow-sm h-100'>",
+        "<div class='card-header bg-light fw-semibold'>Aktuelle Startliste</div>",
+        "<ul class='list-group list-group-flush'>",
+    ]
+
+    if start_entries:
+        for entry in start_entries:
+            startno = entry.get("Startnummer")
+            startno_display = f"#{startno}" if startno else ""
+            parts.append(
+                "<li class='list-group-item d-flex justify-content-between align-items-center'>"
+                f"<span class='fw-semibold'>{_format_name(entry)}</span>"
+                f"<span class='small text-muted'>{startno_display}</span>"
+                "</li>"
+            )
+    else:
+        parts.append("<li class='list-group-item text-muted'>Keine Startliste verfügbar.</li>")
+
+    parts.extend([
+        "</ul>",
+        "</div>",
+        "</div>",
+        "<div class='col-12 col-lg-6'>",
+        "<div class='card shadow-sm h-100'>",
+        "<div class='card-header bg-light fw-semibold'>Aktuelle Rangliste</div>",
+        "<div class='table-responsive'>",
+        "<table class='table table-sm mb-0'>",
+        "<thead><tr><th>Platz</th><th>Name</th><th>Gesamtfehler</th><th>Zeit</th></tr></thead>",
+        "<tbody>",
+    ])
+
+    if ranked_results:
+        for res in ranked_results:
+            parts.append(
+                "<tr>"
+                f"<td>{res.get('platz')}</td>"
+                f"<td>{_format_name(res)}</td>"
+                f"<td>{_format_total_errors(res)}</td>"
+                f"<td>{_format_time(res.get('zeit_total'))}</td>"
+                "</tr>"
+            )
+    else:
+        parts.append("<tr><td colspan='4' class='text-muted'>Noch keine Rangliste verfügbar.</td></tr>")
+
+    parts.extend([
+        "</tbody>",
+        "</table>",
+        "</div>",
+        "</div>",
+        "</div>",
+        "</div>",
+        "<div class='card shadow-sm mt-3'>",
+        "<div class='card-header bg-light fw-semibold'>Letzte 3 Ergebnisse</div>",
+        "<div class='card-body py-2'>",
+    ])
+
+    if last_results:
+        parts.append("<div class='d-flex flex-column gap-2'>")
+        for res in last_results:
+            platz = res.get("platz") or "—"
+            parts.append(
+                "<div class='d-flex justify-content-between align-items-center'>"
+                f"<span class='fw-semibold'>{platz} – {_format_name(res)}</span>"
+                f"<span class='text-muted small'>Fehler {_format_total_errors(res)} · Zeit {_format_time(res.get('zeit_total') or res.get('zeit'))} s</span>"
+                "</div>"
+            )
+        parts.append("</div>")
+    else:
+        parts.append("<div class='text-muted'>Noch keine Ergebnisse.</div>")
+
+    parts.extend([
+        "</div>",
+        "</div>",
+        "<div class='card bg-dark text-white mt-3'>",
+        "<div class='card-body text-center'>",
+        "<div class='text-uppercase small text-muted'>Aktueller Starter</div>",
+        f"<div class='display-6 fw-semibold'>{current_label}</div>",
+        f"<div class='text-muted'>{current_startno_display}</div>",
+        "</div>",
+        "</div>",
+        "</div>",
+    ])
+
     return Response(''.join(parts), mimetype='text/html')
