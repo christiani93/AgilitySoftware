@@ -47,7 +47,7 @@
                 <select id="run-select" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                     <option value="">-- Bitte wählen --</option>
                     {% for run in runs %}
-                        <option value="{{ run.id }}">{{ run.name }}</option>
+                        <option value="{{ run.id }}">{{ run.name }}{% if run.judge_display %} ({{ run.judge_display }}){% endif %}</option>
                     {% endfor %}
                 </select>
                 <button id="activate-display-btn" class="bg-yellow-400 text-black p-2 rounded hover:bg-yellow-500 disabled:opacity-50" title="Diesen Lauf für Monitore aktivieren" disabled>
@@ -137,6 +137,7 @@
     };
 
     const eventId = "{{ event.id }}";
+    const ringNumber = "{{ ring_name }}".replace(/[^0-9]/g, "") || "1";
     const RING_SERVER_URL = "http://127.0.0.1:5001";
 
     const state = {
@@ -443,7 +444,7 @@
         fetchRunDetails();
 
         // Für Monitore/Sprecher aktiv setzen
-        fetch(`/live/set_active_announcer_run/${eventId}/${state.currentRunId}?from_ring_pc=1`,
+        fetch(`/live/set_active_announcer_run/${eventId}/${state.currentRunId}?from_ring_pc=1&ring=${ringNumber}`,
           { method:"GET", cache:"no-store", credentials:"same-origin" })
           .catch(err => console.warn("Aktiver Lauf setzen fehlgeschlagen:", err));
       });

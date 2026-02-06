@@ -105,6 +105,55 @@ def _schedule_runs_for_ring(event, ring_key):
     return runs_for_ring, debug
 
 
+def _resolve_judge_from_run_block(block, judges):
+    if not block:
+        return "—"
+    judge_name = block.get("judge_name") or block.get("richter_name")
+    if judge_name:
+        return judge_name
+    judge_id = block.get("judge_id") or block.get("richter_id")
+    if not judge_id:
+        return "—"
+    for judge in judges or []:
+        if str(judge.get("id")) == str(judge_id):
+            first = (judge.get("firstname") or judge.get("vorname") or judge.get("Vorname") or "").strip()
+            last = (judge.get("lastname") or judge.get("nachname") or judge.get("Nachname") or "").strip()
+            full = f"{first} {last}".strip()
+            return full or "—"
+    return "—"
+
+
+def _find_run_block_for_run(event, run, ring_key: str | None = None):
+    schedule = event.get("schedule") or {}
+    rings = schedule.get("rings") or {}
+    ring_keys = [ring_key] if ring_key is not None else list(rings.keys())
+    for key in ring_keys:
+        ring_data = rings.get(str(key)) or {}
+        for block in ring_data.get("blocks") or []:
+            block_type = (block.get("type") or block.get("block_type") or "").lower()
+            if block_type != "run":
+                continue
+            if schedule_planner._match_run_to_block(run, block):
+                return block, str(key)
+    return None, None
+
+
+def _persist_current_run(events, event_id, ring_key, run_block_id):
+    updated = False
+    for event in events:
+        if event.get("id") != event_id:
+            continue
+        current = event.get("current_run_blocks") or {}
+        current[str(ring_key)] = {
+            "run_block_id": run_block_id,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        event["current_run_blocks"] = current
+        updated = True
+        break
+    return updated
+
+
 # --- END FIXED HEADER ---
 
 @live_bp.route('/debug/live_state')
@@ -125,6 +174,7 @@ def _get_live_data_for_ring(event, ring_name):
         return None
 
     run_id = active.get('run_id')
+    run_block_id = active.get('run_block_id')
     run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None)
     if not run:
         return None
@@ -135,9 +185,30 @@ def _get_live_data_for_ring(event, ring_name):
         [res for res in all_results if res.get('platz')],
         key=lambda x: x.get('timestamp', 0), reverse=True
     )[:5]
+    judges = _load_data('judges.json')
+    run_block = None
+    if run_block_id:
+        schedule = event.get("schedule") or {}
+        for ring_key, ring_data in (schedule.get("rings") or {}).items():
+            for block in ring_data.get("blocks") or []:
+                if block.get("id") == run_block_id:
+                    run_block = block
+                    break
+            if run_block:
+                break
+    if not run_block:
+        run_block, _ = _find_run_block_for_run(event, run)
+    judge_name = _resolve_judge_from_run_block(run_block, judges)
 
-
-
+    return {
+        "run": run,
+        "run_name": run.get("name"),
+        "run_block_id": run_block_id,
+        "judge_name": judge_name,
+        "current_starter": run.get("current_starter"),
+        "next_starter": run.get("next_starter"),
+        "last_results": last_results,
+    }
 @live_bp.route('/live_dashboard')
 def live_event_dashboard():
     event_id = _get_active_event_id()
@@ -154,9 +225,14 @@ def live_event_dashboard():
     schedule = event.get("schedule") or {}
     schedule_rings = schedule.get("rings") or {}
     if schedule_rings:
+        judges = _load_data('judges.json')
         for ring_key in sorted(schedule_rings.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
             runs_for_ring, debug = _schedule_runs_for_ring(event, ring_key)
             ring_label = f"Ring {ring_key}"
+            for run in runs_for_ring:
+                run_block, _ = _find_run_block_for_run(event, run, ring_key)
+                run["richter_id"] = (run_block or {}).get("judge_id")
+                run["judge_display"] = _resolve_judge_from_run_block(run_block, judges)
             runs_by_ring[ring_label] = runs_for_ring
             if not runs_for_ring and debug:
                 debug_messages.append(f"{ring_label}: {', '.join(debug)}")
@@ -292,17 +368,22 @@ def set_active_announcer_run(event_id, run_id):
 
     event = _get_active_event()
     run = next((r for r in (event.get('runs', []) if event else []) if r.get('id') == run_id), None)
+    ring_hint = request.args.get('ring')
 
-    if not event or not run or not run.get('assigned_ring'):
+    if not event or not run:
         flash('Lauf konnte nicht für Sprecher/Monitore aktiviert werden.', 'warning')
         return redirect(url_for('live_bp.live_event_dashboard'))
 
-    # kanonisches Label "Ring N"
-    try:
-        n = int(re.sub(r"[^0-9]", "", str(run.get('assigned_ring'))))
-    except Exception:
-        n = 1
-    ring_label = f"Ring {n}"
+    run_block = None
+    ring_key = None
+    if ring_hint:
+        run_block, ring_key = _find_run_block_for_run(event, run, str(ring_hint))
+    if not run_block:
+        run_block, ring_key = _find_run_block_for_run(event, run)
+    if not ring_key:
+        assigned_ring = run.get('assigned_ring') or run.get('ring') or run.get('ring_id') or run.get('ringName')
+        ring_key = re.sub(r"[^0-9]", "", str(assigned_ring or "1")) or "1"
+    ring_label = f"Ring {ring_key}"
 
     # State laden
     state = _load_live_state()
@@ -317,20 +398,33 @@ def set_active_announcer_run(event_id, run_id):
     # z.B. "Ring ring_1", "ring_1", "Ring 01", etc.
     to_delete = []
     for k in list(by_event.keys()):
-        if re.sub(r"[^0-9]", "", str(k) or "") == str(n) and k != ring_label:
+        if re.sub(r"[^0-9]", "", str(k) or "") == str(ring_key) and k != ring_label:
             to_delete.append(k)
     for k in to_delete:
         by_event.pop(k, None)
 
+    judges = _load_data('judges.json')
+    judge_name = _resolve_judge_from_run_block(run_block, judges)
     # Setzen
-    by_event[ring_label] = {'run_id': run.get('id'), 'run_name': run.get('name')}
+    by_event[ring_label] = {
+        'run_id': run.get('id'),
+        'run_name': run.get('name'),
+        'run_block_id': run_block.get('id') if run_block else None,
+        'judge_name': judge_name,
+    }
     state[evt_id] = by_event
     _save_live_state(state)
+    events = _load_data('events.json')
+    if _persist_current_run(events, evt_id, ring_key, run_block.get('id') if run_block else None):
+        _save_data('events.json', events)
 
     # Echtzeit-Update
     try:
         from extensions import socketio
-        socketio.emit('announcer_update', {'event_id': evt_id, 'ring_name': ring_label})
+        ring_room = f"event:{evt_id}:ring:{ring_key}"
+        socketio.emit('announcer_update', {'event_id': evt_id, 'ring_name': ring_label}, room=ring_room)
+        socketio.emit('current_run_changed', {'event_id': evt_id, 'ring_id': ring_key, 'run_block_id': run_block.get('id') if run_block else None}, room=ring_room)
+        socketio.emit('current_run_changed', {'event_id': evt_id, 'ring_id': ring_key, 'run_block_id': run_block.get('id') if run_block else None}, room=f"event:{evt_id}")
     except Exception:
         pass
 
@@ -338,7 +432,7 @@ def set_active_announcer_run(event_id, run_id):
 
     # Falls vom Ring-PC aufgerufen, zurück zum Ring-Dashboard
     if 'from_ring_pc' in request.args:
-        return redirect(url_for('live_bp.ring_pc_dashboard', ring_number=n))
+        return redirect(url_for('live_bp.ring_pc_dashboard', ring_number=int(ring_key)))
     return redirect(url_for('live_bp.live_run_entry', event_id=event_id, run_id=run_id))
 
 @live_bp.route('/ring_monitor/<int:ring_number>')
@@ -359,6 +453,10 @@ def ring_pc_dashboard(ring_number):
     if schedule_rings:
         ring_key = str(ring_number)
         runs_for_ring, debug = _schedule_runs_for_ring(event, ring_key)
+        judges = _load_data('judges.json')
+        for run in runs_for_ring:
+            run_block, _ = _find_run_block_for_run(event, run, ring_key)
+            run["judge_display"] = _resolve_judge_from_run_block(run_block, judges)
         if not runs_for_ring and debug:
             flash(
                 f"Zeitplan gefunden, aber keine Lauf-Blöcke für {ring_name}: {', '.join(debug)}",
@@ -402,6 +500,7 @@ def render_speaker_panel_content(event_id, ring_name):
             data = _get_live_data_for_ring(event, f"Ring {re.sub(r'[^0-9]','', ring_label_display)}") if re else None
         if data:
             parts = [f"<div class='speaker-panel'><h2>{ring_label_display} – {data.get('run_name','')}</h2>"]
+            parts.append(f"<p><strong>Richter:</strong> {data.get('judge_name','—')}</p>")
             def _fmt(p):
                 if not p: return '-'
                 return f"{p.get('Startnummer','')} – {p.get('Hundeführer','')} mit {p.get('Hundename','')} ({p.get('Lizenznummer','')})"
@@ -631,6 +730,7 @@ def render_ring_monitor_content(ring_number: int):
         html = f"<div class='ring-monitor'><h2>{ring_label}</h2><p>Kein Lauf wurde für diesen Ring aktiviert.</p></div>"
         return Response(html, mimetype='text/html')
     parts = [f"<div class='ring-monitor'><h2>{ring_label} – {data.get('run_name','')}</h2>"]
+    parts.append(f"<p><strong>Richter:</strong> {data.get('judge_name','—')}</p>")
     def _fmt(p):
         if not p:
             return '-'

@@ -27,11 +27,19 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    socket.on('connect', function() { console.log('Ring Monitor Socket.IO connected!'); });
+    socket.on('connect', function() {
+        socket.emit('join_room', {room: `event:${eventId}:ring:${ringNumber}`});
+        console.log('Ring Monitor Socket.IO connected!');
+    });
 
     socket.on('announcer_update', function(data) {
         if (data.event_id === eventId && data.ring_name === '{{ ring_name }}') {
             console.log('Update received for this ring');
+            fetchAndRender();
+        }
+    });
+    socket.on('current_run_changed', function(data) {
+        if (data.event_id === eventId && String(data.ring_id) === String(ringNumber)) {
             fetchAndRender();
         }
     });
@@ -41,4 +49,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 {% endblock %}
-
