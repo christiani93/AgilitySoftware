@@ -47,4 +47,53 @@
     {% endfor %}
 </div>
 
+<hr>
+<h3>Debug / Test</h3>
+<p style="max-width: 900px;">
+  Importiert Startnummern aus einer <b>PDF-Startliste</b> (exportiert als <code>startlist_all_combined.json</code>).
+  Es werden nur Debug-Felder gesetzt (<code>Startnummer_offiziell</code>), deine normale Startnummernlogik bleibt unberührt.
+</p>
+
+<form method="POST"
+      action="{{ url_for('events_bp.debug_import_official_startnumbers', event_id=event.id) }}"
+      enctype="multipart/form-data"
+      style="border: 1px solid #ddd; padding: 12px; border-radius: 8px; max-width: 900px;">
+
+  <div style="margin-bottom: 8px;">
+    <label><b>startlist_all_combined.json</b></label><br>
+    <input type="file" name="startlist_json" accept=".json" required>
+  </div>
+
+  <div style="margin-bottom: 8px;">
+    <label><input type="checkbox" name="create_participants" value="1" checked>
+      Fehlende <b>Teilnehmer</b> anlegen (dogs + handlers) (Debug)
+    </label>
+  </div>
+
+  <div style="margin-bottom: 8px;">
+    <label><input type="checkbox" name="add_entries" value="1">
+      Fehlende <b>Entries</b> ins Event hinzufügen (in Ziel-Lauf) (Debug)
+    </label>
+    <div style="margin-top: 6px;">
+      <label>Ziel-Lauf:</label>
+      <select name="target_run_id">
+        <option value="">-- bitte wählen --</option>
+        {% for r in event.runs %}
+          <option value="{{ r.id }}">{{ r.name or r.title or r.id }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 8px;">
+    <label><input type="checkbox" name="sort_entries" value="1">
+      Entries nach <b>offizieller Startnummer</b> sortieren (Debug)
+    </label>
+  </div>
+
+  <button type="submit">
+    📥 PDF-Startliste Debug-Import (Startnummern + Teilnehmer)
+  </button>
+</form>
+
 {% endblock %}
