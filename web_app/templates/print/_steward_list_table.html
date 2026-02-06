@@ -1,6 +1,5 @@
 <div style="margin-bottom: 1cm;">
-    {% set judge = (judges|selectattr('id', 'equalto', run.richter_id)|first) %}
-    <h4 style="margin: 10px 0 5px 0;">{{ run.name }} (Richter: {{ judge.firstname ~ ' ' ~ judge.lastname if judge else 'N/A' }})</h4>
+    <h4 style="margin: 10px 0 5px 0;">{{ run.name }} (Richter: {{ run.judge_display or '—' }})</h4>
     <p style="font-size: 9pt; margin: 0 0 5px 0;">
         Parcourslänge: {{ run.get('laufdaten', {}).get('parcours_laenge', '___') }}m | Standardzeit: {{ run.get('laufdaten', {}).get('standardzeit_sct', '___') }}s | Maximalzeit: {{ run.get('laufdaten', {}).get('maximalzeit_mct', '___') }}s
     </p>
