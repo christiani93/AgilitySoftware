@@ -130,6 +130,32 @@ def _parse_entry_line_to_row(line: str):
         "raw_line": raw,
     }
 
+def _get_any(d: dict, *keys, default=""):
+    for k in keys:
+        if isinstance(d, dict) and k in d and d.get(k) not in (None, ""):
+            return d.get(k)
+    return default
+
+def _norm_cat(v: str) -> str:
+    v = (v or "").strip().lower()
+    if v in {"s", "small"} or v.startswith("small"):
+        return "S"
+    if v in {"m", "medium"} or v.startswith("medium"):
+        return "M"
+    if v in {"i", "intermediate"} or v.startswith("intermediate"):
+        return "I"
+    if v in {"l", "large"} or v.startswith("large"):
+        return "L"
+    return (v or "").strip().upper()
+
+def _norm_laufart(v: str) -> str:
+    v = (v or "").strip().lower()
+    if v in {"a", "ag", "agility"} or "agility" in v:
+        return "A"
+    if v in {"j", "jump", "jumping"} or "jump" in v:
+        return "J"
+    return (v or "").strip().upper()
+
 def _pdf_startlist_to_rows(pdf_path: str):
     """
     Liest PDF und liefert combined-rows wie startlist_all_combined.json, aber erweitert:
@@ -186,33 +212,53 @@ def _pdf_startlist_to_rows(pdf_path: str):
     return combined, missing_context
 
 def _find_run_for(event, laufart_code: str, kategorie: str, klasse: str):
-    """
-    Findet den passenden Run in event.runs anhand:
-    - laufart (Agility/Jumping) aus Code A/J
-    - kategorie S/M/I/L
-    - klasse 1/2/3
-    """
-    if laufart_code == "A":
-        want = "agility"
-    elif laufart_code == "J":
-        want = "jumping"
-    else:
+    want_la = (laufart_code or "").strip().upper()
+    want_cat = _norm_cat(kategorie)
+    want_kl = str(klasse or "").strip()
+
+    runs = _get_any(event, "runs", "Runs", default=[])
+    if not isinstance(runs, list):
         return None
 
-    kategorie = (kategorie or "").strip().upper()
-    klasse = str(klasse or "").strip()
+    # 1. Direkter Feldabgleich
+    for r in runs:
+        if not isinstance(r, dict):
+            continue
 
-    for r in (event.get("runs") or []):
-        la = (r.get("laufart") or "").strip().lower()
-        ka = (r.get("kategorie") or "").strip().upper()
-        kl = str(r.get("klasse") or "").strip()
+        la_raw = _get_any(r, "laufart", "Laufart", "type", "Typ", default="")
+        ka_raw = _get_any(r, "kategorie", "Kategorie", default="")
+        kl_raw = _get_any(r, "klasse", "Klasse", default="")
 
-        if not la.startswith(want):
+        la = _norm_laufart(la_raw)
+        ka = _norm_cat(ka_raw)
+        kl = str(kl_raw).strip()
+
+        if la == want_la and ka == want_cat and kl == want_kl:
+            return r
+
+    # 2. Fallback: Match über Run-Name
+    for r in runs:
+        name = str(_get_any(r, "name", "Name", "title", "Titel", default="")).lower()
+        if not name:
             continue
-        if ka != kategorie:
+
+        if want_la == "A" and "agility" not in name and " a" not in name:
             continue
-        if kl != klasse:
+        if want_la == "J" and "jump" not in name and " j" not in name:
             continue
+
+        if want_cat == "S" and "small" not in name:
+            continue
+        if want_cat == "M" and "medium" not in name:
+            continue
+        if want_cat == "I" and "intermediate" not in name:
+            continue
+        if want_cat == "L" and "large" not in name:
+            continue
+
+        if want_kl and want_kl not in name:
+            continue
+
         return r
 
     return None
