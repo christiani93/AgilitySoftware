@@ -222,6 +222,22 @@ def print_stewardlists_by_schedule(event_id):
         judges=judges,
     )
 
+
+@print_bp.route('/print/stewardlists_by_schedule/<event_id>')
+def print_stewardlists_by_schedule(event_id):
+    """Ringschreiber-Listen nach Zeitplan-Reihenfolge."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+    sections = build_schedule_print_sections(event)
+    return render_template(
+        'print/scribe_list_by_schedule.html',
+        event=event,
+        title="Ringschreiberlisten (nach Zeitplan)",
+        sections=sections,
+        judges=_load_data('judges.json'),
+    )
+
 @print_bp.route('/print/master_steward_list/<event_id>')
 def print_master_steward_list(event_id):
     """Erstellt eine Master-Einweiserliste: 1 Zeile pro Teilnehmer, 1 Spalte pro Lauf."""
