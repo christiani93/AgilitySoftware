@@ -438,7 +438,23 @@ def ring_pc_dashboard(ring_number):
             assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
             if assigned and _norm_ring_strict(assigned) == target:
                 runs_for_ring.append(r)
-    return render_template('ring_pc_dashboard.html', event=event, ring_name=ring_name, runs=runs_for_ring)
+    selected_run_id = request.args.get("run_id")
+    if not selected_run_id:
+        state = _load_live_state()
+        evt_id = event.get('id') or event.get('event_id') or ''
+        ring_label = f"Ring {ring_number}"
+        active = (state.get(evt_id, {}) or {}).get(ring_label)
+        if active:
+            selected_run_id = active.get("run_id")
+    if not selected_run_id and runs_for_ring:
+        selected_run_id = runs_for_ring[0].get("id")
+    return render_template(
+        'ring_pc_dashboard.html',
+        event=event,
+        ring_name=ring_name,
+        runs=runs_for_ring,
+        selected_run_id=selected_run_id,
+    )
 
 @live_bp.route('/api/render_announcer_schedule/<event_id>')
 def render_announcer_schedule(event_id):

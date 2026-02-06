@@ -43,9 +43,11 @@
             <h2 class="text-lg font-bold mb-3 border-b pb-2">1. Lauf auswählen & Steuerung</h2>
             <div class="flex gap-2">
                 <select id="run-select" data-event-id="{{ event.id }}" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">-- Bitte wählen --</option>
+                    {% if not runs %}
+                        <option value="">-- Bitte wählen --</option>
+                    {% endif %}
                     {% for run in runs %}
-                        <option value="{{ run.id }}" data-run-id="{{ run.id }}">{{ run.name }}{% if run.judge_display %} ({{ run.judge_display }}){% endif %}</option>
+                        <option value="{{ run.id }}" data-run-id="{{ run.id }}" {% if selected_run_id and run.id == selected_run_id %}selected{% endif %}>{{ run.name }}{% if run.judge_display %} ({{ run.judge_display }}){% endif %}</option>
                     {% endfor %}
                 </select>
                 <button id="activate-display-btn" class="bg-yellow-400 text-black p-2 rounded hover:bg-yellow-500 disabled:opacity-50" title="Diesen Lauf für Monitore aktivieren" disabled>
@@ -147,6 +149,9 @@
       localSocket: null,
       mainSocket: null
     };
+    if (ui.runSelect) {
+      state.currentRunId = ui.runSelect.value || null;
+    }
 
     // ---- Banner-Health (schwarzer Banner #ring-conn) ----
     (function(){
@@ -447,10 +452,22 @@
       });
     }
 
+    function initSelectedRunFromUrlOrSelect(){
+      if (!ui.runSelect) return;
+      const params = new URLSearchParams(window.location.search);
+      const urlRunId = params.get("run_id");
+      if (urlRunId){
+        const opt = Array.from(ui.runSelect.options).find(o => o.value === urlRunId);
+        if (opt) ui.runSelect.value = urlRunId;
+      }
+      const selected = ui.runSelect.value;
+      state.currentRunId = selected && selected !== "" ? selected : null;
+    }
+
     // ---- Run-Auswahl ----
     if (ui.runSelect){
       ui.runSelect.addEventListener("change", function(){
-        state.currentRunId = this.value || null;
+        state.currentRunId = ui.runSelect.value || null;
         if (ui.activateBtn) ui.activateBtn.disabled = !state.currentRunId;
 
         syncEditRunButton();
@@ -476,18 +493,11 @@
       });
     }
 
-    if (ui.runSelect){
-      const params = new URLSearchParams(window.location.search);
-      const preselectRunId = params.get("run_id");
-      if (preselectRunId){
-        ui.runSelect.value = preselectRunId;
-        if (ui.runSelect.value){
-          ui.runSelect.dispatchEvent(new Event("change"));
-        }
-      }
-    }
-
+    initSelectedRunFromUrlOrSelect();
     syncEditRunButton();
+    if (ui.runSelect && ui.runSelect.value){
+      ui.runSelect.dispatchEvent(new Event("change"));
+    }
 
     // ---- Tastatur F/V wenn 'running' ----
     document.addEventListener("keydown", (e) => {
