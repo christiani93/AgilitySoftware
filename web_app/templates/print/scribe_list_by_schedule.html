@@ -55,7 +55,7 @@
              <div class="run-container">
                 <h4 class="mt-4 text-center">Ring {{ section.ring }} – {{ section.title }}</h4>
                 <p class="run-meta-info">
-                    Richter: {% set judge = judges|selectattr('id', 'equalto', section.block.judge_id)|first %}{{ judge.lastname if judge else '___' }}
+                    Richter: {{ section.judge_name or '—' }}
                 </p>
                 <table class="table table-sm">
                     <thead class="table-light">

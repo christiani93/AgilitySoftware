@@ -22,8 +22,7 @@
 </head>
 <body>
     {% set title = "Rangliste: " ~ run.name %}
-    {% set judge = (judges|selectattr('id', 'equalto', run.richter_id)|first) %}
-    {% set header_judge = judge.firstname ~ ' ' ~ judge.lastname if judge else 'N/A' %}
+    {% set header_judge = judge_display or '—' %}
     {% set header_course = (run.get('laufdaten', {}).get('parcours_laenge', '___') ~ 'm / ' ~ run.get('laufdaten', {}).get('anzahl_hindernisse', '___') ~ ' Geräte') %}
     {% set header_sct_mct = (run.get('laufdaten', {}).get('standardzeit_sct_gerundet', '___') ~ 's / ' ~ run.get('laufdaten', {}).get('maximalzeit_mct_gerundet', '___') ~ 's') %}
     {% include 'print/_print_header.html' %}

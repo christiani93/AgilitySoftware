@@ -57,7 +57,7 @@
                 <h4 class="mt-4 text-center">{{ run.name }}</h4>
                 {# NEU: Platzhalter für Geräteanzahl hinzugefügt (Punkt 1.1) #}
                 <p class="run-meta-info">
-                    Richter: {% set judge = judges|selectattr('id', 'equalto', run.richter_id)|first %}{{ judge.lastname if judge else '___' }} | 
+                    Richter: {{ run.judge_display or '—' }} | 
                     Parcourslänge: {{ run.laufdaten.parcours_laenge or '___' }}m | 
                     Anz. Geräte: {{ run.laufdaten.anzahl_hindernisse or '___' }} <br>
                     Standardzeit (SCT): {{ run.laufdaten.standardzeit_sct or '___' }}s | 

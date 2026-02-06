@@ -4,7 +4,7 @@ from datetime import datetime
 import csv
 import io
 from utils import (_load_data, _save_data, _calculate_run_results, _load_settings,
-                   _calculate_timelines, get_category_sort_key)
+                   _calculate_timelines, get_category_sort_key, resolve_judge_id, resolve_judge_name)
 from planner.print_order import get_ordered_runs_for_print
 from planner.print_schedule_order import (
     build_schedule_print_sections,
@@ -198,7 +198,29 @@ def print_stewardlists(event_id):
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     ordered_runs = get_ordered_runs_for_print(event)
-    return render_template('print/scribe_list.html', event=event, title="Ringschreiberlisten", ordered_runs=ordered_runs, judges=_load_data('judges.json'))
+    judges = _load_data('judges.json')
+    for run in ordered_runs:
+        run["judge_display"] = resolve_judge_name(event, run, judges)
+    return render_template('print/scribe_list.html', event=event, title="Ringschreiberlisten", ordered_runs=ordered_runs, judges=judges)
+
+
+@print_bp.route('/print/stewardlists_by_schedule/<event_id>')
+def print_stewardlists_by_schedule(event_id):
+    """Ringschreiber-Listen nach Zeitplan-Reihenfolge."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+    judges = _load_data('judges.json')
+    sections = build_schedule_print_sections(event)
+    for section in sections:
+        section["judge_name"] = resolve_judge_name(event, section.get("runs", [{}])[0], judges, section.get("block"))
+    return render_template(
+        'print/scribe_list_by_schedule.html',
+        event=event,
+        title="Ringschreiberlisten (nach Zeitplan)",
+        sections=sections,
+        judges=judges,
+    )
 
 
 @print_bp.route('/print/stewardlists_by_schedule/<event_id>')
@@ -273,7 +295,9 @@ def print_ranking_single(event_id, run_id):
     run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None)
     if not event or not run: abort(404)
     results = _calculate_run_results(run, settings)
-    return render_template('print_ranking_single.html', event=event, run=run, results=results, judges=_load_data('judges.json'))
+    judges = _load_data('judges.json')
+    judge_display = resolve_judge_name(event, run, judges)
+    return render_template('print_ranking_single.html', event=event, run=run, results=results, judges=judges, judge_display=judge_display)
 
 @print_bp.route('/print/select_award_list/<event_id>', methods=['GET', 'POST'])
 def select_award_list(event_id):
@@ -303,10 +327,14 @@ def print_award_list(event_id):
     settings, event = _load_settings(), next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     award_data, runs_to_print = [], [r for r in event.get('runs', []) if r.get('id') in run_ids]
-    judges_map = {j['id']: f"{j.get('firstname', '')} {j.get('lastname', '')}" for j in _load_data('judges.json')}
+    judges = _load_data('judges.json')
     for run in runs_to_print:
         results = _calculate_run_results(run, settings)
-        award_data.append({'name': run.get('name'), 'full_judge_name': judges_map.get(run.get('richter_id'), 'N/A'), 'rankings': results})
+        award_data.append({
+            'name': run.get('name'),
+            'full_judge_name': resolve_judge_name(event, run, judges),
+            'rankings': results,
+        })
     return render_template('print_award_list.html', event=event, event_name=event.get('Bezeichnung'), award_data=award_data, event_id=event_id)
 
 @print_bp.route('/print/tkamo_export/<event_id>')
@@ -323,7 +351,7 @@ def tkamo_export(event_id):
     writer.writerow(header)
     
     all_runs = event.get('runs', [])
-    judges_map = {j['id']: j['id'] for j in _load_data('judges.json')} # Exportiert die ID, nicht den Namen
+    judges = _load_data('judges.json')
     
     # Lade Hundeführer- und Hundedaten für den Export
     handlers_data = _load_data('handlers.json')
@@ -361,7 +389,7 @@ def tkamo_export(event_id):
                 f"{res.get('fehler_total', 0):.2f}".replace('.',','),
                 disq_value,
                 run.get('laufart', ''),
-                judges_map.get(run.get('richter_id'), ''),
+                resolve_judge_id(event, run),
                 run.get('laufdaten',{}).get('parcours_laenge', ''),
                 run.get('laufdaten',{}).get('anzahl_hindernisse', ''),
                 run.get('laufdaten',{}).get('standardzeit_sct_berechnet', ''),

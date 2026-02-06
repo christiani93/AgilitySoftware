@@ -11,7 +11,8 @@ from datetime import date, datetime
 from utils import (
     _load_data, _save_data, _decode_csv_file, _get_active_event_id,
     _get_concrete_run_list, _place_entries_with_distance,
-    _load_settings, _calculate_timelines, get_category_sort_key, _recalculate_schedule_estimates
+    _load_settings, _calculate_timelines, get_category_sort_key, _recalculate_schedule_estimates,
+    resolve_judge_name
 )
 import planner.schedule_planner as schedule_planner
 
@@ -642,36 +643,9 @@ def manage_runs(event_id):
     if not event:
         return redirect(url_for('events_bp.events_list'))
     judges = _load_data(JUDGES_FILE)
-    judge_lookup = {}
-    for judge in judges or []:
-        if not isinstance(judge, dict):
-            continue
-        judge_id = judge.get('id')
-        if judge_id:
-            first = (judge.get('firstname') or judge.get('vorname') or judge.get('Vorname') or '').strip()
-            last = (judge.get('lastname') or judge.get('nachname') or judge.get('Nachname') or '').strip()
-            judge_lookup[str(judge_id)] = f"{first} {last}".strip()
-
-    def _resolve_judge_name(block):
-        if not block:
-            return "— kein Richter —"
-        name = block.get('judge_name') or block.get('richter_name')
-        if name:
-            return name
-        judge_id = block.get('judge_id') or block.get('richter_id')
-        if judge_id:
-            return judge_lookup.get(str(judge_id), "— kein Richter —")
-        return "— kein Richter —"
-
     run_judges = {}
-    schedule = event.get('schedule') or {}
-    for ring_data in (schedule.get('rings') or {}).values():
-        for block in ring_data.get('blocks') or []:
-            if (block.get('type') or '').lower() != 'run':
-                continue
-            for run in event.get('runs', []) or []:
-                if schedule_planner._match_run_to_block(run, block):
-                    run_judges[run.get('id')] = _resolve_judge_name(block)
+    for run in event.get('runs', []) or []:
+        run_judges[run.get('id')] = resolve_judge_name(event, run, judges)
 
     return render_template('manage_runs.html', event=event, judges=judges, run_judges=run_judges)
 
@@ -684,7 +658,10 @@ def edit_run(event_id, run_id):
     if not event or not run:
         return redirect(url_for('events_bp.events_list'))
     if request.method == 'POST':
-        run.update({'name': request.form.get('name'), 'richter_id': request.form.get('richter_id')})
+        run.update({'name': request.form.get('name')})
+        judge_id = request.form.get('judge_id') or request.form.get('richter_id')
+        run['judge_id'] = judge_id or ''
+        run['richter_id'] = run['judge_id']
         laufdaten = run.get('laufdaten', {})
         laufdaten.update({
             'parcours_laenge': request.form.get('parcours_laenge'),
@@ -696,8 +673,11 @@ def edit_run(event_id, run_id):
             laufdaten['geschwindigkeit'] = request.form.get('geschwindigkeit') if not laufdaten['sct_direkt'] else ''
         run['laufdaten'] = laufdaten
         _save_data(EVENTS_FILE, events)
+        return_url = request.form.get('return_url') or request.args.get('return_url')
+        if return_url:
+            return redirect(return_url)
         return redirect(url_for('events_bp.manage_runs', event_id=event_id))
-    return render_template('run_form.html', event=event, run=run, judges=_load_data(JUDGES_FILE))
+    return render_template('run_form.html', event=event, run=run, judges=_load_data(JUDGES_FILE), return_url=request.args.get('return_url'))
 
 # NEU: Echte Lauf-spezifische Teilnehmerverwaltung
 @events_bp.route('/manage_run_participants/<event_id>/<uuid:run_id>', methods=['GET', 'POST'])

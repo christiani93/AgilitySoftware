@@ -10,7 +10,7 @@ from pathlib import Path
 from extensions import socketio
 from utils import (_load_data, _save_data, _get_active_event,
                    _calculate_run_results, _load_settings, _get_active_event_id,
-                   _calculate_timelines)
+                   _calculate_timelines, resolve_judge_name, resolve_judge_id)
 import planner.schedule_planner as schedule_planner
 
 live_bp = Blueprint('live_bp', __name__, template_folder='../templates')
@@ -105,24 +105,6 @@ def _schedule_runs_for_ring(event, ring_key):
     return runs_for_ring, debug
 
 
-def _resolve_judge_from_run_block(block, judges):
-    if not block:
-        return "—"
-    judge_name = block.get("judge_name") or block.get("richter_name")
-    if judge_name:
-        return judge_name
-    judge_id = block.get("judge_id") or block.get("richter_id")
-    if not judge_id:
-        return "—"
-    for judge in judges or []:
-        if str(judge.get("id")) == str(judge_id):
-            first = (judge.get("firstname") or judge.get("vorname") or judge.get("Vorname") or "").strip()
-            last = (judge.get("lastname") or judge.get("nachname") or judge.get("Nachname") or "").strip()
-            full = f"{first} {last}".strip()
-            return full or "—"
-    return "—"
-
-
 def _find_run_block_for_run(event, run, ring_key: str | None = None):
     schedule = event.get("schedule") or {}
     rings = schedule.get("rings") or {}
@@ -198,7 +180,7 @@ def _get_live_data_for_ring(event, ring_name):
                 break
     if not run_block:
         run_block, _ = _find_run_block_for_run(event, run)
-    judge_name = _resolve_judge_from_run_block(run_block, judges)
+    judge_name = resolve_judge_name(event, run, judges, run_block)
 
     return {
         "run": run,
@@ -231,8 +213,8 @@ def live_event_dashboard():
             ring_label = f"Ring {ring_key}"
             for run in runs_for_ring:
                 run_block, _ = _find_run_block_for_run(event, run, ring_key)
-                run["richter_id"] = (run_block or {}).get("judge_id")
-                run["judge_display"] = _resolve_judge_from_run_block(run_block, judges)
+                run["richter_id"] = resolve_judge_id(event, run, run_block)
+                run["judge_display"] = resolve_judge_name(event, run, judges, run_block)
             runs_by_ring[ring_label] = runs_for_ring
             if not runs_for_ring and debug:
                 debug_messages.append(f"{ring_label}: {', '.join(debug)}")
@@ -340,6 +322,7 @@ def show_ranking(event_id, run_id):
     settings = _load_settings()
     rankings = _calculate_run_results(run, settings)
     judges = _load_data('judges.json')
+    judge_display = resolve_judge_name(event, run, judges)
 
     laufdaten = run.get('laufdaten', {})
     sct_display = laufdaten.get('standardzeit_sct_gerundet') or laufdaten.get('standardzeit_sct_berechnet') or laufdaten.get('standardzeit_sct') or 'N/A'
@@ -351,6 +334,7 @@ def show_ranking(event_id, run_id):
         run=run,
         rankings=rankings,
         judges=judges,
+        judge_display=judge_display,
         sct_display=sct_display,
         mct_display=mct_display,
     )
@@ -404,7 +388,7 @@ def set_active_announcer_run(event_id, run_id):
         by_event.pop(k, None)
 
     judges = _load_data('judges.json')
-    judge_name = _resolve_judge_from_run_block(run_block, judges)
+    judge_name = resolve_judge_name(event, run, judges, run_block)
     # Setzen
     by_event[ring_label] = {
         'run_id': run.get('id'),
@@ -456,7 +440,7 @@ def ring_pc_dashboard(ring_number):
         judges = _load_data('judges.json')
         for run in runs_for_ring:
             run_block, _ = _find_run_block_for_run(event, run, ring_key)
-            run["judge_display"] = _resolve_judge_from_run_block(run_block, judges)
+            run["judge_display"] = resolve_judge_name(event, run, judges, run_block)
         if not runs_for_ring and debug:
             flash(
                 f"Zeitplan gefunden, aber keine Lauf-Blöcke für {ring_name}: {', '.join(debug)}",
