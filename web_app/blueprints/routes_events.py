@@ -7,6 +7,7 @@ import re
 import tempfile
 import uuid
 import random
+import re
 from io import StringIO
 import csv
 import zipfile
@@ -17,9 +18,10 @@ from utils import (
     _load_data, _save_data, _decode_csv_file, _get_active_event_id,
     _get_concrete_run_list, _place_entries_with_distance,
     _load_settings, _calculate_timelines, get_category_sort_key, _recalculate_schedule_estimates,
-    resolve_judge_name
+    resolve_judge_name, find_run_ring_number, build_ring_view_model
 )
 import planner.schedule_planner as schedule_planner
+from extensions import socketio
 
 events_bp = Blueprint('events_bp', __name__, template_folder='../templates', url_prefix='/events')
 
@@ -1146,10 +1148,100 @@ def manage_runs(event_id):
         return redirect(url_for('events_bp.events_list'))
     judges = _load_data(JUDGES_FILE)
     run_judges = {}
+    current_runs = event.get("current_runs_by_ring") or event.get("current_run_per_ring") or {}
+    runs_view = []
     for run in event.get('runs', []) or []:
-        run_judges[run.get('id')] = resolve_judge_name(event, run, judges)
+        run_id = run.get('id')
+        run_judges[run_id] = resolve_judge_name(event, run, judges)
+        ring_no = find_run_ring_number(event, run)
+        ring_label = f"Ring {ring_no}" if ring_no else "—"
+        is_active = bool(ring_no) and current_runs.get(str(ring_no)) == run_id
+        completed_count = len([e for e in run.get("entries", []) or [] if e.get("result")])
+        total_count = len(run.get("entries", []) or [])
+        is_completed = total_count > 0 and completed_count == total_count
+        status = "abgeschlossen" if is_completed else "geplant"
+        runs_view.append({
+            "run": run,
+            "ring_no": ring_no,
+            "ring_label": ring_label,
+            "status": status,
+            "is_active": is_active,
+            "is_completed": is_completed,
+        })
 
-    return render_template('manage_runs.html', event=event, judges=judges, run_judges=run_judges)
+    return render_template(
+        'manage_runs.html',
+        event=event,
+        judges=judges,
+        run_judges=run_judges,
+        runs_view=runs_view,
+    )
+
+
+@events_bp.route('/manage_runs/<event_id>/set_live', methods=['POST'])
+def set_live_run(event_id):
+    data = request.get_json(silent=True) or {}
+    run_id = data.get("run_id")
+    if not run_id:
+        return jsonify({"success": False, "message": "run_id fehlt"}), 400
+    events = _load_data(EVENTS_FILE)
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return jsonify({"success": False, "message": "Event nicht gefunden"}), 404
+    run = next((r for r in event.get('runs', []) or [] if r.get('id') == run_id), None)
+    if not run:
+        return jsonify({"success": False, "message": "Lauf nicht gefunden"}), 404
+
+    ring_no = find_run_ring_number(event, run)
+    if not ring_no:
+        return jsonify({"success": False, "message": "Kein Ring für diesen Lauf gefunden"}), 400
+
+    run_block = None
+    schedule = event.get("schedule") or {}
+    for ring_key, ring_data in (schedule.get("rings") or {}).items():
+        for block in ring_data.get("blocks") or []:
+            if (block.get("type") or "").lower() != "run":
+                continue
+            if schedule_planner._match_run_to_block(run, block):
+                run_block = block
+                break
+        if run_block:
+            break
+
+    current_runs = event.get("current_runs_by_ring") or {}
+    current_runs[str(ring_no)] = run_id
+    event["current_runs_by_ring"] = current_runs
+
+    if run_block:
+        current_blocks = event.get("current_run_blocks") or {}
+        current_blocks[str(ring_no)] = {
+            "run_block_id": run_block.get("id"),
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        event["current_run_blocks"] = current_blocks
+
+    _save_data(EVENTS_FILE, events)
+
+    try:
+        ring_number = int(re.sub(r"[^0-9]", "", str(ring_no)) or ring_no)
+    except Exception:
+        ring_number = 1
+    payload = build_ring_view_model(event, ring_number)
+    payload.update({"event_id": event_id, "ring_no": ring_number, "run_id": run_id})
+    ring_room = f"event:{event_id}:ring:{ring_number}"
+    try:
+        socketio.emit('ring_run_changed', payload, room=ring_room)
+        socketio.emit('ring_run_changed', payload, room=f"event:{event_id}")
+        socketio.emit('current_run_changed', {"event_id": event_id, "ring_id": ring_number, "run_block_id": run_block.get("id") if run_block else None}, room=ring_room)
+        socketio.emit('current_run_changed', {"event_id": event_id, "ring_id": ring_number, "run_block_id": run_block.get("id") if run_block else None}, room=f"event:{event_id}")
+    except Exception:
+        pass
+
+    return jsonify({
+        "success": True,
+        "ring_no": str(ring_no),
+        "run_id": run_id,
+    })
 
 @events_bp.route('/edit_run/<event_id>/<uuid:run_id>', methods=['GET', 'POST'])
 def edit_run(event_id, run_id):

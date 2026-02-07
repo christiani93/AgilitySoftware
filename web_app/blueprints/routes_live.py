@@ -122,7 +122,7 @@ def _find_run_block_for_run(event, run, ring_key: str | None = None):
     return None, None
 
 
-def _persist_current_run(events, event_id, ring_key, run_block_id):
+def _persist_current_run(events, event_id, ring_key, run_block_id, run_id=None):
     updated = False
     for event in events:
         if event.get("id") != event_id:
@@ -133,6 +133,10 @@ def _persist_current_run(events, event_id, ring_key, run_block_id):
             "updated_at": datetime.utcnow().isoformat(),
         }
         event["current_run_blocks"] = current
+        if run_id:
+            current_runs = event.get("current_runs_by_ring") or {}
+            current_runs[str(ring_key)] = run_id
+            event["current_runs_by_ring"] = current_runs
         updated = True
         break
     return updated
@@ -424,7 +428,7 @@ def set_active_announcer_run(event_id, run_id):
     state[evt_id] = by_event
     _save_live_state(state)
     events = _load_data('events.json')
-    if _persist_current_run(events, evt_id, ring_key, run_block.get('id') if run_block else None):
+    if _persist_current_run(events, evt_id, ring_key, run_block.get('id') if run_block else None, run.get('id')):
         _save_data('events.json', events)
 
     # Echtzeit-Update
@@ -508,12 +512,8 @@ def ring_pc_dashboard(ring_number):
                 runs_for_ring.append(r)
     selected_run_id = request.args.get("run_id")
     if not selected_run_id:
-        state = _load_live_state()
-        evt_id = event.get('id') or event.get('event_id') or ''
-        ring_label = f"Ring {ring_number}"
-        active = (state.get(evt_id, {}) or {}).get(ring_label)
-        if active:
-            selected_run_id = active.get("run_id")
+        current_runs = event.get("current_runs_by_ring") or event.get("current_run_per_ring") or {}
+        selected_run_id = current_runs.get(str(ring_number))
     if not selected_run_id:
         ring_key = str(ring_number)
         ring_data = (schedule.get("rings") or {}).get(ring_key) or {}

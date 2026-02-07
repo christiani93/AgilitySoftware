@@ -257,6 +257,24 @@
       state.mainSocket.on("result_update", (data) => {
         if (data.run_id === state.currentRunId) fetchRunDetails();
       });
+
+      state.mainSocket.on("ring_run_changed", (data) => {
+        if (!data || data.event_id !== eventId) return;
+        if (Number(data.ring_no) !== Number(ringNumber)) return;
+        if (!data.run_id || data.run_id === state.currentRunId) return;
+        if (ui.runSelect) {
+          const opt = Array.from(ui.runSelect.options).find(o => o.value === data.run_id);
+          if (opt) {
+            ui.runSelect.value = data.run_id;
+            state.currentRunId = data.run_id;
+            if (ui.activateBtn) ui.activateBtn.disabled = !state.currentRunId;
+            syncEditRunButton();
+            const bannerSel = document.getElementById("ring-selected");
+            if (bannerSel) bannerSel.textContent = opt.textContent || opt.label || "Ausgewählt";
+            fetchRunDetails();
+          }
+        }
+      });
     }
 
     // ---- Run-Details laden & rendern ----
