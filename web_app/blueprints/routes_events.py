@@ -956,7 +956,9 @@ def debug_import_create_event():
         except Exception:
             sn = None
         if dog and sn is not None:
-            dog["Startnummer_offiziell"] = sn
+            # DEBUG-IMPORT: überschreibt Startnummer bewusst mit offizieller Startnummer
+            dog["Startnummer"] = int(sn)
+            dog["Startnummer_offiziell"] = int(sn)
 
     if add_entries:
         for row in rows:
@@ -985,14 +987,20 @@ def debug_import_create_event():
                     for entry in existing_entries:
                         if _norm(entry.get("Lizenznummer")) == row["license"]:
                             if sn is not None:
-                                entry["startnummer_offiziell"] = sn
+                                # DEBUG-IMPORT: überschreibt Startnummer bewusst mit offizieller Startnummer
+                                entry["Startnummer"] = int(sn)
+                                entry["Startnummer_offiziell"] = int(sn)
+                                entry["startnummer_offiziell"] = int(sn)
                             break
                     continue
                 run["entries"].append({
                     "Lizenznummer": row["license"],
                     "Hundename": row.get("dog") or (dog or {}).get("Hundename", ""),
                     "Hundefuehrer": handler_name,
-                    "startnummer_offiziell": sn,
+                    # DEBUG-IMPORT: überschreibt Startnummer bewusst mit offizieller Startnummer
+                    "Startnummer": int(sn) if sn is not None else None,
+                    "Startnummer_offiziell": int(sn) if sn is not None else None,
+                    "startnummer_offiziell": int(sn) if sn is not None else None,
                     "debug_import": True,
                 })
                 created_entries += 1
@@ -1284,7 +1292,9 @@ def debug_import_official_startnumbers(event_id):
             created_dogs += 1
 
         if d:
-            d["Startnummer_offiziell"] = info["Startnummer_offiziell"]
+            # DEBUG-IMPORT: überschreibt Startnummer bewusst mit offizieller Startnummer
+            d["Startnummer"] = int(info["Startnummer_offiziell"])
+            d["Startnummer_offiziell"] = int(info["Startnummer_offiziell"])
             d["Startnummer_offiziell_quelle"] = info.get("Quelle")
             updated_dogs += 1
 
@@ -1337,13 +1347,19 @@ def debug_import_official_startnumbers(event_id):
                 if lic in existing_lics:
                     for entry in existing_entries:
                         if _norm(entry.get("Lizenznummer")) == lic:
-                            entry["startnummer_offiziell"] = info["Startnummer_offiziell"]
+                            # DEBUG-IMPORT: überschreibt Startnummer bewusst mit offizieller Startnummer
+                            entry["Startnummer"] = int(info["Startnummer_offiziell"])
+                            entry["Startnummer_offiziell"] = int(info["Startnummer_offiziell"])
+                            entry["startnummer_offiziell"] = int(info["Startnummer_offiziell"])
                             break
                     continue
 
                 run["entries"].append({
                     "Lizenznummer": lic,
-                    "startnummer_offiziell": info["Startnummer_offiziell"],
+                    # DEBUG-IMPORT: überschreibt Startnummer bewusst mit offizieller Startnummer
+                    "Startnummer": int(info["Startnummer_offiziell"]),
+                    "Startnummer_offiziell": int(info["Startnummer_offiziell"]),
+                    "startnummer_offiziell": int(info["Startnummer_offiziell"]),
                     "debug_import": True
                 })
                 created_entries += 1
@@ -1363,7 +1379,10 @@ def debug_import_official_startnumbers(event_id):
             info = by_license.get(lic)
             if not info:
                 continue
-            e["startnummer_offiziell"] = info["Startnummer_offiziell"]
+            # DEBUG-IMPORT: überschreibt Startnummer bewusst mit offizieller Startnummer
+            e["Startnummer"] = int(info["Startnummer_offiziell"])
+            e["Startnummer_offiziell"] = int(info["Startnummer_offiziell"])
+            e["startnummer_offiziell"] = int(info["Startnummer_offiziell"])
             updated_entries += 1
 
         if sort_entries and entries:
