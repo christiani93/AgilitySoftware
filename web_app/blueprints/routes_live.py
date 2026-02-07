@@ -446,6 +446,20 @@ def ring_pc_dashboard(ring_number):
         active = (state.get(evt_id, {}) or {}).get(ring_label)
         if active:
             selected_run_id = active.get("run_id")
+    if not selected_run_id:
+        ring_key = str(ring_number)
+        ring_data = (schedule.get("rings") or {}).get(ring_key) or {}
+        for block in ring_data.get("blocks") or []:
+            block_type = (block.get("type") or block.get("block_type") or "").lower()
+            if block_type != "run":
+                continue
+            matched = [
+                run for run in event.get("runs", []) or []
+                if isinstance(run, dict) and schedule_planner._match_run_to_block(run, block)
+            ]
+            if matched:
+                selected_run_id = matched[0].get("id")
+                break
     if not selected_run_id and runs_for_ring:
         selected_run_id = runs_for_ring[0].get("id")
     return render_template(

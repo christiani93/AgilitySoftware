@@ -42,9 +42,9 @@
         <div class="md:col-span-1 bg-white p-4 rounded-lg shadow">
             <h2 class="text-lg font-bold mb-3 border-b pb-2">1. Lauf auswählen & Steuerung</h2>
             <div class="flex gap-2">
-                <select id="run-select" data-event-id="{{ event.id }}" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <select id="run-select" data-event-id="{{ event.id }}" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" {% if not runs %}disabled{% endif %}>
                     {% if not runs %}
-                        <option value="">-- Bitte wählen --</option>
+                        <option value="">Keine Läufe verfügbar</option>
                     {% endif %}
                     {% for run in runs %}
                         <option value="{{ run.id }}" data-run-id="{{ run.id }}" {% if selected_run_id and run.id == selected_run_id %}selected{% endif %}>{{ run.name }}{% if run.judge_display %} ({{ run.judge_display }}){% endif %}</option>
