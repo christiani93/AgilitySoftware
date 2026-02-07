@@ -138,6 +138,38 @@ def _persist_current_run(events, event_id, ring_key, run_block_id):
     return updated
 
 
+def _infer_ring_number(event, run, fallback=1):
+    run_block, ring_key = _find_run_block_for_run(event, run)
+    if ring_key:
+        try:
+            return int(re.sub(r"[^0-9]", "", str(ring_key)))
+        except Exception:
+            pass
+    assigned_ring = run.get('assigned_ring') or run.get('ring') or run.get('ring_id') or run.get('ringName')
+    digits = re.sub(r"[^0-9]", "", str(assigned_ring or ""))
+    if digits:
+        try:
+            return int(digits)
+        except Exception:
+            pass
+    return fallback
+
+
+def _build_ring_payload(event, ring_number):
+    view = build_ring_view_model(event, ring_number)
+    current_run = view.get("current_run") or {}
+    payload = {
+        "ring_no": ring_number,
+        "run_id": current_run.get("id"),
+        "run_meta": current_run,
+        "current_starter": view.get("current_starter") or {},
+        "startlist_next": view.get("startlist") or [],
+        "ranking_top": view.get("ranking") or [],
+        "last_results": view.get("last_results") or [],
+    }
+    return payload
+
+
 # --- END FIXED HEADER ---
 
 @live_bp.route('/debug/live_state')
@@ -287,9 +319,15 @@ def save_result(event_id, run_id):
         # Realtime Updates
         try:
             socketio.emit('result_update', {'run_id': run_id, 'license_nr': license_nr, 'result': entry['result']})
-            if run.get('assigned_ring'):
-                ring_num = run.get('assigned_ring')
-                socketio.emit('announcer_update', {'event_id': event_id, 'ring_name': f"Ring {ring_num}"})
+            ring_no = _infer_ring_number(event, run)
+            payload = _build_ring_payload(event, ring_no)
+            payload.update({
+                "event_id": event_id,
+                "entry_id": license_nr,
+            })
+            ring_room = f"event:{event_id}:ring:{ring_no}"
+            socketio.emit('ring_result_saved', payload, room=ring_room)
+            socketio.emit('ring_result_saved', payload, room=f"event:{event_id}")
         except Exception:
             pass
 
@@ -396,6 +434,10 @@ def set_active_announcer_run(event_id, run_id):
         socketio.emit('announcer_update', {'event_id': evt_id, 'ring_name': ring_label}, room=ring_room)
         socketio.emit('current_run_changed', {'event_id': evt_id, 'ring_id': ring_key, 'run_block_id': run_block.get('id') if run_block else None}, room=ring_room)
         socketio.emit('current_run_changed', {'event_id': evt_id, 'ring_id': ring_key, 'run_block_id': run_block.get('id') if run_block else None}, room=f"event:{evt_id}")
+        payload = _build_ring_payload(event, int(ring_key))
+        payload.update({"event_id": evt_id})
+        socketio.emit('ring_run_changed', payload, room=ring_room)
+        socketio.emit('ring_run_changed', payload, room=f"event:{evt_id}")
     except Exception:
         pass
 
@@ -405,6 +447,32 @@ def set_active_announcer_run(event_id, run_id):
     if 'from_ring_pc' in request.args:
         return redirect(url_for('live_bp.ring_pc_dashboard', ring_number=int(ring_key)))
     return redirect(url_for('live_bp.live_run_entry', event_id=event_id, run_id=run_id))
+
+
+@live_bp.route('/live/api/ring_starter_changed', methods=['POST'])
+def ring_starter_changed():
+    data = request.get_json(silent=True) or {}
+    event_id = data.get("event_id")
+    ring_no = data.get("ring_no")
+    if not event_id or not ring_no:
+        return jsonify({"success": False, "message": "event_id oder ring_no fehlt"}), 400
+    events = _load_data('events.json')
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return jsonify({"success": False, "message": "Event nicht gefunden"}), 404
+    try:
+        ring_no = int(ring_no)
+    except Exception:
+        ring_no = 1
+    payload = _build_ring_payload(event, ring_no)
+    payload.update({"event_id": event_id})
+    try:
+        ring_room = f"event:{event_id}:ring:{ring_no}"
+        socketio.emit('ring_starter_changed', payload, room=ring_room)
+        socketio.emit('ring_starter_changed', payload, room=f"event:{event_id}")
+    except Exception:
+        pass
+    return jsonify({"success": True})
 
 @live_bp.route('/ring_monitor/<int:ring_number>')
 def display_ring_monitor(ring_number):
