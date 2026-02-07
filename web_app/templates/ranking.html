@@ -19,7 +19,7 @@
             <span>Parcourslänge: {{ run.laufdaten.parcours_laenge or 'N/A' }}m</span>
             <span>SCT: {{ sct_display }}s</span>
             <span>MCT: {{ mct_display }}s</span>
-            <span>Richter: {% set judge = judges|selectattr('id', 'equalto', run.richter_id)|first %}{{ (judge.firstname ~ ' ' ~ judge.lastname).strip() if judge else 'N/A' }}</span>
+            <span>Richter: {{ judge_display or '—' }}</span>
         </div>
     </div>
     <div class="card-body p-0">
