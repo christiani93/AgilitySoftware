@@ -17,6 +17,12 @@ if PROJECT_ROOT not in sys.path:
 
 import planner.schedule_planner as schedule_planner
 from planner.schedule_planner import upgrade_settings
+from web_app.live.ring_state import (
+    apply_result_saved,
+    apply_start_impulse,
+    build_view_model_from_state,
+    init_ring_entry_state,
+)
 
 CATEGORY_SORT_ORDER = {'Large': 0, 'Intermediate': 1, 'Medium': 2, 'Small': 3}
 
@@ -671,6 +677,11 @@ def _get_current_runs_by_ring(event: dict):
     return {}
 
 
+def _get_ring_entry_state(event: dict, ring_number: int):
+    state = event.get("ring_entry_state") or {}
+    return (state.get(str(ring_number)) or {}).copy()
+
+
 def find_run_ring_number(event: dict, run: dict):
     schedule = event.get("schedule") or {}
     for ring_key, ring_data in (schedule.get("rings") or {}).items():
@@ -768,17 +779,42 @@ def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_r
     results = _calculate_run_results(run, settings)
     ranking = [r for r in results if r.get("platz")]
     ranking.sort(key=lambda r: _to_int(r.get("platz"), default=999999))
-    view["ranking"] = ranking[:max_ranking]
+    view["ranking"] = [
+        dict(r, name=format_ring_name(r))
+        for r in ranking[:max_ranking]
+    ]
 
     last_results = sorted(
         [res for res in results if res.get("platz")],
         key=lambda x: x.get("timestamp", 0),
         reverse=True,
     )[:max_last_results]
-    view["last_results"] = last_results
+    view["last_results"] = [
+        dict(res, name=format_ring_name(res))
+        for res in last_results
+    ]
 
-    view["current_starter"] = run.get("current_starter") or {}
-    view["next_starter"] = run.get("next_starter") or {}
+    ring_state = _get_ring_entry_state(event, ring_number)
+    if not ring_state:
+        ring_state = init_ring_entry_state(entries_sorted)
+
+    view_state = build_view_model_from_state(
+        ring_state,
+        entries_sorted[:max_startlist],
+        run_meta=view["current_run"],
+        ranking_top=view["ranking"],
+        last_results=view["last_results"],
+    )
+
+    view["run_meta"] = view_state.get("run_meta") or {}
+    view["current"] = view_state.get("current") or {}
+    view["ready"] = view_state.get("ready") or {}
+    view["startlist_next"] = view_state.get("startlist_next") or []
+    view["ranking_top"] = view_state.get("ranking_top") or []
+    view["last_results"] = view_state.get("last_results") or []
+
+    view["current_starter"] = view.get("current") or {}
+    view["next_starter"] = view.get("ready") or {}
 
     return view
 

@@ -8,9 +8,31 @@
             <h4 class="mb-0">Ring Monitor – {{ ring_name }}</h4>
         </div>
         <div class="card-body" id="monitor-container">
-            <!-- Content is loaded via JavaScript -->
-            <div class="text-center p-5">
-                <h2><i class="fas fa-spinner fa-spin me-2"></i>Lade Live-Daten für {{ ring_name }}...</h2>
+            <div id="monitor-run-meta" class="mb-3"></div>
+            <div class="row g-3">
+                <div class="col-12 col-lg-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light fw-semibold">Aktuelle Startliste</div>
+                        <ul class="list-group list-group-flush" id="monitor-startlist"></ul>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light fw-semibold">Aktuelle Rangliste</div>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr><th>Platz</th><th>Name</th><th>Gesamtfehler</th><th>Zeit</th></tr>
+                                </thead>
+                                <tbody id="monitor-ranking"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-light fw-semibold">Letzte 3 Ergebnisse</div>
+                <div class="card-body py-2" id="monitor-last-results"></div>
             </div>
         </div>
     </div>
@@ -20,18 +42,107 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const container = document.getElementById('monitor-container');
     const ringNumber = {{ ring_name.split(' ')[1] }};
     const eventId = '{{ event.id }}';
+    const runMetaEl = document.getElementById('monitor-run-meta');
+    const startlistEl = document.getElementById('monitor-startlist');
+    const rankingEl = document.getElementById('monitor-ranking');
+    const lastResultsEl = document.getElementById('monitor-last-results');
     const socket = io();
 
-    function fetchAndRender() {
-        // KORRIGIERT: API-Endpunkt auf live_bp angepasst
-        fetch(`{{ url_for('live_bp.render_ring_monitor_content', ring_number=999) }}`.replace('999', ringNumber))
-            .then(response => response.text())
-            .then(html => {
-                container.innerHTML = html;
-            });
+    function renderRunMeta(meta, current, ready) {
+        if (!runMetaEl) return false;
+        if (!meta || !meta.title) {
+            runMetaEl.innerHTML = `<div class="text-center text-muted py-4">Kein Lauf wurde für diesen Ring aktiviert.</div>`;
+            return true;
+        }
+        const metaBits = [];
+        if (meta.klasse) metaBits.push(`Klasse: ${meta.klasse}`);
+        if (meta.kategorie) metaBits.push(`Kategorie: ${meta.kategorie}`);
+        if (meta.laufart) metaBits.push(`Laufart: ${meta.laufart}`);
+        const metaLine = metaBits.length ? metaBits.join(" | ") : "—";
+        runMetaEl.innerHTML = `
+            <div class="mb-3">
+                <h2 class="h3 mb-1">Ring ${ringNumber} – ${meta.title || ""}</h2>
+                <div class="text-muted mb-2"><strong>Richter:</strong> ${meta.judge_name || "—"}</div>
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body py-2">
+                        <div class="row text-center">
+                            <div class="col-6 col-md"><div class="small text-muted">Parcourslänge</div><div class="fw-semibold">${meta.parcours_laenge || "—"} m</div></div>
+                            <div class="col-6 col-md"><div class="small text-muted">Geräte</div><div class="fw-semibold">${meta.hindernisse || "—"}</div></div>
+                            <div class="col-6 col-md"><div class="small text-muted">SCT</div><div class="fw-semibold">${meta.sct || "—"} s</div></div>
+                            <div class="col-6 col-md"><div class="small text-muted">MCT</div><div class="fw-semibold">${meta.mct || "—"} s</div></div>
+                        </div>
+                        <div class="mt-2 small text-muted">${metaLine}</div>
+                    </div>
+                </div>
+                <div class="text-uppercase small text-muted">Aktueller Starter</div>
+                <div class="h4 fw-semibold mb-1">${current?.name || "—"}</div>
+                <div class="small text-muted mb-2">Bereit: ${ready?.name || "—"}</div>
+            </div>`;
+        return true;
+    }
+
+    function renderStartlist(list) {
+        if (!startlistEl) return false;
+        if (!list || !list.length) {
+            startlistEl.innerHTML = `<li class="list-group-item text-muted">Keine Startliste verfügbar.</li>`;
+            return true;
+        }
+        startlistEl.innerHTML = list.map(entry => {
+            const badge = entry.current ? "Aktuell" : entry.ready ? "Bereit" : "";
+            return `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">${entry.name || "—"}</span>
+                    <span class="small text-muted">${badge}</span>
+                </li>`;
+        }).join("");
+        return true;
+    }
+
+    function renderRanking(list) {
+        if (!rankingEl) return false;
+        if (!list || !list.length) {
+            rankingEl.innerHTML = `<tr><td colspan="4" class="text-muted">Noch keine Rangliste verfügbar.</td></tr>`;
+            return true;
+        }
+        rankingEl.innerHTML = list.map(res => `
+            <tr>
+                <td>${res.platz || "—"}</td>
+                <td>${res.name || res.Hundefuehrer || res.Hundeführer || ""}</td>
+                <td>${res.fehler_total ?? res.fehler_total_gerundet ?? "—"}</td>
+                <td>${res.zeit_total ?? res.zeit ?? "—"}</td>
+            </tr>
+        `).join("");
+        return true;
+    }
+
+    function renderLastResults(list) {
+        if (!lastResultsEl) return false;
+        if (!list || !list.length) {
+            lastResultsEl.innerHTML = `<div class="text-muted">Noch keine Ergebnisse.</div>`;
+            return true;
+        }
+        lastResultsEl.innerHTML = `
+            <div class="d-flex flex-column gap-2">
+                ${list.map(res => `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">${res.platz || "—"} – ${res.name || ""}</span>
+                        <span class="text-muted small">Fehler ${res.fehler_total ?? res.fehler_total_gerundet ?? "—"} · Zeit ${res.zeit_total ?? res.zeit ?? "—"} s</span>
+                    </div>
+                `).join("")}
+            </div>`;
+        return true;
+    }
+
+    function applyViewModel(payload) {
+        if (!payload) return false;
+        const meta = payload.run_meta || payload.current_run || {};
+        const okMeta = renderRunMeta(meta, payload.current, payload.ready);
+        const okStart = renderStartlist(payload.startlist_next || []);
+        const okRank = renderRanking(payload.ranking_top || []);
+        const okLast = renderLastResults(payload.last_results || []);
+        return okMeta && okStart && okRank && okLast;
     }
 
     socket.on('connect', function() {
@@ -41,33 +152,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     socket.on('announcer_update', function(data) {
         if (data.event_id === eventId && data.ring_name === '{{ ring_name }}') {
-            console.log('Update received for this ring');
-            fetchAndRender();
+            window.location.reload();
         }
     });
     socket.on('current_run_changed', function(data) {
         if (data.event_id === eventId && String(data.ring_id) === String(ringNumber)) {
-            fetchAndRender();
+            if (!applyViewModel(data)) window.location.reload();
         }
     });
     socket.on('ring_result_saved', function(data) {
         if (data.event_id === eventId && String(data.ring_no) === String(ringNumber)) {
-            fetchAndRender();
+            if (!applyViewModel(data)) window.location.reload();
         }
     });
-    socket.on('ring_starter_changed', function(data) {
+    socket.on('ring_ready_changed', function(data) {
         if (data.event_id === eventId && String(data.ring_no) === String(ringNumber)) {
-            fetchAndRender();
+            if (!applyViewModel(data)) window.location.reload();
         }
     });
     socket.on('ring_run_changed', function(data) {
         if (data.event_id === eventId && String(data.ring_no) === String(ringNumber)) {
-            fetchAndRender();
+            if (!applyViewModel(data)) window.location.reload();
         }
     });
-
-    fetchAndRender(); // Initial load
-    setInterval(fetchAndRender, 15000); // Refresh every 15 seconds as a fallback
+    applyViewModel({{ view_model|tojson }});
 });
 </script>
 {% endblock %}

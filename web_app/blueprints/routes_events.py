@@ -20,6 +20,7 @@ from utils import (
     _load_settings, _calculate_timelines, get_category_sort_key, _recalculate_schedule_estimates,
     resolve_judge_name, find_run_ring_number, build_ring_view_model
 )
+from web_app.live.ring_state import init_ring_entry_state
 import planner.schedule_planner as schedule_planner
 from extensions import socketio
 
@@ -1211,6 +1212,7 @@ def set_live_run(event_id):
     current_runs = event.get("current_runs_by_ring") or {}
     current_runs[str(ring_no)] = run_id
     event["current_runs_by_ring"] = current_runs
+    event.setdefault("ring_entry_state", {})[str(ring_no)] = init_ring_entry_state(run.get("entries", []))
 
     if run_block:
         current_blocks = event.get("current_run_blocks") or {}
