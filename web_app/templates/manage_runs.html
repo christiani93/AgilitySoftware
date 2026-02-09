@@ -23,20 +23,29 @@
 </div>
 
 <div class="row">
-    {% for run in event.runs|sort(attribute='name') %}
+    {% for item in runs_view|sort(attribute='run.name') %}
+    {% set run = item.run %}
     <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card shadow-sm h-100">
+        <div class="card shadow-sm h-100" data-run-id="{{ run.id }}" data-ring-no="{{ item.ring_no or '' }}" data-status="{{ item.status }}">
             <div class="card-body">
                 <h5 class="card-title">{{ run.name }}</h5>
                 <h6 class="card-subtitle mb-2 text-muted">
-                    Richter: {% set judge = judges|selectattr('id', 'equalto', run.richter_id)|first %}{{ judge.firstname ~ ' ' ~ judge.lastname if judge else 'N/A' }} | Ring: {{ run.assigned_ring or 'N/A' }}
+                    Richter: {{ run_judges.get(run.id) or '— kein Richter —' }} | Ring: {{ item.ring_label }}
                 </h6>
-                <p class="card-text">
+                <p class="card-text d-flex flex-wrap gap-2 align-items-center">
                     <span class="badge rounded-pill bg-primary">{{ run.entries|length }} Teilnehmer</span>
+                    <span class="badge rounded-pill status-badge bg-{{ 'success' if item.is_active else 'secondary' if item.status == 'geplant' else 'info' }}">
+                        {{ 'LIVE' if item.is_active else item.status }}
+                    </span>
                 </p>
-                <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-info text-white" target="_blank"><i class="fas fa-trophy me-2"></i>Rangliste</a>
-                <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-dark"><i class="fas fa-users me-2"></i>Teilnehmer</a>
-                <a href="{{ url_for('events_bp.edit_run', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-edit me-2"></i>Laufdaten</a>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-info text-white" target="_blank"><i class="fas fa-trophy me-2"></i>Rangliste</a>
+                    <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-dark"><i class="fas fa-users me-2"></i>Teilnehmer</a>
+                    <a href="{{ url_for('events_bp.edit_run', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-edit me-2"></i>Laufdaten</a>
+                    <button type="button" class="btn btn-sm btn-warning btn-set-live" {% if not item.ring_no %}disabled title="Kein Ring im Zeitplan erkannt"{% endif %}>
+                        <i class="fas fa-broadcast-tower me-2"></i>LIVE setzen
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -47,4 +56,79 @@
     {% endfor %}
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const eventId = "{{ event.id }}";
+    const cards = Array.from(document.querySelectorAll("[data-run-id]"));
+    const byRunId = new Map(cards.map(card => [card.dataset.runId, card]));
+
+    function setLiveBadge(card, isLive) {
+      const badge = card.querySelector(".status-badge");
+      if (!badge) return;
+      const status = card.dataset.status || "geplant";
+      badge.classList.remove("bg-success", "bg-secondary", "bg-info");
+      if (isLive) {
+        badge.classList.add("bg-success");
+        badge.textContent = "LIVE";
+      } else {
+        if (status === "abgeschlossen") {
+          badge.classList.add("bg-info");
+        } else {
+          badge.classList.add("bg-secondary");
+        }
+        badge.textContent = status;
+      }
+    }
+
+    async function setLiveRun(runId) {
+      const card = byRunId.get(runId);
+      if (!card) return;
+      const ringNo = card.dataset.ringNo;
+      if (!ringNo) return;
+      const response = await fetch(`/events/manage_runs/${eventId}/set_live`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ run_id: runId })
+      });
+      const payload = await response.json();
+      if (!payload.success) {
+        alert(payload.message || "LIVE setzen fehlgeschlagen.");
+        return;
+      }
+      cards.forEach(other => {
+        if (other.dataset.ringNo === ringNo) {
+          setLiveBadge(other, other.dataset.runId === runId);
+        }
+      });
+    }
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest(".btn-set-live");
+      if (!button) return;
+      const card = button.closest("[data-run-id]");
+      if (!card) return;
+      const runId = card.dataset.runId;
+      if (!runId) return;
+      setLiveRun(runId).catch(() => alert("LIVE setzen fehlgeschlagen."));
+    });
+
+    if (typeof io !== "undefined") {
+      const socket = io();
+      socket.on("ring_run_changed", (data) => {
+        if (!data || data.event_id !== eventId) return;
+        const ringNo = String(data.ring_no || "");
+        const activeRunId = String(data.run_id || "");
+        if (!ringNo || !activeRunId) return;
+        cards.forEach(card => {
+          if (card.dataset.ringNo === ringNo) {
+            setLiveBadge(card, card.dataset.runId === activeRunId);
+          }
+        });
+      });
+    }
+  })();
+</script>
 {% endblock %}

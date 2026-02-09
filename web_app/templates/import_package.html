@@ -10,11 +10,11 @@
 
     <div class="card">
         <div class="card-body">
-            <p>Wähle eine zuvor exportierte Event-Paket-Datei (.json) aus, um sie zu importieren. Das Event wird als Kopie mit einem neuen Datum und dem Zusatz "(Importiert)" angelegt.</p>
+            <p>Wähle eine zuvor exportierte Event-Paket-Datei (.json) oder ein Portal-EventExport ZIP (.zip) aus, um sie zu importieren. Das Event wird als Kopie mit dem Zusatz "(Importiert)" angelegt.</p>
             <form method="POST" enctype="multipart/form-data">
                 <div class="mb-3">
-                    <label for="package_file" class="form-label">Event-Paket (.json)</label>
-                    <input class="form-control" type="file" id="package_file" name="package_file" accept=".json" required>
+                    <label for="package_file" class="form-label">Event-Paket (.json) oder EventExport (.zip)</label>
+                    <input class="form-control" type="file" id="package_file" name="package_file" accept=".json,.zip" required>
                 </div>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-upload me-2"></i>Paket importieren</button>
             </form>

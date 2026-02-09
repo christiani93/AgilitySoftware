@@ -3,16 +3,21 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 import json
 import uuid
 import random
+import re
 from io import StringIO
 import csv
+import zipfile
 from datetime import date, datetime
 
 from utils import (
     _load_data, _save_data, _decode_csv_file, _get_active_event_id,
     _get_concrete_run_list, _place_entries_with_distance,
-    _load_settings, _calculate_timelines, get_category_sort_key, _recalculate_schedule_estimates
+    _load_settings, _calculate_timelines, get_category_sort_key, _recalculate_schedule_estimates,
+    resolve_judge_name, find_run_ring_number, build_ring_view_model
 )
+from web_app.live.ring_state import init_ring_entry_state
 import planner.schedule_planner as schedule_planner
+from extensions import socketio
 
 events_bp = Blueprint('events_bp', __name__, template_folder='../templates', url_prefix='/events')
 
@@ -77,6 +82,371 @@ def _safe_update(target: dict, key: str, new_value: str):
 
 def _fullname_key(vor: str, nach: str) -> str:
     return f"{_lc(vor)} {_lc(nach)}".strip()
+
+
+def _get_first_value(data: dict, keys, default=None):
+    for key in keys:
+        if key in data and data[key] is not None:
+            return data[key]
+    return default
+
+
+def _find_zip_member(zip_file: zipfile.ZipFile, filename: str) -> str | None:
+    target = filename.lower()
+    for name in zip_file.namelist():
+        if name.lower().endswith(target):
+            return name
+    return None
+
+
+def _read_zip_json(zip_file: zipfile.ZipFile, filename: str) -> dict | list | None:
+    member = _find_zip_member(zip_file, filename)
+    if not member:
+        return None
+    with zip_file.open(member) as handle:
+        return json.load(handle)
+
+
+def _normalize_discipline(value: str) -> str:
+    value = _norm(value).lower()
+    if value == "agility":
+        return "Agility"
+    if value == "jumping":
+        return "Jumping"
+    return value.title() if value else "Other"
+
+
+def _normalize_timing_run_type(value: str) -> str:
+    value = _norm(value).lower()
+    if value in {"agility", "jumping"}:
+        return value
+    return "other"
+
+
+def _eventexport_registration_list(payload) -> list:
+    if isinstance(payload, list):
+        return payload
+    if isinstance(payload, dict):
+        for key in ("registrations", "entries", "items"):
+            if isinstance(payload.get(key), list):
+                return payload.get(key)
+    return []
+
+
+def _eventexport_schedule_blocks(payload) -> list:
+    if isinstance(payload, list):
+        return payload
+    if isinstance(payload, dict):
+        for key in ("blocks", "schedule", "items"):
+            if isinstance(payload.get(key), list):
+                return payload.get(key)
+    return []
+
+
+def _eventexport_start_numbers(payload) -> tuple[list, bool]:
+    locked = False
+    if isinstance(payload, dict):
+        locked = bool(payload.get("locked"))
+        for key in ("start_numbers", "numbers", "entries", "items"):
+            if isinstance(payload.get(key), list):
+                return payload.get(key), locked
+    if isinstance(payload, list):
+        return payload, locked
+    return [], locked
+
+
+def _parse_start_time(value: str) -> str | None:
+    if not value:
+        return None
+    raw = str(value).strip()
+    if "T" in raw:
+        raw = raw.split("T", 1)[1]
+    if " " in raw:
+        raw = raw.split(" ", 1)[1]
+    if len(raw) >= 5:
+        return raw[:5]
+    return None
+
+
+def _merge_eventexport_handlers(handlers: list, entities: dict) -> dict:
+    handler_list = []
+    if isinstance(entities, dict):
+        handler_list = entities.get("handlers") or entities.get("handler") or entities.get("people") or []
+    handler_map = {_fullname_key(h.get("Vorname"), h.get("Nachname")): h for h in handlers}
+    external_map = {h.get("external_id"): h for h in handlers if h.get("external_id")}
+    for handler in handler_list or []:
+        if not isinstance(handler, dict):
+            continue
+        first_name = _get_first_value(handler, ("firstname", "first_name", "Vorname", "vorname"), "")
+        last_name = _get_first_value(handler, ("lastname", "last_name", "Nachname", "nachname"), "")
+        external_id = _get_first_value(handler, ("external_id", "id", "handler_id"), "")
+        key = _fullname_key(first_name, last_name)
+        existing = external_map.get(external_id) if external_id else None
+        if not existing and key:
+            existing = handler_map.get(key)
+        if not existing:
+            existing = {
+                "id": str(uuid.uuid4()),
+                "Vorname": first_name,
+                "Nachname": last_name,
+                "Vereinsnummer": "",
+            }
+            handlers.append(existing)
+            handler_map[key] = existing
+        _safe_update(existing, "Vorname", first_name)
+        _safe_update(existing, "Nachname", last_name)
+        if external_id:
+            existing["external_id"] = external_id
+            external_map[external_id] = existing
+    return external_map
+
+
+def _merge_eventexport_dogs(dogs: list, entities: dict, handler_external_map: dict) -> None:
+    dog_list = []
+    if isinstance(entities, dict):
+        dog_list = entities.get("dogs") or entities.get("dog") or []
+    dog_map = {d.get("Lizenznummer"): d for d in dogs if d.get("Lizenznummer")}
+    for dog in dog_list or []:
+        if not isinstance(dog, dict):
+            continue
+        license_no = _get_first_value(dog, ("license_no", "license_number", "Lizenznummer", "lizenznummer"), "")
+        dog_name = _get_first_value(dog, ("dog_name", "Hundename", "name"), "")
+        handler_external_id = _get_first_value(dog, ("handler_external_id", "handler_id"), "")
+        handler_id = None
+        if handler_external_id and handler_external_map.get(handler_external_id):
+            handler_id = handler_external_map[handler_external_id].get("id")
+        if not license_no:
+            continue
+        existing = dog_map.get(license_no)
+        if not existing:
+            existing = {
+                "Lizenznummer": license_no,
+                "Hundename": dog_name or license_no,
+                "Hundefuehrer_ID": handler_id or "",
+                "Kategorie": _get_first_value(dog, ("category_code", "Kategorie", "kategorie"), ""),
+                "Klasse": str(_get_first_value(dog, ("class_level", "Klasse", "klasse"), "")),
+            }
+            dogs.append(existing)
+            dog_map[license_no] = existing
+        _safe_update(existing, "Hundename", dog_name)
+        if handler_id:
+            existing["Hundefuehrer_ID"] = handler_id
+        _safe_update(existing, "Kategorie", _get_first_value(dog, ("category_code", "Kategorie", "kategorie"), ""))
+        klasse = _get_first_value(dog, ("class_level", "Klasse", "klasse"), "")
+        if klasse != "":
+            existing["Klasse"] = str(klasse)
+
+
+def _apply_eventexport_registrations(event: dict, registrations: list, entities: dict) -> dict:
+    dogs_raw = _load_data(DOGS_FILE)
+    handlers_raw = _load_data(HANDLERS_FILE)
+    dogs, handlers = _sanitize_master_data_lists(dogs_raw, handlers_raw)
+    handler_external_map = _merge_eventexport_handlers(handlers, entities)
+    _merge_eventexport_dogs(dogs, entities, handler_external_map)
+
+    dog_by_license = {d.get("Lizenznummer"): d for d in dogs if d.get("Lizenznummer")}
+    handler_by_full = {_fullname_key(h.get("Vorname"), h.get("Nachname")): h for h in handlers}
+
+    runs_by_key = {}
+    entries_added = 0
+    for reg in registrations or []:
+        if not isinstance(reg, dict):
+            continue
+        discipline = _normalize_discipline(_get_first_value(reg, ("discipline", "laufart", "run_type"), ""))
+        category = _get_first_value(reg, ("category_code", "kategorie", "Kategorie", "size_category"), "")
+        class_level = str(_get_first_value(reg, ("class_level", "klasse", "Klasse", "class"), ""))
+        reg_id = _get_first_value(reg, ("registration_external_id", "registration_id", "external_id", "id"), "")
+        license_no = _get_first_value(reg, ("license_no", "license_number", "Lizenznummer", "lizenznummer"), "")
+        dog_name = _get_first_value(reg, ("dog_name", "Hundename", "dog"), "")
+        handler_full = _get_first_value(reg, ("handler_name", "Hundefuehrer"), "")
+        handler_first = _get_first_value(reg, ("handler_first_name", "firstname", "Vorname", "vorname"), "")
+        handler_last = _get_first_value(reg, ("handler_last_name", "lastname", "Nachname", "nachname"), "")
+        if handler_full and not (handler_first or handler_last):
+            parts = handler_full.split(" ", 1)
+            handler_first = parts[0]
+            handler_last = parts[1] if len(parts) > 1 else ""
+
+        handler_key = _fullname_key(handler_first, handler_last)
+        handler = handler_by_full.get(handler_key)
+        if not handler and (handler_first or handler_last):
+            handler = {
+                "id": str(uuid.uuid4()),
+                "Vorname": handler_first,
+                "Nachname": handler_last,
+                "Vereinsnummer": "",
+            }
+            handlers.append(handler)
+            handler_by_full[handler_key] = handler
+
+        if license_no:
+            dog = dog_by_license.get(license_no)
+            if not dog:
+                dog = {
+                    "Lizenznummer": license_no,
+                    "Hundename": dog_name or license_no,
+                    "Hundefuehrer_ID": handler.get("id") if handler else "",
+                    "Kategorie": category,
+                    "Klasse": class_level,
+                }
+                dogs.append(dog)
+                dog_by_license[license_no] = dog
+            _safe_update(dog, "Hundename", dog_name)
+            if handler and handler.get("id"):
+                dog["Hundefuehrer_ID"] = handler.get("id")
+            _safe_update(dog, "Kategorie", category)
+            if class_level:
+                dog["Klasse"] = str(class_level)
+
+        run_key = (discipline, category, class_level)
+        run = runs_by_key.get(run_key)
+        if not run:
+            run = {
+                "id": str(uuid.uuid4()),
+                "name": f"{discipline} {category} {class_level}".strip(),
+                "laufart": discipline,
+                "kategorie": category,
+                "klasse": class_level,
+                "entries": [],
+            }
+            runs_by_key[run_key] = run
+        entry = {
+            "Lizenznummer": license_no,
+            "Hundename": dog_name or license_no,
+            "Hundefuehrer": handler_full or f"{handler_first} {handler_last}".strip(),
+        }
+        if reg_id:
+            entry["registration_external_id"] = reg_id
+        if license_no and not any(p.get("Lizenznummer") == license_no for p in run.get("entries", [])):
+            run.setdefault("entries", []).append(entry)
+            entries_added += 1
+
+    event["runs"] = list(runs_by_key.values())
+    _sanitize_and_save_master_data(dogs, handlers)
+    return {"entries_added": entries_added, "runs_count": len(event["runs"])}
+
+
+def _apply_eventexport_start_numbers(event: dict, start_numbers_payload) -> dict:
+    entries, locked = _eventexport_start_numbers(start_numbers_payload)
+    if not entries:
+        return {"applied": 0, "duplicates": [], "missing": [], "locked": locked}
+
+    entry_by_reg_id = {}
+    entry_by_license = {}
+    for run in event.get("runs", []) or []:
+        for entry in run.get("entries", []) or []:
+            reg_id = entry.get("registration_external_id")
+            if reg_id:
+                entry_by_reg_id[str(reg_id)] = entry
+            license_no = entry.get("Lizenznummer")
+            if license_no:
+                entry_by_license[str(license_no)] = entry
+
+    seen_start_numbers = set()
+    duplicates = []
+    missing = []
+    applied = 0
+
+    for item in entries or []:
+        if not isinstance(item, dict):
+            continue
+        reg_id = _get_first_value(item, ("registration_external_id", "registration_id", "external_id", "id"), "")
+        license_no = _get_first_value(item, ("license_no", "license_number", "Lizenznummer", "lizenznummer"), "")
+        start_no = _get_first_value(item, ("start_no", "start_number", "startnummer", "Startnummer"), "")
+        if start_no == "":
+            continue
+        start_no_str = str(start_no)
+        target_entry = None
+        if reg_id and entry_by_reg_id.get(str(reg_id)):
+            target_entry = entry_by_reg_id.get(str(reg_id))
+        elif license_no and entry_by_license.get(str(license_no)):
+            target_entry = entry_by_license.get(str(license_no))
+        if not target_entry:
+            missing.append({"registration_external_id": reg_id, "license_no": license_no, "start_no": start_no_str})
+            continue
+        if start_no_str in seen_start_numbers:
+            duplicates.append({"start_no": start_no_str, "license_no": license_no, "registration_external_id": reg_id})
+            continue
+        seen_start_numbers.add(start_no_str)
+        target_entry["Startnummer"] = int(start_no) if str(start_no).isdigit() else start_no_str
+        applied += 1
+
+    if locked:
+        event["start_numbers_locked"] = True
+
+    return {"applied": applied, "duplicates": duplicates, "missing": missing, "locked": locked}
+
+
+def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -> dict:
+    blocks = _eventexport_schedule_blocks(schedule_payload)
+    if not blocks:
+        return {"blocks_added": 0}
+
+    ring_ids = [str(_get_first_value(b, ("ring", "ring_id"), "1")) for b in blocks if isinstance(b, dict)]
+    ring_ids = [r for r in ring_ids if r]
+    max_ring = max([int(r) for r in ring_ids if str(r).isdigit()] or [1])
+    event["num_rings"] = max(event.get("num_rings", 1), max_ring)
+
+    start_times_by_ring = event.get("start_times_by_ring", {}) or {}
+    for block in blocks:
+        if not isinstance(block, dict):
+            continue
+        ring_key = str(_get_first_value(block, ("ring", "ring_id"), "1"))
+        start_at = _get_first_value(block, ("start_at", "start_time"), "")
+        parsed_time = _parse_start_time(start_at)
+        if parsed_time and not start_times_by_ring.get(f"ring_{ring_key}"):
+            start_times_by_ring[f"ring_{ring_key}"] = parsed_time
+
+    schedule_data = schedule_planner.ensure_schedule_root(
+        event["id"],
+        event.get("num_rings", 1),
+        start_times_by_ring,
+        event.get("schedule"),
+    )
+
+    for block in sorted(blocks, key=lambda b: str(_get_first_value(b, ("start_at", "start_time"), ""))):
+        if not isinstance(block, dict):
+            continue
+        ring_key = str(_get_first_value(block, ("ring", "ring_id"), "1"))
+        ring_data = schedule_data.get("rings", {}).setdefault(ring_key, {"start_time": "07:30", "blocks": []})
+        discipline = _normalize_discipline(_get_first_value(block, ("discipline", "laufart"), ""))
+        category = _get_first_value(block, ("category_code", "kategorie", "Kategorie"), "")
+        class_level = str(_get_first_value(block, ("class_level", "klasse", "Klasse"), ""))
+        schedule_block = {
+            "id": schedule_planner.generate_block_id(),
+            "type": "run",
+            "title": "",
+            "run_format": "normal",
+            "timing_run_type": _normalize_timing_run_type(discipline),
+            "size_category": category,
+            "size_categories": [],
+            "classes": [class_level] if class_level else [],
+            "judge_id": "",
+            "sort": {
+                "primary": {"field": "none", "direction": "asc"},
+                "secondary": {"field": "none", "direction": "asc"},
+            },
+            "estimated": {
+                "participants_total": 0,
+                "changeover_seconds": 0,
+                "briefing_seconds": 0,
+                "prep_pause_seconds": 0,
+                "run_seconds": 0,
+                "total_seconds": 0,
+            },
+            "notes": _get_first_value(block, ("notes", "note"), ""),
+            "start_at": _get_first_value(block, ("start_at", "start_time"), ""),
+        }
+        if not schedule_block["title"]:
+            schedule_block["title"] = schedule_planner.generate_run_title(schedule_block)
+        ring_data.setdefault("blocks", []).append(schedule_block)
+
+    schedule_data = schedule_planner.ensure_run_titles(schedule_data)
+    schedule_data["meta"]["last_updated"] = datetime.utcnow().isoformat()
+    schedule_data["meta"]["updated_by"] = "import"
+    _recalculate_schedule_estimates(event, schedule_data, settings)
+    event["schedule"] = schedule_data
+    event["start_times_by_ring"] = start_times_by_ring
+    return {"blocks_added": len(blocks)}
 
 
 # =========================================
@@ -276,7 +646,102 @@ def manage_runs(event_id):
     if not event:
         return redirect(url_for('events_bp.events_list'))
     judges = _load_data(JUDGES_FILE)
-    return render_template('manage_runs.html', event=event, judges=judges)
+    run_judges = {}
+    current_runs = event.get("current_runs_by_ring") or event.get("current_run_per_ring") or {}
+    runs_view = []
+    for run in event.get('runs', []) or []:
+        run_id = run.get('id')
+        run_judges[run_id] = resolve_judge_name(event, run, judges)
+        ring_no = find_run_ring_number(event, run)
+        ring_label = f"Ring {ring_no}" if ring_no else "—"
+        is_active = bool(ring_no) and current_runs.get(str(ring_no)) == run_id
+        completed_count = len([e for e in run.get("entries", []) or [] if e.get("result")])
+        total_count = len(run.get("entries", []) or [])
+        is_completed = total_count > 0 and completed_count == total_count
+        status = "abgeschlossen" if is_completed else "geplant"
+        runs_view.append({
+            "run": run,
+            "ring_no": ring_no,
+            "ring_label": ring_label,
+            "status": status,
+            "is_active": is_active,
+            "is_completed": is_completed,
+        })
+
+    return render_template(
+        'manage_runs.html',
+        event=event,
+        judges=judges,
+        run_judges=run_judges,
+        runs_view=runs_view,
+    )
+
+
+@events_bp.route('/manage_runs/<event_id>/set_live', methods=['POST'])
+def set_live_run(event_id):
+    data = request.get_json(silent=True) or {}
+    run_id = data.get("run_id")
+    if not run_id:
+        return jsonify({"success": False, "message": "run_id fehlt"}), 400
+    events = _load_data(EVENTS_FILE)
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return jsonify({"success": False, "message": "Event nicht gefunden"}), 404
+    run = next((r for r in event.get('runs', []) or [] if r.get('id') == run_id), None)
+    if not run:
+        return jsonify({"success": False, "message": "Lauf nicht gefunden"}), 404
+
+    ring_no = find_run_ring_number(event, run)
+    if not ring_no:
+        return jsonify({"success": False, "message": "Kein Ring für diesen Lauf gefunden"}), 400
+
+    run_block = None
+    schedule = event.get("schedule") or {}
+    for ring_key, ring_data in (schedule.get("rings") or {}).items():
+        for block in ring_data.get("blocks") or []:
+            if (block.get("type") or "").lower() != "run":
+                continue
+            if schedule_planner._match_run_to_block(run, block):
+                run_block = block
+                break
+        if run_block:
+            break
+
+    current_runs = event.get("current_runs_by_ring") or {}
+    current_runs[str(ring_no)] = run_id
+    event["current_runs_by_ring"] = current_runs
+    event.setdefault("ring_entry_state", {})[str(ring_no)] = init_ring_entry_state(run.get("entries", []))
+
+    if run_block:
+        current_blocks = event.get("current_run_blocks") or {}
+        current_blocks[str(ring_no)] = {
+            "run_block_id": run_block.get("id"),
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        event["current_run_blocks"] = current_blocks
+
+    _save_data(EVENTS_FILE, events)
+
+    try:
+        ring_number = int(re.sub(r"[^0-9]", "", str(ring_no)) or ring_no)
+    except Exception:
+        ring_number = 1
+    payload = build_ring_view_model(event, ring_number)
+    payload.update({"event_id": event_id, "ring_no": ring_number, "run_id": run_id})
+    ring_room = f"event:{event_id}:ring:{ring_number}"
+    try:
+        socketio.emit('ring_run_changed', payload, room=ring_room)
+        socketio.emit('ring_run_changed', payload, room=f"event:{event_id}")
+        socketio.emit('current_run_changed', {"event_id": event_id, "ring_id": ring_number, "run_block_id": run_block.get("id") if run_block else None}, room=ring_room)
+        socketio.emit('current_run_changed', {"event_id": event_id, "ring_id": ring_number, "run_block_id": run_block.get("id") if run_block else None}, room=f"event:{event_id}")
+    except Exception:
+        pass
+
+    return jsonify({
+        "success": True,
+        "ring_no": str(ring_no),
+        "run_id": run_id,
+    })
 
 @events_bp.route('/edit_run/<event_id>/<uuid:run_id>', methods=['GET', 'POST'])
 def edit_run(event_id, run_id):
@@ -287,7 +752,10 @@ def edit_run(event_id, run_id):
     if not event or not run:
         return redirect(url_for('events_bp.events_list'))
     if request.method == 'POST':
-        run.update({'name': request.form.get('name'), 'richter_id': request.form.get('richter_id')})
+        run.update({'name': request.form.get('name')})
+        judge_id = request.form.get('judge_id') or request.form.get('richter_id')
+        run['judge_id'] = judge_id or ''
+        run['richter_id'] = run['judge_id']
         laufdaten = run.get('laufdaten', {})
         laufdaten.update({
             'parcours_laenge': request.form.get('parcours_laenge'),
@@ -299,8 +767,11 @@ def edit_run(event_id, run_id):
             laufdaten['geschwindigkeit'] = request.form.get('geschwindigkeit') if not laufdaten['sct_direkt'] else ''
         run['laufdaten'] = laufdaten
         _save_data(EVENTS_FILE, events)
+        return_url = request.form.get('return_url') or request.args.get('return_url')
+        if return_url:
+            return redirect(return_url)
         return redirect(url_for('events_bp.manage_runs', event_id=event_id))
-    return render_template('run_form.html', event=event, run=run, judges=_load_data(JUDGES_FILE))
+    return render_template('run_form.html', event=event, run=run, judges=_load_data(JUDGES_FILE), return_url=request.args.get('return_url'))
 
 # NEU: Echte Lauf-spezifische Teilnehmerverwaltung
 @events_bp.route('/manage_run_participants/<event_id>/<uuid:run_id>', methods=['GET', 'POST'])
@@ -1086,6 +1557,85 @@ def import_event_package():
             flash('Keine Datei ausgewählt.', 'warning')
             return redirect(request.url)
         try:
+            if file.filename.lower().endswith('.zip'):
+                with zipfile.ZipFile(file) as zip_file:
+                    manifest = _read_zip_json(zip_file, 'manifest.json') or {}
+                    schema = _get_first_value(manifest, ("schema", "schema_id", "version"), "")
+                    if schema != "agility.exchange.eventexport.v1":
+                        flash('manifest.json enthält kein gültiges schema für EventExport v1.', 'danger')
+                        return redirect(request.url)
+
+                    event_payload = _read_zip_json(zip_file, 'event.json') or {}
+                    entities_payload = _read_zip_json(zip_file, 'entities.json') or {}
+                    registrations_payload = _read_zip_json(zip_file, 'registrations.json') or {}
+                    start_numbers_payload = _read_zip_json(zip_file, 'start_numbers.json') or []
+                    schedule_payload = _read_zip_json(zip_file, 'schedule.json') or []
+
+                event_block = event_payload.get("event") if isinstance(event_payload, dict) else event_payload
+                event_title = _get_first_value(
+                    event_block or {},
+                    ("Bezeichnung", "name", "title", "event_name"),
+                    "Event (Importiert)"
+                )
+                event_date = _get_first_value(
+                    event_block or {},
+                    ("Datum", "date", "event_date", "start_date"),
+                    date.today().isoformat()
+                )
+
+                events = _load_data(EVENTS_FILE)
+                event = {
+                    "id": str(uuid.uuid4()),
+                    "Bezeichnung": f"{event_title} (Importiert)",
+                    "Datum": event_date,
+                    "VeranstalterClubNr": _get_first_value(event_block or {}, ("VeranstalterClubNr", "club_number", "club"), ""),
+                    "Turniernummer": _get_first_value(event_block or {}, ("Turniernummer", "event_number"), ""),
+                    "num_rings": 1,
+                    "runs": [],
+                    "run_order": [],
+                    "start_number_schema": {},
+                    "start_times_by_ring": {},
+                }
+
+                registrations = _eventexport_registration_list(registrations_payload)
+                apply_info = _apply_eventexport_registrations(event, registrations, entities_payload)
+
+                settings = _load_settings()
+                schedule_info = _apply_eventexport_schedule(event, schedule_payload, settings)
+                start_numbers_info = _apply_eventexport_start_numbers(event, start_numbers_payload)
+
+                events.append(event)
+                _save_data(EVENTS_FILE, events)
+
+                flash(f"Event '{event['Bezeichnung']}' erfolgreich importiert.", 'success')
+                if start_numbers_payload:
+                    flash(
+                        f"Startnummern importiert: {start_numbers_info['applied']} "
+                        f"(locked: {str(start_numbers_info['locked']).lower()})",
+                        "info"
+                    )
+                    if start_numbers_info["duplicates"]:
+                        flash(
+                            f"Startnummern doppelt erkannt: {len(start_numbers_info['duplicates'])}.",
+                            "warning"
+                        )
+                    if start_numbers_info["missing"]:
+                        flash(
+                            f"Startnummern ohne Zuordnung: {len(start_numbers_info['missing'])}.",
+                            "warning"
+                        )
+                if schedule_payload:
+                    flash(
+                        f"Zeitplanblöcke importiert: {schedule_info['blocks_added']}",
+                        "info"
+                    )
+                if apply_info.get("runs_count"):
+                    flash(
+                        f"Läufe importiert: {apply_info['runs_count']} (Entries: {apply_info['entries_added']}).",
+                        "info"
+                    )
+                return redirect(url_for('events_bp.events_list'))
+
             imported_event = json.load(file)
             if 'id' not in imported_event or 'Bezeichnung' not in imported_event or 'runs' not in imported_event:
                 flash('Die Datei scheint kein gültiges Event-Paket zu sein.', 'danger')
