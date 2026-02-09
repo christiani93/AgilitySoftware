@@ -150,6 +150,7 @@
         <table class="table table-striped table-hover mb-0 align-middle">
           <thead class="table-light">
           <tr>
+            <th style="width:70px;">StNr.</th>
             <th style="width: 110px;">Lizenz</th>
             <th>Hund</th>
             <th>Hundeführer</th>
@@ -158,7 +159,7 @@
           </tr>
           </thead>
           <tbody id="starter-tbody">
-            <tr><td colspan="5" class="text-center text-muted py-4">Lade …</td></tr>
+            <tr><td colspan="6" class="text-center text-muted py-4">Lade …</td></tr>
           </tbody>
         </table>
       </div>
@@ -233,11 +234,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!data.success) throw new Error(data.message || 'Fehler');
         const entries = (data.data && data.data.entries) || [];
         if (!entries.length) {
-          ui.tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Noch keine Teilnehmer in diesem Lauf.</td></tr>`;
+          ui.tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Noch keine Teilnehmer in diesem Lauf.</td></tr>`;
           return;
         }
         ui.tbody.innerHTML = entries.map(e => `
           <tr>
+            <td>${e.startnummer_offiziell || e.Startnummer_offiziell || ''}</td>
             <td><code>${e.Lizenznummer || ''}</code></td>
             <td>${e.Hundename || ''}</td>
             <td>${e.Hundefuehrer || ''}</td>
@@ -249,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
       })
       .catch(() => {
-        ui.tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Laden fehlgeschlagen.</td></tr>`;
+        ui.tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Laden fehlgeschlagen.</td></tr>`;
       });
   }
 
