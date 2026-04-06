@@ -53,7 +53,9 @@
                 <button id="activate-display-btn" class="bg-yellow-400 text-black p-2 rounded hover:bg-yellow-500 disabled:opacity-50" title="Diesen Lauf für Monitore aktivieren" disabled>
                     <i class="fas fa-bullhorn"></i>
                 </button>
-                <a id="btn-edit-run" href="#" class="bg-gray-600 text-white p-2 rounded hover:bg-gray-700 opacity-50 pointer-events-none" title="Bitte Lauf auswählen" aria-disabled="true">Lauf-Einstellungen</a>
+                <button id="btn-laufdaten" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50" title="Laufdaten bearbeiten" disabled>
+                    <i class="fas fa-sliders-h"></i>
+                </button>
             </div>
             <div id="ring-server-status" class="mt-3 text-sm text-gray-500">Verbinde mit Ring-Server...</div>
             <div id="live-info" class="mt-2 p-3 bg-gray-200 text-black rounded">
@@ -72,6 +74,61 @@
         <div class="md:col-span-2 bg-white p-4 rounded-lg shadow">
             <h2 class="text-lg font-bold mb-3 border-b pb-2">2. Starterliste & Resultate</h2>
             <div id="starter-list-container"><p class="text-gray-500">Bitte wählen Sie links einen Lauf aus.</p></div>
+        </div>
+    </div>
+</div>
+
+<!-- Laufdaten-Modal -->
+<div id="laufdaten-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden" style="z-index:1050">
+    <div class="relative top-10 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Laufdaten bearbeiten</h3>
+        <div class="space-y-3">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Richter</label>
+                <select id="ld-judge" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <option value="">— kein Richter —</option>
+                    {% for judge in judges %}
+                    <option value="{{ judge.id }}">{{ judge.lastname }}, {{ judge.firstname }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Parcourslänge (m)</label>
+                    <input type="number" step="0.1" id="ld-parcours" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="z.B. 180">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Anzahl Hindernisse</label>
+                    <input type="number" id="ld-hindernisse" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="z.B. 20">
+                </div>
+            </div>
+            <!-- SCT-Bereich: nur für Klasse 1 / Oldie -->
+            <div id="ld-sct-section" class="hidden border-t pt-3">
+                <p class="text-sm text-gray-600 mb-2">SCT-Berechnung (Klasse 1 / Oldie)</p>
+                <div class="flex gap-4 mb-2">
+                    <label class="flex items-center gap-1 text-sm">
+                        <input type="radio" name="ld-sct-method" id="ld-sct-speed" value="speed" checked>
+                        Nach Geschwindigkeit
+                    </label>
+                    <label class="flex items-center gap-1 text-sm">
+                        <input type="radio" name="ld-sct-method" id="ld-sct-direct" value="direct">
+                        Direkte Eingabe
+                    </label>
+                </div>
+                <div id="ld-speed-row">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Geschwindigkeit (m/s)</label>
+                    <input type="number" step="0.01" id="ld-geschwindigkeit" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="z.B. 3.00">
+                </div>
+                <div id="ld-direct-row" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Standardzeit direkt (s)</label>
+                    <input type="number" step="0.01" id="ld-standardzeit" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="z.B. 60.00">
+                </div>
+            </div>
+            <div id="ld-sct-result" class="hidden bg-gray-50 rounded p-2 text-sm text-gray-700"></div>
+        </div>
+        <div class="flex gap-2 mt-4">
+            <button id="ld-save-btn" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold">Speichern</button>
+            <button id="ld-cancel-btn" class="flex-1 px-4 py-2 bg-gray-200 text-black rounded-md hover:bg-gray-300">Abbrechen</button>
         </div>
     </div>
 </div>
@@ -507,6 +564,116 @@
       if (k === "f"){ e.preventDefault(); if (state.localSocket) state.localSocket.emit("increment_counter",{type:"faults", value:1}); }
       if (k === "v"){ e.preventDefault(); if (state.localSocket) state.localSocket.emit("increment_counter",{type:"refusals", value:1}); }
     });
+
+    // ---- Laufdaten-Modal ----
+    (function(){
+      const modal    = document.getElementById("laufdaten-modal");
+      const saveBtn  = document.getElementById("ld-save-btn");
+      const cancelBtn= document.getElementById("ld-cancel-btn");
+      const ldBtn    = document.getElementById("btn-laufdaten");
+      const sctSection = document.getElementById("ld-sct-section");
+      const speedRow   = document.getElementById("ld-speed-row");
+      const directRow  = document.getElementById("ld-direct-row");
+      const sctResult  = document.getElementById("ld-sct-result");
+
+      // SCT-Methode umschalten
+      document.querySelectorAll("input[name='ld-sct-method']").forEach(radio => {
+        radio.addEventListener("change", function(){
+          const isDirect = this.value === "direct";
+          speedRow.classList.toggle("hidden", isDirect);
+          directRow.classList.toggle("hidden", !isDirect);
+        });
+      });
+
+      function openModal(){
+        if (!state.currentRunId) return;
+        const url = `/events/api/get_run_details/${eventId}/${state.currentRunId}`;
+        fetch(url, {cache:"no-store"})
+          .then(r => r.ok ? r.json() : Promise.reject())
+          .then(data => {
+            if (!data.success) return;
+            const run = data.data.run || {};
+            const ld  = run.laufdaten || {};
+
+            // Richter
+            const judgeEl = document.getElementById("ld-judge");
+            if (judgeEl) judgeEl.value = run.judge_id || "";
+
+            // Parcours / Hindernisse
+            document.getElementById("ld-parcours").value    = ld.parcours_laenge      || "";
+            document.getElementById("ld-hindernisse").value = ld.anzahl_hindernisse   || "";
+
+            // SCT-Bereich nur bei Klasse 1 / Oldie
+            const klasse = String(run.klasse || "");
+            const showSct = klasse === "1" || klasse === "Oldie";
+            sctSection.classList.toggle("hidden", !showSct);
+            if (showSct){
+              const isDirect = !!ld.sct_direkt;
+              document.getElementById("ld-sct-speed").checked  = !isDirect;
+              document.getElementById("ld-sct-direct").checked = isDirect;
+              speedRow.classList.toggle("hidden", isDirect);
+              directRow.classList.toggle("hidden", !isDirect);
+              document.getElementById("ld-geschwindigkeit").value = ld.geschwindigkeit    || "";
+              document.getElementById("ld-standardzeit").value    = ld.standardzeit_sct  || "";
+            }
+
+            sctResult.classList.add("hidden");
+            modal.classList.remove("hidden");
+          })
+          .catch(() => alert("Laufdaten konnten nicht geladen werden."));
+      }
+
+      function closeModal(){ modal.classList.add("hidden"); }
+
+      function saveModal(){
+        if (!state.currentRunId) return;
+        const isDirect = document.getElementById("ld-sct-direct").checked;
+        const payload = {
+          judge_id         : document.getElementById("ld-judge").value,
+          parcours_laenge  : document.getElementById("ld-parcours").value,
+          anzahl_hindernisse: document.getElementById("ld-hindernisse").value,
+          sct_direkt       : isDirect,
+          geschwindigkeit  : document.getElementById("ld-geschwindigkeit").value,
+          standardzeit_sct : document.getElementById("ld-standardzeit").value,
+        };
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Speichern...";
+        fetch(`/live/api/update_run_laufdaten/${eventId}/${state.currentRunId}`, {
+          method : "POST",
+          headers: {"Content-Type": "application/json"},
+          body   : JSON.stringify(payload),
+        })
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(data => {
+          if (data.success){
+            sctResult.textContent = `SCT: ${data.sct ?? "—"} s  |  MCT: ${data.mct ?? "—"} s`;
+            sctResult.classList.remove("hidden");
+            setTimeout(closeModal, 1200);
+          } else {
+            alert("Fehler beim Speichern.");
+          }
+        })
+        .catch(() => alert("Netzwerkfehler beim Speichern."))
+        .finally(() => {
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Speichern";
+        });
+      }
+
+      if (ldBtn)    ldBtn.addEventListener("click", openModal);
+      if (saveBtn)  saveBtn.addEventListener("click", saveModal);
+      if (cancelBtn)cancelBtn.addEventListener("click", closeModal);
+      modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+
+      // Button ein-/ausschalten wenn Lauf gewählt
+      const origSyncEdit = syncEditRunButton;
+      syncEditRunButton = function(){
+        origSyncEdit();
+        if (ldBtn) ldBtn.disabled = !state.currentRunId;
+      };
+      // Initialzustand setzen
+      if (ldBtn) ldBtn.disabled = !state.currentRunId;
+    })();
 
     // ---- Sockets zum Schluss starten ----
     connectSockets();

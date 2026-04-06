@@ -2120,7 +2120,9 @@ def api_get_run_details(event_id, run_id):
     run_meta = {
         'laufart': run.get('laufart'),
         'kategorie': run.get('kategorie'),
-        'klasse': run.get('klasse')
+        'klasse': run.get('klasse'),
+        'judge_id': run.get('judge_id') or run.get('richter_id') or '',
+        'laufdaten': run.get('laufdaten') or {},
     }
 
     return jsonify(success=True, data={'entries': entries, 'run': run_meta})
