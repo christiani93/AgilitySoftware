@@ -17,6 +17,12 @@ if PROJECT_ROOT not in sys.path:
 
 import planner.schedule_planner as schedule_planner
 from planner.schedule_planner import upgrade_settings
+from web_app.live.ring_state import (
+    apply_result_saved,
+    apply_start_impulse,
+    build_view_model_from_state,
+    init_ring_entry_state,
+)
 
 CATEGORY_SORT_ORDER = {'Large': 0, 'Intermediate': 1, 'Medium': 2, 'Small': 3}
 
@@ -650,6 +656,46 @@ def collect_ring_numbers(event: dict):
     return sorted(rings)
 
 
+def _find_schedule_block_by_id(event: dict, block_id: str | None):
+    if not block_id:
+        return None, None
+    schedule = event.get("schedule") or {}
+    for ring_key, ring_data in (schedule.get("rings") or {}).items():
+        for block in ring_data.get("blocks") or []:
+            if block.get("id") == block_id:
+                return block, ring_key
+    return None, None
+
+
+def _get_current_runs_by_ring(event: dict):
+    current = event.get("current_runs_by_ring")
+    if isinstance(current, dict) and current:
+        return {str(k): v for k, v in current.items()}
+    current = event.get("current_run_per_ring")
+    if isinstance(current, dict) and current:
+        return {str(k): v for k, v in current.items()}
+    return {}
+
+
+def _get_ring_entry_state(event: dict, ring_number: int):
+    state = event.get("ring_entry_state") or {}
+    return (state.get(str(ring_number)) or {}).copy()
+
+
+def find_run_ring_number(event: dict, run: dict):
+    schedule = event.get("schedule") or {}
+    for ring_key, ring_data in (schedule.get("rings") or {}).items():
+        for block in ring_data.get("blocks") or []:
+            if (block.get("type") or "").lower() != "run":
+                continue
+            if schedule_planner._match_run_to_block(run, block):
+                digits = re.sub(r"[^0-9]", "", str(ring_key))
+                return digits or str(ring_key)
+    assigned = run.get("assigned_ring") or run.get("ring") or run.get("ring_id") or run.get("ringName")
+    digits = re.sub(r"[^0-9]", "", str(assigned or ""))
+    return digits or None
+
+
 def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_ranking=10, max_last_results=3):
     ring_label = _ring_label_for_display(ring_number)
     view = {
@@ -665,29 +711,26 @@ def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_r
     if not event:
         return view
 
-    state = _load_live_state()
-    evt_id = event.get("id") or event.get("event_id") or ""
-    active = None
-    for key in _ring_state_keys(ring_number):
-        active = (state.get(evt_id, {}) or {}).get(key)
-        if active:
-            break
+    current_runs = _get_current_runs_by_ring(event)
+    run_id = current_runs.get(str(ring_number)) or current_runs.get(int(ring_number))
+    current_blocks = event.get("current_run_blocks") or {}
+    block_entry = current_blocks.get(str(ring_number)) or current_blocks.get(int(ring_number))
+    run_block_id = None
+    if isinstance(block_entry, dict):
+        run_block_id = block_entry.get("run_block_id") or block_entry.get("id")
+    elif isinstance(block_entry, str):
+        run_block_id = block_entry
 
     run = None
     run_block = None
-    if active:
-        run_id = active.get("run_id")
-        if run_id:
-            run = next((r for r in event.get("runs", []) if r.get("id") == run_id), None)
-        run_block_id = active.get("run_block_id")
-        if run_block_id:
-            schedule = event.get("schedule") or {}
-            for ring_data in (schedule.get("rings") or {}).values():
-                for block in ring_data.get("blocks") or []:
-                    if block.get("id") == run_block_id:
-                        run_block = block
-                        break
-                if run_block:
+    if run_id:
+        run = next((r for r in event.get("runs", []) if r.get("id") == run_id), None)
+    if run_block_id and not run_block:
+        run_block, _ = _find_schedule_block_by_id(event, run_block_id)
+        if run_block and not run:
+            for candidate in event.get("runs", []) or []:
+                if schedule_planner._match_run_to_block(candidate, run_block):
+                    run = candidate
                     break
 
     if not run:
@@ -736,17 +779,42 @@ def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_r
     results = _calculate_run_results(run, settings)
     ranking = [r for r in results if r.get("platz")]
     ranking.sort(key=lambda r: _to_int(r.get("platz"), default=999999))
-    view["ranking"] = ranking[:max_ranking]
+    view["ranking"] = [
+        dict(r, name=format_ring_name(r))
+        for r in ranking[:max_ranking]
+    ]
 
     last_results = sorted(
         [res for res in results if res.get("platz")],
         key=lambda x: x.get("timestamp", 0),
         reverse=True,
     )[:max_last_results]
-    view["last_results"] = last_results
+    view["last_results"] = [
+        dict(res, name=format_ring_name(res))
+        for res in last_results
+    ]
 
-    view["current_starter"] = run.get("current_starter") or {}
-    view["next_starter"] = run.get("next_starter") or {}
+    ring_state = _get_ring_entry_state(event, ring_number)
+    if not ring_state:
+        ring_state = init_ring_entry_state(entries_sorted)
+
+    view_state = build_view_model_from_state(
+        ring_state,
+        entries_sorted[:max_startlist],
+        run_meta=view["current_run"],
+        ranking_top=view["ranking"],
+        last_results=view["last_results"],
+    )
+
+    view["run_meta"] = view_state.get("run_meta") or {}
+    view["current"] = view_state.get("current") or {}
+    view["ready"] = view_state.get("ready") or {}
+    view["startlist_next"] = view_state.get("startlist_next") or []
+    view["ranking_top"] = view_state.get("ranking_top") or []
+    view["last_results"] = view_state.get("last_results") or []
+
+    view["current_starter"] = view.get("current") or {}
+    view["next_starter"] = view.get("ready") or {}
 
     return view
 

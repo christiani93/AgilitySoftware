@@ -267,6 +267,7 @@
         }
       });
 
+      let lastStarterId = null;
       state.localSocket.on("state_update", (serverState) => {
         if (ui.info.status)   ui.info.status.textContent  = serverState.run_status || "idle";
         if (ui.info.starter)  ui.info.starter.textContent = (serverState.current_starter && serverState.current_starter.Startnummer) ? ("#" + serverState.current_starter.Startnummer) : "-";
@@ -277,6 +278,20 @@
         if (serverState.current_starter){
           const el = document.getElementById("starter-" + serverState.current_starter.Lizenznummer);
           if (el) el.classList.add(serverState.run_status === "ready" ? "starter-ready" : "starter-running");
+        }
+
+        const currentStarterId = serverState.current_starter ? serverState.current_starter.Lizenznummer : null;
+        if (currentStarterId !== lastStarterId && state.currentRunId){
+          lastStarterId = currentStarterId;
+          fetch("/live/api/ring_starter_changed", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({
+              event_id: eventId,
+              ring_no: ringNumber,
+              run_id: state.currentRunId
+            })
+          }).catch(()=>{});
         }
       });
 
@@ -298,6 +313,24 @@
 
       state.mainSocket.on("result_update", (data) => {
         if (data.run_id === state.currentRunId) fetchRunDetails();
+      });
+
+      state.mainSocket.on("ring_run_changed", (data) => {
+        if (!data || data.event_id !== eventId) return;
+        if (Number(data.ring_no) !== Number(ringNumber)) return;
+        if (!data.run_id || data.run_id === state.currentRunId) return;
+        if (ui.runSelect) {
+          const opt = Array.from(ui.runSelect.options).find(o => o.value === data.run_id);
+          if (opt) {
+            ui.runSelect.value = data.run_id;
+            state.currentRunId = data.run_id;
+            if (ui.activateBtn) ui.activateBtn.disabled = !state.currentRunId;
+            syncEditRunButton();
+            const bannerSel = document.getElementById("ring-selected");
+            if (bannerSel) bannerSel.textContent = opt.textContent || opt.label || "Ausgewählt";
+            fetchRunDetails();
+          }
+        }
       });
     }
 
@@ -503,6 +536,7 @@
         ui.editRunBtn.setAttribute("title","Lauf-Einstellungen öffnen");
         ui.editRunBtn.classList.remove("opacity-50");
         ui.editRunBtn.classList.remove("pointer-events-none");
+        ui.editRunBtn.style.pointerEvents = "auto";
         console.log("edit-run-btn", "event_id", eventId, "run_id", state.currentRunId, "href", href);
       } else {
         ui.editRunBtn.href = "#";
@@ -510,6 +544,7 @@
         ui.editRunBtn.setAttribute("title","Bitte Lauf auswählen");
         ui.editRunBtn.classList.add("opacity-50");
         ui.editRunBtn.classList.add("pointer-events-none");
+        ui.editRunBtn.style.pointerEvents = "none";
         console.log("edit-run-btn", "event_id", eventId, "run_id", null, "href", "#");
       }
     }
