@@ -14,6 +14,7 @@ from utils import (_load_data, _save_data, _get_active_event,
                    build_ring_view_model, collect_ring_numbers, format_ring_name,
                    _format_time, _format_total_errors, get_ring_state)
 import planner.schedule_planner as schedule_planner
+from web_app.live.ring_state import apply_start_impulse, apply_result_saved, init_ring_entry_state
 
 live_bp = Blueprint('live_bp', __name__, template_folder='../templates')
 
@@ -122,7 +123,7 @@ def _find_run_block_for_run(event, run, ring_key: str | None = None):
     return None, None
 
 
-def _persist_current_run(events, event_id, ring_key, run_block_id):
+def _persist_current_run(events, event_id, ring_key, run_block_id, run_id=None):
     updated = False
     for event in events:
         if event.get("id") != event_id:
@@ -133,9 +134,46 @@ def _persist_current_run(events, event_id, ring_key, run_block_id):
             "updated_at": datetime.utcnow().isoformat(),
         }
         event["current_run_blocks"] = current
+        if run_id:
+            current_runs = event.get("current_runs_by_ring") or {}
+            current_runs[str(ring_key)] = run_id
+            event["current_runs_by_ring"] = current_runs
         updated = True
         break
     return updated
+
+
+def _infer_ring_number(event, run, fallback=1):
+    run_block, ring_key = _find_run_block_for_run(event, run)
+    if ring_key:
+        try:
+            return int(re.sub(r"[^0-9]", "", str(ring_key)))
+        except Exception:
+            pass
+    assigned_ring = run.get('assigned_ring') or run.get('ring') or run.get('ring_id') or run.get('ringName')
+    digits = re.sub(r"[^0-9]", "", str(assigned_ring or ""))
+    if digits:
+        try:
+            return int(digits)
+        except Exception:
+            pass
+    return fallback
+
+
+def _build_ring_payload(event, ring_number):
+    view = build_ring_view_model(event, ring_number)
+    current_run = view.get("current_run") or {}
+    payload = {
+        "ring_no": ring_number,
+        "run_id": current_run.get("id"),
+        "run_meta": view.get("run_meta") or current_run,
+        "current": view.get("current") or {},
+        "ready": view.get("ready") or {},
+        "startlist_next": view.get("startlist_next") or view.get("startlist") or [],
+        "ranking_top": view.get("ranking_top") or view.get("ranking") or [],
+        "last_results": view.get("last_results") or [],
+    }
+    return payload
 
 
 # --- END FIXED HEADER ---
@@ -353,7 +391,8 @@ def announcer_dashboard(event_id):
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     ring_numbers = collect_ring_numbers(event)
-    return render_template('announcer_dashboard.html', event=event, ring_numbers=ring_numbers, kiosk_mode=True)
+    ring_views = {ring_no: build_ring_view_model(event, ring_no) for ring_no in ring_numbers}
+    return render_template('announcer_dashboard.html', event=event, ring_numbers=ring_numbers, ring_views=ring_views, kiosk_mode=True)
 @live_bp.route('/live/set_active_announcer_run/<event_id>/<uuid:run_id>')
 def set_active_announcer_run(event_id, run_id):
     # Setzt den aktiven Lauf für Sprecher/Monitore.
@@ -409,7 +448,13 @@ def set_active_announcer_run(event_id, run_id):
     state[evt_id] = by_event
     _save_live_state(state)
     events = _load_data('events.json')
-    if _persist_current_run(events, evt_id, ring_key, run_block.get('id') if run_block else None):
+    if _persist_current_run(events, evt_id, ring_key, run_block.get('id') if run_block else None, run.get('id')):
+        for evt in events:
+            if evt.get("id") != evt_id:
+                continue
+            evt.setdefault("current_runs_by_ring", {})[str(ring_key)] = run.get("id")
+            evt.setdefault("ring_entry_state", {})[str(ring_key)] = init_ring_entry_state(run.get("entries", []))
+            break
         _save_data('events.json', events)
 
     # Echtzeit-Update
@@ -419,6 +464,10 @@ def set_active_announcer_run(event_id, run_id):
         socketio.emit('announcer_update', {'event_id': evt_id, 'ring_name': ring_label}, room=ring_room)
         socketio.emit('current_run_changed', {'event_id': evt_id, 'ring_id': ring_key, 'run_block_id': run_block.get('id') if run_block else None}, room=ring_room)
         socketio.emit('current_run_changed', {'event_id': evt_id, 'ring_id': ring_key, 'run_block_id': run_block.get('id') if run_block else None}, room=f"event:{evt_id}")
+        payload = _build_ring_payload(event, int(ring_key))
+        payload.update({"event_id": evt_id})
+        socketio.emit('ring_run_changed', payload, room=ring_room)
+        socketio.emit('ring_run_changed', payload, room=f"event:{evt_id}")
     except Exception:
         pass
 
@@ -429,11 +478,48 @@ def set_active_announcer_run(event_id, run_id):
         return redirect(url_for('live_bp.ring_pc_dashboard', ring_number=int(ring_key)))
     return redirect(url_for('live_bp.live_run_entry', event_id=event_id, run_id=run_id))
 
+
+@live_bp.route('/live/api/ring_starter_changed', methods=['POST'])
+def ring_starter_changed():
+    data = request.get_json(silent=True) or {}
+    event_id = data.get("event_id")
+    ring_no = data.get("ring_no")
+    if not event_id or not ring_no:
+        return jsonify({"success": False, "message": "event_id oder ring_no fehlt"}), 400
+    events = _load_data('events.json')
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return jsonify({"success": False, "message": "Event nicht gefunden"}), 404
+    try:
+        ring_no = int(ring_no)
+    except Exception:
+        ring_no = 1
+    run_id = data.get("run_id")
+    if not run_id:
+        current_runs = event.get("current_runs_by_ring") or {}
+        run_id = current_runs.get(str(ring_no))
+    run = next((r for r in event.get("runs", []) or [] if r.get("id") == run_id), None)
+    if run:
+        ring_state = event.get("ring_entry_state") or {}
+        ring_state[str(ring_no)] = apply_start_impulse(ring_state.get(str(ring_no)) or {}, run.get("entries", []))
+        event["ring_entry_state"] = ring_state
+        _save_data("events.json", events)
+    payload = _build_ring_payload(event, ring_no)
+    payload.update({"event_id": event_id})
+    try:
+        ring_room = f"event:{event_id}:ring:{ring_no}"
+        socketio.emit('ring_ready_changed', payload, room=ring_room)
+        socketio.emit('ring_ready_changed', payload, room=f"event:{event_id}")
+    except Exception:
+        pass
+    return jsonify({"success": True})
+
 @live_bp.route('/ring_monitor/<int:ring_number>')
 def display_ring_monitor(ring_number):
     event = _get_active_event()
     if not event: return "Kein aktives Event."
-    return render_template('ring_monitor.html', event=event, ring_name=f"Ring {ring_number}", kiosk_mode=True)
+    view_model = build_ring_view_model(event, ring_number)
+    return render_template('ring_monitor.html', event=event, ring_name=f"Ring {ring_number}", view_model=view_model, kiosk_mode=True)
 
 @live_bp.route('/ring_pc_dashboard/<int:ring_number>')
 def ring_pc_dashboard(ring_number):
@@ -463,12 +549,8 @@ def ring_pc_dashboard(ring_number):
                 runs_for_ring.append(r)
     selected_run_id = request.args.get("run_id")
     if not selected_run_id:
-        state = _load_live_state()
-        evt_id = event.get('id') or event.get('event_id') or ''
-        ring_label = f"Ring {ring_number}"
-        active = (state.get(evt_id, {}) or {}).get(ring_label)
-        if active:
-            selected_run_id = active.get("run_id")
+        current_runs = event.get("current_runs_by_ring") or event.get("current_run_per_ring") or {}
+        selected_run_id = current_runs.get(str(ring_number))
     if not selected_run_id:
         ring_key = str(ring_number)
         ring_data = (schedule.get("rings") or {}).get(ring_key) or {}
