@@ -320,27 +320,37 @@ def save_result(event_id, run_id):
             'disqualifikation': disq
         }
         entry['timestamp'] = datetime.now().isoformat()
-        ring_no = _infer_ring_number(event, run)
-        ring_state = event.get("ring_entry_state") or {}
-        ring_state[str(ring_no)] = apply_result_saved(
-            ring_state.get(str(ring_no)) or {},
-            run.get("entries", []),
-            license_nr,
+
+        # Bug 3 Fix: current_starter / next_starter beim Speichern weiterrücken
+        entries_sorted = sorted(
+            run.get('entries', []),
+            key=lambda e: _to_int(e.get('Startnummer'), default=999999)
         )
-        event["ring_entry_state"] = ring_state
+        unfinished = [
+            e for e in entries_sorted
+            if not (e.get('result') and (e['result'].get('zeit') or e['result'].get('disqualifikation')))
+        ]
+        run['current_starter'] = unfinished[0] if unfinished else {}
+        run['next_starter'] = unfinished[1] if len(unfinished) > 1 else {}
+
         _save_data('events.json', events)
 
         # Realtime Updates
         try:
+            ring_num_raw = run.get('assigned_ring')
+            ring_num = re.sub(r"[^0-9]", "", str(ring_num_raw or "")) or "1"
+            ring_label = f"Ring {ring_num}"
+            announcer_payload = {'event_id': event_id, 'ring_name': ring_label}
             socketio.emit('result_update', {'run_id': run_id, 'license_nr': license_nr, 'result': entry['result']})
-            payload = _build_ring_payload(event, ring_no)
-            payload.update({
-                "event_id": event_id,
-                "entry_id": license_nr,
-            })
-            ring_room = f"event:{event_id}:ring:{ring_no}"
-            socketio.emit('ring_result_saved', payload, room=ring_room)
-            socketio.emit('ring_result_saved', payload, room=f"event:{event_id}")
+            # Bug 1+2 Fix: in Ring-Room UND Event-Room emittieren (statt globalem Broadcast ohne Room)
+            socketio.emit('announcer_update', announcer_payload, room=f"event:{event_id}:ring:{ring_num}")
+            socketio.emit('announcer_update', announcer_payload, room=f"event:{event_id}")
+            socketio.emit('current_run_changed', {
+                'event_id': event_id, 'ring_id': ring_num, 'run_block_id': None
+            }, room=f"event:{event_id}:ring:{ring_num}")
+            socketio.emit('current_run_changed', {
+                'event_id': event_id, 'ring_id': ring_num, 'run_block_id': None
+            }, room=f"event:{event_id}")
         except Exception:
             pass
 
