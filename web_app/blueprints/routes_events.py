@@ -18,7 +18,7 @@ from utils import (
     _load_data, _save_data, _decode_csv_file, _get_active_event_id,
     _get_concrete_run_list, _place_entries_with_distance,
     _load_settings, _calculate_timelines, get_category_sort_key, _recalculate_schedule_estimates,
-    resolve_judge_name, find_run_ring_number, build_ring_view_model
+    resolve_judge_name, _calculate_run_results
 )
 from web_app.live.ring_state import init_ring_entry_state
 import planner.schedule_planner as schedule_planner
@@ -1224,26 +1224,42 @@ def set_live_run(event_id):
 
     _save_data(EVENTS_FILE, events)
 
-    try:
-        ring_number = int(re.sub(r"[^0-9]", "", str(ring_no)) or ring_no)
-    except Exception:
-        ring_number = 1
-    payload = build_ring_view_model(event, ring_number)
-    payload.update({"event_id": event_id, "ring_no": ring_number, "run_id": run_id})
-    ring_room = f"event:{event_id}:ring:{ring_number}"
-    try:
-        socketio.emit('ring_run_changed', payload, room=ring_room)
-        socketio.emit('ring_run_changed', payload, room=f"event:{event_id}")
-        socketio.emit('current_run_changed', {"event_id": event_id, "ring_id": ring_number, "run_block_id": run_block.get("id") if run_block else None}, room=ring_room)
-        socketio.emit('current_run_changed', {"event_id": event_id, "ring_id": ring_number, "run_block_id": run_block.get("id") if run_block else None}, room=f"event:{event_id}")
-    except Exception:
-        pass
+    # Runs nach Ring gruppieren (Schedule-Blöcke bevorzugt, Fallback assigned_ring)
+    import re as _re
+    num_rings = event.get('num_rings', 1)
+    ring_runs = {str(i): [] for i in range(1, num_rings + 1)}
+    unassigned = []
+    schedule = event.get('schedule') or {}
+    schedule_rings = schedule.get('rings') or {}
+    placed_run_ids = set()
+    for ring_key, ring_data in schedule_rings.items():
+        digits = _re.sub(r'[^0-9]', '', str(ring_key)) or '1'
+        bucket = ring_runs.setdefault(digits, [])
+        for block in (ring_data.get('blocks') or []):
+            if (block.get('type') or '').lower() != 'run':
+                continue
+            import planner.schedule_planner as _sp
+            for run in event.get('runs', []) or []:
+                if run.get('id') in placed_run_ids:
+                    continue
+                if _sp._match_run_to_block(run, block):
+                    bucket.append(run)
+                    placed_run_ids.add(run.get('id'))
+                    break
+    for run in event.get('runs', []) or []:
+        if run.get('id') in placed_run_ids:
+            continue
+        raw = run.get('assigned_ring') or run.get('ring') or run.get('ring_id') or ''
+        digits = _re.sub(r'[^0-9]', '', str(raw))
+        if digits:
+            ring_runs.setdefault(digits, []).append(run)
+        else:
+            unassigned.append(run)
 
-    return jsonify({
-        "success": True,
-        "ring_no": str(ring_no),
-        "run_id": run_id,
-    })
+    is_active = (_get_active_event_id() == event_id)
+
+    return render_template('manage_runs.html', event=event, judges=judges, run_judges=run_judges,
+                           ring_runs=ring_runs, unassigned=unassigned, is_active=is_active)
 
 @events_bp.route('/edit_run/<event_id>/<uuid:run_id>', methods=['GET', 'POST'])
 def edit_run(event_id, run_id):
@@ -1268,6 +1284,8 @@ def edit_run(event_id, run_id):
             laufdaten['standardzeit_sct'] = request.form.get('standardzeit_sct') if laufdaten['sct_direkt'] else ''
             laufdaten['geschwindigkeit'] = request.form.get('geschwindigkeit') if not laufdaten['sct_direkt'] else ''
         run['laufdaten'] = laufdaten
+        # Bug 3 Fix: SCT/MCT nach Änderung sofort berechnen und persistieren
+        _calculate_run_results(run, _load_settings())
         _save_data(EVENTS_FILE, events)
         return_url = request.form.get('return_url') or request.args.get('return_url')
         if return_url:
@@ -2214,7 +2232,9 @@ def api_get_run_details(event_id, run_id):
     run_meta = {
         'laufart': run.get('laufart'),
         'kategorie': run.get('kategorie'),
-        'klasse': run.get('klasse')
+        'klasse': run.get('klasse'),
+        'judge_id': run.get('judge_id') or run.get('richter_id') or '',
+        'laufdaten': run.get('laufdaten') or {},
     }
 
     return jsonify(success=True, data={'entries': entries, 'run': run_meta})

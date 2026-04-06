@@ -573,6 +573,7 @@ def ring_pc_dashboard(ring_number):
         ring_name=ring_name,
         runs=runs_for_ring,
         selected_run_id=selected_run_id,
+        judges=_load_data('judges.json'),
     )
 
 @live_bp.route('/api/render_announcer_schedule/<event_id>')
@@ -810,3 +811,105 @@ def render_ring_monitor_content(ring_number: int):
     ])
 
     return Response(''.join(parts), mimetype='text/html')
+
+
+@live_bp.route('/api/update_run_laufdaten/<event_id>/<uuid:run_id>', methods=['POST'])
+def api_update_run_laufdaten(event_id, run_id):
+    """Aktualisiert Laufdaten (Parcours, Richter, SCT) direkt vom Ring-PC-Dashboard."""
+    run_id = str(run_id)
+    data = request.get_json(force=True, silent=True) or {}
+    events = _load_data('events.json')
+    event = next((e for e in events if e.get('id') == event_id), None)
+    run = next((r for r in (event.get('runs', []) if event else []) if r.get('id') == run_id), None)
+    if not event or not run:
+        return jsonify({'success': False, 'message': 'Event oder Lauf nicht gefunden.'}), 404
+
+    laufdaten = run.get('laufdaten', {})
+
+    raw_laenge = data.get('parcours_laenge')
+    if raw_laenge not in (None, ''):
+        laufdaten['parcours_laenge'] = raw_laenge
+
+    raw_hind = data.get('anzahl_hindernisse')
+    if raw_hind not in (None, ''):
+        laufdaten['anzahl_hindernisse'] = raw_hind
+
+    if run.get('klasse') in ['1', 'Oldie']:
+        laufdaten['sct_direkt'] = bool(data.get('sct_direkt', False))
+        if laufdaten['sct_direkt']:
+            laufdaten['standardzeit_sct'] = data.get('standardzeit_sct', '')
+            laufdaten['geschwindigkeit'] = ''
+        else:
+            laufdaten['geschwindigkeit'] = data.get('geschwindigkeit', '')
+            laufdaten['standardzeit_sct'] = ''
+
+    judge_id = data.get('judge_id') or ''
+    run['judge_id'] = judge_id
+    run['richter_id'] = judge_id
+    run['laufdaten'] = laufdaten
+
+    # SCT/MCT neu berechnen
+    settings = _load_settings()
+    _calculate_run_results(run, settings)
+
+    _save_data('events.json', events)
+
+    # Monitore aktualisieren
+    try:
+        ring_num = re.sub(r"[^0-9]", "", str(run.get('assigned_ring') or "")) or "1"
+        ring_label = f"Ring {ring_num}"
+        payload = {'event_id': event_id, 'ring_name': ring_label}
+        socketio.emit('announcer_update', payload, room=f"event:{event_id}:ring:{ring_num}")
+        socketio.emit('announcer_update', payload, room=f"event:{event_id}")
+    except Exception:
+        pass
+
+    updated_laufdaten = run.get('laufdaten', {})
+    return jsonify({
+        'success': True,
+        'sct': updated_laufdaten.get('standardzeit_sct_gerundet') or updated_laufdaten.get('standardzeit_sct_berechnet'),
+        'mct': updated_laufdaten.get('maximalzeit_mct_gerundet') or updated_laufdaten.get('maximalzeit_mct_berechnet'),
+    })
+
+
+@live_bp.route('/api/set_participant_status/<event_id>/<uuid:run_id>', methods=['POST'])
+def api_set_participant_status(event_id, run_id):
+    """Setzt den Status eines Teilnehmers (DNS = nicht gestartet, a.K. = ausser Konkurrenz)."""
+    run_id = str(run_id)
+    data = request.get_json(force=True, silent=True) or {}
+    license_nr = data.get('license_number')
+    status = data.get('status', '')
+
+    events = _load_data('events.json')
+    event = next((e for e in events if e.get('id') == event_id), None)
+    run = next((r for r in (event.get('runs', []) if event else []) if r.get('id') == run_id), None)
+    if not event or not run or not license_nr:
+        return jsonify({'success': False, 'message': 'Event, Lauf oder Lizenznummer fehlt.'}), 404
+
+    entry = next((e for e in run.get('entries', []) if e.get('Lizenznummer') == license_nr), None)
+    if not entry:
+        return jsonify({'success': False, 'message': 'Teilnehmer nicht gefunden.'}), 404
+
+    if status == 'DNS':
+        # Nicht gestartet: als Ergebnis speichern (wird in Rangliste als DNS gewertet)
+        entry['result'] = {'zeit': None, 'fehler': 0, 'verweigerungen': 0, 'disqualifikation': 'DNS'}
+        entry['timestamp'] = datetime.now().isoformat()
+    elif status == 'a.K.':
+        # Ausser Konkurrenz: kein Ergebnis, nur Vermerk
+        entry['status_vermerk'] = 'a.K.'
+    else:
+        return jsonify({'success': False, 'message': f'Unbekannter Status: {status}'}), 400
+
+    _save_data('events.json', events)
+
+    try:
+        ring_num = re.sub(r"[^0-9]", "", str(run.get('assigned_ring') or "")) or "1"
+        socketio.emit('result_update', {'run_id': run_id, 'license_nr': license_nr, 'status': status})
+        socketio.emit('announcer_update', {'event_id': event_id, 'ring_name': f"Ring {ring_num}"},
+                      room=f"event:{event_id}:ring:{ring_num}")
+        socketio.emit('announcer_update', {'event_id': event_id, 'ring_name': f"Ring {ring_num}"},
+                      room=f"event:{event_id}")
+    except Exception:
+        pass
+
+    return jsonify({'success': True})
