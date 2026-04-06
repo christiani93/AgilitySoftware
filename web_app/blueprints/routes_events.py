@@ -1149,33 +1149,27 @@ def manage_runs(event_id):
         return redirect(url_for('events_bp.events_list'))
     judges = _load_data(JUDGES_FILE)
     run_judges = {}
-    current_runs = event.get("current_runs_by_ring") or event.get("current_run_per_ring") or {}
-    runs_view = []
+    active_event_id = _get_active_event_id()
+    is_active = active_event_id == event_id
+    ring_runs = {}
+    unassigned = []
     for run in event.get('runs', []) or []:
         run_id = run.get('id')
         run_judges[run_id] = resolve_judge_name(event, run, judges)
         ring_no = find_run_ring_number(event, run)
-        ring_label = f"Ring {ring_no}" if ring_no else "—"
-        is_active = bool(ring_no) and current_runs.get(str(ring_no)) == run_id
-        completed_count = len([e for e in run.get("entries", []) or [] if e.get("result")])
-        total_count = len(run.get("entries", []) or [])
-        is_completed = total_count > 0 and completed_count == total_count
-        status = "abgeschlossen" if is_completed else "geplant"
-        runs_view.append({
-            "run": run,
-            "ring_no": ring_no,
-            "ring_label": ring_label,
-            "status": status,
-            "is_active": is_active,
-            "is_completed": is_completed,
-        })
+        if ring_no:
+            ring_runs.setdefault(ring_no, []).append(run)
+        else:
+            unassigned.append(run)
 
     return render_template(
         'manage_runs.html',
         event=event,
         judges=judges,
         run_judges=run_judges,
-        runs_view=runs_view,
+        ring_runs=ring_runs,
+        unassigned=unassigned,
+        is_active=is_active,
     )
 
 
