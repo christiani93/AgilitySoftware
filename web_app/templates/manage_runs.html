@@ -19,32 +19,94 @@
     <a href="{{ url_for('events_bp.export_event_package', event_id=event.id) }}" class="btn btn-outline-dark"><i class="fas fa-file-export me-2"></i>Event-Paket exportieren</a>
     <a href="{{ url_for('print_bp.tkamo_export', event_id=event.id) }}" class="btn btn-outline-secondary"><i class="fas fa-file-download me-2"></i>TKAMO Export</a>
     <a href="{{ url_for('debug_bp.generate_test_results', event_id=event.id) }}" class="btn btn-warning" onclick="return confirm('Achtung: Dies überschreibt alle bestehenden Resultate für dieses Event. Fortfahren?');"><i class="fas fa-magic me-2"></i>Test-Resultate generieren</a>
-    <a href="{{ url_for('live_bp.live_event_dashboard') }}" class="btn btn-danger"><i class="fas fa-play-circle me-2"></i>Live-Modus starten</a>
+
+    {# Bug 2 Fix: Live-Setzen direkt aus manage_runs #}
+    {% if is_active %}
+    <a href="{{ url_for('live_bp.live_event_dashboard') }}" class="btn btn-danger">
+        <i class="fas fa-play-circle me-2"></i>Live-Dashboard öffnen
+        <span class="badge bg-light text-danger ms-1">AKTIV</span>
+    </a>
+    <a href="{{ url_for('events_bp.clear_active_event') }}" class="btn btn-outline-danger">
+        <i class="fas fa-stop-circle me-2"></i>Live beenden
+    </a>
+    {% else %}
+    <a href="{{ url_for('events_bp.set_active_event', event_id=event.id) }}" class="btn btn-danger">
+        <i class="fas fa-play-circle me-2"></i>Als Live setzen &amp; starten
+    </a>
+    {% endif %}
 </div>
 
+{# Bug 1 Fix: Runs nach Ring gruppiert anzeigen #}
+{% set sorted_ring_keys = ring_runs.keys()|list|sort(attribute='__int__', default=0) %}
+{% for ring_key in ring_runs.keys()|list|sort %}
+{% set runs_in_ring = ring_runs[ring_key] %}
+{% if runs_in_ring %}
+<h4 class="mt-4 mb-3 border-bottom pb-2">
+    <i class="fas fa-circle text-primary me-2" style="font-size:.7rem;vertical-align:middle"></i>
+    Ring {{ ring_key }}
+    <span class="badge bg-secondary ms-2">{{ runs_in_ring|length }} Läufe</span>
+</h4>
 <div class="row">
-    {% for run in event.runs|sort(attribute='name') %}
-    <div class="col-md-6 col-lg-4 mb-4">
+    {% for run in runs_in_ring %}
+    <div class="col-md-6 col-lg-4 mb-3">
         <div class="card shadow-sm h-100">
             <div class="card-body">
-                <h5 class="card-title">{{ run.name }}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">
-                    Richter: {{ run_judges.get(run.id) or '— kein Richter —' }} | Ring: {{ run.assigned_ring or 'N/A' }}
-                </h6>
-                <p class="card-text">
+                <h5 class="card-title mb-1">{{ run.name }}</h5>
+                <div class="text-muted small mb-2">
+                    <i class="fas fa-gavel me-1"></i>{{ run_judges.get(run.id) or '— kein Richter —' }}
+                </div>
+                <p class="card-text mb-2">
                     <span class="badge rounded-pill bg-primary">{{ run.entries|length }} Teilnehmer</span>
+                    {% if run.laufdaten and run.laufdaten.parcours_laenge %}
+                    <span class="badge rounded-pill bg-light text-dark border">{{ run.laufdaten.parcours_laenge }}m</span>
+                    {% endif %}
                 </p>
-                <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-info text-white" target="_blank"><i class="fas fa-trophy me-2"></i>Rangliste</a>
-                <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-dark"><i class="fas fa-users me-2"></i>Teilnehmer</a>
-                <a href="{{ url_for('events_bp.edit_run', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-edit me-2"></i>Laufdaten</a>
+                <div class="d-flex flex-wrap gap-1">
+                    <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-info text-white" target="_blank"><i class="fas fa-trophy me-1"></i>Rangliste</a>
+                    <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-dark"><i class="fas fa-users me-1"></i>Teilnehmer</a>
+                    <a href="{{ url_for('events_bp.edit_run', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-edit me-1"></i>Laufdaten</a>
+                </div>
             </div>
         </div>
     </div>
-    {% else %}
-    <div class="col-12">
-        <p class="text-muted">Für diese Veranstaltung wurden noch keine Läufe erstellt.</p>
+    {% endfor %}
+</div>
+{% endif %}
+{% endfor %}
+
+{% if unassigned %}
+<h4 class="mt-4 mb-3 border-bottom pb-2 text-muted">
+    <i class="fas fa-question-circle me-2"></i>Ohne Ringzuweisung
+    <span class="badge bg-secondary ms-2">{{ unassigned|length }}</span>
+</h4>
+<div class="row">
+    {% for run in unassigned %}
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card shadow-sm h-100 border-warning">
+            <div class="card-body">
+                <h5 class="card-title mb-1">{{ run.name }}</h5>
+                <div class="text-muted small mb-2">
+                    <i class="fas fa-gavel me-1"></i>{{ run_judges.get(run.id) or '— kein Richter —' }}
+                </div>
+                <p class="card-text mb-2">
+                    <span class="badge rounded-pill bg-primary">{{ run.entries|length }} Teilnehmer</span>
+                </p>
+                <div class="d-flex flex-wrap gap-1">
+                    <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-info text-white" target="_blank"><i class="fas fa-trophy me-1"></i>Rangliste</a>
+                    <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-dark"><i class="fas fa-users me-1"></i>Teilnehmer</a>
+                    <a href="{{ url_for('events_bp.edit_run', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-edit me-1"></i>Laufdaten</a>
+                </div>
+            </div>
+        </div>
     </div>
     {% endfor %}
 </div>
+{% endif %}
+
+{% if not ring_runs.values()|selectattr('__len__')|list and not unassigned %}
+<div class="col-12">
+    <p class="text-muted">Für diese Veranstaltung wurden noch keine Läufe erstellt.</p>
+</div>
+{% endif %}
 
 {% endblock %}

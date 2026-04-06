@@ -350,7 +350,8 @@
             <div class="flex items-center gap-2">
               <div class="w-48 text-right font-bold text-sm text-gray-700">${statusText}</div>
               <button onclick="window.appActions.editResult('${entry.Lizenznummer}')" class="bg-blue-200 text-black py-1 px-2 rounded text-xs hover:bg-blue-300" title="Manuelle Korrektur"><i class="fas fa-edit"></i></button>
-              <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}','a.K.')" class="bg-gray-300 text-black py-1 px-2 rounded text-xs hover:bg-gray-400" ${disabled}>a.K.</button>
+              <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}','DNS')" class="bg-orange-200 text-black py-1 px-2 rounded text-xs hover:bg-orange-300" ${disabled} title="Nicht gestartet">DNS</button>
+              <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}','a.K.')" class="bg-gray-300 text-black py-1 px-2 rounded text-xs hover:bg-gray-400" ${disabled} title="Ausser Konkurrenz">a.K.</button>
               <button onclick="window.appActions.setStarterReady('${entry.Lizenznummer}')" class="bg-yellow-300 text-black font-bold py-1 px-3 rounded text-sm hover:bg-yellow-400" ${disabled}>Bereit</button>
             </div>
           </div>`;
@@ -458,7 +459,19 @@
         }
       },
       setParticipantStatus: function(licenseNr, status){
-        console.log("Set status", licenseNr, status);
+        if (!state.currentRunId) return;
+        if (!confirm(`Status "${status}" für diesen Starter setzen?`)) return;
+        fetch(`/live/api/set_participant_status/${eventId}/${state.currentRunId}`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({license_number: licenseNr, status: status})
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(data => {
+          if (data.success) fetchRunDetails();
+          else alert('Fehler: ' + (data.message || 'Unbekannt'));
+        })
+        .catch(() => alert('Netzwerkfehler.'));
       }
     };
 

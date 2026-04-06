@@ -788,3 +788,46 @@ def api_update_run_laufdaten(event_id, run_id):
         'sct': updated_laufdaten.get('standardzeit_sct_gerundet') or updated_laufdaten.get('standardzeit_sct_berechnet'),
         'mct': updated_laufdaten.get('maximalzeit_mct_gerundet') or updated_laufdaten.get('maximalzeit_mct_berechnet'),
     })
+
+
+@live_bp.route('/api/set_participant_status/<event_id>/<uuid:run_id>', methods=['POST'])
+def api_set_participant_status(event_id, run_id):
+    """Setzt den Status eines Teilnehmers (DNS = nicht gestartet, a.K. = ausser Konkurrenz)."""
+    run_id = str(run_id)
+    data = request.get_json(force=True, silent=True) or {}
+    license_nr = data.get('license_number')
+    status = data.get('status', '')
+
+    events = _load_data('events.json')
+    event = next((e for e in events if e.get('id') == event_id), None)
+    run = next((r for r in (event.get('runs', []) if event else []) if r.get('id') == run_id), None)
+    if not event or not run or not license_nr:
+        return jsonify({'success': False, 'message': 'Event, Lauf oder Lizenznummer fehlt.'}), 404
+
+    entry = next((e for e in run.get('entries', []) if e.get('Lizenznummer') == license_nr), None)
+    if not entry:
+        return jsonify({'success': False, 'message': 'Teilnehmer nicht gefunden.'}), 404
+
+    if status == 'DNS':
+        # Nicht gestartet: als Ergebnis speichern (wird in Rangliste als DNS gewertet)
+        entry['result'] = {'zeit': None, 'fehler': 0, 'verweigerungen': 0, 'disqualifikation': 'DNS'}
+        entry['timestamp'] = datetime.now().isoformat()
+    elif status == 'a.K.':
+        # Ausser Konkurrenz: kein Ergebnis, nur Vermerk
+        entry['status_vermerk'] = 'a.K.'
+    else:
+        return jsonify({'success': False, 'message': f'Unbekannter Status: {status}'}), 400
+
+    _save_data('events.json', events)
+
+    try:
+        ring_num = re.sub(r"[^0-9]", "", str(run.get('assigned_ring') or "")) or "1"
+        socketio.emit('result_update', {'run_id': run_id, 'license_nr': license_nr, 'status': status})
+        socketio.emit('announcer_update', {'event_id': event_id, 'ring_name': f"Ring {ring_num}"},
+                      room=f"event:{event_id}:ring:{ring_num}")
+        socketio.emit('announcer_update', {'event_id': event_id, 'ring_name': f"Ring {ring_num}"},
+                      room=f"event:{event_id}")
+    except Exception:
+        pass
+
+    return jsonify({'success': True})
