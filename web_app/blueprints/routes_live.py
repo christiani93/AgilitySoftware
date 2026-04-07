@@ -813,7 +813,7 @@ def render_ring_monitor_content(ring_number: int):
     return Response(''.join(parts), mimetype='text/html')
 
 
-@live_bp.route('/api/update_run_laufdaten/<event_id>/<uuid:run_id>', methods=['POST'])
+@live_bp.route('/live/api/update_run_laufdaten/<event_id>/<uuid:run_id>', methods=['POST'])
 def api_update_run_laufdaten(event_id, run_id):
     """Aktualisiert Laufdaten (Parcours, Richter, SCT) direkt vom Ring-PC-Dashboard."""
     run_id = str(run_id)
@@ -872,7 +872,7 @@ def api_update_run_laufdaten(event_id, run_id):
     })
 
 
-@live_bp.route('/api/set_participant_status/<event_id>/<uuid:run_id>', methods=['POST'])
+@live_bp.route('/live/api/set_participant_status/<event_id>/<uuid:run_id>', methods=['POST'])
 def api_set_participant_status(event_id, run_id):
     """Setzt den Status eines Teilnehmers (DNS = nicht gestartet, a.K. = ausser Konkurrenz)."""
     run_id = str(run_id)
