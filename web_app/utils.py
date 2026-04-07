@@ -798,9 +798,17 @@ def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_r
     if not ring_state:
         ring_state = init_ring_entry_state(entries_sorted)
 
+    # Nur Einträge ohne abgeschlossenes Resultat (kein Zeit, kein DNS/DIS/ABR)
+    unfinished = [
+        e for e in entries_sorted
+        if not (e.get("result") and (
+            e["result"].get("zeit") or e["result"].get("disqualifikation")
+        ))
+    ]
+
     view_state = build_view_model_from_state(
         ring_state,
-        entries_sorted[:max_startlist],
+        unfinished[:max_startlist],
         run_meta=view["current_run"],
         ranking_top=view["ranking"],
         last_results=view["last_results"],
