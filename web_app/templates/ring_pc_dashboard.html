@@ -369,16 +369,21 @@
         return;
       }
       const entries = [...state.allEntries].sort(byStartnummer);
+      const assignedLicense = state.currentEntryToEdit ? state.currentEntryToEdit.Lizenznummer : null;
       ui.starterList.innerHTML = entries.map(entry => {
         const hasResult = entry.result && (entry.result.zeit || entry.result.disqualifikation);
+        const isAssigned = !hasResult && entry.Lizenznummer === assignedLicense;
         const statusText = hasResult
           ? (entry.result.disqualifikation || `${entry.result.zeit || '-'}s, ${entry.result.fehler || 0}F, ${entry.result.verweigerungen || 0}V`)
           : (entry.status_vermerk || '');
         const disabled = hasResult ? "disabled" : "";
+        const rowBg = hasResult ? 'bg-green-100' : isAssigned ? 'bg-yellow-100' : 'bg-gray-50';
+        const assignedBadge = isAssigned ? `<span class="text-xs font-semibold text-yellow-800 bg-yellow-200 px-2 py-0.5 rounded mr-1">▶ Aktuell</span>` : '';
         return `
-          <div id="starter-${entry.Lizenznummer}" class="starter-row p-3 rounded-lg flex justify-between items-center ${hasResult ? 'bg-green-100' : 'bg-gray-50'}">
-            <div>
-              <span class="font-bold text-lg mr-4 w-12 inline-block text-center">${entry.Startnummer}</span>
+          <div id="starter-${entry.Lizenznummer}" class="starter-row p-3 rounded-lg flex justify-between items-center ${rowBg}">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-lg w-12 inline-block text-center">${entry.Startnummer}</span>
+              ${assignedBadge}
               <span>${entry.Hundefuehrer} mit ${entry.Hundename}</span>
             </div>
             <div class="flex items-center gap-2">
@@ -386,6 +391,7 @@
               <button onclick="window.appActions.editResult('${entry.Lizenznummer}')" class="bg-blue-200 text-black py-1 px-2 rounded text-xs hover:bg-blue-300" title="Manuelle Korrektur"><i class="fas fa-edit"></i></button>
               <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}','DNS')" class="bg-orange-200 text-black py-1 px-2 rounded text-xs hover:bg-orange-300" ${disabled} title="Nicht gestartet">DNS</button>
               <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}','a.K.')" class="bg-gray-300 text-black py-1 px-2 rounded text-xs hover:bg-gray-400" ${disabled} title="Ausser Konkurrenz">a.K.</button>
+              <button onclick="window.appActions.reassignStarter('${entry.Lizenznummer}')" class="bg-blue-400 text-white font-bold py-1 px-2 rounded text-sm hover:bg-blue-500" ${disabled} title="Zeit diesem Starter zuweisen (kein Timer-Reset)"><i class="fas fa-user-check"></i></button>
               <button onclick="window.appActions.setStarterReady('${entry.Lizenznummer}')" class="bg-yellow-300 text-black font-bold py-1 px-3 rounded text-sm hover:bg-yellow-400" ${disabled}>Bereit</button>
             </div>
           </div>`;
@@ -480,6 +486,18 @@
           }
         })
         .catch(()=> alert("Netzwerkfehler beim Speichern."));
+      },
+      reassignStarter: function(licenseNr){
+        // Wechselt den aktuellen Starter OHNE Timer-Reset und OHNE Ring-Server-Kommunikation.
+        // Nützlich wenn Alge-Board läuft und falscher Starter gesetzt wurde.
+        const starter = state.allEntries.find(e => e.Lizenznummer === licenseNr);
+        if (!starter) return;
+        state.currentEntryToEdit = starter;
+        // Ring-Server informieren falls verbunden (kein Timer-Reset)
+        if (state.localSocket && state.localSocket.connected){
+          state.localSocket.emit("reassign_current_starter", { run_id: state.currentRunId, starter: starter });
+        }
+        renderStarterList();
       },
       setStarterReady: function(licenseNr){
         if (!state.localSocket || !state.localSocket.connected){
