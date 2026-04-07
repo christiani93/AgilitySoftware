@@ -20,6 +20,7 @@ cd /d "%SCRIPT_DIR%" || (
     pause
     exit /b 1
 )
+set "ROOT_DIR=%SCRIPT_DIR%"
 
 :menu
 cls

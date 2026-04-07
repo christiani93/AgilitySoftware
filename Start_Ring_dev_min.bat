@@ -1,4 +1,5 @@
 @echo off
+setlocal
 echo ================================
 echo  Ring 1 DEV - Minimalstart
 echo ================================
@@ -21,4 +22,6 @@ echo Starte Ring-Server mit Python 32-bit...
 
 echo.
 echo Ring-Server wurde beendet.
+endlocal
 pause
+exit /b 0

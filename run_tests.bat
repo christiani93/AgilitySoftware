@@ -18,3 +18,4 @@ echo Tests abgeschlossen. Druecken Sie eine Taste, um dieses Fenster zu schliess
 pause
 
 endlocal
+exit /b 0

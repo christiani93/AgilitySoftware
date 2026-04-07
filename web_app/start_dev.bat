@@ -147,18 +147,16 @@ set "_CMD_SWITCH=/C"
 if /I "%KEEP_CONSOLE_FLAG%"=="K" set "_CMD_SWITCH=/K"
 
 REM eigenes Fenster für die Web-App
-start "Agility Web-App" cmd %_CMD_SWITCH% /v:on /c call "%VENV64%\Scripts\activate.bat" ^& set FLASK_DEBUG=1 ^& python "app.py"
+start "Agility Web-App" cmd %_CMD_SWITCH% /v:on call "%VENV64%\Scripts\activate.bat" ^& set FLASK_DEBUG=1 ^& python "app.py"
 
 REM ===================== Starte Ring_Server (x86) =====================
 REM Versuche zuerst Unterordner ring_server\ring_server.py, sonst Root ring_server.py
 if exist "ring_server\ring_server.py" (
-    start "Ring_Server" cmd %_CMD_SWITCH% /v:on /c call "%VENV32%\Scripts\activate.bat" ^& python "ring_server\ring_server.py"
+    start "Ring_Server" cmd %_CMD_SWITCH% /v:on call "%VENV32%\Scripts\activate.bat" ^& python "ring_server\ring_server.py"
 ) else if exist "ring_server.py" (
-    start "Ring_Server" cmd %_CMD_SWITCH% /v:on /c call "%VENV32%\Scripts\activate.bat" ^& python "ring_server.py"
+    start "Ring_Server" cmd %_CMD_SWITCH% /v:on call "%VENV32%\Scripts\activate.bat" ^& python "ring_server.py"
 ) else (
     call :log "[INFO] Kein ring_server.py gefunden – überspringe Ring_Server Start."
-)
-
 )
 
 call :log "=== Startskript beendet ==="

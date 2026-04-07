@@ -35,7 +35,9 @@ echo Installiere/aktualisiere Abhaengigkeiten...
 python -m pip install flask flask-socketio requests pywin32
 
 echo Starte Ring-Server fuer %RING_LABEL% auf Port %RING_PORT% ...
+cd ring_server
 python ring_server.py --ring "%RING_LABEL%" --port %RING_PORT%
 
 endlocal
 pause
+exit /b 0
