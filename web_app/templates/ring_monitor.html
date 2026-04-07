@@ -2,7 +2,13 @@
 {% block title %}Ring Monitor: {{ ring_name }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<style>
+  body { overflow: hidden; }
+  .monitor-fullpage { height: calc(100vh - 56px); display: flex; flex-direction: column; }
+  .monitor-fullpage .card { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .monitor-fullpage .card-body { flex: 1; overflow-y: auto; }
+</style>
+<div class="container-fluid py-2 monitor-fullpage">
     <div class="card shadow-sm">
         <div class="card-header bg-dark text-white">
             <h4 class="mb-0">Ring Monitor – {{ ring_name }}</h4>
@@ -145,36 +151,25 @@ document.addEventListener('DOMContentLoaded', function () {
         return okMeta && okStart && okRank && okLast;
     }
 
+    function refreshMonitor() {
+        fetch(`/api/render_ring_monitor_content/${ringNumber}`, {cache: 'no-store'})
+            .then(r => r.text())
+            .then(html => {
+                const c = document.getElementById('monitor-container');
+                if (c) c.innerHTML = html;
+            })
+            .catch(() => window.location.reload());
+    }
+
     socket.on('connect', function() {
         socket.emit('join_room', {room: `event:${eventId}:ring:${ringNumber}`});
-        console.log('Ring Monitor Socket.IO connected!');
     });
+    socket.on('announcer_update',    function(data) { if (data.event_id === eventId) refreshMonitor(); });
+    socket.on('current_run_changed', function(data) { if (data.event_id === eventId) refreshMonitor(); });
+    socket.on('ring_result_saved',   function(data) { if (data.event_id === eventId) refreshMonitor(); });
+    socket.on('ring_ready_changed',  function(data) { if (data.event_id === eventId) refreshMonitor(); });
+    socket.on('ring_run_changed',    function(data) { if (data.event_id === eventId) refreshMonitor(); });
 
-    socket.on('announcer_update', function(data) {
-        if (data.event_id === eventId && data.ring_name === '{{ ring_name }}') {
-            window.location.reload();
-        }
-    });
-    socket.on('current_run_changed', function(data) {
-        if (data.event_id === eventId && String(data.ring_id) === String(ringNumber)) {
-            if (!applyViewModel(data)) window.location.reload();
-        }
-    });
-    socket.on('ring_result_saved', function(data) {
-        if (data.event_id === eventId && String(data.ring_no) === String(ringNumber)) {
-            if (!applyViewModel(data)) window.location.reload();
-        }
-    });
-    socket.on('ring_ready_changed', function(data) {
-        if (data.event_id === eventId && String(data.ring_no) === String(ringNumber)) {
-            if (!applyViewModel(data)) window.location.reload();
-        }
-    });
-    socket.on('ring_run_changed', function(data) {
-        if (data.event_id === eventId && String(data.ring_no) === String(ringNumber)) {
-            if (!applyViewModel(data)) window.location.reload();
-        }
-    });
     applyViewModel({{ view_model|tojson }});
 });
 </script>
