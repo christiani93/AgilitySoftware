@@ -37,8 +37,8 @@
 </div>
 
 {# Bug 1 Fix: Runs nach Ring gruppiert anzeigen #}
-{% set sorted_ring_keys = ring_runs.keys()|list|sort(attribute='__int__', default=0) %}
-{% for ring_key in ring_runs.keys()|list|sort %}
+{% set sorted_ring_keys = ring_runs.keys()|list|sort %}
+{% for ring_key in sorted_ring_keys %}
 {% set runs_in_ring = ring_runs[ring_key] %}
 {% if runs_in_ring %}
 <h4 class="mt-4 mb-3 border-bottom pb-2">
