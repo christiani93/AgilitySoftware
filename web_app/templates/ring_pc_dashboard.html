@@ -79,7 +79,7 @@
 </div>
 
 <!-- Laufdaten-Modal -->
-<div id="laufdaten-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden" style="z-index:1050">
+<div id="laufdaten-modal" style="display:none;position:fixed;inset:0;background:rgba(75,85,99,.5);overflow-y:auto;z-index:1050">
     <div class="relative top-10 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Laufdaten bearbeiten</h3>
         <div class="space-y-3">
@@ -103,7 +103,7 @@
                 </div>
             </div>
             <!-- SCT-Bereich: nur für Klasse 1 / Oldie -->
-            <div id="ld-sct-section" class="hidden border-t pt-3">
+            <div id="ld-sct-section" style="display:none;border-top:1px solid #dee2e6;padding-top:.75rem;margin-top:.5rem">
                 <p class="text-sm text-gray-600 mb-2">SCT-Berechnung (Klasse 1 / Oldie)</p>
                 <div class="flex gap-4 mb-2">
                     <label class="flex items-center gap-1 text-sm">
@@ -119,12 +119,12 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Geschwindigkeit (m/s)</label>
                     <input type="number" step="0.01" id="ld-geschwindigkeit" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="z.B. 3.00">
                 </div>
-                <div id="ld-direct-row" class="hidden">
+                <div id="ld-direct-row" style="display:none">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Standardzeit direkt (s)</label>
                     <input type="number" step="0.01" id="ld-standardzeit" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="z.B. 60.00">
                 </div>
             </div>
-            <div id="ld-sct-result" class="hidden bg-gray-50 rounded p-2 text-sm text-gray-700"></div>
+            <div id="ld-sct-result" style="display:none;background:#f8f9fa;border-radius:.25rem;padding:.5rem;font-size:.875rem;color:#6c757d"></div>
         </div>
         <div class="flex gap-2 mt-4">
             <button id="ld-save-btn" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold">Speichern</button>
@@ -628,8 +628,8 @@
       document.querySelectorAll("input[name='ld-sct-method']").forEach(radio => {
         radio.addEventListener("change", function(){
           const isDirect = this.value === "direct";
-          speedRow.classList.toggle("hidden", isDirect);
-          directRow.classList.toggle("hidden", !isDirect);
+          speedRow.style.display = isDirect ? "none" : "";
+          directRow.style.display = isDirect ? "" : "none";
         });
       });
 
@@ -654,24 +654,24 @@
             // SCT-Bereich nur bei Klasse 1 / Oldie
             const klasse = String(run.klasse || "");
             const showSct = klasse === "1" || klasse === "Oldie";
-            sctSection.classList.toggle("hidden", !showSct);
+            sctSection.style.display = showSct ? "" : "none";
             if (showSct){
               const isDirect = !!ld.sct_direkt;
               document.getElementById("ld-sct-speed").checked  = !isDirect;
               document.getElementById("ld-sct-direct").checked = isDirect;
-              speedRow.classList.toggle("hidden", isDirect);
-              directRow.classList.toggle("hidden", !isDirect);
+              speedRow.style.display = isDirect ? "none" : "";
+              directRow.style.display = isDirect ? "" : "none";
               document.getElementById("ld-geschwindigkeit").value = ld.geschwindigkeit    || "";
               document.getElementById("ld-standardzeit").value    = ld.standardzeit_sct  || "";
             }
 
-            sctResult.classList.add("hidden");
-            modal.classList.remove("hidden");
+            sctResult.style.display = "none";
+            modal.style.display = "block";
           })
           .catch(() => alert("Laufdaten konnten nicht geladen werden."));
       }
 
-      function closeModal(){ modal.classList.add("hidden"); }
+      function closeModal(){ modal.style.display = "none"; }
 
       function saveModal(){
         if (!state.currentRunId) return;
@@ -695,7 +695,7 @@
         .then(data => {
           if (data.success){
             sctResult.textContent = `SCT: ${data.sct ?? "—"} s  |  MCT: ${data.mct ?? "—"} s`;
-            sctResult.classList.remove("hidden");
+            sctResult.style.display = "";
             setTimeout(closeModal, 1200);
           } else {
             alert("Fehler beim Speichern.");
