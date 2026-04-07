@@ -85,7 +85,7 @@ echo [WEB] Starte Web-App auf Port 5000...
 
 set "CURDIR=%CD%"
 
-start "Agility Web" cmd /k "cd /d \"%CURDIR%\" & call flask_env\Scripts\activate.bat & python app.py & echo. & echo [WEB] Flask wurde beendet. & pause"
+start "Agility Web" cmd /k cd /d "%CURDIR%" ^& call flask_env\Scripts\activate.bat ^& python app.py ^& echo. ^& echo [WEB] Flask wurde beendet. ^& pause
 
 REM ------------------------------------------------
 REM 7) Browser auf localhost:5000 oeffnen
