@@ -582,52 +582,61 @@ def _apply_eventexport_registrations(event: dict, registrations: list, entities:
 def _apply_eventexport_start_numbers(event: dict, start_numbers_payload) -> dict:
     entries, locked = _eventexport_start_numbers(start_numbers_payload)
     if not entries:
-        return {"applied": 0, "duplicates": [], "missing": [], "locked": locked}
+        return {"applied": 0, "missing": [], "locked": locked}
 
-    entry_by_reg_id = {}
-    entry_by_license = {}
+    # Ein Hund läuft in mehreren Läufen (Agility + Jumping) mit der gleichen Nummer.
+    # Deshalb: license_no → LISTE aller zugehörigen Entries über alle Läufe hinweg.
+    entries_by_license: dict = {}
+    entries_by_reg_id:  dict = {}
     for run in event.get("runs", []) or []:
         for entry in run.get("entries", []) or []:
-            reg_id = entry.get("registration_external_id")
-            if reg_id:
-                entry_by_reg_id[str(reg_id)] = entry
-            license_no = entry.get("Lizenznummer")
-            if license_no:
-                entry_by_license[str(license_no)] = entry
+            lic = entry.get("Lizenznummer")
+            if lic:
+                entries_by_license.setdefault(str(lic), []).append(entry)
+            rid = entry.get("registration_external_id")
+            if rid:
+                # Portal exportiert "{reg.id}_{discipline}" → Basis-ID extrahieren
+                base = str(rid).split("_")[0]
+                entries_by_reg_id.setdefault(base, []).append(entry)
 
-    seen_start_numbers = set()
-    duplicates = []
-    missing = []
-    applied = 0
+    seen_licenses: set = set()   # Deduplizierung pro Lizenz (nicht pro Nummer)
+    missing  = []
+    applied  = 0
 
     for item in entries or []:
         if not isinstance(item, dict):
             continue
-        reg_id = _get_first_value(item, ("registration_external_id", "registration_id", "external_id", "id"), "")
+        reg_id     = _get_first_value(item, ("registration_external_id", "registration_id", "external_id", "id"), "")
         license_no = _get_first_value(item, ("license_no", "license_number", "Lizenznummer", "lizenznummer"), "")
-        start_no = _get_first_value(item, ("start_no", "start_number", "startnummer", "Startnummer"), "")
+        start_no   = _get_first_value(item, ("start_no", "start_number", "startnummer", "Startnummer"), "")
         if start_no == "":
             continue
-        start_no_str = str(start_no)
-        target_entry = None
-        if reg_id and entry_by_reg_id.get(str(reg_id)):
-            target_entry = entry_by_reg_id.get(str(reg_id))
-        elif license_no and entry_by_license.get(str(license_no)):
-            target_entry = entry_by_license.get(str(license_no))
-        if not target_entry:
-            missing.append({"registration_external_id": reg_id, "license_no": license_no, "start_no": start_no_str})
+
+        # Bereits verarbeitet (gleiche Lizenz taucht mehrfach auf)?
+        if license_no and license_no in seen_licenses:
             continue
-        if start_no_str in seen_start_numbers:
-            duplicates.append({"start_no": start_no_str, "license_no": license_no, "registration_external_id": reg_id})
+        if license_no:
+            seen_licenses.add(license_no)
+
+        # Alle Entries dieses Hundes suchen (über alle Läufe)
+        target_entries = entries_by_license.get(str(license_no), [])
+        if not target_entries and reg_id:
+            base = str(reg_id).split("_")[0]
+            target_entries = entries_by_reg_id.get(base, [])
+
+        if not target_entries:
+            missing.append({"license_no": license_no, "start_no": str(start_no)})
             continue
-        seen_start_numbers.add(start_no_str)
-        target_entry["Startnummer"] = int(start_no) if str(start_no).isdigit() else start_no_str
+
+        start_no_val = int(start_no) if str(start_no).isdigit() else str(start_no)
+        for entry in target_entries:
+            entry["Startnummer"] = start_no_val
         applied += 1
 
     if locked:
         event["start_numbers_locked"] = True
 
-    return {"applied": applied, "duplicates": duplicates, "missing": missing, "locked": locked}
+    return {"applied": applied, "missing": missing, "locked": locked}
 
 
 def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -> dict:
@@ -657,41 +666,61 @@ def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -
         event.get("schedule"),
     )
 
-    for block in sorted(blocks, key=lambda b: str(_get_first_value(b, ("start_at", "start_time"), ""))):
+    # Blöcke nach sort_index (Portal-Export) oder start_at sortieren
+    def _block_sort_key(b):
+        si = _get_first_value(b, ("sort_index",), None)
+        if si is not None:
+            return (0, int(si))
+        return (1, str(_get_first_value(b, ("start_at", "start_time"), "")))
+
+    for block in sorted(blocks, key=_block_sort_key):
         if not isinstance(block, dict):
             continue
-        ring_key = str(_get_first_value(block, ("ring", "ring_id"), "1"))
+        ring_key  = str(_get_first_value(block, ("ring", "ring_id"), "1"))
         ring_data = schedule_data.get("rings", {}).setdefault(ring_key, {"start_time": "07:30", "blocks": []})
-        discipline = _normalize_discipline(_get_first_value(block, ("discipline", "laufart"), ""))
-        category = _get_first_value(block, ("category_code", "kategorie", "Kategorie"), "")
-        class_level = str(_get_first_value(block, ("class_level", "klasse", "Klasse"), ""))
-        schedule_block = {
-            "id": schedule_planner.generate_block_id(),
-            "type": "run",
-            "title": "",
-            "run_format": "normal",
-            "timing_run_type": _normalize_timing_run_type(discipline),
-            "size_category": category,
-            "size_categories": [],
-            "classes": [class_level] if class_level else [],
-            "judge_id": "",
-            "sort": {
-                "primary": {"field": "none", "direction": "asc"},
-                "secondary": {"field": "none", "direction": "asc"},
-            },
-            "estimated": {
-                "participants_total": 0,
-                "changeover_seconds": 0,
-                "briefing_seconds": 0,
-                "prep_pause_seconds": 0,
-                "run_seconds": 0,
-                "total_seconds": 0,
-            },
-            "notes": _get_first_value(block, ("notes", "note"), ""),
-            "start_at": _get_first_value(block, ("start_at", "start_time"), ""),
-        }
-        if not schedule_block["title"]:
-            schedule_block["title"] = schedule_planner.generate_run_title(schedule_block)
+        block_type = _get_first_value(block, ("block_type", "type"), "run")
+
+        if block_type == "rank_announcement":
+            duration_min = _get_first_value(block, ("duration_minutes",), 5)
+            schedule_block = {
+                "id":               schedule_planner.generate_block_id(),
+                "type":             "rank_announcement",
+                "title":            _get_first_value(block, ("title",), "Rangverkündigung"),
+                "duration_seconds": int(duration_min) * 60,
+                "notes":            _get_first_value(block, ("notes", "note"), ""),
+            }
+        else:
+            discipline  = _normalize_discipline(_get_first_value(block, ("discipline", "laufart"), ""))
+            category    = _get_first_value(block, ("category_code", "kategorie", "Kategorie"), "")
+            class_level = str(_get_first_value(block, ("class_level", "klasse", "Klasse"), ""))
+            schedule_block = {
+                "id":             schedule_planner.generate_block_id(),
+                "type":           "run",
+                "title":          "",
+                "run_format":     "normal",
+                "timing_run_type": _normalize_timing_run_type(discipline),
+                "size_category":  category,
+                "size_categories": [],
+                "classes":        [class_level] if class_level else [],
+                "judge_id":       "",
+                "sort": {
+                    "primary":   {"field": "none", "direction": "asc"},
+                    "secondary": {"field": "none", "direction": "asc"},
+                },
+                "estimated": {
+                    "participants_total": 0,
+                    "changeover_seconds": 0,
+                    "briefing_seconds":   0,
+                    "prep_pause_seconds": 0,
+                    "run_seconds":        0,
+                    "total_seconds":      0,
+                },
+                "notes":    _get_first_value(block, ("notes", "note"), ""),
+                "start_at": _get_first_value(block, ("start_at", "start_time"), ""),
+            }
+            if not schedule_block["title"]:
+                schedule_block["title"] = schedule_planner.generate_run_title(schedule_block)
+
         ring_data.setdefault("blocks", []).append(schedule_block)
 
     schedule_data = schedule_planner.ensure_run_titles(schedule_data)
