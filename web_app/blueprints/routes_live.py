@@ -453,7 +453,10 @@ def set_active_announcer_run(event_id, run_id):
             if evt.get("id") != evt_id:
                 continue
             evt.setdefault("current_runs_by_ring", {})[str(ring_key)] = run.get("id")
-            evt.setdefault("ring_entry_state", {})[str(ring_key)] = init_ring_entry_state(run.get("entries", []))
+            from utils import sort_entries_for_startlist
+            evt.setdefault("ring_entry_state", {})[str(ring_key)] = init_ring_entry_state(
+                sort_entries_for_startlist(run.get("entries", []))
+            )
             break
         _save_data('events.json', events)
 

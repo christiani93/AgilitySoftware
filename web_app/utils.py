@@ -30,6 +30,21 @@ def get_category_sort_key(category_name):
     return CATEGORY_SORT_ORDER.get(category_name, 99)
 
 
+def sort_entries_for_startlist(entries: list) -> list:
+    """
+    Sortiert Entries für die Startliste:
+      1. Nach Startnummer aufsteigend
+      2. Läufige Hündinnen (is_in_season=True) immer ans Ende
+    """
+    return sorted(
+        entries or [],
+        key=lambda e: (
+            bool(e.get("is_in_season", False)),   # False (normal) vor True (läufig)
+            _to_int(e.get("Startnummer"), default=999999),
+        )
+    )
+
+
 def _norm(value):
     try:
         return str(value or '').strip()
@@ -772,7 +787,7 @@ def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_r
     }
 
     entries = run.get("entries", []) or []
-    entries_sorted = sorted(entries, key=lambda e: _to_int(e.get("Startnummer"), default=999999))
+    entries_sorted = sort_entries_for_startlist(entries)
     unfinished_entries = [
         e for e in entries_sorted
         if not (e.get("result") and (

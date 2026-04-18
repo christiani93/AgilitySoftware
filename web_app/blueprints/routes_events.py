@@ -558,10 +558,15 @@ def _apply_eventexport_registrations(event: dict, registrations: list, entities:
                 "entries": [],
             }
             runs_by_key[run_key] = run
+        is_in_season = bool(_get_first_value(reg, ("is_in_season", "laeufig", "in_season"), False))
         entry = {
-            "Lizenznummer": license_no,
-            "Hundename": dog_name or license_no,
-            "Hundefuehrer": handler_full or f"{handler_first} {handler_last}".strip(),
+            "Lizenznummer":  license_no,
+            "Hundename":     dog_name or license_no,
+            "Hundefuehrer":  handler_full or f"{handler_first} {handler_last}".strip(),
+            "Kategorie":     category,
+            "Klasse":        class_level,
+            "Startnummer":   0,
+            "is_in_season":  is_in_season,
         }
         if reg_id:
             entry["registration_external_id"] = reg_id
@@ -1206,7 +1211,10 @@ def set_live_run(event_id):
     current_runs = event.get("current_runs_by_ring") or {}
     current_runs[str(ring_no)] = run_id
     event["current_runs_by_ring"] = current_runs
-    event.setdefault("ring_entry_state", {})[str(ring_no)] = init_ring_entry_state(run.get("entries", []))
+    from utils import sort_entries_for_startlist
+    event.setdefault("ring_entry_state", {})[str(ring_no)] = init_ring_entry_state(
+        sort_entries_for_startlist(run.get("entries", []))
+    )
 
     if run_block:
         current_blocks = event.get("current_run_blocks") or {}
