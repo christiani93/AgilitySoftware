@@ -2135,6 +2135,7 @@ def import_event_package():
                 )
 
                 events = _load_data(EVENTS_FILE)
+                _lc_done_at = _get_first_value(event_block or {}, ("lizenzcheck_done_at",), None)
                 event = {
                     "id": str(uuid.uuid4()),
                     "external_id": _get_first_value(event_block or {}, ("external_id", "id"), None),
@@ -2147,6 +2148,8 @@ def import_event_package():
                     "run_order": [],
                     "start_number_schema": {},
                     "start_times_by_ring": {},
+                    "lizenzcheck_done": bool(_lc_done_at),
+                    "lizenzcheck_done_at": _lc_done_at,
                 }
 
                 registrations = _eventexport_registration_list(registrations_payload)
@@ -2155,6 +2158,31 @@ def import_event_package():
                 settings = _load_settings()
                 schedule_info = _apply_eventexport_schedule(event, schedule_payload, settings)
                 start_numbers_info = _apply_eventexport_start_numbers(event, start_numbers_payload)
+
+                # ── Logos aus dem ZIP extrahieren ──────────────────────────
+                event_id_str = event["id"]
+                logo_dir = os.path.join("data", "logos", event_id_str)
+                for _zip_name, _logo_key in [
+                    ("logos/event_logo.png",  "event_logo_filename"),
+                    ("logos/event_logo.jpg",  "event_logo_filename"),
+                    ("logos/event_logo.jpeg", "event_logo_filename"),
+                    ("logos/event_logo.webp", "event_logo_filename"),
+                    ("logos/event_logo.svg",  "event_logo_filename"),
+                    ("logos/club_logo.png",   "club_logo_filename"),
+                    ("logos/club_logo.jpg",   "club_logo_filename"),
+                    ("logos/club_logo.jpeg",  "club_logo_filename"),
+                    ("logos/club_logo.webp",  "club_logo_filename"),
+                    ("logos/club_logo.svg",   "club_logo_filename"),
+                ]:
+                    if _zip_name in zip_file.namelist():
+                        os.makedirs(logo_dir, exist_ok=True)
+                        _basename = os.path.basename(_zip_name)
+                        _out_path = os.path.join(logo_dir, _basename)
+                        with zip_file.open(_zip_name) as _zf, open(_out_path, "wb") as _of:
+                            _of.write(_zf.read())
+                        # nur setzen wenn noch nicht gesetzt (erste passende Datei gewinnt)
+                        if _logo_key not in event:
+                            event[_logo_key] = _basename
 
                 events.append(event)
                 _save_data(EVENTS_FILE, events)
@@ -2421,3 +2449,32 @@ def _ring_label_for_display(ring_id: str) -> str:
         return "Ring 1"
     part = ring_id.replace("ring_", "")
     return f"Ring {part}"
+
+
+# ---------------------------------------------------------------------------
+# Logo ausliefern
+# ---------------------------------------------------------------------------
+
+@events_bp.route('/<event_id>/logo/<logo_type>')
+def event_logo_serve(event_id, logo_type):
+    """Liefert das Event- oder Vereins-Logo als Bilddatei aus."""
+    from flask import send_file, current_app
+
+    if logo_type not in ("event_logo", "club_logo"):
+        abort(404)
+
+    events = _load_data(EVENTS_FILE)
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+
+    key = "event_logo_filename" if logo_type == "event_logo" else "club_logo_filename"
+    filename = event.get(key)
+    if not filename:
+        abort(404)
+
+    path = os.path.join("data", "logos", event_id, filename)
+    if not os.path.exists(path):
+        abort(404)
+
+    return send_file(os.path.abspath(path))

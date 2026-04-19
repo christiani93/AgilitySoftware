@@ -430,16 +430,36 @@ def lizenzcheck_index(event_id):
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     return render_template('print/lizenzcheck.html', event=event,
-                           done=event.get('lizenzcheck_done'), report=None)
+                           done=event.get('lizenzcheck_done'),
+                           pending=bool(event.get('lizenzcheck_csv_exported_at')),
+                           report=None)
+
+
+@print_bp.route('/print/lizenzcheck_cancel/<event_id>', methods=['POST'])
+def lizenzcheck_cancel(event_id):
+    """Pending-CSV-Export abbrechen ohne Ergebnis zu importieren."""
+    all_events = _load_data('events.json')
+    event = next((e for e in all_events if e.get('id') == event_id), None)
+    if not event: abort(404)
+    event.pop('lizenzcheck_csv_exported_at', None)
+    _save_data('events.json', all_events)
+    flash('Lizenzcheck-Export abgebrochen.', 'info')
+    return redirect(url_for('print_bp.lizenzcheck_index', event_id=event_id))
 
 
 @print_bp.route('/print/lizenzcheck_csv/<event_id>')
 def lizenzcheck_csv(event_id):
-    """CSV-Export für TKAMO (Lizenzcheck-Format, nur Grunddaten)."""
-    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    """CSV-Export für TKAMO. ?filter=flagged → nur Lizenzen aus letztem Report."""
+    all_events = _load_data('events.json')
+    event = next((e for e in all_events if e.get('id') == event_id), None)
     if not event: abort(404)
 
+    only_flagged = request.args.get('filter') == 'flagged'
+    flagged_set  = set(event.get('lizenzcheck_flagged_licenses', []))
+
     participants = _lizenzcheck_participants(event)
+    if only_flagged and flagged_set:
+        participants = [p for p in participants if p['Lizenznummer'] in flagged_set]
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';', lineterminator='\r\n')
@@ -456,10 +476,18 @@ def lizenzcheck_csv(event_id):
             p['Nachname'],
         ])
 
+    # Pending-Status setzen — zwingt zur Verarbeitung oder zum Abbrechen
+    from datetime import datetime as _dt
+    event['lizenzcheck_csv_exported_at'] = _dt.utcnow().isoformat()
+    if not only_flagged:
+        event['lizenzcheck_done'] = False  # Neuer Vollcheck → Status zurücksetzen
+    _save_data('events.json', all_events)
+
+    suffix = '_abweichungen' if only_flagged else ''
     return Response(
         output.getvalue().encode('utf-8'),
         mimetype='text/csv; charset=utf-8',
-        headers={'Content-Disposition': f'attachment; filename="lizenzcheck_{event_id}.csv"'},
+        headers={'Content-Disposition': f'attachment; filename="lizenzcheck{suffix}_{event_id}.csv"'},
     )
 
 
@@ -479,97 +507,128 @@ def lizenzcheck_process(event_id):
     dogs_map  = {d['Lizenznummer']: d for d in dogs_all}
 
     # Zeilennummer → Lizenznummer (identische Reihenfolge wie CSV)
-    participants = _lizenzcheck_participants(event)
+    # Hundename-Zeilen enthalten NIE eine Lizenznummer — nur Zeile N
+    participants   = _lizenzcheck_participants(event)
     row_to_license = {i + 2: p['Lizenznummer'] for i, p in enumerate(participants)}
 
-    name_changes:     list[str] = []
-    class_changes:    list[str] = []
+    name_changes:      list[str] = []
+    class_changes:     list[str] = []
     inactive_licenses: list[str] = []
+    warnings:          list[str] = []
+    flagged_licenses:  set       = set()
 
     for line in report_text.splitlines():
         line = line.strip()
         if not line:
             continue
 
+        # ── "Verein stimmt nicht überein" → komplett ignorieren ──────────────
+        if _re.search(r'Verein stimmt', line, _re.IGNORECASE):
+            continue
+
         # ── Inaktive Lizenz ───────────────────────────────────────────────────
         if _re.search(r'inaktiv|nicht aktiv|gesperrt|inactif|inactive', line, _re.IGNORECASE):
             m_lic = _re.search(r'Lizenz\s+(\S+)', line, _re.IGNORECASE)
-            lic = m_lic.group(1).rstrip('.') if m_lic else '?'
-            inactive_licenses.append(f"⛔ Inaktive Lizenz {lic} — nicht startberechtigt! ({line})")
+            lic = m_lic.group(1).rstrip('.,') if m_lic else '?'
+            flagged_licenses.add(lic)
+            inactive_licenses.append(f"⛔ Inaktive Lizenz {lic} — nicht startberechtigt!")
+            continue
+
+        # ── Warnung (z.B. Oldie) → als Info anzeigen ─────────────────────────
+        if line.lower().startswith('warnung'):
+            m_lic = _re.search(r'Lizenz\s+(\S+)', line, _re.IGNORECASE)
+            lic = m_lic.group(1).rstrip('.,') if m_lic else None
+            if lic:
+                flagged_licenses.add(lic)
+            warnings.append(f"ℹ️ {line}")
             continue
 
         # ── Falsche Klasse → direkt übernehmen (TKAMO ist autoritativ) ───────
-        m_cls = _re.search(
-            r'Lizenz\s+(\S+).*?Klasse im System:\s*([SMIL])(\d)',
-            line, _re.IGNORECASE
-        )
-        if m_cls and 'Klasse im System' in line:
-            lic      = m_cls.group(1).rstrip('.')
-            sys_cat_short = m_cls.group(2).upper()
-            sys_cls  = m_cls.group(3)
-            sys_cat  = _CAT_LABEL_LC.get(sys_cat_short, sys_cat_short)
+        if 'Klasse im System' in line:
+            m_cls = _re.search(
+                r'Lizenz\s+(\S+).*?Klasse im System:\s*([SMIL])(\d)',
+                line, _re.IGNORECASE
+            )
+            if m_cls:
+                lic           = m_cls.group(1).rstrip('.,')
+                sys_cat_short = m_cls.group(2).upper()
+                sys_cls       = m_cls.group(3)
+                sys_cat       = _CAT_LABEL_LC.get(sys_cat_short, sys_cat_short)
 
-            m_imp = _re.search(r'Klasse im Import:\s*([SMIL])(\d)', line, _re.IGNORECASE)
-            imp_cat = _CAT_LABEL_LC.get(m_imp.group(1).upper(), m_imp.group(1).upper()) if m_imp else sys_cat
-            imp_cls = m_imp.group(2) if m_imp else sys_cls
+                m_imp   = _re.search(r'Klasse im Import:\s*([SMIL])(\d)', line, _re.IGNORECASE)
+                imp_cat = _CAT_LABEL_LC.get(m_imp.group(1).upper(), m_imp.group(1).upper()) if m_imp else sys_cat
+                imp_cls = m_imp.group(2) if m_imp else sys_cls
 
-            dog = dogs_map.get(lic)
-            if dog:
-                dog['Kategorie'] = sys_cat
-                dog['Klasse']    = sys_cls
-                # Auch in allen Run-Entries aktualisieren
-                for run in event.get('runs', []):
-                    for entry in run.get('entries', []):
-                        if entry.get('Lizenznummer') == lic:
-                            entry['Kategorie'] = sys_cat
-                            entry['Klasse']    = sys_cls
-                class_changes.append(
-                    f"🔄 Klasse angepasst {lic} — {imp_cat} Kl.{imp_cls} → {sys_cat} Kl.{sys_cls}"
-                )
-            else:
-                class_changes.append(f"⚠️ Lizenz {lic} nicht im System — Klasse nicht angepasst.")
+                flagged_licenses.add(lic)
+                dog = dogs_map.get(lic)
+                if dog:
+                    dog['Kategorie'] = sys_cat
+                    dog['Klasse']    = sys_cls
+                    for run in event.get('runs', []):
+                        for entry in run.get('entries', []):
+                            if entry.get('Lizenznummer') == lic:
+                                entry['Kategorie'] = sys_cat
+                                entry['Klasse']    = sys_cls
+                    class_changes.append(
+                        f"🔄 Klasse: {lic} — {imp_cat} Kl.{imp_cls} → {sys_cat} Kl.{sys_cls}"
+                    )
+                else:
+                    class_changes.append(f"⚠️ Lizenz {lic} nicht im System — Klasse nicht angepasst.")
             continue
 
-        # ── Hundename → direkt übernehmen ────────────────────────────────────
-        m_name = _re.search(r'Im System\s+(.+)$', line, _re.IGNORECASE)
-        if m_name and 'Hundename' in line:
+        # ── Hundename → immer TKAMO-System-Namen übernehmen ──────────────────
+        # Format: "Hundename im File: X / Im System Y"
+        # Lizenz ist NICHT in dieser Zeile, nur Zeile N
+        if 'Hundename' in line:
+            m_name = _re.search(r'Im System\s+(.+)$', line, _re.IGNORECASE)
+            if not m_name:
+                continue
             system_name = m_name.group(1).strip()
 
             lic = None
             m_lic = _re.search(r'Lizenz\s+(\S+)', line, _re.IGNORECASE)
             if m_lic:
-                lic = m_lic.group(1).rstrip('.')
+                lic = m_lic.group(1).rstrip('.,')
             else:
                 m_row = _re.search(r'Zeile\s+(\d+)', line, _re.IGNORECASE)
                 if m_row:
                     lic = row_to_license.get(int(m_row.group(1)))
 
-            if lic:
-                dog = dogs_map.get(lic)
-                if dog and dog.get('Hundename') != system_name:
-                    old_name = dog['Hundename']
-                    dog['Hundename'] = system_name
-                    # Auch in Run-Entries aktualisieren
-                    for run in event.get('runs', []):
-                        for entry in run.get('entries', []):
-                            if entry.get('Lizenznummer') == lic:
-                                entry['Hundename'] = system_name
-                    name_changes.append(
-                        f"✏️ Hundename: {lic} '{old_name}' → '{system_name}'"
-                    )
+            if not lic:
+                name_changes.append(f"⚠️ Hundename-Zeile — Zeile nicht gefunden: {line}")
+                continue
+
+            flagged_licenses.add(lic)
+            dog = dogs_map.get(lic)
+            if dog:
+                old_name = dog.get('Hundename', '')
+                # Immer übernehmen (Gross/Klein, Encoding-Unterschiede)
+                dog['Hundename'] = system_name
+                for run in event.get('runs', []):
+                    for entry in run.get('entries', []):
+                        if entry.get('Lizenznummer') == lic:
+                            entry['Hundename'] = system_name
+                if old_name != system_name:
+                    name_changes.append(f"✏️ Hundename: {lic} '{old_name}' → '{system_name}'")
+                else:
+                    name_changes.append(f"✏️ Hundename: {lic} '{system_name}' (Schreibweise bestätigt)")
+            else:
+                name_changes.append(f"⚠️ Lizenz {lic} nicht im System — Name nicht angepasst.")
 
     # Speichern
     _save_data('dogs.json', dogs_all)
-    _save_data('events.json', all_events)
-
-    # Lizenzcheck als erledigt markieren
-    event['lizenzcheck_done'] = True
+    event['lizenzcheck_done']            = True
+    event['lizenzcheck_done_at']         = __import__('datetime').datetime.utcnow().isoformat()
+    event['lizenzcheck_flagged_licenses'] = list(flagged_licenses)
+    event.pop('lizenzcheck_csv_exported_at', None)  # Pending aufheben
     _save_data('events.json', all_events)
 
     report = {
         'name_changes':      name_changes,
         'class_changes':     class_changes,
         'inactive_licenses': inactive_licenses,
+        'warnings':          warnings,
         'report_text':       report_text,
     }
-    return render_template('print/lizenzcheck.html', event=event, done=True, report=report)
+    return render_template('print/lizenzcheck.html', event=event, done=True,
+                           pending=False, report=report)

@@ -13,25 +13,59 @@
   </a>
 </div>
 
+{# ── Pending-Warnung ── #}
+{% if pending %}
+<div class="alert alert-warning d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <span>
+    <strong>⏳ CSV wurde exportiert</strong> — bitte TKAMO-Ergebnis unten einfügen
+    oder den Export abbrechen, um den Status zurückzusetzen.
+  </span>
+  <form method="post" action="{{ url_for('print_bp.lizenzcheck_cancel', event_id=event.id) }}">
+    <button class="btn btn-sm btn-outline-secondary">✕ Export abbrechen</button>
+  </form>
+</div>
+{% endif %}
+
 {# ── Schritt 1: CSV herunterladen ── #}
 <div class="card mb-4">
-  <div class="card-header fw-semibold">
-    <span class="me-2">1.</span> CSV für TKAMO herunterladen
+  <div class="card-header fw-semibold d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span><span class="me-2">1.</span> CSV für TKAMO herunterladen</span>
+    {% if event.get('lizenzcheck_done') %}
+      <span class="badge bg-success">✅ Lizenzcheck abgeschlossen</span>
+    {% elif pending %}
+      <span class="badge bg-warning text-dark">⏳ CSV exportiert — Ergebnis ausstehend</span>
+    {% else %}
+      <span class="badge bg-secondary">Noch nicht durchgeführt</span>
+    {% endif %}
   </div>
   <div class="card-body">
-    <p class="mb-2 text-muted small">
-      Lade die CSV-Datei herunter, lade sie auf der
-      <a href="https://tkamo.ch" target="_blank">TKAMO-Website</a> hoch und
-      kopiere das Ergebnis in Schritt 2.
+    <p class="text-muted small mb-3">
+      Lade die CSV-Datei herunter und lade sie auf der
+      <a href="https://tkamo.ch" target="_blank">TKAMO-Website</a> hoch.
+      Danach das Ergebnis in Schritt 2 einfügen.
     </p>
-    <a href="{{ url_for('print_bp.lizenzcheck_csv', event_id=event.id) }}"
-       class="btn btn-outline-primary">
-      <i class="fas fa-file-csv me-1"></i> CSV herunterladen
-    </a>
-    {% if event.get('lizenzcheck_done') %}
-    <span class="badge bg-success ms-3">✅ Lizenzcheck abgeschlossen</span>
-    {% else %}
-    <span class="badge bg-warning text-dark ms-3">⏳ Noch nicht durchgeführt</span>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ url_for('print_bp.lizenzcheck_csv', event_id=event.id) }}"
+         class="btn btn-outline-primary">
+        <i class="fas fa-file-csv me-1"></i> Alle Teilnehmer exportieren
+      </a>
+      {% if event.get('lizenzcheck_flagged_licenses') %}
+      <a href="{{ url_for('print_bp.lizenzcheck_csv', event_id=event.id) }}?filter=flagged"
+         class="btn btn-outline-warning"
+         title="Nur die {{ event.lizenzcheck_flagged_licenses|length }} Lizenzen aus dem letzten Check — Zeilennummern gelten nicht mehr">
+        <i class="fas fa-filter me-1"></i>
+        Nur Abweichungen ({{ event.lizenzcheck_flagged_licenses|length }})
+        <span class="badge bg-warning text-dark ms-1" title="Achtung: Zeilen-Nummern verschieben sich">⚠ Zeilen</span>
+      </a>
+      {% endif %}
+    </div>
+    {% if event.get('lizenzcheck_flagged_licenses') %}
+    <p class="text-muted small mt-2 mb-0">
+      <i class="fas fa-info-circle"></i>
+      «Nur Abweichungen» exportiert nur die {{ event.lizenzcheck_flagged_licenses|length }} auffälligen Lizenzen.
+      Zeilennummern im TKAMO-Ergebnis stimmen dann nicht mehr mit dem Vollexport überein —
+      nur sinnvoll wenn TKAMO Lizenznummern zurückgibt.
+    </p>
     {% endif %}
   </div>
 </div>
@@ -87,7 +121,7 @@
   {% if report.name_changes %}
   <div class="card mb-3 border-success">
     <div class="card-header bg-success text-white fw-bold">
-      ✏️ Hundenamen automatisch korrigiert ({{ report.name_changes|length }})
+      ✏️ Hundenamen verarbeitet ({{ report.name_changes|length }})
     </div>
     <ul class="list-group list-group-flush">
       {% for item in report.name_changes %}
@@ -97,7 +131,20 @@
   </div>
   {% endif %}
 
-  {% if not report.inactive_licenses and not report.class_changes and not report.name_changes %}
+  {% if report.warnings %}
+  <div class="card mb-3 border-info">
+    <div class="card-header bg-info text-white fw-bold">
+      ℹ️ Warnungen ({{ report.warnings|length }})
+    </div>
+    <ul class="list-group list-group-flush">
+      {% for item in report.warnings %}
+      <li class="list-group-item small font-monospace">{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if not report.inactive_licenses and not report.class_changes and not report.name_changes and not report.warnings %}
   <div class="alert alert-success">
     ✅ Keine Abweichungen erkannt — alles in Ordnung.
   </div>
