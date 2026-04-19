@@ -503,6 +503,15 @@ def set_active_announcer_run(event_id, run_id):
 
     flash(f"'{run.get('name')}' ist jetzt aktiv für die Anzeige auf {ring_label}.", 'success')
 
+    # Portal-Sync: Lauf-Wechsel pushen
+    try:
+        from portal_sync import push_run_changed
+        settings_sync = _load_settings()
+        if settings_sync.get("portal_url") and settings_sync.get("portal_live_api_key"):
+            push_run_changed(settings_sync, event, run)
+    except Exception:
+        pass
+
     # Falls vom Ring-PC aufgerufen, zurück zum Ring-Dashboard
     if 'from_ring_pc' in request.args:
         return redirect(url_for('live_bp.ring_pc_dashboard', ring_number=int(ring_key)))

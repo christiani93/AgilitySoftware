@@ -200,11 +200,52 @@ def _next_seq() -> int:
 # Live-Update Push
 # ----------------------------------------------------------------------------
 
-def _build_live_update_payload(event: dict, run: dict, result_entry: dict,
-                                device_id: str) -> dict:
-    """Erzeugt das Payload für einen einzelnen Live-Update."""
-    entry_result = result_entry.get("result") or {}
+def _starter_brief(entry: dict) -> dict:
+    """Kompakter Starter-Dict für das Portal."""
     return {
+        "start_no":    _safe_int(entry.get("Startnummer")),
+        "dog_name":    entry.get("Hundename") or "",
+        "handler_name":entry.get("Hundefuehrer") or "",
+        "license_no":  entry.get("Lizenznummer") or "",
+        "is_in_season":bool(entry.get("is_in_season")),
+    }
+
+
+def _build_startlist_snapshot(run: dict) -> dict:
+    """
+    Gibt den aktuellen Startlisten-Stand zurück:
+    - current_starter: wer gerade läuft
+    - next_starter:    wer als nächstes kommt
+    - remaining:       alle noch nicht gestarteten Starter (inkl. current)
+    """
+    entries = run.get("entries") or []
+    # Sortiert nach Startnummer
+    sorted_entries = sorted(entries, key=lambda e: _safe_int(e.get("Startnummer"), 99999))
+
+    def _has_result(e):
+        r = e.get("result") or {}
+        return bool(r.get("zeit") or r.get("disqualifikation"))
+
+    remaining = [e for e in sorted_entries if not _has_result(e)]
+
+    current = run.get("current_starter") or (remaining[0] if remaining else {})
+    nxt     = run.get("next_starter")    or (remaining[1] if len(remaining) > 1 else {})
+
+    return {
+        "current_starter": _starter_brief(current) if current else None,
+        "next_starter":    _starter_brief(nxt)     if nxt     else None,
+        "remaining_count": len(remaining),
+        "remaining":       [_starter_brief(e) for e in remaining[:10]],  # max 10
+    }
+
+
+def _build_live_update_payload(event: dict, run: dict, result_entry: dict,
+                                device_id: str, update_type: str = "result") -> dict:
+    """Erzeugt das Payload für einen Live-Update (Ergebnis oder Lauf-Wechsel)."""
+    entry_result = result_entry.get("result") or {} if result_entry else {}
+    startlist    = _build_startlist_snapshot(run)
+
+    payload = {
         "schema":             "agility.exchange.liveupdate.v1",
         "event_external_id":  event.get("external_id") or event.get("id") or "",
         "source": {
@@ -212,31 +253,37 @@ def _build_live_update_payload(event: dict, run: dict, result_entry: dict,
             "version": "4.4",
             "device":  device_id or "agility-software",
         },
-        "sequence_no": _next_seq(),
-        "sent_at":     _utc_now_iso(),
+        "sequence_no":  _next_seq(),
+        "sent_at":      _utc_now_iso(),
+        "update_type":  update_type,   # "result" | "run_changed"
         # Lauf-Kontext
-        "run_id":       run.get("id"),
-        "run_name":     run.get("name") or run.get("title") or "",
-        "ring":         run.get("assigned_ring") or run.get("ring") or "Ring 1",
-        "discipline":   run.get("laufart") or run.get("discipline") or "",
-        "category_code":run.get("kategorie") or run.get("category") or "",
-        "class_level":  _safe_int(run.get("klasse") or run.get("class_level")),
-        # Ergebnis
-        "result": {
-            "license_no":      result_entry.get("Lizenznummer") or "",
-            "dog_name":        result_entry.get("Hundename") or "",
-            "handler_name":    result_entry.get("Hundefuehrer") or "",
-            "start_no":        _safe_int(result_entry.get("Startnummer")),
-            "zeit":            _safe_float(entry_result.get("zeit")),
-            "fehler":          _safe_int(entry_result.get("fehler")),
-            "verweigerungen":  _safe_int(entry_result.get("verweigerungen")),
-            "disqualifikation":entry_result.get("disqualifikation"),
-            "platz":           result_entry.get("platz"),
-            "qualifikation":   result_entry.get("qualifikation"),
-            "fehler_total":    _safe_float(result_entry.get("fehler_total")),
-            "zeit_total":      _safe_float(result_entry.get("zeit_total")),
-        },
+        "run_id":        run.get("id"),
+        "run_name":      run.get("name") or run.get("title") or "",
+        "ring":          run.get("assigned_ring") or run.get("ring") or "Ring 1",
+        "discipline":    run.get("laufart") or run.get("discipline") or "",
+        "category_code": run.get("kategorie") or run.get("category") or "",
+        "class_level":   _safe_int(run.get("klasse") or run.get("class_level")),
+        # Aktuelle Startliste
+        "startlist":     startlist,
     }
+
+    if result_entry:
+        payload["result"] = {
+            "license_no":       result_entry.get("Lizenznummer") or "",
+            "dog_name":         result_entry.get("Hundename") or "",
+            "handler_name":     result_entry.get("Hundefuehrer") or "",
+            "start_no":         _safe_int(result_entry.get("Startnummer")),
+            "zeit":             _safe_float(entry_result.get("zeit")),
+            "fehler":           _safe_int(entry_result.get("fehler")),
+            "verweigerungen":   _safe_int(entry_result.get("verweigerungen")),
+            "disqualifikation": entry_result.get("disqualifikation"),
+            "platz":            result_entry.get("platz"),
+            "qualifikation":    result_entry.get("qualifikation"),
+            "fehler_total":     _safe_float(result_entry.get("fehler_total")),
+            "zeit_total":       _safe_float(result_entry.get("zeit_total")),
+        }
+
+    return payload
 
 
 def _do_push_live_update(url: str, api_key: str, payload: dict) -> None:
@@ -266,10 +313,7 @@ def _do_push_live_update(url: str, api_key: str, payload: dict) -> None:
 
 def push_live_update(settings: dict, event: dict, run: dict,
                      result_entry: dict) -> None:
-    """
-    Schickt einen Live-Update asynchron (Background-Thread) an das Portal.
-    Tut nichts, wenn portal_url oder portal_live_api_key nicht konfiguriert sind.
-    """
+    """Schickt einen Ergebnis-Live-Update asynchron ans Portal."""
     portal_url = (settings.get("portal_url") or "").rstrip("/")
     api_key    = settings.get("portal_live_api_key") or ""
     device_id  = settings.get("portal_device_id") or "agility-software"
@@ -278,7 +322,23 @@ def push_live_update(settings: dict, event: dict, run: dict,
         return
 
     endpoint = f"{portal_url}/api/liveupdate"
-    payload  = _build_live_update_payload(event, run, result_entry, device_id)
+    payload  = _build_live_update_payload(event, run, result_entry, device_id, update_type="result")
+
+    t = Thread(target=_do_push_live_update, args=(endpoint, api_key, payload), daemon=True)
+    t.start()
+
+
+def push_run_changed(settings: dict, event: dict, run: dict) -> None:
+    """Schickt einen Lauf-Wechsel-Update asynchron ans Portal (kein Ergebnis, nur Startliste)."""
+    portal_url = (settings.get("portal_url") or "").rstrip("/")
+    api_key    = settings.get("portal_live_api_key") or ""
+    device_id  = settings.get("portal_device_id") or "agility-software"
+
+    if not portal_url or not api_key:
+        return
+
+    endpoint = f"{portal_url}/api/liveupdate"
+    payload  = _build_live_update_payload(event, run, None, device_id, update_type="run_changed")
 
     t = Thread(target=_do_push_live_update, args=(endpoint, api_key, payload), daemon=True)
     t.start()
