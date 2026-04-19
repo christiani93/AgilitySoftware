@@ -239,6 +239,15 @@ def _build_startlist_snapshot(run: dict) -> dict:
     }
 
 
+def _normalize_ring(raw: str) -> str:
+    """Normalisiert Ring-Bezeichnungen: 'ring_1', '1', 'ring1' → 'Ring 1'."""
+    import re
+    if not raw:
+        return "Ring 1"
+    m = re.search(r'\d+', str(raw))
+    return f"Ring {m.group()}" if m else str(raw)
+
+
 def _build_live_update_payload(event: dict, run: dict, result_entry: dict,
                                 device_id: str, update_type: str = "result") -> dict:
     """Erzeugt das Payload für einen Live-Update (Ergebnis oder Lauf-Wechsel)."""
@@ -259,7 +268,7 @@ def _build_live_update_payload(event: dict, run: dict, result_entry: dict,
         # Lauf-Kontext
         "run_id":        run.get("id"),
         "run_name":      run.get("name") or run.get("title") or "",
-        "ring":          run.get("assigned_ring") or run.get("ring") or "Ring 1",
+        "ring":          _normalize_ring(run.get("assigned_ring") or run.get("ring")),
         "discipline":    run.get("laufart") or run.get("discipline") or "",
         "category_code": run.get("kategorie") or run.get("category") or "",
         "class_level":   _safe_int(run.get("klasse") or run.get("class_level")),
@@ -399,7 +408,7 @@ def build_result_export_zip(event: dict, final: bool = False) -> bytes:
             continue  # Lauf ohne Ergebnisse überspringen
 
         classes.append({
-            "ring":          run.get("assigned_ring") or run.get("ring") or "Ring 1",
+            "ring":          _normalize_ring(run.get("assigned_ring") or run.get("ring")),
             "discipline":    run.get("laufart") or run.get("discipline") or "",
             "category_code": run.get("kategorie") or run.get("category") or "",
             "class_level":   _safe_int(run.get("klasse") or run.get("class_level")),
