@@ -997,3 +997,95 @@ def export_results_to_portal(event_id):
         status_detail = f'(final={result.get("final")}, event={result.get("event_external_id")})'
         flash(f'✅ Ergebnisse erfolgreich ans Portal übertragen {status_detail}', 'success')
     return redirect(url_for('live_bp.live_event_dashboard'))
+
+
+# ---------------------------------------------------------------------------
+# Ranglisten-PDF generieren und ans Portal hochladen
+# ---------------------------------------------------------------------------
+
+@live_bp.route('/live/upload_ranking_pdf/<event_id>/<run_id>', methods=['POST'])
+def upload_ranking_pdf(event_id, run_id):
+    """
+    Rendert die Rangliste eines Laufs als PDF (WeasyPrint) und lädt sie ans Portal hoch.
+    Form-Parameter: is_final (true/false)
+    """
+    try:
+        from weasyprint import HTML as WP_HTML
+    except ImportError:
+        return jsonify({"error": "WeasyPrint nicht installiert. Bitte 'pip install weasyprint' ausführen."}), 500
+
+    import requests as _req
+
+    settings = _load_settings()
+    events   = _load_data('events.json')
+    event    = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return jsonify({"error": "Event nicht gefunden"}), 404
+
+    run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None)
+    if not run:
+        return jsonify({"error": "Lauf nicht gefunden"}), 404
+
+    is_final = request.form.get('is_final', 'false').lower() == 'true'
+
+    portal_url     = (settings.get("portal_url") or "").rstrip("/")
+    api_key        = settings.get("portal_results_api_key") or ""
+    external_id    = event.get("external_id") or ""
+
+    if not portal_url or not api_key:
+        return jsonify({"error": "Portal nicht konfiguriert (URL oder API-Key fehlt)"}), 400
+    if not external_id:
+        return jsonify({"error": "Event hat keine external_id – bitte Turnier neu vom Portal importieren"}), 400
+
+    # Ergebnisse berechnen
+    results        = _calculate_run_results(run, settings)
+    judges         = _load_data('judges.json')
+    judge_display  = resolve_judge_name(event, run, judges)
+
+    # HTML-String rendern (Jinja2)
+    from flask import render_template as _rt
+    html_str = _rt(
+        'print_ranking_single.html',
+        event=event,
+        run=run,
+        results=results,
+        judges=judges,
+        judge_display=judge_display,
+    )
+
+    # HTML → PDF via WeasyPrint
+    try:
+        pdf_bytes = WP_HTML(string=html_str, base_url=request.host_url).write_pdf()
+    except Exception as exc:
+        return jsonify({"error": f"PDF-Generierung fehlgeschlagen: {exc}"}), 500
+
+    # Metadaten aus dem Lauf auslesen
+    ring          = run.get("assigned_ring") or "Ring 1"
+    discipline    = (run.get("laufart") or "").lower()
+    category_code = run.get("kategorie") or ""
+    class_level   = str(run.get("klasse") or 0)
+
+    # Hochladen
+    try:
+        resp = _req.post(
+            f"{portal_url}/api/resultpdf",
+            headers={"X-Api-Key": api_key},
+            files={"file": (f"rangliste_{run_id}.pdf", pdf_bytes, "application/pdf")},
+            data={
+                "event_external_id": external_id,
+                "run_name":          run.get("name") or "",
+                "ring":              ring,
+                "discipline":        discipline,
+                "category_code":     category_code,
+                "class_level":       class_level,
+                "is_final":          "true" if is_final else "false",
+            },
+            timeout=30,
+        )
+    except Exception as exc:
+        return jsonify({"error": f"Netzwerkfehler: {exc}"}), 502
+
+    if resp.ok:
+        return jsonify({"status": "ok", "is_final": is_final})
+    else:
+        return jsonify({"error": resp.text, "http_status": resp.status_code}), 502
