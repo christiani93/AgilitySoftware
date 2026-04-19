@@ -1010,9 +1010,10 @@ def upload_ranking_pdf(event_id, run_id):
     Form-Parameter: is_final (true/false)
     """
     try:
-        from weasyprint import HTML as WP_HTML
+        from xhtml2pdf import pisa
+        import io as _io
     except ImportError:
-        return jsonify({"error": "WeasyPrint nicht installiert. Bitte 'pip install weasyprint' ausführen."}), 500
+        return jsonify({"error": "xhtml2pdf nicht installiert. Bitte 'pip install xhtml2pdf' ausführen."}), 500
 
     import requests as _req
 
@@ -1042,20 +1043,26 @@ def upload_ranking_pdf(event_id, run_id):
     judges         = _load_data('judges.json')
     judge_display  = resolve_judge_name(event, run, judges)
 
-    # HTML-String rendern (Jinja2)
+    # HTML-String rendern (PDF-optimiertes Template, kein position:fixed)
     from flask import render_template as _rt
     html_str = _rt(
-        'print_ranking_single.html',
+        'print_ranking_pdf.html',
         event=event,
         run=run,
         results=results,
         judges=judges,
         judge_display=judge_display,
+        is_final=is_final,
     )
 
-    # HTML → PDF via WeasyPrint
+    # HTML → PDF via xhtml2pdf
     try:
-        pdf_bytes = WP_HTML(string=html_str, base_url=request.host_url).write_pdf()
+        buf = _io.BytesIO()
+        pisa_status = pisa.CreatePDF(html_str.encode('utf-8'), dest=buf,
+                                     encoding='utf-8')
+        if pisa_status.err:
+            return jsonify({"error": f"PDF-Generierung fehlgeschlagen (pisa errors: {pisa_status.err})"}), 500
+        pdf_bytes = buf.getvalue()
     except Exception as exc:
         return jsonify({"error": f"PDF-Generierung fehlgeschlagen: {exc}"}), 500
 
