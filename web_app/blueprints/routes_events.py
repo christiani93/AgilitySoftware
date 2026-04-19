@@ -2137,6 +2137,7 @@ def import_event_package():
                 events = _load_data(EVENTS_FILE)
                 event = {
                     "id": str(uuid.uuid4()),
+                    "external_id": _get_first_value(event_block or {}, ("external_id", "id"), None),
                     "Bezeichnung": f"{event_title} (Importiert)",
                     "Datum": event_date,
                     "VeranstalterClubNr": _get_first_value(event_block or {}, ("VeranstalterClubNr", "club_number", "club"), ""),
