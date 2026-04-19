@@ -19,6 +19,152 @@ from threading import Thread
 from typing import Optional
 
 # ----------------------------------------------------------------------------
+# Sync-Status (in-memory + persistiert in data/portal_sync_status.json)
+# ----------------------------------------------------------------------------
+
+_sync_status: dict = {
+    "live_update":     {"last_at": None, "last_ok": None, "last_error": None, "count_ok": 0, "count_err": 0},
+    "result_export":   {"last_at": None, "last_ok": None, "last_error": None, "count_ok": 0, "count_err": 0},
+}
+
+STATUS_FILE = "portal_sync_status.json"
+
+
+def _load_sync_status() -> dict:
+    global _sync_status
+    try:
+        from utils import _load_data
+        data = _load_data(STATUS_FILE)
+        if isinstance(data, dict) and "live_update" in data:
+            _sync_status = data
+    except Exception:
+        pass
+    return _sync_status
+
+
+def _save_sync_status() -> None:
+    try:
+        from utils import _save_data
+        _save_data(STATUS_FILE, _sync_status)
+    except Exception:
+        pass
+
+
+def _record_status(key: str, ok: bool, error: str | None = None) -> None:
+    global _sync_status
+    _load_sync_status()
+    entry = _sync_status.setdefault(key, {"last_at": None, "last_ok": None, "last_error": None, "count_ok": 0, "count_err": 0})
+    entry["last_at"] = _utc_now_iso()
+    if ok:
+        entry["last_ok"]    = entry["last_at"]
+        entry["last_error"] = None
+        entry["count_ok"]   = entry.get("count_ok", 0) + 1
+    else:
+        entry["last_error"] = error or "Unbekannter Fehler"
+        entry["count_err"]  = entry.get("count_err", 0) + 1
+    _save_sync_status()
+
+
+def get_sync_status() -> dict:
+    return _load_sync_status()
+
+
+# ----------------------------------------------------------------------------
+# Verbindungstest
+# ----------------------------------------------------------------------------
+
+def test_portal_connection(settings: dict) -> dict:
+    """
+    Testet die Verbindung zum Portal.
+    Gibt {"live": True/False, "results": True/False, "errors": {...}} zurück.
+    """
+    import urllib.request
+    portal_url = (settings.get("portal_url") or "").rstrip("/")
+    live_key   = settings.get("portal_live_api_key") or ""
+    res_key    = settings.get("portal_results_api_key") or ""
+
+    results = {"portal_url": portal_url, "live": None, "results": None, "errors": {}}
+
+    if not portal_url:
+        results["errors"]["general"] = "Keine Portal-URL konfiguriert"
+        return results
+
+    # Test Live-Update API mit Minimal-Payload (wird abgelehnt wegen falschem Schema,
+    # aber ein 400 statt 403/000 beweist, dass die Verbindung steht und der Key korrekt ist)
+    if live_key:
+        try:
+            test_payload = json.dumps({
+                "schema": "agility.exchange.liveupdate.v1",
+                "event_external_id": "test-connection",
+                "source": {"device": settings.get("portal_device_id") or "agility-software"},
+                "sequence_no": 0,
+                "sent_at": _utc_now_iso(),
+            }).encode("utf-8")
+            req = urllib.request.Request(
+                f"{portal_url}/api/liveupdate",
+                data=test_payload,
+                headers={"Content-Type": "application/json", "X-Api-Key": live_key},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                results["live"] = True  # 200 OK
+        except Exception as exc:
+            code = getattr(getattr(exc, "code", None), "__int__", lambda: None)() or getattr(exc, "code", None)
+            if code == 403:
+                results["live"]   = False
+                results["errors"]["live"] = "API-Key ungültig (403)"
+            elif code in (200, 400):
+                results["live"] = True  # 400 = connected, key ok, payload rejected
+            else:
+                results["live"]   = False
+                results["errors"]["live"] = str(exc)
+    else:
+        results["errors"]["live"] = "Kein Live-API-Key konfiguriert"
+
+    # Test Results API mit leerem ZIP
+    if res_key:
+        try:
+            buf = io.BytesIO()
+            with zipfile.ZipFile(buf, "w") as zf:
+                zf.writestr("manifest.json", json.dumps({"schema": "agility.exchange.resultexport.v1"}))
+                zf.writestr("results.json", json.dumps({
+                    "event_external_id": "test-connection",
+                    "exported_at": _utc_now_iso(),
+                    "final": False, "classes": [], "documents": [],
+                }))
+            zip_bytes = buf.getvalue()
+            boundary = b"----TestBoundary"
+            body = (b"--" + boundary + b"\r\n"
+                    b'Content-Disposition: form-data; name="file"; filename="test.zip"\r\n'
+                    b"Content-Type: application/zip\r\n\r\n"
+                    + zip_bytes + b"\r\n--" + boundary + b"--\r\n")
+            req = urllib.request.Request(
+                f"{portal_url}/api/resultexport",
+                data=body,
+                headers={
+                    "Content-Type": f"multipart/form-data; boundary={boundary.decode()}",
+                    "X-Api-Key": res_key,
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                results["results"] = True
+        except Exception as exc:
+            code = getattr(exc, "code", None)
+            if code == 403:
+                results["results"] = False
+                results["errors"]["results"] = "API-Key ungültig (403)"
+            elif code in (200, 400):
+                results["results"] = True
+            else:
+                results["results"] = False
+                results["errors"]["results"] = str(exc)
+    else:
+        results["errors"]["results"] = "Kein Results-API-Key konfiguriert"
+
+    return results
+
+# ----------------------------------------------------------------------------
 # Hilfsfunktionen
 # ----------------------------------------------------------------------------
 
@@ -108,9 +254,9 @@ def _do_push_live_update(url: str, api_key: str, payload: dict) -> None:
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=5) as resp:
-            pass  # Fire-and-forget
+            _record_status("live_update", ok=True)
     except Exception as exc:
-        # Nie den Hauptprozess blockieren
+        _record_status("live_update", ok=False, error=str(exc))
         try:
             import sys
             print(f"[portal_sync] Live-Update fehlgeschlagen: {exc}", file=sys.stderr)
@@ -239,8 +385,11 @@ def _do_send_result_export(url: str, api_key: str, zip_bytes: bytes) -> dict:
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=30) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            result = json.loads(resp.read().decode("utf-8"))
+            _record_status("result_export", ok=True)
+            return result
     except Exception as exc:
+        _record_status("result_export", ok=False, error=str(exc))
         return {"error": str(exc)}
 
 

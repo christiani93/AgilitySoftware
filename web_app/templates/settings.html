@@ -72,12 +72,58 @@
             </div>
         </div>
         <div class="card mb-4">
-            <div class="card-header"><h5>🔗 Portal-Synchronisation</h5></div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">🔗 Portal-Synchronisation</h5>
+                {% if settings.get('portal_url') %}
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btnTestPortal"
+                        onclick="testPortalConnection()">
+                    🔌 Verbindung testen
+                </button>
+                {% endif %}
+            </div>
             <div class="card-body">
                 <p class="text-muted small mb-3">
                     Wenn aktiviert, werden Live-Ergebnisse automatisch an das AgilityPortal übertragen.
-                    URL und API-Keys findest du in den Server-Einstellungen des Portals.
+                    URL und API-Keys findest du im Portal unter <em>Superadmin → ⚙️ Server-Einstellungen</em>.
                 </p>
+
+                {# ── Sync-Status ──────────────────────────────────────────── #}
+                {% set ls = sync_status.get('live_update', {}) %}
+                {% set rs = sync_status.get('result_export', {}) %}
+                {% if ls.last_at or rs.last_at %}
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-6">
+                        <div class="border rounded p-2 small">
+                            <div class="fw-semibold mb-1">📡 Live-Updates</div>
+                            {% if ls.last_ok %}
+                            <span class="text-success">✔ Letzter erfolgreicher Transfer:</span>
+                            <br><span class="text-muted">{{ ls.last_ok[:16].replace('T',' ') }} UTC</span>
+                            {% endif %}
+                            {% if ls.last_error %}
+                            <div class="text-danger mt-1">✘ {{ ls.last_error }}</div>
+                            {% endif %}
+                            <div class="text-muted mt-1">✔ {{ ls.get('count_ok',0) }} / ✘ {{ ls.get('count_err',0) }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="border rounded p-2 small">
+                            <div class="fw-semibold mb-1">📦 Ergebnis-Exporte</div>
+                            {% if rs.last_ok %}
+                            <span class="text-success">✔ Letzter erfolgreicher Transfer:</span>
+                            <br><span class="text-muted">{{ rs.last_ok[:16].replace('T',' ') }} UTC</span>
+                            {% endif %}
+                            {% if rs.last_error %}
+                            <div class="text-danger mt-1">✘ {{ rs.last_error }}</div>
+                            {% endif %}
+                            <div class="text-muted mt-1">✔ {{ rs.get('count_ok',0) }} / ✘ {{ rs.get('count_err',0) }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# ── Test-Ergebnis (dynamisch) ─────────────────────────────── #}
+                <div id="portalTestResult" class="mb-3" style="display:none;"></div>
+
                 <div class="mb-3">
                     <label for="portal_url" class="form-label">Portal-URL</label>
                     <input type="url" class="form-control" id="portal_url" name="portal_url"
@@ -108,6 +154,43 @@
                 </div>
             </div>
         </div>
+
+        <script>
+        function testPortalConnection() {
+            const btn = document.getElementById('btnTestPortal');
+            const box = document.getElementById('portalTestResult');
+            btn.disabled = true;
+            btn.textContent = '⏳ Teste…';
+            box.style.display = 'none';
+            fetch('/settings/test-portal', {method: 'POST'})
+                .then(r => r.json())
+                .then(data => {
+                    const liveOk    = data.live    === true;
+                    const resultsOk = data.results === true;
+                    const liveErr   = data.errors?.live    || (data.live    === false ? 'Fehler' : 'Nicht konfiguriert');
+                    const resErr    = data.errors?.results || (data.results === false ? 'Fehler' : 'Nicht konfiguriert');
+                    box.innerHTML = `
+                        <div class="alert ${(liveOk && resultsOk) ? 'alert-success' : 'alert-warning'} py-2 mb-0">
+                            <strong>Portal:</strong> ${data.portal_url || '—'}<br>
+                            📡 Live-Updates: ${liveOk
+                                ? '<span class="text-success fw-semibold">✔ Verbunden</span>'
+                                : `<span class="text-danger fw-semibold">✘ ${liveErr}</span>`}<br>
+                            📦 Ergebnis-Export: ${resultsOk
+                                ? '<span class="text-success fw-semibold">✔ Verbunden</span>'
+                                : `<span class="text-danger fw-semibold">✘ ${resErr}</span>`}
+                        </div>`;
+                    box.style.display = 'block';
+                })
+                .catch(err => {
+                    box.innerHTML = `<div class="alert alert-danger py-2 mb-0">Fehler: ${err}</div>`;
+                    box.style.display = 'block';
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = '🔌 Verbindung testen';
+                });
+        }
+        </script>
 
         <button type="submit" class="btn btn-primary mt-4 w-100">Einstellungen speichern</button>
     </form>

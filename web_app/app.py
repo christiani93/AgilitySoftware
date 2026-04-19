@@ -79,7 +79,17 @@ def settings():
         _save_data('settings.json', current_settings)
         flash('Einstellungen erfolgreich gespeichert.', 'success')
         return redirect(url_for('settings'))
-    return render_template('settings.html', settings=_load_settings())
+    from portal_sync import get_sync_status
+    return render_template('settings.html', settings=_load_settings(),
+                           sync_status=get_sync_status())
+
+@app.route('/settings/test-portal', methods=['POST'])
+def settings_test_portal():
+    from utils import _load_settings
+    from portal_sync import test_portal_connection
+    settings = _load_settings()
+    result = test_portal_connection(settings)
+    return jsonify(result)
 
 @app.errorhandler(404)
 def page_not_found(e):
