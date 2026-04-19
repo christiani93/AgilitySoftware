@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Rangliste: {{ run.name }}</title>
+  <title>{{ _('Rangliste') }}: {{ run.name }}</title>
   <style>
     @page {
       size: A4 portrait;
@@ -208,7 +208,7 @@
 </div>
 
 <div class="official-banner">
-  {% if is_final %}✓ OFFIZIELLE RANGLISTE{% else %}VORLÄUFIGE RANGLISTE{% endif %}
+  {% if is_final %}✓ {{ _('Offizielle Rangliste')|upper }}{% else %}{{ _('Vorläufige Rangliste')|upper }}{% endif %}
 </div>
 
 {# ── Laufdaten ──────────────────────────────────────────────────────────── #}
@@ -216,7 +216,7 @@
 <div class="run-info">
   {% if judge_display %}
   <div class="run-info-cell">
-    <span class="run-info-label">Richter</span>
+    <span class="run-info-label">{{ _('Richter') }}</span>
     <span class="run-info-value">{{ judge_display }}</span>
   </div>
   {% endif %}
@@ -252,9 +252,9 @@
   <thead>
     <tr>
       <th style="width:5%"  class="center">Rang</th>
-      <th style="width:7%"  class="center">St-Nr.</th>
-      <th style="width:27%">Hundeführer</th>
-      <th style="width:23%">Hund</th>
+      <th style="width:7%"  class="center">{{ _('Start-Nr.') }}</th>
+      <th style="width:27%">{{ _('Hundeführer') }}</th>
+      <th style="width:23%">{{ _('Hund') }}</th>
       <th style="width:9%"  class="right">Zeit (s)</th>
       <th style="width:5%"  class="center">F</th>
       <th style="width:5%"  class="center">V</th>
@@ -296,7 +296,7 @@
       </td>
     </tr>
     {% else %}
-    <tr><td colspan="9" class="center">Keine Ergebnisse für diesen Lauf.</td></tr>
+    <tr><td colspan="9" class="center">{{ _('Keine Ergebnisse für diesen Lauf.') }}</td></tr>
     {% endfor %}
   </tbody>
 </table>
@@ -305,7 +305,7 @@
 {% if ns.total > 0 %}
 <div class="stats-block">
   <div class="stats-cell">
-    <span class="stats-label">Gestartete Teams</span>
+    <span class="stats-label">{{ _('Gestartete Teams') }}</span>
     <span class="stats-value">{{ ns_gestartet }}</span>
   </div>
   {% if ns.dq_count > 0 %}
@@ -328,7 +328,7 @@
   {% endif %}
   {% if ns.fastest_time %}
   <div class="stats-cell">
-    <span class="stats-label">Schnellste Zeit</span>
+    <span class="stats-label">{{ _('Schnellste Zeit') }}</span>
     <span class="stats-value">{{ '%.2f'|format(ns.fastest_time|float) }} s ({{ ns.fastest_name }})</span>
   </div>
   {% endif %}
@@ -344,10 +344,10 @@
 {# ── Fusszeile ──────────────────────────────────────────────────────────── #}
 <div class="footer">
   <div class="footer-left">
-    {{ event.Bezeichnung }}{% if judge_display %} · Richter: {{ judge_display }}{% endif %}
+    {{ event.Bezeichnung }}{% if judge_display %} · {{ _('Richter') }}: {{ judge_display }}{% endif %}
   </div>
   <div class="footer-right">
-    {% if is_final %}✓ Offizielle Rangliste{% else %}Vorläufige Rangliste{% endif %}
+    {% if is_final %}✓ {{ _('Offizielle Rangliste') }}{% else %}{{ _('Vorläufige Rangliste') }}{% endif %}
   </div>
 </div>
 

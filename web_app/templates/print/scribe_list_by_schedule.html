@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Ringschreiberlisten (Zeitplan) - {{ event.Bezeichnung }}</title>
+    <title>{{ _('Ringschreiberlisten') }} ({{ _('nach Zeitplan') }}) - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
@@ -39,7 +39,7 @@
     </style>
 </head>
 <body>
-    {% set title = title or 'Ringschreiberlisten (nach Zeitplan)' %}
+    {% set title = title or _('Ringschreiberlisten') ~ ' (' ~ _('nach Zeitplan') ~ ')' %}
     <table class="page-table">
         <thead>
             <tr>
@@ -53,20 +53,20 @@
                 <td>
         {% for section in sections %}
              <div class="run-container">
-                <h4 class="mt-4 text-center">Ring {{ section.ring }} – {{ section.title }}</h4>
+                <h4 class="mt-4 text-center">{{ _('Ring') }} {{ section.ring }} – {{ section.title }}</h4>
                 <p class="run-meta-info">
-                    Richter: {{ section.judge_name or '—' }}
+                    {{ _('Richter') }}: {{ section.judge_name or '—' }}
                 </p>
                 <table class="table table-sm">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 5%;">Start-Nr.</th>
-                            <th style="width: 25%;">Hundeführer / Hund</th>
+                            <th style="width: 5%;">{{ _('Start-Nr.') }}</th>
+                            <th style="width: 25%;">{{ _('Hundeführer') }} / {{ _('Hund') }}</th>
                             <th style="width: 10%;">Zeit</th>
                             <th style="width: 10%;">Fehler</th>
                             <th style="width: 10%;">Verw.</th>
                             <th style="width: 10%;">DIS/ABR</th>
-                            <th style="width: 30%;">Notizen</th>
+                            <th style="width: 30%;">{{ _('Notizen') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -86,7 +86,7 @@
              </div>
         {% else %}
             <p style="text-align: center; font-weight: bold; margin-top: 2cm;">
-                Keine Läufe im Zeitplan gefunden.
+                {{ _('Kein Zeitplan vorhanden') }}
             </p>
         {% endfor %}
                 </td>

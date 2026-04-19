@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Startliste - {{ event.Bezeichnung }}</title>
+    <title>{{ _('Startliste') }} - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; }
         @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
@@ -25,7 +25,7 @@
         .group-container:last-child { page-break-after: auto; }
 
         .run-meta { font-size: 10pt; margin: 0 0 8px 0; color: #555; }
-        
+
         table { width: 100%; border-collapse: collapse; font-size: 10pt; page-break-inside: auto; }
         th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
         th { background-color: #f2f2f2; }
@@ -39,7 +39,7 @@
     </style>
 </head>
 <body>
-    {% set title = 'Offizielle Startliste' %}
+    {% set title = _('Startliste') %}
     <table class="page-table">
         <thead>
             <tr>
@@ -54,16 +54,16 @@
         {% for run in ordered_runs %}
             <div class="group-container">
                 <h3>{{ run.name }}</h3>
-                <p class="run-meta">Kategorie: {{ run.kategorie or 'N/A' }} | Klasse: {{ run.klasse or 'N/A' }}</p>
+                <p class="run-meta">{{ _('Kategorie') }}: {{ run.kategorie or 'N/A' }} | {{ _('Klasse') }}: {{ run.klasse or 'N/A' }}</p>
                 {% if run.entries %}
                     <table>
                         <thead>
                             <tr>
-                                <th style="width:10%;">Start-Nr.</th>
-                                <th style="width:35%;">Hundeführer</th>
-                                <th style="width:35%;">Hund</th>
-                                <th style="width:10%;">Kategorie</th>
-                                <th style="width:10%;">Klasse</th>
+                                <th style="width:10%;">{{ _('Start-Nr.') }}</th>
+                                <th style="width:35%;">{{ _('Hundeführer') }}</th>
+                                <th style="width:35%;">{{ _('Hund') }}</th>
+                                <th style="width:10%;">{{ _('Kategorie') }}</th>
+                                <th style="width:10%;">{{ _('Klasse') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -79,12 +79,12 @@
                         </tbody>
                     </table>
                 {% else %}
-                    <p>Keine Startenden für diesen Lauf.</p>
+                    <p>{{ _('Keine Startenden für diesen Block.') }}</p>
                 {% endif %}
             </div>
         {% else %}
             <p style="text-align: center; font-weight: bold; margin-top: 2cm;">
-                Keine Läufe im Zeitplan gefunden.
+                {{ _('Kein Zeitplan vorhanden') }}
             </p>
         {% endfor %}
                 </td>

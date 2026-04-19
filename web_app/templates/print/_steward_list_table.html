@@ -1,13 +1,13 @@
 <div style="margin-bottom: 1cm;">
-    <h4 style="margin: 10px 0 5px 0;">{{ run.name }} (Richter: {{ run.judge_display or '—' }})</h4>
+    <h4 style="margin: 10px 0 5px 0;">{{ run.name }} ({{ _('Richter') }}: {{ run.judge_display or '—' }})</h4>
     <p style="font-size: 9pt; margin: 0 0 5px 0;">
         Parcourslänge: {{ run.get('laufdaten', {}).get('parcours_laenge', '___') }}m | Standardzeit: {{ run.get('laufdaten', {}).get('standardzeit_sct', '___') }}s | Maximalzeit: {{ run.get('laufdaten', {}).get('maximalzeit_mct', '___') }}s
     </p>
     <table style="width: 100%; border-collapse: collapse; font-size: 9pt; border: 1px solid black;">
         <thead>
             <tr>
-                <th style="width: 4%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">Nr.</th>
-                <th style="width: 26%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">Hund / Hundeführer</th>
+                <th style="width: 4%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">{{ _('Nr.') }}</th>
+                <th style="width: 26%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">{{ _('Hund') }} / {{ _('Hundeführer') }}</th>
                 <th style="width: 10%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">Zeit</th>
                 <th style="width: 10%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">Fehler</th>
                 <th style="width: 10%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">Verw.</th>
@@ -29,7 +29,7 @@
                 <td style="border: 1px solid black; padding: 4px;"></td>
             </tr>
             {% else %}
-            <tr><td colspan="8" style="border: 1px solid black; padding: 4px;">Keine Starter in diesem Lauf.</td></tr>
+            <tr><td colspan="8" style="border: 1px solid black; padding: 4px;">{{ _('Keine Startenden für diesen Block.') }}</td></tr>
             {% endfor %}
         </tbody>
     </table>

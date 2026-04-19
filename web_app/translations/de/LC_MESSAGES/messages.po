@@ -662,3 +662,118 @@ msgstr ""
 
 msgid "Ergebnisse erfolgreich ans Portal übertragen %(detail)s"
 msgstr ""
+
+# print templates
+msgid "Startlisten"
+msgstr ""
+
+msgid "Startliste"
+msgstr ""
+
+msgid "Startlisten (nach Zeitplan)"
+msgstr ""
+
+msgid "Startliste (nach Zeitplan)"
+msgstr ""
+
+msgid "nach Zeitplan"
+msgstr ""
+
+msgid "Einweiserliste"
+msgstr ""
+
+msgid "Einweiserlisten"
+msgstr ""
+
+msgid "Einweiserliste (nach Zeitplan)"
+msgstr ""
+
+msgid "Ringschreiberliste"
+msgstr ""
+
+msgid "Ringschreiberlisten"
+msgstr ""
+
+msgid "Ringschreiberlisten (nach Zeitplan)"
+msgstr ""
+
+msgid "Briefing-Gruppen"
+msgstr ""
+
+msgid "Bitte wählen"
+msgstr ""
+
+msgid "Kein Zeitplan vorhanden"
+msgstr ""
+
+msgid "Lizenzcheck"
+msgstr ""
+
+msgid "Teilnehmerliste"
+msgstr ""
+
+msgid "Siegerliste"
+msgstr ""
+
+msgid "Offizielle Rangliste"
+msgstr ""
+
+msgid "Vorläufige Rangliste"
+msgstr ""
+
+msgid "Notizen"
+msgstr ""
+
+msgid "Gruppen"
+msgstr ""
+
+msgid "Gruppengrößen"
+msgstr ""
+
+msgid "Gruppe"
+msgstr ""
+
+msgid "Starter"
+msgstr ""
+
+msgid "Keine Startenden für diesen Block."
+msgstr ""
+
+msgid "Keine Teilnehmer gefunden."
+msgstr ""
+
+msgid "Keine Ergebnisse für diesen Lauf."
+msgstr ""
+
+msgid "Gestartete Teams"
+msgstr ""
+
+msgid "Schnellste Zeit"
+msgstr ""
+
+msgid "Nr."
+msgstr ""
+
+msgid "Kategorien"
+msgstr ""
+
+msgid "Klassen"
+msgstr ""
+
+msgid "Gestartet"
+msgstr ""
+
+msgid "Zurück zur Veranstaltung"
+msgstr ""
+
+msgid "Eventlogo"
+msgstr ""
+
+msgid "Vereinslogo"
+msgstr ""
+
+msgid "Alle Ränge anzeigen"
+msgstr ""
+
+msgid "Nur Top 3 anzeigen"
+msgstr ""

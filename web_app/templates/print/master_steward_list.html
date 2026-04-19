@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Master-Einweiserliste - {{ event.Bezeichnung }}</title>
+    <title>{{ _('Einweiserliste') }} - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; }
         @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
@@ -29,7 +29,7 @@
         th, td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         th.run-header { background-color: #f2f2f2; text-align: center; writing-mode: vertical-lr; transform: rotate(180deg); }
         h3 { background-color: #e9ecef; font-size: 14pt; padding: 8px; text-align: left;}
-        
+
         .checkbox { width: 18px; height: 18px; border: 1px solid black; display: block; margin: auto; }
         .participant-col { width: 60px; }
         .run-col { width: 25px; }
@@ -45,7 +45,7 @@
     </style>
 </head>
 <body>
-    {% set title = 'Master-Einweiserliste' %}
+    {% set title = _('Einweiserliste') %}
     <table class="page-table">
         <thead>
             <tr>
@@ -60,13 +60,13 @@
         {% for cat, classes in final_grouped_data.items()|sort %}
             {% for cls, group_data in classes.items()|sort %}
                 <div class="group-container">
-                    <h3>Kategorie: {{ cat }} - Klasse: {{ cls }}</h3>
+                    <h3>{{ _('Kategorie') }}: {{ cat }} - {{ _('Klasse') }}: {{ cls }}</h3>
                     <table>
                         <thead>
                             <tr>
-                                <th class="participant-col" style="writing-mode: horizontal-tb; transform: none; height: auto;">Start-Nr.</th>
-                                <th class="participant-col" style="width: 150px; writing-mode: horizontal-tb; transform: none; height: auto;">Hundeführer</th>
-                                <th class="participant-col" style="width: 120px; writing-mode: horizontal-tb; transform: none; height: auto;">Hund</th>
+                                <th class="participant-col" style="writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Start-Nr.') }}</th>
+                                <th class="participant-col" style="width: 150px; writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Hundeführer') }}</th>
+                                <th class="participant-col" style="width: 120px; writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Hund') }}</th>
                                 {% for run in group_data.runs %}
                                     <th class="run-col run-header"><div>{{ run.name }}</div></th>
                                 {% endfor %}

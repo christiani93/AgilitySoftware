@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Zeitplan - {{ event.Bezeichnung }}</title>
+    <title>{{ _('Zeitplan') }} - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; }
         @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
@@ -20,7 +20,7 @@
         .print-header__title { font-size: 1.1em; font-weight: 600; }
         .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
         .print-header__meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 9pt; color: #444; }
-        
+
         /* NEU: Jeder Ring auf einer neuen Seite (Punkt 2) */
         .ring-page { page-break-after: always; }
         .ring-page:last-child { page-break-after: auto; }
@@ -38,7 +38,7 @@
     </style>
 </head>
 <body>
-    {% set title = 'Zeitplan' %}
+    {% set title = _('Zeitplan') %}
     <table class="page-table">
         <thead>
             <tr>
@@ -52,16 +52,15 @@
                 <td>
         {% for ring, timeline in timelines_by_ring.items()|sort %}
         <div class="ring-page">
-            <h3>Zeitplan Ring {{ ring }} (Start: {{ (event.start_times_by_ring or {}).get('ring_' + ring, 'N/A') }})</h3>
+            <h3>{{ _('Zeitplan') }} {{ _('Ring') }} {{ ring }} (Start: {{ (event.start_times_by_ring or {}).get('ring_' + ring, 'N/A') }})</h3>
             <table>
                 <thead>
                     <tr>
                         <th style="width: 15%;">Start</th>
                         <th style="width: 15%;">Ende</th>
-                        <th>Aktion</th>
-                        {# NEU: Richter statt Dauer (Punkt 1) #}
-                        <th style="width: 25%;">Richter</th>
-                        <th style="width: 15%;">Starter</th>
+                        <th>{{ _('Lauf') }}</th>
+                        <th style="width: 25%;">{{ _('Richter') }}</th>
+                        <th style="width: 15%;">{{ _('Starter') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -104,8 +103,8 @@
                             {% endif %}
                             {% if item.block.type == 'rank_announcement' %}
                               {% set applies = item.block.get('applies_to', {}) %}
-                              <div class="small text-muted">Kategorien: {{ (applies.get('size_categories') or ['alle'])|join(', ') }}</div>
-                              <div class="small text-muted">Klassen: {{ (applies.get('classes') or ['alle'])|join(', ') }}</div>
+                              <div class="small text-muted">{{ _('Kategorien') }}: {{ (applies.get('size_categories') or ['alle'])|join(', ') }}</div>
+                              <div class="small text-muted">{{ _('Klassen') }}: {{ (applies.get('classes') or ['alle'])|join(', ') }}</div>
                             {% endif %}
                         </td>
                         <td>
@@ -117,7 +116,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="5">Für diesen Ring sind keine Blöcke geplant.</td>
+                        <td colspan="5">{{ _('Kein Zeitplan vorhanden') }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

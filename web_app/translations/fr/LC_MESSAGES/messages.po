@@ -658,3 +658,118 @@ msgstr "Échec de l'export portail : %(error)s"
 
 msgid "Ergebnisse erfolgreich ans Portal übertragen %(detail)s"
 msgstr "Résultats transmis avec succès au portail %(detail)s"
+
+# print templates
+msgid "Startlisten"
+msgstr "Listes de départ"
+
+msgid "Startliste"
+msgstr "Liste de départ"
+
+msgid "Startlisten (nach Zeitplan)"
+msgstr "Listes de départ (selon le programme)"
+
+msgid "Startliste (nach Zeitplan)"
+msgstr "Liste de départ (selon le programme)"
+
+msgid "nach Zeitplan"
+msgstr "selon le programme"
+
+msgid "Einweiserliste"
+msgstr "Liste des placeurs"
+
+msgid "Einweiserlisten"
+msgstr "Listes des placeurs"
+
+msgid "Einweiserliste (nach Zeitplan)"
+msgstr "Liste des placeurs (selon le programme)"
+
+msgid "Ringschreiberliste"
+msgstr "Liste des scribes"
+
+msgid "Ringschreiberlisten"
+msgstr "Listes des scribes"
+
+msgid "Ringschreiberlisten (nach Zeitplan)"
+msgstr "Listes des scribes (selon le programme)"
+
+msgid "Briefing-Gruppen"
+msgstr "Groupes de briefing"
+
+msgid "Bitte wählen"
+msgstr "Veuillez choisir"
+
+msgid "Kein Zeitplan vorhanden"
+msgstr "Aucun programme disponible"
+
+msgid "Lizenzcheck"
+msgstr "Contrôle des licences"
+
+msgid "Teilnehmerliste"
+msgstr "Liste des participants"
+
+msgid "Siegerliste"
+msgstr "Liste des vainqueurs"
+
+msgid "Offizielle Rangliste"
+msgstr "Classement officiel"
+
+msgid "Vorläufige Rangliste"
+msgstr "Classement provisoire"
+
+msgid "Notizen"
+msgstr "Notes"
+
+msgid "Gruppen"
+msgstr "Groupes"
+
+msgid "Gruppengrößen"
+msgstr "Tailles des groupes"
+
+msgid "Gruppe"
+msgstr "Groupe"
+
+msgid "Starter"
+msgstr "Partant(s)"
+
+msgid "Keine Startenden für diesen Block."
+msgstr "Aucun partant pour ce bloc."
+
+msgid "Keine Teilnehmer gefunden."
+msgstr "Aucun participant trouvé."
+
+msgid "Keine Ergebnisse für diesen Lauf."
+msgstr "Aucun résultat pour cette épreuve."
+
+msgid "Gestartete Teams"
+msgstr "Équipes partantes"
+
+msgid "Schnellste Zeit"
+msgstr "Temps le plus rapide"
+
+msgid "Nr."
+msgstr "N°"
+
+msgid "Kategorien"
+msgstr "Catégories"
+
+msgid "Klassen"
+msgstr "Classes"
+
+msgid "Gestartet"
+msgstr "Démarré"
+
+msgid "Zurück zur Veranstaltung"
+msgstr "Retour à l'événement"
+
+msgid "Eventlogo"
+msgstr "Logo événement"
+
+msgid "Vereinslogo"
+msgstr "Logo du club"
+
+msgid "Alle Ränge anzeigen"
+msgstr "Afficher tous les rangs"
+
+msgid "Nur Top 3 anzeigen"
+msgstr "Afficher uniquement le Top 3"

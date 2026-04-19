@@ -1,15 +1,15 @@
 {% extends "layout.html" %}
-{% block title %}Lizenzcheck – {{ event.Bezeichnung }}{% endblock %}
+{% block title %}{{ _('Lizenzcheck') }} – {{ event.Bezeichnung }}{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
   <div>
-    <h1 class="mb-0">🔍 Lizenzcheck</h1>
+    <h1 class="mb-0">🔍 {{ _('Lizenzcheck') }}</h1>
     <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
   </div>
   <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}"
      class="btn btn-outline-secondary">
-    <i class="fas fa-arrow-left me-1"></i> Zurück zur Veranstaltung
+    <i class="fas fa-arrow-left me-1"></i> {{ _('Zurück zur Veranstaltung') }}
   </a>
 </div>
 

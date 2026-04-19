@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Rangverkündigung - {{ event_name }}</title>
+    <title>{{ _('Siegerliste') }} - {{ event_name }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -92,38 +92,38 @@
 </head>
 <body>
 
-{% set title = 'Rangverkündigung' %}
+{% set title = _('Siegerliste') %}
 {% include 'print/_print_header.html' %}
 
 <main class="container my-4">
     <div class="text-center no-print mb-4">
-        <button onclick="window.print();" class="btn btn-primary">Drucken</button>
-        <button id="toggle-ranks-btn" class="btn btn-secondary">Alle Ränge anzeigen</button>
-        
+        <button onclick="window.print();" class="btn btn-primary">{{ _('Drucken') }}</button>
+        <button id="toggle-ranks-btn" class="btn btn-secondary">{{ _('Alle Ränge anzeigen') }}</button>
+
         {% if event_id %}
-        <a href="{{ url_for('live_bp.live_event_dashboard', event_id=event_id) }}" class="btn btn-outline-secondary">Zurück zum Live-Dashboard</a>
+        <a href="{{ url_for('live_bp.live_event_dashboard', event_id=event_id) }}" class="btn btn-outline-secondary">{{ _('Zurück zum Live-Dashboard') }}</a>
         {% else %}
-        <a href="{{ url_for('events_bp.events_list') }}" class="btn btn-outline-secondary">Zurück zur Event-Übersicht</a>
+        <a href="{{ url_for('events_bp.events_list') }}" class="btn btn-outline-secondary">{{ _('Zurück zur Veranstaltung') }}</a>
         {% endif %}
     </div>
 
-    <h1>Rangverkündigung</h1>
+    <h1>{{ _('Siegerliste') }}</h1>
     <h2>{{ event_name }}</h2>
 
     {% for data in award_data %}
     <div class="award-list">
         <div class="run-header">
             <h3>{{ data.name }}</h3>
-            <p class="judge-name">Richter: {{ data.full_judge_name }}</p>
+            <p class="judge-name">{{ _('Richter') }}: {{ data.full_judge_name }}</p>
         </div>
-        
+
         {% if data.rankings %}
             <table>
                 <thead>
                     <tr>
                         <th class="rank">Rang</th>
-                        <th>Hundeführer</th>
-                        <th>Hund</th>
+                        <th>{{ _('Hundeführer') }}</th>
+                        <th>{{ _('Hund') }}</th>
                         <th class="faults">Fehler</th>
                         <th class="time">Zeit</th>
                     </tr>
@@ -147,7 +147,7 @@
                 </tbody>
             </table>
         {% else %}
-            <p class="text-center text-muted">Für diesen Lauf wurden keine vollständigen Ergebnisse gefunden.</p>
+            <p class="text-center text-muted">{{ _('Keine Ergebnisse für diesen Lauf.') }}</p>
         {% endif %}
     </div>
     {# --- START DER ÄNDERUNG: Fester Seitenumbruch wurde entfernt --- #}
@@ -168,8 +168,8 @@ document.addEventListener('DOMContentLoaded', function() {
             extraRows.forEach(row => {
                 row.style.display = isHidden ? 'table-row' : 'none';
             });
-            
-            this.textContent = isHidden ? 'Nur Top 3 anzeigen' : 'Alle Ränge anzeigen';
+
+            this.textContent = isHidden ? '{{ _('Nur Top 3 anzeigen') }}' : '{{ _('Alle Ränge anzeigen') }}';
         });
     }
 });

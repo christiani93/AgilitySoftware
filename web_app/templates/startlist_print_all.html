@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Alle Startlisten - {{ event.Bezeichnung }}</title>
+    <title>{{ _('Startlisten') }} - {{ event.Bezeichnung }}</title>
     <style>
         @media print {
             body {
@@ -57,20 +57,20 @@
     </style>
 </head>
 <body>
-    <button class="no-print" onclick="window.print()" style="padding: 10px 20px; font-size: 1em; margin-bottom: 20px;">Drucken</button>
-    
+    <button class="no-print" onclick="window.print()" style="padding: 10px 20px; font-size: 1em; margin-bottom: 20px;">{{ _('Drucken') }}</button>
+
     {% for run in ordered_runs %}
         {% if run.entries %}
             <div class="startlist-container">
                 <h1>{{ event.Bezeichnung }}</h1>
-                <h2>Startliste für: {{ run.name }}</h2>
+                <h2>{{ _('Startliste') }}: {{ run.name }}</h2>
 
                 <table>
                     <thead>
                         <tr>
-                            <th>Start-Nr.</th>
-                            <th>Hundeführer</th>
-                            <th>Hund</th>
+                            <th>{{ _('Start-Nr.') }}</th>
+                            <th>{{ _('Hundeführer') }}</th>
+                            <th>{{ _('Hund') }}</th>
                             <th>Rasse</th>
                         </tr>
                     </thead>

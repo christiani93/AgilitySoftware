@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Teilnehmerliste - {{ event.Bezeichnung }}</title>
+    <title>{{ _('Teilnehmerliste') }} - {{ event.Bezeichnung }}</title>
     <style>
         body{font-family: sans-serif;}
         table{width: 100%; border-collapse: collapse;}
@@ -19,17 +19,17 @@
     </style>
 </head>
 <body>
-    {% set title = 'Teilnehmerliste (alphabetisch)' %}
+    {% set title = _('Teilnehmerliste') %}
     {% include 'print/_print_header.html' %}
 
     <main>
     <table>
         <thead>
             <tr>
-                <th>Hundeführer</th>
-                <th>Hund</th>
+                <th>{{ _('Hundeführer') }}</th>
+                <th>{{ _('Hund') }}</th>
                 <th>Lizenz</th>
-                <th>Start-Nr.</th>
+                <th>{{ _('Start-Nr.') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -41,7 +41,7 @@
                 <td><strong>{{ p.Startnummer or '-' }}</strong></td>
             </tr>
             {% else %}
-            <tr><td colspan="4">Keine Teilnehmer gefunden.</td></tr>
+            <tr><td colspan="4">{{ _('Keine Teilnehmer gefunden.') }}</td></tr>
             {% endfor %}
         </tbody>
     </table>

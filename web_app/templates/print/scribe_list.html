@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Ringschreiberlisten - {{ event.Bezeichnung }}</title>
+    <title>{{ _('Ringschreiberlisten') }} - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
@@ -33,14 +33,14 @@
         thead th { background-color: #e9ecef !important; font-size: 11pt; }
         thead { display: table-header-group; }
         tr { page-break-inside: avoid; page-break-after: auto; }
-        
+
         @media print {
             body { margin: 0; }
         }
     </style>
 </head>
 <body>
-    {% set title = title or 'Ringschreiberlisten' %}
+    {% set title = title or _('Ringschreiberlisten') %}
     <table class="page-table">
         <thead>
             <tr>
@@ -57,22 +57,22 @@
                 <h4 class="mt-4 text-center">{{ run.name }}</h4>
                 {# NEU: Platzhalter für Geräteanzahl hinzugefügt (Punkt 1.1) #}
                 <p class="run-meta-info">
-                    Richter: {{ run.judge_display or '—' }} | 
-                    Parcourslänge: {{ run.laufdaten.parcours_laenge or '___' }}m | 
+                    {{ _('Richter') }}: {{ run.judge_display or '—' }} |
+                    Parcourslänge: {{ run.laufdaten.parcours_laenge or '___' }}m |
                     Anz. Geräte: {{ run.laufdaten.anzahl_hindernisse or '___' }} <br>
-                    Standardzeit (SCT): {{ run.laufdaten.standardzeit_sct or '___' }}s | 
+                    Standardzeit (SCT): {{ run.laufdaten.standardzeit_sct or '___' }}s |
                     Maximalzeit (MCT): {{ run.laufdaten.maximalzeit_mct or '___' }}s
                 </p>
                 <table class="table table-sm">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 5%;">Start-Nr.</th>
-                            <th style="width: 25%;">Hundeführer / Hund</th>
+                            <th style="width: 5%;">{{ _('Start-Nr.') }}</th>
+                            <th style="width: 25%;">{{ _('Hundeführer') }} / {{ _('Hund') }}</th>
                             <th style="width: 10%;">Zeit</th>
                             <th style="width: 10%;">Fehler</th>
                             <th style="width: 10%;">Verw.</th>
                             <th style="width: 10%;">DIS/ABR</th>
-                            <th style="width: 30%;">Notizen</th>
+                            <th style="width: 30%;">{{ _('Notizen') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,7 +92,7 @@
              </div>
         {% else %}
             <p style="text-align: center; font-weight: bold; margin-top: 2cm;">
-                Keine Läufe im Zeitplan gefunden.
+                {{ _('Kein Zeitplan vorhanden') }}
             </p>
         {% endfor %}
                 </td>

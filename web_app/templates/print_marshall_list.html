@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Einweiserlisten - {{ event.Bezeichnung }}</title>
+    <title>{{ _('Einweiserlisten') }} - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; }
         @page { size: A4 landscape; margin: 2.5cm 1.5cm 1.5cm 1.5cm; }
@@ -26,14 +26,14 @@
     </style>
 </head>
 <body>
-    {% set title = 'Einweiserlisten (Abhaklisten)' %}
+    {% set title = _('Einweiserlisten') %}
     {% include 'print/_print_header.html' %}
 
     <main>
 
     {% for ring, runs in runs_by_ring.items()|sort %}
         <div class="ring-block">
-            <h3>Ring {{ ring|replace('ring_','') }}</h3>
+            <h3>{{ _('Ring') }} {{ ring|replace('ring_','') }}</h3>
             {% for run in runs %}
                 {# KORREKTUR: Nur eine Tabelle für echte Läufe anzeigen, nicht für Pausen etc. #}
                 {% if run.laufart not in ['Pause', 'Umbau', 'Briefing'] %}
@@ -41,9 +41,9 @@
                     <table>
                         <thead>
                             <tr>
-                                <th style="width: 5%;">Nr.</th>
-                                <th style="width: 45%;">Hundeführer / Hund</th>
-                                <th style="width: 10%;">Gestartet</th>
+                                <th style="width: 5%;">{{ _('Nr.') }}</th>
+                                <th style="width: 45%;">{{ _('Hundeführer') }} / {{ _('Hund') }}</th>
+                                <th style="width: 10%;">{{ _('Gestartet') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -54,7 +54,7 @@
                                 <td><div class="checkbox"></div></td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="3">Keine Starter in diesem Lauf.</td></tr>
+                            <tr><td colspan="3">{{ _('Keine Startenden für diesen Block.') }}</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>

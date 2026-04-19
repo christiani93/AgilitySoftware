@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Rangliste: {{ run.name }}</title>
+    <title>{{ _('Rangliste') }}: {{ run.name }}</title>
     <style>
         body { font-family: sans-serif; }
         @page { size: A4; margin: 2.5cm 1.5cm 1.5cm 1.5cm; }
@@ -21,7 +21,7 @@
     </style>
 </head>
 <body>
-    {% set title = "Rangliste: " ~ run.name %}
+    {% set title = _('Rangliste') ~ ': ' ~ run.name %}
     {% set header_judge = judge_display or '—' %}
     {% set header_course = (run.get('laufdaten', {}).get('parcours_laenge', '___') ~ 'm / ' ~ run.get('laufdaten', {}).get('anzahl_hindernisse', '___') ~ ' Geräte') %}
     {% set header_sct_mct = (run.get('laufdaten', {}).get('standardzeit_sct_gerundet', '___') ~ 's / ' ~ run.get('laufdaten', {}).get('maximalzeit_mct_gerundet', '___') ~ 's') %}
@@ -32,9 +32,9 @@
         <thead>
             <tr>
                 <th>Rang</th>
-                <th>St-Nr.</th>
-                <th>Hundeführer</th>
-                <th>Hund</th>
+                <th>{{ _('Start-Nr.') }}</th>
+                <th>{{ _('Hundeführer') }}</th>
+                <th>{{ _('Hund') }}</th>
                 <th>Zeit</th>
                 <th>Fehler</th>
                 <th>Verw.</th>
@@ -56,7 +56,7 @@
                     <td><strong>{{ '%.2f'|format(res.fehler_total|float) if res.fehler_total < 998 else '' }}</strong></td>
                 </tr>
             {% else %}
-                <tr><td colspan="9">Keine Ergebnisse für diesen Lauf.</td></tr>
+                <tr><td colspan="9">{{ _('Keine Ergebnisse für diesen Lauf.') }}</td></tr>
             {% endfor %}
         </tbody>
     </table>

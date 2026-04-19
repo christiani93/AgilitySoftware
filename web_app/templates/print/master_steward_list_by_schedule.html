@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Master-Einweiserliste (Zeitplan) - {{ event.Bezeichnung }}</title>
+    <title>{{ _('Einweiserliste') }} ({{ _('nach Zeitplan') }}) - {{ event.Bezeichnung }}</title>
     <style>
         body { font-family: sans-serif; }
         @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
@@ -44,7 +44,7 @@
     </style>
 </head>
 <body>
-    {% set title = 'Master-Einweiserliste (nach Zeitplan)' %}
+    {% set title = _('Einweiserliste') ~ ' (' ~ _('nach Zeitplan') ~ ')' %}
     <table class="page-table">
         <thead>
             <tr>
@@ -58,13 +58,13 @@
                 <td>
         {% for section in sections %}
             <div class="group-container">
-                <h3>Ring {{ section.ring }} – {{ section.title }}</h3>
+                <h3>{{ _('Ring') }} {{ section.ring }} – {{ section.title }}</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th class="participant-col" style="writing-mode: horizontal-tb; transform: none; height: auto;">Start-Nr.</th>
-                            <th class="participant-col" style="width: 150px; writing-mode: horizontal-tb; transform: none; height: auto;">Hundeführer</th>
-                            <th class="participant-col" style="width: 120px; writing-mode: horizontal-tb; transform: none; height: auto;">Hund</th>
+                            <th class="participant-col" style="writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Start-Nr.') }}</th>
+                            <th class="participant-col" style="width: 150px; writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Hundeführer') }}</th>
+                            <th class="participant-col" style="width: 120px; writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Hund') }}</th>
                             {% for run in section.runs %}
                                 <th class="run-col run-header"><div>{{ run.name }}</div></th>
                             {% endfor %}
@@ -90,7 +90,7 @@
             </div>
         {% else %}
             <p style="text-align: center; font-weight: bold; margin-top: 2cm;">
-                Keine Läufe im Zeitplan gefunden.
+                {{ _('Kein Zeitplan vorhanden') }}
             </p>
         {% endfor %}
                 </td>
