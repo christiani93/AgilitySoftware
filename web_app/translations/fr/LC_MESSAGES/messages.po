@@ -773,3 +773,13 @@ msgstr "Afficher tous les rangs"
 
 msgid "Nur Top 3 anzeigen"
 msgstr "Afficher uniquement le Top 3"
+
+# settings.html — Drucksprache
+msgid "Drucksprache"
+msgstr "Langue d'impression"
+
+msgid "Sprache für alle Ausdrucke"
+msgstr "Langue pour toutes les impressions"
+
+msgid "Gilt für Startlisten, Zeitplan, Ranglisten und alle weiteren Druckvorlagen."
+msgstr "Valable pour les listes de départ, le programme, les classements et tous les autres modèles d'impression."

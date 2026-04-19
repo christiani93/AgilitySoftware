@@ -777,3 +777,13 @@ msgstr ""
 
 msgid "Nur Top 3 anzeigen"
 msgstr ""
+
+# settings.html — Drucksprache
+msgid "Drucksprache"
+msgstr ""
+
+msgid "Sprache für alle Ausdrucke"
+msgstr ""
+
+msgid "Gilt für Startlisten, Zeitplan, Ranglisten und alle weiteren Druckvorlagen."
+msgstr ""

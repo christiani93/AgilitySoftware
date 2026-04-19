@@ -16,7 +16,15 @@ app.config['SECRET_KEY'] = 'dein_super_geheimer_schluessel'
 app.config['BABEL_DEFAULT_LOCALE'] = 'de'
 app.config['BABEL_SUPPORTED_LOCALES'] = ['de', 'fr']
 babel = Babel()
-babel.init_app(app, locale_selector=lambda: 'de')
+
+def _select_locale():
+    """Für /print/-Routen: Sprache aus den Einstellungen lesen. Sonst immer 'de'."""
+    if request.path.startswith('/print/'):
+        from utils import _load_settings
+        return _load_settings().get('print_language', 'de')
+    return 'de'
+
+babel.init_app(app, locale_selector=_select_locale)
 socketio.init_app(app)
 
 from utils import get_category_sort_key
@@ -81,6 +89,10 @@ def settings():
         current_settings['portal_live_api_key']    = request.form.get('portal_live_api_key', '').strip()
         current_settings['portal_results_api_key'] = request.form.get('portal_results_api_key', '').strip()
         current_settings['portal_device_id']       = request.form.get('portal_device_id', '').strip() or 'agility-software'
+        # Drucksprache
+        print_language = request.form.get('print_language', 'de')
+        if print_language in ('de', 'fr'):
+            current_settings['print_language'] = print_language
         _save_data('settings.json', current_settings)
         flash(_('Einstellungen erfolgreich gespeichert.'), 'success')
         return redirect(url_for('settings'))

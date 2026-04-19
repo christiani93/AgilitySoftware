@@ -192,6 +192,18 @@
         }
         </script>
 
+        <div class="card mb-4">
+            <div class="card-header"><h5>🖨️ {{ _('Drucksprache') }}</h5></div>
+            <div class="card-body">
+                <label for="print_language" class="form-label">{{ _('Sprache für alle Ausdrucke') }}</label>
+                <select class="form-select" id="print_language" name="print_language" style="max-width: 220px;">
+                    <option value="de" {% if settings.get('print_language', 'de') == 'de' %}selected{% endif %}>🇩🇪 Deutsch</option>
+                    <option value="fr" {% if settings.get('print_language', 'de') == 'fr' %}selected{% endif %}>🇫🇷 Français</option>
+                </select>
+                <div class="form-text">{{ _('Gilt für Startlisten, Zeitplan, Ranglisten und alle weiteren Druckvorlagen.') }}</div>
+            </div>
+        </div>
+
         <button type="submit" class="btn btn-primary mt-4 w-100">{{ _('Einstellungen speichern') }}</button>
     </form>
 </div>
