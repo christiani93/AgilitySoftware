@@ -120,7 +120,10 @@
             resultModal.show();
         };
 
+        const saveUrl = `/live/save_result/${eventId}/${runId}`;
+
         document.getElementById('saveResultBtn').addEventListener('click', function() {
+            const btn = this;
             const data = {
                 license_number: currentLicenseNumber,
                 zeit: form.elements['zeit'].value,
@@ -129,21 +132,34 @@
                 disqualifikation: form.elements['disqualifikation'].value
             };
 
-            fetch(`{{ url_for('live_bp.save_result', event_id=eventId, run_id=runId) }}`, {
+            btn.disabled = true;
+            btn.textContent = '⏳ Speichern…';
+
+            fetch(saveUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
             .then(result => {
                 if(result.success) {
                     const entry = allEntries.find(e => e.Lizenznummer === currentLicenseNumber);
-                    entry.result = data;
+                    if (entry) entry.result = { ...data };
                     renderTable();
                     resultModal.hide();
                 } else {
                     alert('Fehler beim Speichern: ' + result.message);
                 }
+            })
+            .catch(err => {
+                alert('Verbindungsfehler: ' + err.message);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'Speichern';
             });
         });
         
