@@ -2165,12 +2165,7 @@ def import_event_package():
                         f"(locked: {str(start_numbers_info['locked']).lower()})",
                         "info"
                     )
-                    if start_numbers_info["duplicates"]:
-                        flash(
-                            f"Startnummern doppelt erkannt: {len(start_numbers_info['duplicates'])}.",
-                            "warning"
-                        )
-                    if start_numbers_info["missing"]:
+                    if start_numbers_info.get("missing"):
                         flash(
                             f"Startnummern ohne Zuordnung: {len(start_numbers_info['missing'])}.",
                             "warning"
