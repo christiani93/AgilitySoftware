@@ -35,13 +35,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint and (request.endpoint.startswith('events_bp') or request.endpoint.startswith('live_bp')) %}active{% endif %}" href="{{ url_for('events_bp.events_list') }}">Veranstaltungen</a>
+                        <a class="nav-link {% if request.endpoint and (request.endpoint.startswith('events_bp') or request.endpoint.startswith('live_bp')) %}active{% endif %}" href="{{ url_for('events_bp.events_list') }}">{{ _('Veranstaltungen') }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('master_data_bp') %}active{% endif %}" href="{{ url_for('master_data_bp.master_data') }}">Stammdaten</a>
+                        <a class="nav-link {% if request.endpoint and request.endpoint.startswith('master_data_bp') %}active{% endif %}" href="{{ url_for('master_data_bp.master_data') }}">{{ _('Stammdaten') }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint and request.endpoint == 'settings' %}active{% endif %}" href="{{ url_for('settings') }}">Einstellungen</a>
+                        <a class="nav-link {% if request.endpoint and request.endpoint == 'settings' %}active{% endif %}" href="{{ url_for('settings') }}">{{ _('Einstellungen') }}</a>
                     </li>
                 </ul>
                 <span class="navbar-text">

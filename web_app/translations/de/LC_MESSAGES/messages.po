@@ -1,0 +1,664 @@
+# German translations for AgilitySuite
+# msgstr is empty — German is the default locale, Flask-Babel falls back to msgid
+msgid ""
+msgstr ""
+"Project-Id-Version: AgilitySuite 4.4\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-19 00:00+0000\n"
+"PO-Revision-Date: 2026-04-19 00:00+0000\n"
+"Last-Translator: \n"
+"Language: de\n"
+"Language-Team: German\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# --- Navigation ---
+msgid "Veranstaltungen"
+msgstr ""
+
+msgid "Stammdaten"
+msgstr ""
+
+msgid "Einstellungen"
+msgstr ""
+
+# --- Home ---
+msgid "Willkommen"
+msgstr ""
+
+msgid "Willkommen bei der AgilitySuite"
+msgstr ""
+
+msgid "Ihre web-basierte Lösung zur Verwaltung von Agility-Turnieren. Von der Erstellung der Veranstaltung bis zur Live-Anzeige der Resultate."
+msgstr ""
+
+msgid "Zu den Veranstaltungen"
+msgstr ""
+
+msgid "Stammdaten verwalten"
+msgstr ""
+
+msgid "Verwalten Sie hier zentral alle Richter, Vereine, Hundeführer und Hunde. Importieren Sie neue Daten einfach via CSV-Upload."
+msgstr ""
+
+msgid "Passen Sie globale Parameter wie Berechnungsfaktoren für SCT/MCT und die Standard-Startnummern-Schemata an Ihre Bedürfnisse an."
+msgstr ""
+
+msgid "Zu den Einstellungen"
+msgstr ""
+
+# --- Events list ---
+msgid "Event-Paket importieren"
+msgstr ""
+
+msgid "Neue Veranstaltung erstellen"
+msgstr ""
+
+msgid "Startlisten-JSON hochladen und daraus ein neues Test-Event erstellen."
+msgstr ""
+
+msgid "Event-Name (optional)"
+msgstr ""
+
+msgid "Teilnehmer anlegen (dogs + handlers)"
+msgstr ""
+
+msgid "Läufe anlegen (Agility/Jumping pro Klasse/Kategorie)"
+msgstr ""
+
+msgid "Entries hinzufügen"
+msgstr ""
+
+msgid "Entries nach offizieller Startnummer sortieren"
+msgstr ""
+
+msgid "Startlisten-JSON → Test-Event erstellen"
+msgstr ""
+
+msgid "Keine Veranstaltungen gefunden."
+msgstr ""
+
+# --- Event form ---
+msgid "Bezeichnung"
+msgstr ""
+
+msgid "Datum"
+msgstr ""
+
+msgid "Veranstalter"
+msgstr ""
+
+msgid "--- Bitte auswählen ---"
+msgstr ""
+
+msgid "Turniernummer"
+msgstr ""
+
+msgid "Anzahl Ringe"
+msgstr ""
+
+msgid "Veranstaltungsart"
+msgstr ""
+
+msgid "Läufe automatisch erstellen"
+msgstr ""
+
+msgid "Laufarten:"
+msgstr ""
+
+msgid "Kategorien:"
+msgstr ""
+
+msgid "Klassen:"
+msgstr ""
+
+msgid "Speichern"
+msgstr ""
+
+msgid "Abbrechen"
+msgstr ""
+
+# --- Live event dashboard ---
+msgid "Live Dashboard"
+msgstr ""
+
+msgid "Zurück zur Verwaltung"
+msgstr ""
+
+msgid "Öffentliche Anzeigen & Teilen"
+msgstr ""
+
+msgid "Sprecher-Dashboard"
+msgstr ""
+
+msgid "Rangverkündigungsliste erstellen"
+msgstr ""
+
+msgid "Portal-Synchronisation"
+msgstr ""
+
+msgid "Ergebnisse als ZIP"
+msgstr ""
+
+msgid "Ergebnisse ans Portal senden"
+msgstr ""
+
+msgid "Abschluss-Export ans Portal"
+msgstr ""
+
+msgid "Richter"
+msgstr ""
+
+msgid "Resultate erfassen"
+msgstr ""
+
+msgid "Rangliste (Druck)"
+msgstr ""
+
+msgid "Für Sprecher"
+msgstr ""
+
+msgid "Aktiver Lauf"
+msgstr ""
+
+msgid "Kein Zeitplan – aktiver Lauf manuell gesetzt."
+msgstr ""
+
+msgid "Für diesen Ring sind keine Läufe im Zeitplan eingetragen."
+msgstr ""
+
+msgid "Für diese Veranstaltung wurden keine Läufe einem Ring zugewiesen. Bitte erstellen Sie zuerst einen"
+msgstr ""
+
+msgid "Zeitplan"
+msgstr ""
+
+# --- Live run entry ---
+msgid "Resultaterfassung"
+msgstr ""
+
+msgid "Zurück zum Dashboard"
+msgstr ""
+
+msgid "Laufdaten"
+msgstr ""
+
+msgid "Länge"
+msgstr ""
+
+msgid "Für Sprecher-Anzeige aktivieren"
+msgstr ""
+
+msgid "Hund"
+msgstr ""
+
+msgid "Hundeführer"
+msgstr ""
+
+msgid "Zeit"
+msgstr ""
+
+msgid "Fehler"
+msgstr ""
+
+msgid "Verw."
+msgstr ""
+
+msgid "Aktionen"
+msgstr ""
+
+msgid "Zeit (s)"
+msgstr ""
+
+msgid "Verweigerungen"
+msgstr ""
+
+msgid "Disqualifikation"
+msgstr ""
+
+msgid "Nein"
+msgstr ""
+
+msgid "nicht gestartet"
+msgstr ""
+
+msgid "Vollständige Rangliste anzeigen"
+msgstr ""
+
+# --- Ranking ---
+msgid "Rangliste"
+msgstr ""
+
+msgid "Zurück zur Erfassung"
+msgstr ""
+
+msgid "Druckversion"
+msgstr ""
+
+msgid "Parcourslänge"
+msgstr ""
+
+msgid "Rang"
+msgstr ""
+
+msgid "Zeitfehler"
+msgstr ""
+
+msgid "Noch keine Resultate für die Rangliste erfasst."
+msgstr ""
+
+# --- Manage runs ---
+msgid "Läufe verwalten"
+msgstr ""
+
+msgid "Zurück zur Event-Übersicht"
+msgstr ""
+
+msgid "Zeitplan & Startnummern"
+msgstr ""
+
+msgid "Teilnehmer importieren"
+msgstr ""
+
+msgid "Alle Teilnehmer verwalten"
+msgstr ""
+
+msgid "Event-Paket exportieren"
+msgstr ""
+
+msgid "Live-Dashboard öffnen"
+msgstr ""
+
+msgid "Live beenden"
+msgstr ""
+
+msgid "Als Live setzen & starten"
+msgstr ""
+
+msgid "Läufe"
+msgstr ""
+
+msgid "Ohne Ringzuweisung"
+msgstr ""
+
+msgid "Rangliste"
+msgstr ""
+
+msgid "Teilnehmer"
+msgstr ""
+
+msgid "Laufdaten"
+msgstr ""
+
+msgid "Für diese Veranstaltung wurden noch keine Läufe erstellt."
+msgstr ""
+
+# --- Settings ---
+msgid "Globale Konfiguration der Anwendung."
+msgstr ""
+
+msgid "Ranglisten-Punkte"
+msgstr ""
+
+msgid "Punktevergabe (kommasepariert, z.B. 10,8,6,4,2)"
+msgstr ""
+
+msgid "Zeitplan-Berechnung"
+msgstr ""
+
+msgid "Geschätzte Zeit pro Starter in Sekunden (für Zeitplan-Vorschau)"
+msgstr ""
+
+msgid "SCT-Faktoren (m/s) für Klasse 2/3"
+msgstr ""
+
+msgid "Vorlage für Startnummern-Schema"
+msgstr ""
+
+msgid "Wenn aktiviert, werden Live-Ergebnisse automatisch an das AgilityPortal übertragen."
+msgstr ""
+
+msgid "URL und API-Keys findest du im Portal unter"
+msgstr ""
+
+msgid "Live-Updates"
+msgstr ""
+
+msgid "Letzter erfolgreicher Transfer:"
+msgstr ""
+
+msgid "Ergebnis-Exporte"
+msgstr ""
+
+msgid "Portal-URL"
+msgstr ""
+
+msgid "Basis-URL des AgilityPortals (ohne abschliessenden Schrägstrich)"
+msgstr ""
+
+msgid "Live-Update API-Key"
+msgstr ""
+
+msgid "Ergebnis-Export API-Key"
+msgstr ""
+
+msgid "Geräte-ID (optional)"
+msgstr ""
+
+msgid "Eindeutige Bezeichnung dieses Geräts für die Live-Updates"
+msgstr ""
+
+msgid "Einstellungen speichern"
+msgstr ""
+
+# --- Master data ---
+msgid "Richter-Daten"
+msgstr ""
+
+msgid "Neuen Richter hinzufügen"
+msgstr ""
+
+msgid "Richter importieren (CSV)"
+msgstr ""
+
+msgid "Bearbeiten"
+msgstr ""
+
+msgid "Vereins-Daten"
+msgstr ""
+
+msgid "Neuen Verein hinzufügen"
+msgstr ""
+
+msgid "Vereine importieren (CSV)"
+msgstr ""
+
+msgid "Vereine"
+msgstr ""
+
+msgid "Hundeführer-Daten"
+msgstr ""
+
+msgid "Neuen Hundeführer hinzufügen"
+msgstr ""
+
+msgid "Hundeführer importieren (CSV)"
+msgstr ""
+
+msgid "Hunde-Daten"
+msgstr ""
+
+msgid "Neuen Hund hinzufügen"
+msgstr ""
+
+msgid "Hunde importieren (CSV)"
+msgstr ""
+
+msgid "Hunde"
+msgstr ""
+
+# --- Manage event participants ---
+msgid "Teilnehmer-Optionen für"
+msgstr ""
+
+msgid "Teilnehmer-Optionen"
+msgstr ""
+
+msgid "Zurück zur Lauf-Verwaltung"
+msgstr ""
+
+msgid "Option \"Am Schluss starten\""
+msgstr ""
+
+msgid "Am Schluss starten?"
+msgstr ""
+
+msgid "Für dieses Event wurden noch keine Teilnehmer importiert."
+msgstr ""
+
+msgid "Änderungen speichern"
+msgstr ""
+
+# --- Plan schedule ---
+msgid "Zurück"
+msgstr ""
+
+msgid "Vorbereitungsdrucksachen"
+msgstr ""
+
+msgid "Zeitplan speichern"
+msgstr ""
+
+msgid "Block hinzufügen"
+msgstr ""
+
+msgid "Block-Typ"
+msgstr ""
+
+msgid "Ring"
+msgstr ""
+
+msgid "Titel (optional)"
+msgstr ""
+
+msgid "Richter (run)"
+msgstr ""
+
+msgid "Entfernen"
+msgstr ""
+
+msgid "Noch keine Blöcke geplant."
+msgstr ""
+
+msgid "Zeitplan-Vorschau (berechnete Timeline)"
+msgstr ""
+
+msgid "Startnummern-Schema"
+msgstr ""
+
+msgid "Vorlage laden"
+msgstr ""
+
+msgid "Kategorie"
+msgstr ""
+
+msgid "Klasse"
+msgstr ""
+
+msgid "Startnummer ab"
+msgstr ""
+
+msgid "Schema speichern"
+msgstr ""
+
+msgid "Startnummern vergeben"
+msgstr ""
+
+msgid "Abstand zwischen Hundeführern"
+msgstr ""
+
+msgid "Startnummern generieren"
+msgstr ""
+
+msgid "Vorschau – vergebene Startnummern"
+msgstr ""
+
+msgid "Noch keine Startnummern vergeben."
+msgstr ""
+
+# --- Select dog for run ---
+msgid "Hund auswählen"
+msgstr ""
+
+msgid "Hund auswählen für"
+msgstr ""
+
+msgid "Dieser Hundeführer hat mehrere Hunde. Bitte wählen Sie aus, welcher Hund zum Lauf"
+msgstr ""
+
+msgid "hinzugefügt werden soll."
+msgstr ""
+
+# --- Ring PC dashboard ---
+msgid "Keine Verbindung"
+msgstr ""
+
+msgid "Lauf"
+msgstr ""
+
+msgid "Kein Lauf ausgewählt"
+msgstr ""
+
+msgid "Zurück zum Live-Dashboard"
+msgstr ""
+
+msgid "Lauf auswählen & Steuerung"
+msgstr ""
+
+msgid "Keine Läufe verfügbar"
+msgstr ""
+
+msgid "Verbinde mit Ring-Server..."
+msgstr ""
+
+msgid "Schnell speichern (Zeit/F/V)"
+msgstr ""
+
+msgid "Aktuellen Lauf zurücksetzen"
+msgstr ""
+
+msgid "Portal-Export (PDF)"
+msgstr ""
+
+msgid "Starterliste & Resultate"
+msgstr ""
+
+msgid "Bitte wählen Sie links einen Lauf aus."
+msgstr ""
+
+msgid "Laufdaten bearbeiten"
+msgstr ""
+
+msgid "— kein Richter —"
+msgstr ""
+
+msgid "Parcourslänge (m)"
+msgstr ""
+
+msgid "Anzahl Hindernisse"
+msgstr ""
+
+msgid "Resultat bearbeiten"
+msgstr ""
+
+# --- Startlist print ---
+msgid "Drucken"
+msgstr ""
+
+msgid "Startliste für"
+msgstr ""
+
+msgid "Start-Nr."
+msgstr ""
+
+msgid "Rasse"
+msgstr ""
+
+# --- Error pages ---
+msgid "Seite nicht gefunden"
+msgstr ""
+
+msgid "Die angeforderte Seite existiert nicht."
+msgstr ""
+
+msgid "Serverfehler"
+msgstr ""
+
+msgid "Auf dem Server ist ein interner Fehler aufgetreten."
+msgstr ""
+
+# --- Flash messages ---
+msgid "Einstellungen erfolgreich gespeichert."
+msgstr ""
+
+msgid "Keine Datei ausgewählt (startlist_all_combined.json)."
+msgstr ""
+
+msgid "Bitte eine JSON-Datei hochladen (startlist_all_combined.json)."
+msgstr ""
+
+msgid "Veranstaltung '%(name)s' erfolgreich erstellt."
+msgstr ""
+
+msgid "Event nicht gefunden."
+msgstr ""
+
+msgid "Veranstaltung erfolgreich aktualisiert."
+msgstr ""
+
+msgid "Veranstaltung wurde gelöscht."
+msgstr ""
+
+msgid "Event als 'Live' markiert."
+msgstr ""
+
+msgid "Kein Event mehr als 'Live' markiert."
+msgstr ""
+
+msgid "Lizenznummer fehlt."
+msgstr ""
+
+msgid "Hund nicht gefunden."
+msgstr ""
+
+msgid "Kategorie/Klasse passt für diesen Lauf nicht."
+msgstr ""
+
+msgid "Teilnehmer ist bereits in diesem Lauf."
+msgstr ""
+
+msgid "Teilnehmer hinzugefügt."
+msgstr ""
+
+msgid "Teilnehmer entfernt."
+msgstr ""
+
+msgid "Teilnehmer war nicht in diesem Lauf."
+msgstr ""
+
+msgid "Einstellungen gespeichert."
+msgstr ""
+
+msgid "Ungültige Startnummer."
+msgstr ""
+
+msgid "Startnummer in diesem Lauf bereits vergeben."
+msgstr ""
+
+msgid "Startnummer gesetzt."
+msgstr ""
+
+msgid "Teilnehmer nicht gefunden."
+msgstr ""
+
+msgid "Kein Event als 'Live' markiert."
+msgstr ""
+
+msgid "Live-Event mit ID %(id)s wurde nicht gefunden."
+msgstr ""
+
+msgid "Lauf konnte nicht für Sprecher/Monitore aktiviert werden."
+msgstr ""
+
+msgid "'%(run)s' ist jetzt aktiv für die Anzeige auf %(ring)s."
+msgstr ""
+
+msgid "Zeitplan gefunden, aber keine Lauf-Blöcke für %(ring)s: %(debug)s"
+msgstr ""
+
+msgid "Portal-Export fehlgeschlagen: %(error)s"
+msgstr ""
+
+msgid "Ergebnisse erfolgreich ans Portal übertragen %(detail)s"
+msgstr ""

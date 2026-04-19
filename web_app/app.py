@@ -1,5 +1,6 @@
 # app.py
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
+from flask_babel import Babel, gettext as _, lazy_gettext as _l
 import sys
 import importlib.metadata
 import os
@@ -12,6 +13,10 @@ from flask_socketio import join_room
 app.config['DATA_DIR'] = 'data'
 app.config['SOFTWARE_VERSION'] = APP_VERSION
 app.config['SECRET_KEY'] = 'dein_super_geheimer_schluessel'
+app.config['BABEL_DEFAULT_LOCALE'] = 'de'
+app.config['BABEL_SUPPORTED_LOCALES'] = ['de', 'fr']
+babel = Babel()
+babel.init_app(app, locale_selector=lambda: 'de')
 socketio.init_app(app)
 
 from utils import get_category_sort_key
@@ -77,7 +82,7 @@ def settings():
         current_settings['portal_results_api_key'] = request.form.get('portal_results_api_key', '').strip()
         current_settings['portal_device_id']       = request.form.get('portal_device_id', '').strip() or 'agility-software'
         _save_data('settings.json', current_settings)
-        flash('Einstellungen erfolgreich gespeichert.', 'success')
+        flash(_('Einstellungen erfolgreich gespeichert.'), 'success')
         return redirect(url_for('settings'))
     from portal_sync import get_sync_status
     return render_template('settings.html', settings=_load_settings(),
@@ -93,14 +98,14 @@ def settings_test_portal():
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('error_page.html', title='Seite nicht gefunden', message='Die angeforderte Seite existiert nicht.'), 404
+    return render_template('error_page.html', title=_('Seite nicht gefunden'), message=_('Die angeforderte Seite existiert nicht.')), 404
 
 @app.errorhandler(500)
 def internal_server_error(e):
     import traceback
     print(f"Ein interner Serverfehler ist aufgetreten: {e}", file=sys.stderr)
     traceback.print_exc(file=sys.stderr)
-    return render_template('error_page.html', title='Serverfehler', message='Auf dem Server ist ein interner Fehler aufgetreten.'), 500
+    return render_template('error_page.html', title=_('Serverfehler'), message=_('Auf dem Server ist ein interner Fehler aufgetreten.')), 500
 
 def initialize_files():
     from utils import _save_data

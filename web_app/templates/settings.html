@@ -1,29 +1,29 @@
 {% extends "layout.html" %}
-{% block title %}Einstellungen{% endblock %}
+{% block title %}{{ _('Einstellungen') }}{% endblock %}
 {% block content %}
 <div class="container mt-4">
-    <h2>Einstellungen</h2>
-    <p>Globale Konfiguration der Anwendung.</p>
+    <h2>{{ _('Einstellungen') }}</h2>
+    <p>{{ _('Globale Konfiguration der Anwendung.') }}</p>
 
     <form method="post">
         <div class="card mb-4">
-            <div class="card-header"><h5>Ranglisten-Punkte</h5></div>
+            <div class="card-header"><h5>{{ _('Ranglisten-Punkte') }}</h5></div>
             <div class="card-body">
-                <label for="ranking_points" class="form-label">Punktevergabe (kommasepariert, z.B. 10,8,6,4,2)</label>
+                <label for="ranking_points" class="form-label">{{ _('Punktevergabe (kommasepariert, z.B. 10,8,6,4,2)') }}</label>
                 <input type="text" class="form-control" id="ranking_points" name="ranking_points" value="{{ settings.get('ranking_points', [])|join(', ') }}">
             </div>
         </div>
 
         <div class="card mb-4">
-            <div class="card-header"><h5>Zeitplan-Berechnung</h5></div>
+            <div class="card-header"><h5>{{ _('Zeitplan-Berechnung') }}</h5></div>
             <div class="card-body">
-                <label for="time_per_starter" class="form-label">Geschätzte Zeit pro Starter in Sekunden (für Zeitplan-Vorschau)</label>
+                <label for="time_per_starter" class="form-label">{{ _('Geschätzte Zeit pro Starter in Sekunden (für Zeitplan-Vorschau)') }}</label>
                 <input type="number" class="form-control" id="time_per_starter" name="time_per_starter" value="{{ settings.get('time_per_starter', 90) }}">
             </div>
         </div>
         
         <div class="card mb-4">
-            <div class="card-header"><h5>SCT-Faktoren (m/s) für Klasse 2/3</h5></div>
+            <div class="card-header"><h5>{{ _('SCT-Faktoren (m/s) für Klasse 2/3') }}</h5></div>
             <div class="card-body">
                 {% set sct_factors = settings.get('sct_factors', {}) %}
                 <div class="row">
@@ -50,7 +50,7 @@
         </div>
 
         <div class="card">
-            <div class="card-header"><h5>Vorlage für Startnummern-Schema</h5></div>
+            <div class="card-header"><h5>{{ _('Vorlage für Startnummern-Schema') }}</h5></div>
             <div class="card-body">
                 {% set schema_template = settings.get('start_number_schema_template', {}) %}
                 {% set possible_categories = ["Large", "Intermediate", "Medium", "Small"] %}
@@ -83,8 +83,8 @@
             </div>
             <div class="card-body">
                 <p class="text-muted small mb-3">
-                    Wenn aktiviert, werden Live-Ergebnisse automatisch an das AgilityPortal übertragen.
-                    URL und API-Keys findest du im Portal unter <em>Superadmin → ⚙️ Server-Einstellungen</em>.
+                    {{ _('Wenn aktiviert, werden Live-Ergebnisse automatisch an das AgilityPortal übertragen.') }}
+                    {{ _('URL und API-Keys findest du im Portal unter') }} <em>Superadmin → ⚙️ Server-Einstellungen</em>.
                 </p>
 
                 {# ── Sync-Status ──────────────────────────────────────────── #}
@@ -94,9 +94,9 @@
                 <div class="row g-2 mb-3">
                     <div class="col-sm-6">
                         <div class="border rounded p-2 small">
-                            <div class="fw-semibold mb-1">📡 Live-Updates</div>
+                            <div class="fw-semibold mb-1">📡 {{ _('Live-Updates') }}</div>
                             {% if ls.last_ok %}
-                            <span class="text-success">✔ Letzter erfolgreicher Transfer:</span>
+                            <span class="text-success">✔ {{ _('Letzter erfolgreicher Transfer:') }}</span>
                             <br><span class="text-muted">{{ ls.last_ok[:16].replace('T',' ') }} UTC</span>
                             {% endif %}
                             {% if ls.last_error %}
@@ -107,9 +107,9 @@
                     </div>
                     <div class="col-sm-6">
                         <div class="border rounded p-2 small">
-                            <div class="fw-semibold mb-1">📦 Ergebnis-Exporte</div>
+                            <div class="fw-semibold mb-1">📦 {{ _('Ergebnis-Exporte') }}</div>
                             {% if rs.last_ok %}
-                            <span class="text-success">✔ Letzter erfolgreicher Transfer:</span>
+                            <span class="text-success">✔ {{ _('Letzter erfolgreicher Transfer:') }}</span>
                             <br><span class="text-muted">{{ rs.last_ok[:16].replace('T',' ') }} UTC</span>
                             {% endif %}
                             {% if rs.last_error %}
@@ -125,32 +125,32 @@
                 <div id="portalTestResult" class="mb-3" style="display:none;"></div>
 
                 <div class="mb-3">
-                    <label for="portal_url" class="form-label">Portal-URL</label>
+                    <label for="portal_url" class="form-label">{{ _('Portal-URL') }}</label>
                     <input type="url" class="form-control" id="portal_url" name="portal_url"
                            placeholder="https://portal.example.com"
                            value="{{ settings.get('portal_url', '') }}">
-                    <div class="form-text">Basis-URL des AgilityPortals (ohne abschliessenden Schrägstrich)</div>
+                    <div class="form-text">{{ _('Basis-URL des AgilityPortals (ohne abschliessenden Schrägstrich)') }}</div>
                 </div>
                 <div class="mb-3">
-                    <label for="portal_live_api_key" class="form-label">Live-Update API-Key</label>
+                    <label for="portal_live_api_key" class="form-label">{{ _('Live-Update API-Key') }}</label>
                     <input type="password" class="form-control" id="portal_live_api_key" name="portal_live_api_key"
                            placeholder="dev-live-key"
                            value="{{ settings.get('portal_live_api_key', '') }}">
                     <div class="form-text">Umgebungsvariable <code>LIVE_API_KEY</code> auf dem Portal-Server</div>
                 </div>
                 <div class="mb-3">
-                    <label for="portal_results_api_key" class="form-label">Ergebnis-Export API-Key</label>
+                    <label for="portal_results_api_key" class="form-label">{{ _('Ergebnis-Export API-Key') }}</label>
                     <input type="password" class="form-control" id="portal_results_api_key" name="portal_results_api_key"
                            placeholder="dev-results-key"
                            value="{{ settings.get('portal_results_api_key', '') }}">
                     <div class="form-text">Umgebungsvariable <code>RESULTS_API_KEY</code> auf dem Portal-Server</div>
                 </div>
                 <div class="mb-3">
-                    <label for="portal_device_id" class="form-label">Geräte-ID (optional)</label>
+                    <label for="portal_device_id" class="form-label">{{ _('Geräte-ID (optional)') }}</label>
                     <input type="text" class="form-control" id="portal_device_id" name="portal_device_id"
                            placeholder="agility-software"
                            value="{{ settings.get('portal_device_id', 'agility-software') }}">
-                    <div class="form-text">Eindeutige Bezeichnung dieses Geräts für die Live-Updates</div>
+                    <div class="form-text">{{ _('Eindeutige Bezeichnung dieses Geräts für die Live-Updates') }}</div>
                 </div>
             </div>
         </div>
@@ -192,7 +192,7 @@
         }
         </script>
 
-        <button type="submit" class="btn btn-primary mt-4 w-100">Einstellungen speichern</button>
+        <button type="submit" class="btn btn-primary mt-4 w-100">{{ _('Einstellungen speichern') }}</button>
     </form>
 </div>
 {% endblock %}

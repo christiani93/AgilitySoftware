@@ -1,0 +1,660 @@
+# French translations for AgilitySuite
+msgid ""
+msgstr ""
+"Project-Id-Version: AgilitySuite 4.4\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-19 00:00+0000\n"
+"PO-Revision-Date: 2026-04-19 00:00+0000\n"
+"Last-Translator: \n"
+"Language: fr\n"
+"Language-Team: French\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# --- Navigation ---
+msgid "Veranstaltungen"
+msgstr "Événements"
+
+msgid "Stammdaten"
+msgstr "Données de base"
+
+msgid "Einstellungen"
+msgstr "Paramètres"
+
+# --- Home ---
+msgid "Willkommen"
+msgstr "Bienvenue"
+
+msgid "Willkommen bei der AgilitySuite"
+msgstr "Bienvenue dans AgilitySuite"
+
+msgid "Ihre web-basierte Lösung zur Verwaltung von Agility-Turnieren. Von der Erstellung der Veranstaltung bis zur Live-Anzeige der Resultate."
+msgstr "Votre solution web pour la gestion des tournois d'agility. De la création de l'événement jusqu'à l'affichage en direct des résultats."
+
+msgid "Zu den Veranstaltungen"
+msgstr "Vers les événements"
+
+msgid "Stammdaten verwalten"
+msgstr "Gérer les données de base"
+
+msgid "Verwalten Sie hier zentral alle Richter, Vereine, Hundeführer und Hunde. Importieren Sie neue Daten einfach via CSV-Upload."
+msgstr "Gérez ici de manière centralisée tous les juges, clubs, conducteurs et chiens. Importez facilement de nouvelles données via CSV."
+
+msgid "Passen Sie globale Parameter wie Berechnungsfaktoren für SCT/MCT und die Standard-Startnummern-Schemata an Ihre Bedürfnisse an."
+msgstr "Adaptez les paramètres globaux tels que les facteurs de calcul SCT/MCT et les schémas de numéros de départ à vos besoins."
+
+msgid "Zu den Einstellungen"
+msgstr "Vers les paramètres"
+
+# --- Events list ---
+msgid "Event-Paket importieren"
+msgstr "Importer un package d'événement"
+
+msgid "Neue Veranstaltung erstellen"
+msgstr "Créer un nouvel événement"
+
+msgid "Startlisten-JSON hochladen und daraus ein neues Test-Event erstellen."
+msgstr "Télécharger un JSON de liste de départ et créer un événement de test."
+
+msgid "Event-Name (optional)"
+msgstr "Nom de l'événement (optionnel)"
+
+msgid "Teilnehmer anlegen (dogs + handlers)"
+msgstr "Créer des participants (chiens + conducteurs)"
+
+msgid "Läufe anlegen (Agility/Jumping pro Klasse/Kategorie)"
+msgstr "Créer des épreuves (Agility/Jumping par classe/catégorie)"
+
+msgid "Entries hinzufügen"
+msgstr "Ajouter des inscriptions"
+
+msgid "Entries nach offizieller Startnummer sortieren"
+msgstr "Trier les inscriptions par numéro de départ officiel"
+
+msgid "Startlisten-JSON → Test-Event erstellen"
+msgstr "JSON liste de départ → Créer événement test"
+
+msgid "Keine Veranstaltungen gefunden."
+msgstr "Aucun événement trouvé."
+
+# --- Event form ---
+msgid "Bezeichnung"
+msgstr "Désignation"
+
+msgid "Datum"
+msgstr "Date"
+
+msgid "Veranstalter"
+msgstr "Organisateur"
+
+msgid "--- Bitte auswählen ---"
+msgstr "--- Veuillez sélectionner ---"
+
+msgid "Turniernummer"
+msgstr "Numéro de tournoi"
+
+msgid "Anzahl Ringe"
+msgstr "Nombre de rings"
+
+msgid "Veranstaltungsart"
+msgstr "Type d'événement"
+
+msgid "Läufe automatisch erstellen"
+msgstr "Créer des épreuves automatiquement"
+
+msgid "Laufarten:"
+msgstr "Types d'épreuves :"
+
+msgid "Kategorien:"
+msgstr "Catégories :"
+
+msgid "Klassen:"
+msgstr "Classes :"
+
+msgid "Speichern"
+msgstr "Enregistrer"
+
+msgid "Abbrechen"
+msgstr "Annuler"
+
+# --- Live event dashboard ---
+msgid "Live Dashboard"
+msgstr "Tableau de bord en direct"
+
+msgid "Zurück zur Verwaltung"
+msgstr "Retour à la gestion"
+
+msgid "Öffentliche Anzeigen & Teilen"
+msgstr "Affichages publics & partage"
+
+msgid "Sprecher-Dashboard"
+msgstr "Tableau de bord speaker"
+
+msgid "Rangverkündigungsliste erstellen"
+msgstr "Créer la liste de remise des prix"
+
+msgid "Portal-Synchronisation"
+msgstr "Synchronisation portail"
+
+msgid "Ergebnisse als ZIP"
+msgstr "Résultats en ZIP"
+
+msgid "Ergebnisse ans Portal senden"
+msgstr "Envoyer les résultats au portail"
+
+msgid "Abschluss-Export ans Portal"
+msgstr "Export final vers le portail"
+
+msgid "Richter"
+msgstr "Juge"
+
+msgid "Resultate erfassen"
+msgstr "Saisir les résultats"
+
+msgid "Rangliste (Druck)"
+msgstr "Classement (impression)"
+
+msgid "Für Sprecher"
+msgstr "Pour le speaker"
+
+msgid "Aktiver Lauf"
+msgstr "Épreuve active"
+
+msgid "Kein Zeitplan – aktiver Lauf manuell gesetzt."
+msgstr "Pas de programme – épreuve active définie manuellement."
+
+msgid "Für diesen Ring sind keine Läufe im Zeitplan eingetragen."
+msgstr "Aucune épreuve n'est inscrite au programme pour ce ring."
+
+msgid "Für diese Veranstaltung wurden keine Läufe einem Ring zugewiesen. Bitte erstellen Sie zuerst einen"
+msgstr "Aucune épreuve n'a été attribuée à un ring pour cet événement. Veuillez d'abord créer un"
+
+msgid "Zeitplan"
+msgstr "Programme"
+
+# --- Live run entry ---
+msgid "Resultaterfassung"
+msgstr "Saisie des résultats"
+
+msgid "Zurück zum Dashboard"
+msgstr "Retour au tableau de bord"
+
+msgid "Laufdaten"
+msgstr "Données de l'épreuve"
+
+msgid "Länge"
+msgstr "Longueur"
+
+msgid "Für Sprecher-Anzeige aktivieren"
+msgstr "Activer pour l'affichage speaker"
+
+msgid "Hund"
+msgstr "Chien"
+
+msgid "Hundeführer"
+msgstr "Conducteur"
+
+msgid "Zeit"
+msgstr "Temps"
+
+msgid "Fehler"
+msgstr "Erreur"
+
+msgid "Verw."
+msgstr "Ref."
+
+msgid "Aktionen"
+msgstr "Actions"
+
+msgid "Zeit (s)"
+msgstr "Temps (s)"
+
+msgid "Verweigerungen"
+msgstr "Refus"
+
+msgid "Disqualifikation"
+msgstr "Disqualification"
+
+msgid "Nein"
+msgstr "Non"
+
+msgid "nicht gestartet"
+msgstr "non démarré"
+
+msgid "Vollständige Rangliste anzeigen"
+msgstr "Afficher le classement complet"
+
+# --- Ranking ---
+msgid "Rangliste"
+msgstr "Classement"
+
+msgid "Zurück zur Erfassung"
+msgstr "Retour à la saisie"
+
+msgid "Druckversion"
+msgstr "Version imprimable"
+
+msgid "Parcourslänge"
+msgstr "Longueur du parcours"
+
+msgid "Rang"
+msgstr "Rang"
+
+msgid "Zeitfehler"
+msgstr "Temps de fautes"
+
+msgid "Noch keine Resultate für die Rangliste erfasst."
+msgstr "Aucun résultat encore saisi pour le classement."
+
+# --- Manage runs ---
+msgid "Läufe verwalten"
+msgstr "Gérer les épreuves"
+
+msgid "Zurück zur Event-Übersicht"
+msgstr "Retour à la liste des événements"
+
+msgid "Zeitplan & Startnummern"
+msgstr "Programme & numéros de départ"
+
+msgid "Teilnehmer importieren"
+msgstr "Importer des participants"
+
+msgid "Alle Teilnehmer verwalten"
+msgstr "Gérer tous les participants"
+
+msgid "Event-Paket exportieren"
+msgstr "Exporter le package d'événement"
+
+msgid "Live-Dashboard öffnen"
+msgstr "Ouvrir le tableau de bord en direct"
+
+msgid "Live beenden"
+msgstr "Terminer le direct"
+
+msgid "Als Live setzen & starten"
+msgstr "Définir comme direct & démarrer"
+
+msgid "Läufe"
+msgstr "Épreuves"
+
+msgid "Ohne Ringzuweisung"
+msgstr "Sans attribution de ring"
+
+msgid "Teilnehmer"
+msgstr "Participants"
+
+msgid "Laufdaten"
+msgstr "Données de l'épreuve"
+
+msgid "Für diese Veranstaltung wurden noch keine Läufe erstellt."
+msgstr "Aucune épreuve n'a encore été créée pour cet événement."
+
+# --- Settings ---
+msgid "Globale Konfiguration der Anwendung."
+msgstr "Configuration globale de l'application."
+
+msgid "Ranglisten-Punkte"
+msgstr "Points de classement"
+
+msgid "Punktevergabe (kommasepariert, z.B. 10,8,6,4,2)"
+msgstr "Attribution des points (séparés par virgule, ex. 10,8,6,4,2)"
+
+msgid "Zeitplan-Berechnung"
+msgstr "Calcul du programme"
+
+msgid "Geschätzte Zeit pro Starter in Sekunden (für Zeitplan-Vorschau)"
+msgstr "Temps estimé par concurrent en secondes (pour l'aperçu du programme)"
+
+msgid "SCT-Faktoren (m/s) für Klasse 2/3"
+msgstr "Facteurs SCT (m/s) pour classes 2/3"
+
+msgid "Vorlage für Startnummern-Schema"
+msgstr "Modèle pour le schéma des numéros de départ"
+
+msgid "Wenn aktiviert, werden Live-Ergebnisse automatisch an das AgilityPortal übertragen."
+msgstr "Si activé, les résultats en direct sont automatiquement transmis à l'AgilityPortal."
+
+msgid "URL und API-Keys findest du im Portal unter"
+msgstr "L'URL et les clés API se trouvent dans le portail sous"
+
+msgid "Live-Updates"
+msgstr "Mises à jour en direct"
+
+msgid "Letzter erfolgreicher Transfer:"
+msgstr "Dernier transfert réussi :"
+
+msgid "Ergebnis-Exporte"
+msgstr "Exports des résultats"
+
+msgid "Portal-URL"
+msgstr "URL du portail"
+
+msgid "Basis-URL des AgilityPortals (ohne abschliessenden Schrägstrich)"
+msgstr "URL de base de l'AgilityPortal (sans barre oblique finale)"
+
+msgid "Live-Update API-Key"
+msgstr "Clé API mise à jour en direct"
+
+msgid "Ergebnis-Export API-Key"
+msgstr "Clé API export des résultats"
+
+msgid "Geräte-ID (optional)"
+msgstr "ID de l'appareil (optionnel)"
+
+msgid "Eindeutige Bezeichnung dieses Geräts für die Live-Updates"
+msgstr "Identifiant unique de cet appareil pour les mises à jour en direct"
+
+msgid "Einstellungen speichern"
+msgstr "Enregistrer les paramètres"
+
+# --- Master data ---
+msgid "Richter-Daten"
+msgstr "Données des juges"
+
+msgid "Neuen Richter hinzufügen"
+msgstr "Ajouter un nouveau juge"
+
+msgid "Richter importieren (CSV)"
+msgstr "Importer des juges (CSV)"
+
+msgid "Bearbeiten"
+msgstr "Modifier"
+
+msgid "Vereins-Daten"
+msgstr "Données des clubs"
+
+msgid "Neuen Verein hinzufügen"
+msgstr "Ajouter un nouveau club"
+
+msgid "Vereine importieren (CSV)"
+msgstr "Importer des clubs (CSV)"
+
+msgid "Vereine"
+msgstr "Clubs"
+
+msgid "Hundeführer-Daten"
+msgstr "Données des conducteurs"
+
+msgid "Neuen Hundeführer hinzufügen"
+msgstr "Ajouter un nouveau conducteur"
+
+msgid "Hundeführer importieren (CSV)"
+msgstr "Importer des conducteurs (CSV)"
+
+msgid "Hunde-Daten"
+msgstr "Données des chiens"
+
+msgid "Neuen Hund hinzufügen"
+msgstr "Ajouter un nouveau chien"
+
+msgid "Hunde importieren (CSV)"
+msgstr "Importer des chiens (CSV)"
+
+msgid "Hunde"
+msgstr "Chiens"
+
+# --- Manage event participants ---
+msgid "Teilnehmer-Optionen für"
+msgstr "Options des participants pour"
+
+msgid "Teilnehmer-Optionen"
+msgstr "Options des participants"
+
+msgid "Zurück zur Lauf-Verwaltung"
+msgstr "Retour à la gestion des épreuves"
+
+msgid "Option \"Am Schluss starten\""
+msgstr "Option \"Démarrer en dernier\""
+
+msgid "Am Schluss starten?"
+msgstr "Démarrer en dernier ?"
+
+msgid "Für dieses Event wurden noch keine Teilnehmer importiert."
+msgstr "Aucun participant n'a encore été importé pour cet événement."
+
+msgid "Änderungen speichern"
+msgstr "Enregistrer les modifications"
+
+# --- Plan schedule ---
+msgid "Zurück"
+msgstr "Retour"
+
+msgid "Vorbereitungsdrucksachen"
+msgstr "Documents de préparation"
+
+msgid "Zeitplan speichern"
+msgstr "Enregistrer le programme"
+
+msgid "Block hinzufügen"
+msgstr "Ajouter un bloc"
+
+msgid "Block-Typ"
+msgstr "Type de bloc"
+
+msgid "Ring"
+msgstr "Ring"
+
+msgid "Titel (optional)"
+msgstr "Titre (optionnel)"
+
+msgid "Richter (run)"
+msgstr "Juge (épreuve)"
+
+msgid "Entfernen"
+msgstr "Supprimer"
+
+msgid "Noch keine Blöcke geplant."
+msgstr "Aucun bloc planifié pour l'instant."
+
+msgid "Zeitplan-Vorschau (berechnete Timeline)"
+msgstr "Aperçu du programme (timeline calculée)"
+
+msgid "Startnummern-Schema"
+msgstr "Schéma des numéros de départ"
+
+msgid "Vorlage laden"
+msgstr "Charger le modèle"
+
+msgid "Kategorie"
+msgstr "Catégorie"
+
+msgid "Klasse"
+msgstr "Classe"
+
+msgid "Startnummer ab"
+msgstr "Numéro de départ à partir de"
+
+msgid "Schema speichern"
+msgstr "Enregistrer le schéma"
+
+msgid "Startnummern vergeben"
+msgstr "Attribuer les numéros de départ"
+
+msgid "Abstand zwischen Hundeführern"
+msgstr "Écart entre les conducteurs"
+
+msgid "Startnummern generieren"
+msgstr "Générer les numéros de départ"
+
+msgid "Vorschau – vergebene Startnummern"
+msgstr "Aperçu – numéros de départ attribués"
+
+msgid "Noch keine Startnummern vergeben."
+msgstr "Aucun numéro de départ attribué pour l'instant."
+
+# --- Select dog for run ---
+msgid "Hund auswählen"
+msgstr "Sélectionner le chien"
+
+msgid "Hund auswählen für"
+msgstr "Sélectionner le chien pour"
+
+msgid "Dieser Hundeführer hat mehrere Hunde. Bitte wählen Sie aus, welcher Hund zum Lauf"
+msgstr "Ce conducteur a plusieurs chiens. Veuillez sélectionner quel chien doit être ajouté à l'épreuve"
+
+msgid "hinzugefügt werden soll."
+msgstr "."
+
+# --- Ring PC dashboard ---
+msgid "Keine Verbindung"
+msgstr "Pas de connexion"
+
+msgid "Lauf"
+msgstr "Épreuve"
+
+msgid "Kein Lauf ausgewählt"
+msgstr "Aucune épreuve sélectionnée"
+
+msgid "Zurück zum Live-Dashboard"
+msgstr "Retour au tableau de bord en direct"
+
+msgid "Lauf auswählen & Steuerung"
+msgstr "Sélectionner l'épreuve & contrôle"
+
+msgid "Keine Läufe verfügbar"
+msgstr "Aucune épreuve disponible"
+
+msgid "Verbinde mit Ring-Server..."
+msgstr "Connexion au serveur ring..."
+
+msgid "Schnell speichern (Zeit/F/V)"
+msgstr "Enregistrement rapide (Temps/F/R)"
+
+msgid "Aktuellen Lauf zurücksetzen"
+msgstr "Réinitialiser l'épreuve en cours"
+
+msgid "Portal-Export (PDF)"
+msgstr "Export portail (PDF)"
+
+msgid "Starterliste & Resultate"
+msgstr "Liste des partants & résultats"
+
+msgid "Bitte wählen Sie links einen Lauf aus."
+msgstr "Veuillez sélectionner une épreuve à gauche."
+
+msgid "Laufdaten bearbeiten"
+msgstr "Modifier les données de l'épreuve"
+
+msgid "— kein Richter —"
+msgstr "— aucun juge —"
+
+msgid "Parcourslänge (m)"
+msgstr "Longueur du parcours (m)"
+
+msgid "Anzahl Hindernisse"
+msgstr "Nombre d'obstacles"
+
+msgid "Resultat bearbeiten"
+msgstr "Modifier le résultat"
+
+# --- Startlist print ---
+msgid "Drucken"
+msgstr "Imprimer"
+
+msgid "Startliste für"
+msgstr "Liste de départ pour"
+
+msgid "Start-Nr."
+msgstr "N° de départ"
+
+msgid "Rasse"
+msgstr "Race"
+
+# --- Error pages ---
+msgid "Seite nicht gefunden"
+msgstr "Page non trouvée"
+
+msgid "Die angeforderte Seite existiert nicht."
+msgstr "La page demandée n'existe pas."
+
+msgid "Serverfehler"
+msgstr "Erreur serveur"
+
+msgid "Auf dem Server ist ein interner Fehler aufgetreten."
+msgstr "Une erreur interne s'est produite sur le serveur."
+
+# --- Flash messages ---
+msgid "Einstellungen erfolgreich gespeichert."
+msgstr "Paramètres enregistrés avec succès."
+
+msgid "Keine Datei ausgewählt (startlist_all_combined.json)."
+msgstr "Aucun fichier sélectionné (startlist_all_combined.json)."
+
+msgid "Bitte eine JSON-Datei hochladen (startlist_all_combined.json)."
+msgstr "Veuillez télécharger un fichier JSON (startlist_all_combined.json)."
+
+msgid "Veranstaltung '%(name)s' erfolgreich erstellt."
+msgstr "Événement '%(name)s' créé avec succès."
+
+msgid "Event nicht gefunden."
+msgstr "Événement non trouvé."
+
+msgid "Veranstaltung erfolgreich aktualisiert."
+msgstr "Événement mis à jour avec succès."
+
+msgid "Veranstaltung wurde gelöscht."
+msgstr "Événement supprimé."
+
+msgid "Event als 'Live' markiert."
+msgstr "Événement marqué comme 'En direct'."
+
+msgid "Kein Event mehr als 'Live' markiert."
+msgstr "Aucun événement n'est plus marqué comme 'En direct'."
+
+msgid "Lizenznummer fehlt."
+msgstr "Numéro de licence manquant."
+
+msgid "Hund nicht gefunden."
+msgstr "Chien non trouvé."
+
+msgid "Kategorie/Klasse passt für diesen Lauf nicht."
+msgstr "La catégorie/classe ne correspond pas à cette épreuve."
+
+msgid "Teilnehmer ist bereits in diesem Lauf."
+msgstr "Le participant est déjà dans cette épreuve."
+
+msgid "Teilnehmer hinzugefügt."
+msgstr "Participant ajouté."
+
+msgid "Teilnehmer entfernt."
+msgstr "Participant supprimé."
+
+msgid "Teilnehmer war nicht in diesem Lauf."
+msgstr "Le participant n'était pas dans cette épreuve."
+
+msgid "Einstellungen gespeichert."
+msgstr "Paramètres enregistrés."
+
+msgid "Ungültige Startnummer."
+msgstr "Numéro de départ invalide."
+
+msgid "Startnummer in diesem Lauf bereits vergeben."
+msgstr "Numéro de départ déjà attribué dans cette épreuve."
+
+msgid "Startnummer gesetzt."
+msgstr "Numéro de départ attribué."
+
+msgid "Teilnehmer nicht gefunden."
+msgstr "Participant non trouvé."
+
+msgid "Kein Event als 'Live' markiert."
+msgstr "Aucun événement n'est marqué comme 'En direct'."
+
+msgid "Live-Event mit ID %(id)s wurde nicht gefunden."
+msgstr "L'événement en direct avec l'ID %(id)s n'a pas été trouvé."
+
+msgid "Lauf konnte nicht für Sprecher/Monitore aktiviert werden."
+msgstr "L'épreuve n'a pas pu être activée pour le speaker/les moniteurs."
+
+msgid "'%(run)s' ist jetzt aktiv für die Anzeige auf %(ring)s."
+msgstr "'%(run)s' est maintenant actif pour l'affichage sur %(ring)s."
+
+msgid "Zeitplan gefunden, aber keine Lauf-Blöcke für %(ring)s: %(debug)s"
+msgstr "Programme trouvé, mais aucun bloc d'épreuve pour %(ring)s : %(debug)s"
+
+msgid "Portal-Export fehlgeschlagen: %(error)s"
+msgstr "Échec de l'export portail : %(error)s"
+
+msgid "Ergebnisse erfolgreich ans Portal übertragen %(detail)s"
+msgstr "Résultats transmis avec succès au portail %(detail)s"

@@ -9,32 +9,32 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-8 mb-3">
-                        <label for="bezeichnung" class="form-label">Bezeichnung</label>
+                        <label for="bezeichnung" class="form-label">{{ _('Bezeichnung') }}</label>
                         <input type="text" class="form-control" id="bezeichnung" name="bezeichnung" value="{{ event.get('Bezeichnung', '') }}" required>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="datum" class="form-label">Datum</label>
+                        <label for="datum" class="form-label">{{ _('Datum') }}</label>
                         <input type="date" class="form-control" id="datum" name="datum" value="{{ event.get('Datum', today) }}" required>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="veranstalter_club_nr" class="form-label">Veranstalter</label>
+                        <label for="veranstalter_club_nr" class="form-label">{{ _('Veranstalter') }}</label>
                         <select class="form-select" id="veranstalter_club_nr" name="veranstalter_club_nr">
-                            <option value="">--- Bitte auswählen ---</option>
+                            <option value="">{{ _('--- Bitte auswählen ---') }}</option>
                             {% for club in clubs %}
                                 <option value="{{ club.nummer }}" {% if club.nummer == event.get('VeranstalterClubNr') %}selected{% endif %}>{{ club.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="turniernummer" class="form-label">Turniernummer</label>
+                        <label for="turniernummer" class="form-label">{{ _('Turniernummer') }}</label>
                         <input type="text" class="form-control" id="turniernummer" name="turniernummer" value="{{ event.get('Turniernummer', '') }}">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-3 mb-3">
-                        <label for="num_rings" class="form-label">Anzahl Ringe</label>
+                        <label for="num_rings" class="form-label">{{ _('Anzahl Ringe') }}</label>
                         <input type="number" class="form-control" id="num_rings" name="num_rings" min="1" value="{{ event.get('num_rings', 1) }}">
                     </div>
                     <div class="col-md-9 mb-3">
@@ -44,7 +44,7 @@
                 </div>
                  <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="veranstaltungsart" class="form-label">Veranstaltungsart</label>
+                        <label for="veranstaltungsart" class="form-label">{{ _('Veranstaltungsart') }}</label>
                         <select class="form-select" id="veranstaltungsart" name="veranstaltungsart">
                             {% for type in event_types %}<option value="{{ type }}" {% if type == event.get('Veranstaltungsart') %}selected{% endif %}>{{ type }}</option>{% endfor %}
                         </select>
@@ -53,10 +53,10 @@
                 
                 {% if not is_edit %}
                 <hr>
-                <h5>Läufe automatisch erstellen</h5>
+                <h5>{{ _('Läufe automatisch erstellen') }}</h5>
                 <div class="row">
                     <div class="col-md-4">
-                        <p class="mb-1">Laufarten:</p>
+                        <p class="mb-1">{{ _('Laufarten:') }}</p>
                         {% for la in ["Agility", "Jumping", "Spiel"] %}
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="laufart_auto" value="{{ la }}" id="la_{{la}}" {% if la in ['Agility', 'Jumping'] %}checked{% endif %}>
@@ -65,7 +65,7 @@
                         {% endfor %}
                     </div>
                     <div class="col-md-4">
-                        <p class="mb-1">Kategorien:</p>
+                        <p class="mb-1">{{ _('Kategorien:') }}</p>
                         {% for kat in possible_categories %}
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="kategorien_verfuegbar" value="{{ kat }}" id="kat_{{kat}}" checked>
@@ -74,7 +74,7 @@
                         {% endfor %}
                     </div>
                     <div class="col-md-4">
-                        <p class="mb-1">Klassen:</p>
+                        <p class="mb-1">{{ _('Klassen:') }}</p>
                         {% for kl in possible_classes %}
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="klassen_verfuegbar" value="{{ kl }}" id="kl_{{kl}}" {% if kl != 'Oldie' %}checked{% endif %}>
@@ -86,8 +86,8 @@
                 {% endif %}
             </div>
             <div class="card-footer">
-                <button type="submit" class="btn btn-primary">Speichern</button>
-                <a href="{{ url_for('events_bp.events_list') }}" class="btn btn-secondary">Abbrechen</a>
+                <button type="submit" class="btn btn-primary">{{ _('Speichern') }}</button>
+                <a href="{{ url_for('events_bp.events_list') }}" class="btn btn-secondary">{{ _('Abbrechen') }}</a>
             </div>
         </div>
     </form>

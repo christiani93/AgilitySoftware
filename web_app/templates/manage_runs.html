@@ -1,22 +1,22 @@
 {% extends "layout.html" %}
-{% block title %}Läufe verwalten: {{ event.Bezeichnung }}{% endblock %}
+{% block title %}{{ _('Läufe verwalten') }}: {{ event.Bezeichnung }}{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="mb-0">Läufe verwalten</h1>
+        <h1 class="mb-0">{{ _('Läufe verwalten') }}</h1>
         <p class="text-muted fs-5">{{ event.Bezeichnung }}</p>
     </div>
     <div>
-        <a href="{{ url_for('events_bp.events_list') }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Zurück zur Event-Übersicht</a>
+        <a href="{{ url_for('events_bp.events_list') }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>{{ _('Zurück zur Event-Übersicht') }}</a>
     </div>
 </div>
 
 <div class="d-flex flex-wrap gap-2 mb-4">
-    <a href="{{ url_for('events_bp.plan_schedule', event_id=event.id) }}" class="btn btn-primary"><i class="fas fa-calendar-alt me-2"></i>Zeitplan & Startnummern</a>
-    <a href="{{ url_for('events_bp.import_participants', event_id=event.id) }}" class="btn btn-outline-success"><i class="fas fa-file-csv me-2"></i>Teilnehmer importieren</a>
-    <a href="{{ url_for('events_bp.manage_all_participants', event_id=event.id) }}" class="btn btn-outline-info"><i class="fas fa-users-cog me-2"></i>Alle Teilnehmer verwalten</a>
-    <a href="{{ url_for('events_bp.export_event_package', event_id=event.id) }}" class="btn btn-outline-dark"><i class="fas fa-file-export me-2"></i>Event-Paket exportieren</a>
+    <a href="{{ url_for('events_bp.plan_schedule', event_id=event.id) }}" class="btn btn-primary"><i class="fas fa-calendar-alt me-2"></i>{{ _('Zeitplan & Startnummern') }}</a>
+    <a href="{{ url_for('events_bp.import_participants', event_id=event.id) }}" class="btn btn-outline-success"><i class="fas fa-file-csv me-2"></i>{{ _('Teilnehmer importieren') }}</a>
+    <a href="{{ url_for('events_bp.manage_all_participants', event_id=event.id) }}" class="btn btn-outline-info"><i class="fas fa-users-cog me-2"></i>{{ _('Alle Teilnehmer verwalten') }}</a>
+    <a href="{{ url_for('events_bp.export_event_package', event_id=event.id) }}" class="btn btn-outline-dark"><i class="fas fa-file-export me-2"></i>{{ _('Event-Paket exportieren') }}</a>
     <a href="{{ url_for('print_bp.tkamo_export', event_id=event.id) }}" class="btn btn-outline-secondary"><i class="fas fa-file-download me-2"></i>TKAMO Export</a>
     <a href="{{ url_for('print_bp.lizenzcheck_index', event_id=event.id) }}" class="btn btn-outline-info"><i class="fas fa-search me-2"></i>Lizenzcheck{% if event.get('lizenzcheck_done') %} ✅{% endif %}</a>
     <a href="{{ url_for('debug_bp.generate_test_results', event_id=event.id) }}" class="btn btn-warning" onclick="return confirm('Achtung: Dies überschreibt alle bestehenden Resultate für dieses Event. Fortfahren?');"><i class="fas fa-magic me-2"></i>Test-Resultate generieren</a>
@@ -24,15 +24,15 @@
     {# Bug 2 Fix: Live-Setzen direkt aus manage_runs #}
     {% if is_active %}
     <a href="{{ url_for('live_bp.live_event_dashboard') }}" class="btn btn-danger">
-        <i class="fas fa-play-circle me-2"></i>Live-Dashboard öffnen
+        <i class="fas fa-play-circle me-2"></i>{{ _('Live-Dashboard öffnen') }}
         <span class="badge bg-light text-danger ms-1">AKTIV</span>
     </a>
     <a href="{{ url_for('events_bp.clear_active_event') }}" class="btn btn-outline-danger">
-        <i class="fas fa-stop-circle me-2"></i>Live beenden
+        <i class="fas fa-stop-circle me-2"></i>{{ _('Live beenden') }}
     </a>
     {% else %}
     <a href="{{ url_for('events_bp.set_active_event', event_id=event.id) }}" class="btn btn-danger">
-        <i class="fas fa-play-circle me-2"></i>Als Live setzen &amp; starten
+        <i class="fas fa-play-circle me-2"></i>{{ _('Als Live setzen & starten') }}
     </a>
     {% endif %}
 </div>
@@ -45,7 +45,7 @@
 <h4 class="mt-4 mb-3 border-bottom pb-2">
     <i class="fas fa-circle text-primary me-2" style="font-size:.7rem;vertical-align:middle"></i>
     Ring {{ ring_key }}
-    <span class="badge bg-secondary ms-2">{{ runs_in_ring|length }} Läufe</span>
+    <span class="badge bg-secondary ms-2">{{ runs_in_ring|length }} {{ _('Läufe') }}</span>
 </h4>
 <div class="row">
     {% for run in runs_in_ring %}
@@ -63,9 +63,9 @@
                     {% endif %}
                 </p>
                 <div class="d-flex flex-wrap gap-1">
-                    <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-info text-white" target="_blank"><i class="fas fa-trophy me-1"></i>Rangliste</a>
-                    <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-dark"><i class="fas fa-users me-1"></i>Teilnehmer</a>
-                    <a href="{{ url_for('events_bp.edit_run', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-edit me-1"></i>Laufdaten</a>
+                    <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-info text-white" target="_blank"><i class="fas fa-trophy me-1"></i>{{ _('Rangliste') }}</a>
+                    <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-dark"><i class="fas fa-users me-1"></i>{{ _('Teilnehmer') }}</a>
+                    <a href="{{ url_for('events_bp.edit_run', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-edit me-1"></i>{{ _('Laufdaten') }}</a>
                 </div>
             </div>
         </div>
@@ -77,7 +77,7 @@
 
 {% if unassigned %}
 <h4 class="mt-4 mb-3 border-bottom pb-2 text-muted">
-    <i class="fas fa-question-circle me-2"></i>Ohne Ringzuweisung
+    <i class="fas fa-question-circle me-2"></i>{{ _('Ohne Ringzuweisung') }}
     <span class="badge bg-secondary ms-2">{{ unassigned|length }}</span>
 </h4>
 <div class="row">
@@ -93,9 +93,9 @@
                     <span class="badge rounded-pill bg-primary">{{ run.entries|length }} Teilnehmer</span>
                 </p>
                 <div class="d-flex flex-wrap gap-1">
-                    <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-info text-white" target="_blank"><i class="fas fa-trophy me-1"></i>Rangliste</a>
-                    <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-dark"><i class="fas fa-users me-1"></i>Teilnehmer</a>
-                    <a href="{{ url_for('events_bp.edit_run', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-edit me-1"></i>Laufdaten</a>
+                    <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-info text-white" target="_blank"><i class="fas fa-trophy me-1"></i>{{ _('Rangliste') }}</a>
+                    <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-dark"><i class="fas fa-users me-1"></i>{{ _('Teilnehmer') }}</a>
+                    <a href="{{ url_for('events_bp.edit_run', event_id=event.id, run_id=run.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-edit me-1"></i>{{ _('Laufdaten') }}</a>
                 </div>
             </div>
         </div>
@@ -106,7 +106,7 @@
 
 {% if not ring_runs.values()|selectattr('__len__')|list and not unassigned %}
 <div class="col-12">
-    <p class="text-muted">Für diese Veranstaltung wurden noch keine Läufe erstellt.</p>
+    <p class="text-muted">{{ _('Für diese Veranstaltung wurden noch keine Läufe erstellt.') }}</p>
 </div>
 {% endif %}
 

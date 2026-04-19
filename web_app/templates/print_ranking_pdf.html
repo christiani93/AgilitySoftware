@@ -6,7 +6,7 @@
   <style>
     @page {
       size: A4 portrait;
-      margin: 1.8cm 1.5cm 1.5cm 1.5cm;
+      margin: 1.5cm 1.5cm 1.5cm 1.5cm;
     }
     * { box-sizing: border-box; }
     body {
@@ -16,22 +16,42 @@
       margin: 0;
     }
 
-    /* ── Kopfzeile ─────────────────────────────────────────── */
-    .header-bar {
-      background: #1a1a2e;
-      color: #fff;
-      padding: 8pt 10pt 6pt 10pt;
+    /* ── Logo-Kopfzeile ────────────────────────────────────────── */
+    .header-logo-bar {
+      display: table;
+      width: 100%;
+      border-bottom: 2px solid #1a1a2e;
+      padding-bottom: 6pt;
       margin-bottom: 0;
     }
-    .header-bar h1 {
+    .header-logo-left,
+    .header-logo-right {
+      display: table-cell;
+      vertical-align: middle;
+      width: 18%;
+    }
+    .header-logo-right { text-align: right; }
+    .header-logo-left img,
+    .header-logo-right img {
+      max-height: 48pt;
+      max-width: 100%;
+    }
+    .header-title-cell {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 8pt;
+    }
+    .header-title-cell h1 {
       font-size: 14pt;
       font-weight: bold;
       margin: 0 0 2pt 0;
+      color: #1a1a2e;
       letter-spacing: 0.02em;
     }
-    .header-bar .sub {
+    .header-title-cell .sub {
       font-size: 9pt;
-      opacity: 0.85;
+      color: #555;
       margin: 0;
     }
 
@@ -44,6 +64,7 @@
       font-weight: bold;
       letter-spacing: 0.08em;
       padding: 3pt 0;
+      margin-top: 4pt;
     }
     {% else %}
     .official-banner {
@@ -53,10 +74,11 @@
       font-size: 8.5pt;
       letter-spacing: 0.05em;
       padding: 3pt 0;
+      margin-top: 4pt;
     }
     {% endif %}
 
-    /* ── Laufdaten-Box ────────────────────────────────────── */
+    /* ── Laufdaten-Box ────────────────────────────────────────── */
     .run-info {
       border: 1px solid #ddd;
       border-top: none;
@@ -74,7 +96,7 @@
     .run-info-label { color: #777; font-size: 7.5pt; display: block; }
     .run-info-value { font-weight: bold; font-size: 9pt; }
 
-    /* ── Tabelle ─────────────────────────────────────────── */
+    /* ── Tabelle ─────────────────────────────────────────────── */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -107,9 +129,26 @@
     td.right  { text-align: right; }
     td.mono   { font-family: Courier, monospace; text-align: right; }
 
-    /* ── Fusszeile ───────────────────────────────────────── */
+    /* ── Statistik-Block ─────────────────────────────────────── */
+    .stats-block {
+      margin-top: 10pt;
+      border: 1px solid #ddd;
+      padding: 5pt 10pt;
+      font-size: 8pt;
+      display: table;
+      width: 100%;
+    }
+    .stats-cell {
+      display: table-cell;
+      padding-right: 20pt;
+      white-space: nowrap;
+    }
+    .stats-label { color: #777; font-size: 7.5pt; display: block; }
+    .stats-value { font-weight: bold; }
+
+    /* ── Fusszeile ───────────────────────────────────────────── */
     .footer {
-      margin-top: 14pt;
+      margin-top: 12pt;
       border-top: 1px solid #ccc;
       padding-top: 4pt;
       font-size: 7.5pt;
@@ -125,19 +164,54 @@
 
 {% set ld = run.get('laufdaten', {}) %}
 
-{# ── Kopfzeile ──────────────────────────────────────────────── #}
-<div class="header-bar">
-  <h1>{{ run.name }}</h1>
-  <p class="sub">
-    {{ event.Bezeichnung }}{% if event.Datum %} · {{ event.Datum | format_date }}{% endif %}{% if event.Ort %} · {{ event.Ort }}{% endif %}
-  </p>
+{# ── Statistiken vorberechnen ──────────────────────────────────────────────── #}
+{% set ns = namespace(
+  total=0, dq_count=0, dns_count=0, abr_count=0,
+  fastest_time=None, fastest_name=''
+) %}
+{% for res in results %}
+  {% set ns.total = ns.total + 1 %}
+  {% set disq = res.get('result', {}).get('disqualifikation') %}
+  {% if disq == 'DIS' %}
+    {% set ns.dq_count = ns.dq_count + 1 %}
+  {% elif disq == 'DNS' %}
+    {% set ns.dns_count = ns.dns_count + 1 %}
+  {% elif disq == 'ABR' %}
+    {% set ns.abr_count = ns.abr_count + 1 %}
+  {% elif res.zeit_total and res.zeit_total < 998 %}
+    {% if ns.fastest_time is none or res.zeit_total < ns.fastest_time %}
+      {% set ns.fastest_time = res.zeit_total %}
+      {% set ns.fastest_name = res.Hundename %}
+    {% endif %}
+  {% endif %}
+{% endfor %}
+{% set ns_gestartet = ns.total - ns.dns_count %}
+
+{# ── Logo-Kopfzeile ──────────────────────────────────────────────────────── #}
+<div class="header-logo-bar">
+  <div class="header-logo-left">
+    {% if club_logo_data %}
+      <img src="{{ club_logo_data }}" alt="Vereins-Logo">
+    {% endif %}
+  </div>
+  <div class="header-title-cell">
+    <h1>{{ run.name }}</h1>
+    <p class="sub">
+      {{ event.Bezeichnung }}{% if event.Datum %} · {{ event.Datum | format_date }}{% endif %}{% if event.Ort %} · {{ event.Ort }}{% endif %}
+    </p>
+  </div>
+  <div class="header-logo-right">
+    {% if event_logo_data %}
+      <img src="{{ event_logo_data }}" alt="Event-Logo">
+    {% endif %}
+  </div>
 </div>
 
 <div class="official-banner">
   {% if is_final %}✓ OFFIZIELLE RANGLISTE{% else %}VORLÄUFIGE RANGLISTE{% endif %}
 </div>
 
-{# ── Laufdaten ──────────────────────────────────────────────── #}
+{# ── Laufdaten ──────────────────────────────────────────────────────────── #}
 {% if judge_display or ld.get('parcours_laenge') or ld.get('standardzeit_sct_gerundet') %}
 <div class="run-info">
   {% if judge_display %}
@@ -173,7 +247,7 @@
 </div>
 {% endif %}
 
-{# ── Rangliste ──────────────────────────────────────────────── #}
+{# ── Rangliste ──────────────────────────────────────────────────────────── #}
 <table>
   <thead>
     <tr>
@@ -227,7 +301,47 @@
   </tbody>
 </table>
 
-{# ── Fusszeile ──────────────────────────────────────────────── #}
+{# ── Statistik ──────────────────────────────────────────────────────────── #}
+{% if ns.total > 0 %}
+<div class="stats-block">
+  <div class="stats-cell">
+    <span class="stats-label">Gestartete Teams</span>
+    <span class="stats-value">{{ ns_gestartet }}</span>
+  </div>
+  {% if ns.dq_count > 0 %}
+  <div class="stats-cell">
+    <span class="stats-label">Disqualifiziert (DIS)</span>
+    <span class="stats-value">{{ ns.dq_count }}</span>
+  </div>
+  {% endif %}
+  {% if ns.abr_count > 0 %}
+  <div class="stats-cell">
+    <span class="stats-label">Abgebrochen (ABR)</span>
+    <span class="stats-value">{{ ns.abr_count }}</span>
+  </div>
+  {% endif %}
+  {% if ns.dns_count > 0 %}
+  <div class="stats-cell">
+    <span class="stats-label">Nicht gestartet (DNS)</span>
+    <span class="stats-value">{{ ns.dns_count }}</span>
+  </div>
+  {% endif %}
+  {% if ns.fastest_time %}
+  <div class="stats-cell">
+    <span class="stats-label">Schnellste Zeit</span>
+    <span class="stats-value">{{ '%.2f'|format(ns.fastest_time|float) }} s ({{ ns.fastest_name }})</span>
+  </div>
+  {% endif %}
+  {% if ld.get('parcours_laenge') and ns.fastest_time and ns.fastest_time > 0 %}
+  <div class="stats-cell">
+    <span class="stats-label">Schnellste Geschwindigkeit</span>
+    <span class="stats-value">{{ '%.2f'|format(ld.parcours_laenge|float / ns.fastest_time) }} m/s</span>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ── Fusszeile ──────────────────────────────────────────────────────────── #}
 <div class="footer">
   <div class="footer-left">
     {{ event.Bezeichnung }}{% if judge_display %} · Richter: {{ judge_display }}{% endif %}

@@ -1,13 +1,13 @@
 {% extends "layout.html" %}
-{% block title %}Hund auswählen{% endblock %}
+{% block title %}{{ _('Hund auswählen') }}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-6">
         <div class="card shadow-sm">
             <div class="card-header">
-                <h3>Hund auswählen für {{ handler.firstname }} {{ handler.lastname }}</h3>
-                <p class="mb-0">Dieser Hundeführer hat mehrere Hunde. Bitte wählen Sie aus, welcher Hund zum Lauf <strong>{{ run.name }}</strong> hinzugefügt werden soll.</p>
+                <h3>{{ _('Hund auswählen für') }} {{ handler.firstname }} {{ handler.lastname }}</h3>
+                <p class="mb-0">{{ _('Dieser Hundeführer hat mehrere Hunde. Bitte wählen Sie aus, welcher Hund zum Lauf') }} <strong>{{ run.name }}</strong> {{ _('hinzugefügt werden soll.') }}</p>
             </div>
             <div class="list-group list-group-flush">
                 {% for dog in dogs %}
@@ -27,7 +27,7 @@
                 {% endfor %}
             </div>
             <div class="card-footer">
-                 <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id) }}" class="btn btn-secondary">Abbrechen</a>
+                 <a href="{{ url_for('events_bp.manage_run_participants', event_id=event.id) }}" class="btn btn-secondary">{{ _('Abbrechen') }}</a>
             </div>
         </div>
     </div>

@@ -6,9 +6,9 @@
     <div class="d-flex align-items-center justify-content-between mb-3">
       <h3 class="mb-0">Zeitplan – {{ event.Bezeichnung }}</h3>
       <div>
-        <a class="btn btn-outline-secondary me-2" href="{{ url_for('events_bp.events_list') }}">Zurück</a>
+        <a class="btn btn-outline-secondary me-2" href="{{ url_for('events_bp.events_list') }}">{{ _('Zurück') }}</a>
         <div class="btn-group me-2" role="group">
-          <a class="btn btn-outline-primary" href="{{ url_for('print_bp.print_index', event_id=event.id) }}" target="_blank">Vorbereitungsdrucksachen</a>
+          <a class="btn btn-outline-primary" href="{{ url_for('print_bp.print_index', event_id=event.id) }}" target="_blank">{{ _('Vorbereitungsdrucksachen') }}</a>
           <button class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
             <span class="visually-hidden">Weitere Drucke</span>
           </button>
@@ -22,7 +22,7 @@
             <li><a class="dropdown-item" href="{{ url_for('print_bp.print_schedule', event_id=event.id) }}" target="_blank">Zeitplan</a></li>
           </ul>
         </div>
-        <button class="btn btn-primary" form="form-save-schedule">Zeitplan speichern</button>
+        <button class="btn btn-primary" form="form-save-schedule">{{ _('Zeitplan speichern') }}</button>
       </div>
     </div>
 
@@ -52,12 +52,12 @@
 
   <!-- Block hinzufügen -->
   <div class="card mb-3">
-    <div class="card-header">Block hinzufügen</div>
+    <div class="card-header">{{ _('Block hinzufügen') }}</div>
     <div class="card-body">
       <form method="post" action="{{ url_for('events_bp.add_schedule_block', event_id=event.id) }}">
         <div class="row g-3">
           <div class="col-12 col-md-2">
-            <label class="form-label">Block-Typ</label>
+            <label class="form-label">{{ _('Block-Typ') }}</label>
             <select name="block_type" class="form-select">
               <option value="run" selected>Lauf</option>
               <option value="rank_announcement">Rangverkündigung</option>
@@ -65,7 +65,7 @@
           </div>
 
           <div class="col-12 col-md-2">
-            <label class="form-label">Ring</label>
+            <label class="form-label">{{ _('Ring') }}</label>
             <select name="ring" class="form-select">
               {% for i in range(1, (num_rings or 1)+1) %}
                 <option value="{{ i }}">Ring {{ i }}</option>
@@ -74,7 +74,7 @@
           </div>
 
           <div class="col-12 col-md-2">
-            <label class="form-label">Titel (optional)</label>
+            <label class="form-label">{{ _('Titel (optional)') }}</label>
             <input name="title" type="text" class="form-control" placeholder="Bezeichnung">
           </div>
 
@@ -151,7 +151,7 @@
           </div>
 
           <div class="col-12 col-md-2">
-            <label class="form-label">Richter (run)</label>
+            <label class="form-label">{{ _('Richter (run)') }}</label>
             <select name="judge_id" class="form-select">
               <option value="">— keiner —</option>
               {% for j in judges|sort(attribute="firstname") %}
@@ -195,7 +195,7 @@
           </div>
 
           <div class="col-12">
-            <button class="btn btn-success" type="submit">Block hinzufügen</button>
+            <button class="btn btn-success" type="submit">{{ _('Block hinzufügen') }}</button>
           </div>
         </div>
       </form>
@@ -231,7 +231,7 @@
                   <form method="post" action="{{ url_for('events_bp.delete_schedule_block', event_id=event.id) }}" class="m-0">
                     <input type="hidden" name="ring" value="{{ ring_key }}">
                     <input type="hidden" name="block_id" value="{{ block.id }}">
-                    <button class="btn btn-sm btn-outline-danger">Entfernen</button>
+                    <button class="btn btn-sm btn-outline-danger">{{ _('Entfernen') }}</button>
                   </form>
                 </div>
               </div>
@@ -256,7 +256,7 @@
               </div>
             </div>
           {% else %}
-            <div class="text-muted">Noch keine Blöcke geplant.</div>
+            <div class="text-muted">{{ _('Noch keine Blöcke geplant.') }}</div>
           {% endfor %}
         </div>
       </div>
@@ -266,7 +266,7 @@
 
   {% if timelines_by_ring %}
   <div class="card mb-3">
-    <div class="card-header">Zeitplan-Vorschau (berechnete Timeline)</div>
+    <div class="card-header">{{ _('Zeitplan-Vorschau (berechnete Timeline)') }}</div>
     <div class="card-body">
       <div class="row g-3">
         {% for ring, timeline in timelines_by_ring.items()|sort %}
@@ -310,9 +310,9 @@
     <div class="col-12 col-xl-6">
       <div class="card h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span>Startnummern-Schema</span>
+          <span>{{ _('Startnummern-Schema') }}</span>
           <form class="m-0" method="post" action="{{ url_for('events_bp.load_schema_template', event_id=event.id) }}">
-            <button class="btn btn-sm btn-outline-secondary" type="submit">Vorlage laden</button>
+            <button class="btn btn-sm btn-outline-secondary" type="submit">{{ _('Vorlage laden') }}</button>
           </form>
         </div>
         <div class="card-body">
@@ -321,9 +321,9 @@
               <table class="table table-sm align-middle mb-3">
                 <thead class="table-light">
                   <tr>
-                    <th>Kategorie</th>
-                    <th>Klasse</th>
-                    <th>Startnummer ab</th>
+                    <th>{{ _('Kategorie') }}</th>
+                    <th>{{ _('Klasse') }}</th>
+                    <th>{{ _('Startnummer ab') }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -356,7 +356,7 @@
                 </tbody>
               </table>
             </div>
-            <button class="btn btn-primary" type="submit">Schema speichern</button>
+            <button class="btn btn-primary" type="submit">{{ _('Schema speichern') }}</button>
           </form>
         </div>
       </div>
@@ -364,15 +364,15 @@
 
     <div class="col-12 col-xl-6">
       <div class="card h-100">
-        <div class="card-header">Startnummern vergeben</div>
+        <div class="card-header">{{ _('Startnummern vergeben') }}</div>
         <div class="card-body">
           <form class="row g-3 align-items-end" method="post" action="{{ url_for('events_bp.generate_startlist', event_id=event.id) }}">
             <div class="col-12 col-md-6">
-              <label class="form-label">Abstand zwischen Hundeführern</label>
+              <label class="form-label">{{ _('Abstand zwischen Hundeführern') }}</label>
               <input type="number" class="form-control" name="handler_distance" value="20" min="1">
             </div>
             <div class="col-12 col-md-6 d-flex gap-2">
-              <button class="btn btn-outline-secondary flex-fill" type="submit">Startnummern generieren</button>
+              <button class="btn btn-outline-secondary flex-fill" type="submit">{{ _('Startnummern generieren') }}</button>
             </div>
           </form>
           <p class="small text-muted mt-3 mb-0">Die automatische Vergabe nutzt die oben definierten Startnummern-Blöcke und mischt die Starter zufällig.</p>
@@ -383,7 +383,7 @@
 
   <!-- Vorschau Startnummern -->
   <div class="card mb-5">
-    <div class="card-header">Vorschau – vergebene Startnummern</div>
+    <div class="card-header">{{ _('Vorschau – vergebene Startnummern') }}</div>
     <div class="card-body table-responsive">
       <table class="table table-sm align-middle mb-0">
         <thead class="table-light">
@@ -405,7 +405,7 @@
             <td>{{ p.Kategorie }} {{ p.Klasse }}</td>
           </tr>
         {% else %}
-          <tr><td colspan="5" class="text-muted">Noch keine Startnummern vergeben.</td></tr>
+          <tr><td colspan="5" class="text-muted">{{ _('Noch keine Startnummern vergeben.') }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

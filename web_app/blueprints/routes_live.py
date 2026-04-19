@@ -1,5 +1,6 @@
 # --- FIXED HEADER: routes_live.py ---
 from flask import Blueprint, render_template, request, jsonify, abort, flash, redirect, url_for, session, Response
+from flask_babel import gettext as _
 from datetime import datetime
 import json
 import math
@@ -235,11 +236,11 @@ def _get_live_data_for_ring(event, ring_name):
 def live_event_dashboard():
     event_id = _get_active_event_id()
     if not event_id:
-        flash("Kein Event als 'Live' markiert.", "info")
+        flash(_("Kein Event als 'Live' markiert."), "info")
         return redirect(url_for('events_bp.events_list'))
     event = _get_active_event()
     if not event:
-        flash(f"Live-Event mit ID {event_id} wurde nicht gefunden.", "warning")
+        flash(_("Live-Event mit ID %(id)s wurde nicht gefunden.", id=event_id), "warning")
         _save_data('active_event.json', {})
         return redirect(url_for('events_bp.events_list'))
     ring_numbers = collect_ring_numbers(event)
@@ -431,7 +432,7 @@ def set_active_announcer_run(event_id, run_id):
     ring_hint = request.args.get('ring')
 
     if not event or not run:
-        flash('Lauf konnte nicht für Sprecher/Monitore aktiviert werden.', 'warning')
+        flash(_('Lauf konnte nicht für Sprecher/Monitore aktiviert werden.'), 'warning')
         return redirect(url_for('live_bp.live_event_dashboard'))
 
     run_block = None
@@ -501,7 +502,7 @@ def set_active_announcer_run(event_id, run_id):
     except Exception:
         pass
 
-    flash(f"'{run.get('name')}' ist jetzt aktiv für die Anzeige auf {ring_label}.", 'success')
+    flash(_("'%(run)s' ist jetzt aktiv für die Anzeige auf %(ring)s.", run=run.get('name'), ring=ring_label), 'success')
 
     # Portal-Sync: Lauf-Wechsel pushen
     try:
@@ -578,7 +579,7 @@ def ring_pc_dashboard(ring_number):
             run["judge_display"] = resolve_judge_name(event, run, judges, run_block)
         if not runs_for_ring and debug:
             flash(
-                f"Zeitplan gefunden, aber keine Lauf-Blöcke für {ring_name}: {', '.join(debug)}",
+                _("Zeitplan gefunden, aber keine Lauf-Blöcke für %(ring)s: %(debug)s", ring=ring_name, debug=', '.join(debug)),
                 "warning",
             )
     else:
@@ -1005,10 +1006,10 @@ def export_results_to_portal(event_id):
     # POST → ans Portal senden
     result = send_result_export(settings, event, final=final)
     if result.get('error'):
-        flash(f'Portal-Export fehlgeschlagen: {result["error"]}', 'danger')
+        flash(_('Portal-Export fehlgeschlagen: %(error)s', error=result["error"]), 'danger')
     else:
         status_detail = f'(final={result.get("final")}, event={result.get("event_external_id")})'
-        flash(f'✅ Ergebnisse erfolgreich ans Portal übertragen {status_detail}', 'success')
+        flash(_('Ergebnisse erfolgreich ans Portal übertragen %(detail)s', detail=status_detail), 'success')
     return redirect(url_for('live_bp.live_event_dashboard'))
 
 

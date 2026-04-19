@@ -1,19 +1,19 @@
 {% extends "layout.html" %}
-{% block title %}Veranstaltungen{% endblock %}
+{% block title %}{{ _('Veranstaltungen') }}{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">Veranstaltungen</h1>
+    <h1 class="mb-0">{{ _('Veranstaltungen') }}</h1>
     <div>
-        <a href="{{ url_for('events_bp.import_event_package') }}" class="btn btn-outline-dark"><i class="fas fa-upload me-2"></i>Event-Paket importieren</a>
-        <a href="{{ url_for('events_bp.create_event') }}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Neue Veranstaltung erstellen</a>
+        <a href="{{ url_for('events_bp.import_event_package') }}" class="btn btn-outline-dark"><i class="fas fa-upload me-2"></i>{{ _('Event-Paket importieren') }}</a>
+        <a href="{{ url_for('events_bp.create_event') }}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>{{ _('Neue Veranstaltung erstellen') }}</a>
     </div>
 </div>
 
 <hr>
 <h3>Debug / Test</h3>
 <p class="text-muted" style="max-width: 900px;">
-    Startlisten-JSON hochladen und daraus ein neues Test-Event erstellen.
+    {{ _('Startlisten-JSON hochladen und daraus ein neues Test-Event erstellen.') }}
 </p>
 <form method="post"
       action="{{ url_for('events_bp.debug_import_create_event') }}"
@@ -24,27 +24,27 @@
         <input type="file" name="startlist_file" accept=".json" required class="form-control">
     </div>
     <div class="mb-2">
-        <label class="form-label">Event-Name (optional)</label>
+        <label class="form-label">{{ _('Event-Name (optional)') }}</label>
         <input type="text" name="event_name" class="form-control" placeholder="TEST-Import 2025-01-01 10:00">
     </div>
     <div class="form-check mb-1">
         <input class="form-check-input" type="checkbox" name="create_participants" value="1" checked id="debug-create-participants">
-        <label class="form-check-label" for="debug-create-participants">Teilnehmer anlegen (dogs + handlers)</label>
+        <label class="form-check-label" for="debug-create-participants">{{ _('Teilnehmer anlegen (dogs + handlers)') }}</label>
     </div>
     <div class="form-check mb-1">
         <input class="form-check-input" type="checkbox" name="create_runs" value="1" checked id="debug-create-runs">
-        <label class="form-check-label" for="debug-create-runs">Läufe anlegen (Agility/Jumping pro Klasse/Kategorie)</label>
+        <label class="form-check-label" for="debug-create-runs">{{ _('Läufe anlegen (Agility/Jumping pro Klasse/Kategorie)') }}</label>
     </div>
     <div class="form-check mb-1">
         <input class="form-check-input" type="checkbox" name="add_entries" value="1" checked id="debug-add-entries">
-        <label class="form-check-label" for="debug-add-entries">Entries hinzufügen</label>
+        <label class="form-check-label" for="debug-add-entries">{{ _('Entries hinzufügen') }}</label>
     </div>
     <div class="form-check mb-3">
         <input class="form-check-input" type="checkbox" name="sort_entries" value="1" id="debug-sort-entries">
-        <label class="form-check-label" for="debug-sort-entries">Entries nach offizieller Startnummer sortieren</label>
+        <label class="form-check-label" for="debug-sort-entries">{{ _('Entries nach offizieller Startnummer sortieren') }}</label>
     </div>
     <button type="submit" class="btn btn-warning">
-        Startlisten-JSON → Test-Event erstellen
+        {{ _('Startlisten-JSON → Test-Event erstellen') }}
     </button>
 </form>
 
@@ -73,7 +73,7 @@
         </div>
     </li>
     {% else %}
-    <li class="list-group-item">Keine Veranstaltungen gefunden.</li>
+    <li class="list-group-item">{{ _('Keine Veranstaltungen gefunden.') }}</li>
     {% endfor %}
 </ul>
 {% endblock %}

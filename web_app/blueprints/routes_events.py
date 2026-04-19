@@ -1,5 +1,6 @@
 # blueprints/routes_events.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, Response, jsonify, abort
+from flask_babel import gettext as _
 from werkzeug.utils import secure_filename
 import json
 import os
@@ -824,12 +825,12 @@ def events_list():
 def debug_import_create_event():
     f = request.files.get("startlist_file")
     if not f or not f.filename:
-        flash("Keine Datei ausgewählt (startlist_all_combined.json).", "warning")
+        flash(_("Keine Datei ausgewählt (startlist_all_combined.json)."), "warning")
         return redirect(url_for('events_bp.events_list'))
 
     filename = (f.filename or "").lower().strip()
     if not filename.endswith(".json"):
-        flash("Bitte eine JSON-Datei hochladen (startlist_all_combined.json).", "warning")
+        flash(_("Bitte eine JSON-Datei hochladen (startlist_all_combined.json)."), "warning")
         return redirect(url_for('events_bp.events_list'))
 
     event_name = (request.form.get("event_name") or "").strip()
@@ -1108,7 +1109,7 @@ def create_event():
         events = _load_data(EVENTS_FILE)
         events.append(new_event)
         _save_data(EVENTS_FILE, events)
-        flash(f"Veranstaltung '{new_event['Bezeichnung']}' erfolgreich erstellt.", "success")
+        flash(_("Veranstaltung '%(name)s' erfolgreich erstellt.", name=new_event['Bezeichnung']), "success")
         return redirect(url_for('events_bp.manage_runs', event_id=new_event['id']))
     return render_template(
         'event_form.html',
@@ -1127,7 +1128,7 @@ def edit_event(event_id):
     events = _load_data(EVENTS_FILE)
     event = next((e for e in events if e.get('id') == event_id), None)
     if not event:
-        flash("Event nicht gefunden.", "error")
+        flash(_("Event nicht gefunden."), "error")
         return redirect(url_for('events_bp.events_list'))
     if request.method == 'POST':
         num_rings = int(request.form.get('num_rings', 1))
@@ -1141,7 +1142,7 @@ def edit_event(event_id):
         })
         event['start_times_by_ring'] = {f"ring_{i}": request.form.get(f"start_time_ring_{i}") for i in range(1, num_rings + 1)}
         _save_data(EVENTS_FILE, events)
-        flash("Veranstaltung erfolgreich aktualisiert.", "success")
+        flash(_("Veranstaltung erfolgreich aktualisiert."), "success")
         return redirect(url_for('events_bp.events_list'))
     return render_template('event_form.html',
                            form_title="Veranstaltung bearbeiten",
@@ -1156,19 +1157,19 @@ def delete_event(event_id):
     _save_data(EVENTS_FILE, events)
     if _get_active_event_id() == event_id:
         _save_data('active_event.json', {})
-    flash("Veranstaltung wurde gelöscht.", "success")
+    flash(_("Veranstaltung wurde gelöscht."), "success")
     return redirect(url_for('events_bp.events_list'))
 
 @events_bp.route('/set_active/<event_id>')
 def set_active_event(event_id):
     _save_data('active_event.json', {'active_event_id': event_id})
-    flash("Event als 'Live' markiert.", "success")
+    flash(_("Event als 'Live' markiert."), "success")
     return redirect(url_for('live_bp.live_event_dashboard'))
 
 @events_bp.route('/clear_active')
 def clear_active_event():
     _save_data('active_event.json', {})
-    flash("Kein Event mehr als 'Live' markiert.", "info")
+    flash(_("Kein Event mehr als 'Live' markiert."), "info")
     return redirect(url_for('events_bp.events_list'))
 
 
@@ -1357,21 +1358,21 @@ def manage_run_participants(event_id, run_id):
         if action == 'add_by_license':
             lic = _norm(request.form.get('license_nr'))
             if not lic:
-                flash("Lizenznummer fehlt.", "warning")
+                flash(_("Lizenznummer fehlt."), "warning")
                 return redirect(url_for('events_bp.manage_run_participants', event_id=event_id, run_id=run_id))
 
             dog = next((d for d in dogs if _norm(d.get('Lizenznummer')) == lic), None)
             if not dog:
-                flash("Hund nicht gefunden.", "error")
+                flash(_("Hund nicht gefunden."), "error")
                 return redirect(url_for('events_bp.manage_run_participants', event_id=event_id, run_id=run_id))
 
             # nur wenn Kat/Klasse passt
             if _norm(dog.get('Kategorie')) != _norm(run.get('kategorie')) or str(dog.get('Klasse')) != str(run.get('klasse')):
-                flash("Kategorie/Klasse passt für diesen Lauf nicht.", "warning")
+                flash(_("Kategorie/Klasse passt für diesen Lauf nicht."), "warning")
                 return redirect(url_for('events_bp.manage_run_participants', event_id=event_id, run_id=run_id))
 
             if any(p.get('Lizenznummer') == lic for p in run.get('entries', [])):
-                flash("Teilnehmer ist bereits in diesem Lauf.", "info")
+                flash(_("Teilnehmer ist bereits in diesem Lauf."), "info")
                 return redirect(url_for('events_bp.manage_run_participants', event_id=event_id, run_id=run_id))
 
             h = handler_map.get(dog.get('Hundefuehrer_ID'))
@@ -1382,7 +1383,7 @@ def manage_run_participants(event_id, run_id):
                 "Hundefuehrer": handler_full
             })
             _save_data(EVENTS_FILE, events)
-            flash("Teilnehmer hinzugefügt.", "success")
+            flash(_("Teilnehmer hinzugefügt."), "success")
             return redirect(url_for('events_bp.manage_run_participants', event_id=event_id, run_id=run_id))
 
         if action == 'remove':
@@ -1391,7 +1392,7 @@ def manage_run_participants(event_id, run_id):
             run['entries'] = [p for p in run.get('entries', []) if _norm(p.get('Lizenznummer')) != lic]
             after = len(run.get('entries', []))
             _save_data(EVENTS_FILE, events)
-            flash("Teilnehmer entfernt." if after < before else "Teilnehmer war nicht in diesem Lauf.", "info")
+            flash(_("Teilnehmer entfernt.") if after < before else _("Teilnehmer war nicht in diesem Lauf."), "info")
             return redirect(url_for('events_bp.manage_run_participants', event_id=event_id, run_id=run_id))
 
         if action == 'set_start_last':
@@ -1400,26 +1401,26 @@ def manage_run_participants(event_id, run_id):
                 key = f"start_last_{p.get('Lizenznummer')}"
                 p['start_last'] = request.form.get(key) == 'on'
             _save_data(EVENTS_FILE, events)
-            flash("Einstellungen gespeichert.", "success")
+            flash(_("Einstellungen gespeichert."), "success")
             return redirect(url_for('events_bp.manage_run_participants', event_id=event_id, run_id=run_id))
 
         if action == 'assign_number':
             lic = _norm(request.form.get('license_nr'))
             num = request.form.get('new_start_number')
             if not (num and num.isdigit()):
-                flash("Ungültige Startnummer.", "warning")
+                flash(_("Ungültige Startnummer."), "warning")
                 return redirect(url_for('events_bp.manage_run_participants', event_id=event_id, run_id=run_id))
             num = int(num)
             if any(e.get('Startnummer') == num for e in run.get('entries', [])):
-                flash("Startnummer in diesem Lauf bereits vergeben.", "error")
+                flash(_("Startnummer in diesem Lauf bereits vergeben."), "error")
                 return redirect(url_for('events_bp.manage_run_participants', event_id=event_id, run_id=run_id))
             found = next((e for e in run.get('entries', []) if _norm(e.get('Lizenznummer')) == lic), None)
             if found:
                 found['Startnummer'] = num
                 _save_data(EVENTS_FILE, events)
-                flash("Startnummer gesetzt.", "success")
+                flash(_("Startnummer gesetzt."), "success")
             else:
-                flash("Teilnehmer nicht gefunden.", "error")
+                flash(_("Teilnehmer nicht gefunden."), "error")
             return redirect(url_for('events_bp.manage_run_participants', event_id=event_id, run_id=run_id))
 
     return render_template('manage_run_participants.html',

@@ -1,24 +1,24 @@
 {% extends "layout.html" %}
-{% block title %}Live Dashboard: {{ event.Bezeichnung }}{% endblock %}
+{% block title %}{{ _('Live Dashboard') }}: {{ event.Bezeichnung }}{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="mb-0">Live Dashboard</h1>
+        <h1 class="mb-0">{{ _('Live Dashboard') }}</h1>
         <p class="text-muted fs-5">{{ event.Bezeichnung }}</p>
     </div>
     <div>
-        <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Zurück zur Verwaltung</a>
+        <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>{{ _('Zurück zur Verwaltung') }}</a>
     </div>
 </div>
 
 <div class="card shadow-sm mb-4">
     <div class="card-header">
-        <h5><i class="fas fa-desktop me-2"></i>Öffentliche Anzeigen & Teilen</h5>
+        <h5><i class="fas fa-desktop me-2"></i>{{ _('Öffentliche Anzeigen & Teilen') }}</h5>
     </div>
     <div class="card-body">
         <div class="d-flex flex-wrap gap-2 mb-3">
-            <a href="{{ url_for('live_bp.announcer_dashboard', event_id=event.id) }}" target="_blank" class="btn btn-dark"><i class="fas fa-users me-2"></i>Sprecher-Dashboard</a>
+            <a href="{{ url_for('live_bp.announcer_dashboard', event_id=event.id) }}" target="_blank" class="btn btn-dark"><i class="fas fa-users me-2"></i>{{ _('Sprecher-Dashboard') }}</a>
             {% for i in ring_numbers %}
             <div class="btn-group">
                 <a href="{{ url_for('live_bp.display_ring_monitor', ring_number=i) }}" target="_blank" class="btn btn-secondary"><i class="fas fa-tv me-2"></i>Ring {{ i }} Monitor</a>
@@ -26,22 +26,22 @@
             </div>
             {% endfor %}
             <a href="{{ url_for('print_bp.select_award_list', event_id=event.id) }}" class="btn btn-success">
-                <i class="fas fa-trophy me-1"></i> Rangverkündigungsliste erstellen
+                <i class="fas fa-trophy me-1"></i> {{ _('Rangverkündigungsliste erstellen') }}
             </a>
         </div>
         <div class="border-top pt-3">
-            <h6 class="text-muted mb-2"><i class="fas fa-cloud-upload-alt me-1"></i> Portal-Synchronisation</h6>
+            <h6 class="text-muted mb-2"><i class="fas fa-cloud-upload-alt me-1"></i> {{ _('Portal-Synchronisation') }}</h6>
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ url_for('live_bp.export_results_to_portal', event_id=event.id) }}"
                    class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-download me-1"></i> Ergebnisse als ZIP
+                    <i class="fas fa-download me-1"></i> {{ _('Ergebnisse als ZIP') }}
                 </a>
                 <form method="post"
                       action="{{ url_for('live_bp.export_results_to_portal', event_id=event.id) }}"
                       class="d-inline"
                       onsubmit="return confirm('Ergebnisse ans Portal senden?');">
                     <button type="submit" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-paper-plane me-1"></i> Ergebnisse ans Portal senden
+                        <i class="fas fa-paper-plane me-1"></i> {{ _('Ergebnisse ans Portal senden') }}
                     </button>
                 </form>
                 <form method="post"
@@ -49,7 +49,7 @@
                       class="d-inline"
                       onsubmit="return confirm('Als ABSCHLUSS-Export ans Portal senden? Dies markiert das Turnier als abgeschlossen.');">
                     <button type="submit" class="btn btn-danger btn-sm">
-                        <i class="fas fa-flag-checkered me-1"></i> Abschluss-Export ans Portal
+                        <i class="fas fa-flag-checkered me-1"></i> {{ _('Abschluss-Export ans Portal') }}
                     </button>
                 </form>
             </div>
@@ -74,11 +74,11 @@
                             </span>
                         </small>
                     </div>
-                    <p class="mb-1">Richter: {{ run.judge_display or '—' }}</p>
+                    <p class="mb-1">{{ _('Richter') }}: {{ run.judge_display or '—' }}</p>
                     <div class="btn-group mt-2">
-                        <a href="{{ url_for('live_bp.live_run_entry', event_id=event.id, run_id=run.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-keyboard me-2"></i>Resultate erfassen</a>
-                        <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" target="_blank" class="btn btn-info btn-sm text-white"><i class="fas fa-trophy me-2"></i>Rangliste (Druck)</a>
-                        <a href="{{ url_for('live_bp.set_active_announcer_run', event_id=event.id, run_id=run.id) }}" class="btn btn-warning btn-sm"><i class="fas fa-bullhorn me-2"></i>Für Sprecher</a>
+                        <a href="{{ url_for('live_bp.live_run_entry', event_id=event.id, run_id=run.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-keyboard me-2"></i>{{ _('Resultate erfassen') }}</a>
+                        <a href="{{ url_for('print_bp.print_ranking_single', event_id=event.id, run_id=run.id) }}" target="_blank" class="btn btn-info btn-sm text-white"><i class="fas fa-trophy me-2"></i>{{ _('Rangliste (Druck)') }}</a>
+                        <a href="{{ url_for('live_bp.set_active_announcer_run', event_id=event.id, run_id=run.id) }}" class="btn btn-warning btn-sm"><i class="fas fa-bullhorn me-2"></i>{{ _('Für Sprecher') }}</a>
                     </div>
                 </div>
                 {% endfor %}
@@ -86,20 +86,20 @@
                 <div class="list-group-item">
                     <div class="d-flex w-100 justify-content-between">
                         <h5 class="mb-1">{{ ring.current_run.title }}</h5>
-                        <small class="text-muted">Aktiver Lauf</small>
+                        <small class="text-muted">{{ _('Aktiver Lauf') }}</small>
                     </div>
                     <p class="mb-1">Richter: {{ ring.current_run.judge_name or '—' }}</p>
-                    <p class="text-muted mb-0">Kein Zeitplan – aktiver Lauf manuell gesetzt.</p>
+                    <p class="text-muted mb-0">{{ _('Kein Zeitplan – aktiver Lauf manuell gesetzt.') }}</p>
                 </div>
                 {% elif not ring.schedule_runs %}
-                <div class="list-group-item text-muted">Für diesen Ring sind keine Läufe im Zeitplan eingetragen.</div>
+                <div class="list-group-item text-muted">{{ _('Für diesen Ring sind keine Läufe im Zeitplan eingetragen.') }}</div>
                 {% endif %}
             </div>
         </div>
     </div>
     {% else %}
     <div class="col-12">
-        <div class="alert alert-warning">Für diese Veranstaltung wurden keine Läufe einem Ring zugewiesen. Bitte erstellen Sie zuerst einen <a href="{{ url_for('events_bp.plan_schedule', event_id=event.id) }}">Zeitplan</a>.</div>
+        <div class="alert alert-warning">{{ _('Für diese Veranstaltung wurden keine Läufe einem Ring zugewiesen. Bitte erstellen Sie zuerst einen') }} <a href="{{ url_for('events_bp.plan_schedule', event_id=event.id) }}">{{ _('Zeitplan') }}</a>.</div>
     </div>
     {% endfor %}
 </div>
