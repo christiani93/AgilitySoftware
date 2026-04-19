@@ -1058,8 +1058,7 @@ def upload_ranking_pdf(event_id, run_id):
     # HTML → PDF via xhtml2pdf
     try:
         buf = _io.BytesIO()
-        pisa_status = pisa.CreatePDF(html_str.encode('utf-8'), dest=buf,
-                                     encoding='utf-8')
+        pisa_status = pisa.CreatePDF(_io.StringIO(html_str), dest=buf)
         if pisa_status.err:
             return jsonify({"error": f"PDF-Generierung fehlgeschlagen (pisa errors: {pisa_status.err})"}), 500
         pdf_bytes = buf.getvalue()
