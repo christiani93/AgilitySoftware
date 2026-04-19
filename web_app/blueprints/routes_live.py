@@ -1065,8 +1065,11 @@ def upload_ranking_pdf(event_id, run_id):
     except Exception as exc:
         return jsonify({"error": f"PDF-Generierung fehlgeschlagen: {exc}"}), 500
 
-    # Metadaten aus dem Lauf auslesen
-    ring          = run.get("assigned_ring") or "Ring 1"
+    # Metadaten aus dem Lauf auslesen — Ring auf "Ring N"-Format normalisieren
+    _raw_ring = run.get("assigned_ring") or ""
+    import re as _re
+    _ring_num = _re.search(r'\d+', str(_raw_ring))
+    ring          = f"Ring {_ring_num.group()}" if _ring_num else (_raw_ring or "Ring 1")
     discipline    = (run.get("laufart") or "").lower()
     category_code = run.get("kategorie") or ""
     class_level   = str(run.get("klasse") or 0)
