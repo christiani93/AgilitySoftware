@@ -1,7 +1,7 @@
 # app.py
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
 import sys
-import flask as flask_module
+import importlib.metadata
 import os
 from datetime import datetime
 
@@ -44,7 +44,7 @@ def format_date(iso_date_string):
 @app.context_processor
 def inject_global_vars():
     return dict(python_version=sys.version,
-        flask_version=flask_module.__version__,
+        flask_version=importlib.metadata.version("flask"),
         software_version=APP_VERSION,
         get_category_sort_key=get_category_sort_key, judge_name=judge_name)
 
