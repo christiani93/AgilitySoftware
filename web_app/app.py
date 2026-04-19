@@ -70,6 +70,12 @@ def settings():
             if key.startswith('schema_') and value.isdigit():
                 schema_template[key.replace('schema_', '')] = int(value)
         current_settings['start_number_schema_template'] = schema_template
+        # Portal-Sync-Einstellungen
+        portal_url = request.form.get('portal_url', '').strip()
+        current_settings['portal_url'] = portal_url
+        current_settings['portal_live_api_key']    = request.form.get('portal_live_api_key', '').strip()
+        current_settings['portal_results_api_key'] = request.form.get('portal_results_api_key', '').strip()
+        current_settings['portal_device_id']       = request.form.get('portal_device_id', '').strip() or 'agility-software'
         _save_data('settings.json', current_settings)
         flash('Einstellungen erfolgreich gespeichert.', 'success')
         return redirect(url_for('settings'))

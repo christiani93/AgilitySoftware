@@ -354,6 +354,33 @@ def save_result(event_id, run_id):
         except Exception:
             pass
 
+        # Portal-Sync: Live-Update + Result-Export im Hintergrund
+        try:
+            from portal_sync import push_live_update, send_result_export
+            from threading import Thread
+            settings_for_sync = _load_settings()
+            if settings_for_sync.get("portal_url"):
+                # 1) Live-Update (Einzel-Ergebnis, asynchron)
+                if settings_for_sync.get("portal_live_api_key"):
+                    all_results_for_sync = _calculate_run_results(run, settings_for_sync)
+                    enriched_entry = next(
+                        (r for r in all_results_for_sync if r.get("Lizenznummer") == license_nr),
+                        entry
+                    )
+                    push_live_update(settings_for_sync, event, run, enriched_entry)
+                # 2) Result-Export (aktuelle Rangliste, asynchron)
+                if settings_for_sync.get("portal_results_api_key"):
+                    _event_snap = dict(event)  # shallow copy für Thread-Sicherheit
+                    _settings_snap = dict(settings_for_sync)
+                    def _bg_export():
+                        try:
+                            send_result_export(_settings_snap, _event_snap, final=False)
+                        except Exception:
+                            pass
+                    Thread(target=_bg_export, daemon=True).start()
+        except Exception:
+            pass  # Portal-Sync darf nie den Hauptprozess unterbrechen
+
         return jsonify({"success": True, "message": "Ergebnis erfolgreich gespeichert.", "result": entry['result']})
     except Exception as ex:
         return jsonify({"success": False, "message": f"Fehler beim Speichern: {ex}"}), 500
@@ -916,3 +943,48 @@ def api_set_participant_status(event_id, run_id):
         pass
 
     return jsonify({'success': True})
+
+
+# ---------------------------------------------------------------------------
+# Portal-Ergebnis-Export
+# ---------------------------------------------------------------------------
+
+@live_bp.route('/live/export_results/<event_id>', methods=['GET', 'POST'])
+def export_results_to_portal(event_id):
+    """
+    GET  → ZIP herunterladen (lokal speichern / manuell hochladen)
+    POST → ZIP erzeugen und direkt ans Portal senden (benötigt konfigurierte URL+Key)
+
+    Query-Parameter:
+      ?final=1  → Export als Abschluss-Export markieren (setzt event.is_completed im Portal)
+    """
+    from utils import _load_data, _load_settings
+    from portal_sync import build_result_export_zip, send_result_export
+    from flask import send_file
+
+    events   = _load_data('events.json')
+    event    = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+
+    final    = request.args.get('final', '0') == '1'
+    settings = _load_settings()
+
+    if request.method == 'GET':
+        # ZIP zum Download anbieten
+        zip_bytes = build_result_export_zip(event, final=final)
+        filename  = f"results_{event_id}.zip"
+        return Response(
+            zip_bytes,
+            mimetype='application/zip',
+            headers={'Content-Disposition': f'attachment; filename="{filename}"'},
+        )
+
+    # POST → ans Portal senden
+    result = send_result_export(settings, event, final=final)
+    if result.get('error'):
+        flash(f'Portal-Export fehlgeschlagen: {result["error"]}', 'danger')
+    else:
+        status_detail = f'(final={result.get("final")}, event={result.get("event_external_id")})'
+        flash(f'✅ Ergebnisse erfolgreich ans Portal übertragen {status_detail}', 'success')
+    return redirect(url_for('live_bp.live_event_dashboard'))

@@ -71,6 +71,44 @@
                 </div>
             </div>
         </div>
+        <div class="card mb-4">
+            <div class="card-header"><h5>🔗 Portal-Synchronisation</h5></div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Wenn aktiviert, werden Live-Ergebnisse automatisch an das AgilityPortal übertragen.
+                    URL und API-Keys findest du in den Server-Einstellungen des Portals.
+                </p>
+                <div class="mb-3">
+                    <label for="portal_url" class="form-label">Portal-URL</label>
+                    <input type="url" class="form-control" id="portal_url" name="portal_url"
+                           placeholder="https://portal.example.com"
+                           value="{{ settings.get('portal_url', '') }}">
+                    <div class="form-text">Basis-URL des AgilityPortals (ohne abschliessenden Schrägstrich)</div>
+                </div>
+                <div class="mb-3">
+                    <label for="portal_live_api_key" class="form-label">Live-Update API-Key</label>
+                    <input type="password" class="form-control" id="portal_live_api_key" name="portal_live_api_key"
+                           placeholder="dev-live-key"
+                           value="{{ settings.get('portal_live_api_key', '') }}">
+                    <div class="form-text">Umgebungsvariable <code>LIVE_API_KEY</code> auf dem Portal-Server</div>
+                </div>
+                <div class="mb-3">
+                    <label for="portal_results_api_key" class="form-label">Ergebnis-Export API-Key</label>
+                    <input type="password" class="form-control" id="portal_results_api_key" name="portal_results_api_key"
+                           placeholder="dev-results-key"
+                           value="{{ settings.get('portal_results_api_key', '') }}">
+                    <div class="form-text">Umgebungsvariable <code>RESULTS_API_KEY</code> auf dem Portal-Server</div>
+                </div>
+                <div class="mb-3">
+                    <label for="portal_device_id" class="form-label">Geräte-ID (optional)</label>
+                    <input type="text" class="form-control" id="portal_device_id" name="portal_device_id"
+                           placeholder="agility-software"
+                           value="{{ settings.get('portal_device_id', 'agility-software') }}">
+                    <div class="form-text">Eindeutige Bezeichnung dieses Geräts für die Live-Updates</div>
+                </div>
+            </div>
+        </div>
+
         <button type="submit" class="btn btn-primary mt-4 w-100">Einstellungen speichern</button>
     </form>
 </div>
