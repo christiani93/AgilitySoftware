@@ -384,3 +384,192 @@ def tkamo_export(event_id):
             
     output.seek(0)
     return Response(output, mimetype="text/csv", headers={"Content-Disposition": f"attachment;filename=tkamo_export_{event_id}.csv"})
+
+
+# ── Lizenzcheck (TKAMO-Workflow) ──────────────────────────────────────────────
+
+import re as _re
+
+_CAT_LABEL_LC = {"L": "Large", "I": "Intermediate", "M": "Medium", "S": "Small"}
+_CAT_FROM_CODE_LC = {"L": "L", "I": "I", "M": "M", "S": "S"}
+_CAT_SHORT = {v: k for k, v in _CAT_LABEL_LC.items()}  # Large→L etc.
+
+
+def _lizenzcheck_participants(event):
+    """Liefert eine deduplizierte, sortierte Liste aller Teilnehmer (nach Kat/Klasse),
+    analog zum CSV-Export: je Lizenznummer nur einmal, mit Kat/Klasse aus dogs.json."""
+    dogs_map     = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
+    handlers_map = {h['id']: h for h in _load_data('handlers.json')}
+
+    seen = {}
+    for run in event.get('runs', []):
+        for entry in run.get('entries', []):
+            lic = entry.get('Lizenznummer', '').strip()
+            if not lic or lic in seen:
+                continue
+            dog     = dogs_map.get(lic, {})
+            handler = handlers_map.get(dog.get('Hundefuehrer_ID', ''), {})
+            seen[lic] = {
+                'Lizenznummer': lic,
+                'Hundename':    dog.get('Hundename', entry.get('Hundename', '')),
+                'Kategorie':    dog.get('Kategorie', entry.get('Kategorie', '')),
+                'Klasse':       str(dog.get('Klasse', entry.get('Klasse', ''))),
+                'Vorname':      handler.get('Vorname', ''),
+                'Nachname':     handler.get('Nachname', ''),
+                'Vereinsnummer':handler.get('Vereinsnummer', ''),
+                'handler_id':   dog.get('Hundefuehrer_ID', ''),
+            }
+
+    # Gleiche Sortierung wie CSV → Zeilen-Mapping stimmt
+    return sorted(seen.values(), key=lambda p: (p['Kategorie'], p['Klasse'], p['Lizenznummer']))
+
+
+@print_bp.route('/print/lizenzcheck/<event_id>', methods=['GET'])
+def lizenzcheck_index(event_id):
+    """Lizenzcheck-Seite: CSV-Download-Button + Textarea für TKAMO-Ergebnis."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+    return render_template('print/lizenzcheck.html', event=event,
+                           done=event.get('lizenzcheck_done'), report=None)
+
+
+@print_bp.route('/print/lizenzcheck_csv/<event_id>')
+def lizenzcheck_csv(event_id):
+    """CSV-Export für TKAMO (Lizenzcheck-Format, nur Grunddaten)."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+
+    participants = _lizenzcheck_participants(event)
+
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';', lineterminator='\r\n')
+    writer.writerow(['Lizenznummer', 'Kategorie', 'Klasse', 'Hundename',
+                     'Vereinsnummer', 'Vorname', 'Nachname'])
+    for p in participants:
+        writer.writerow([
+            p['Lizenznummer'],
+            p['Kategorie'],
+            p['Klasse'],
+            p['Hundename'],
+            p['Vereinsnummer'],
+            p['Vorname'],
+            p['Nachname'],
+        ])
+
+    return Response(
+        output.getvalue().encode('utf-8'),
+        mimetype='text/csv; charset=utf-8',
+        headers={'Content-Disposition': f'attachment; filename="lizenzcheck_{event_id}.csv"'},
+    )
+
+
+@print_bp.route('/print/lizenzcheck/<event_id>', methods=['POST'])
+def lizenzcheck_process(event_id):
+    """TKAMO-Ergebnistext verarbeiten und Korrekturen automatisch übernehmen."""
+    all_events = _load_data('events.json')
+    event = next((e for e in all_events if e.get('id') == event_id), None)
+    if not event: abort(404)
+
+    report_text = request.form.get('tkamo_result', '').strip()
+    if not report_text:
+        flash('Bitte TKAMO-Ergebnis einfügen.', 'warning')
+        return redirect(url_for('print_bp.lizenzcheck_index', event_id=event_id))
+
+    dogs_all = _load_data('dogs.json')
+    dogs_map  = {d['Lizenznummer']: d for d in dogs_all}
+
+    # Zeilennummer → Lizenznummer (identische Reihenfolge wie CSV)
+    participants = _lizenzcheck_participants(event)
+    row_to_license = {i + 2: p['Lizenznummer'] for i, p in enumerate(participants)}
+
+    name_changes:     list[str] = []
+    class_changes:    list[str] = []
+    inactive_licenses: list[str] = []
+
+    for line in report_text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+
+        # ── Inaktive Lizenz ───────────────────────────────────────────────────
+        if _re.search(r'inaktiv|nicht aktiv|gesperrt|inactif|inactive', line, _re.IGNORECASE):
+            m_lic = _re.search(r'Lizenz\s+(\S+)', line, _re.IGNORECASE)
+            lic = m_lic.group(1).rstrip('.') if m_lic else '?'
+            inactive_licenses.append(f"⛔ Inaktive Lizenz {lic} — nicht startberechtigt! ({line})")
+            continue
+
+        # ── Falsche Klasse → direkt übernehmen (TKAMO ist autoritativ) ───────
+        m_cls = _re.search(
+            r'Lizenz\s+(\S+).*?Klasse im System:\s*([SMIL])(\d)',
+            line, _re.IGNORECASE
+        )
+        if m_cls and 'Klasse im System' in line:
+            lic      = m_cls.group(1).rstrip('.')
+            sys_cat_short = m_cls.group(2).upper()
+            sys_cls  = m_cls.group(3)
+            sys_cat  = _CAT_LABEL_LC.get(sys_cat_short, sys_cat_short)
+
+            m_imp = _re.search(r'Klasse im Import:\s*([SMIL])(\d)', line, _re.IGNORECASE)
+            imp_cat = _CAT_LABEL_LC.get(m_imp.group(1).upper(), m_imp.group(1).upper()) if m_imp else sys_cat
+            imp_cls = m_imp.group(2) if m_imp else sys_cls
+
+            dog = dogs_map.get(lic)
+            if dog:
+                dog['Kategorie'] = sys_cat
+                dog['Klasse']    = sys_cls
+                # Auch in allen Run-Entries aktualisieren
+                for run in event.get('runs', []):
+                    for entry in run.get('entries', []):
+                        if entry.get('Lizenznummer') == lic:
+                            entry['Kategorie'] = sys_cat
+                            entry['Klasse']    = sys_cls
+                class_changes.append(
+                    f"🔄 Klasse angepasst {lic} — {imp_cat} Kl.{imp_cls} → {sys_cat} Kl.{sys_cls}"
+                )
+            else:
+                class_changes.append(f"⚠️ Lizenz {lic} nicht im System — Klasse nicht angepasst.")
+            continue
+
+        # ── Hundename → direkt übernehmen ────────────────────────────────────
+        m_name = _re.search(r'Im System\s+(.+)$', line, _re.IGNORECASE)
+        if m_name and 'Hundename' in line:
+            system_name = m_name.group(1).strip()
+
+            lic = None
+            m_lic = _re.search(r'Lizenz\s+(\S+)', line, _re.IGNORECASE)
+            if m_lic:
+                lic = m_lic.group(1).rstrip('.')
+            else:
+                m_row = _re.search(r'Zeile\s+(\d+)', line, _re.IGNORECASE)
+                if m_row:
+                    lic = row_to_license.get(int(m_row.group(1)))
+
+            if lic:
+                dog = dogs_map.get(lic)
+                if dog and dog.get('Hundename') != system_name:
+                    old_name = dog['Hundename']
+                    dog['Hundename'] = system_name
+                    # Auch in Run-Entries aktualisieren
+                    for run in event.get('runs', []):
+                        for entry in run.get('entries', []):
+                            if entry.get('Lizenznummer') == lic:
+                                entry['Hundename'] = system_name
+                    name_changes.append(
+                        f"✏️ Hundename: {lic} '{old_name}' → '{system_name}'"
+                    )
+
+    # Speichern
+    _save_data('dogs.json', dogs_all)
+    _save_data('events.json', all_events)
+
+    # Lizenzcheck als erledigt markieren
+    event['lizenzcheck_done'] = True
+    _save_data('events.json', all_events)
+
+    report = {
+        'name_changes':      name_changes,
+        'class_changes':     class_changes,
+        'inactive_licenses': inactive_licenses,
+        'report_text':       report_text,
+    }
+    return render_template('print/lizenzcheck.html', event=event, done=True, report=report)

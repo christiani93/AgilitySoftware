@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+{% block title %}Lizenzcheck – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h1 class="mb-0">🔍 Lizenzcheck</h1>
+    <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
+  </div>
+  <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}"
+     class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Zurück zur Veranstaltung
+  </a>
+</div>
+
+{# ── Schritt 1: CSV herunterladen ── #}
+<div class="card mb-4">
+  <div class="card-header fw-semibold">
+    <span class="me-2">1.</span> CSV für TKAMO herunterladen
+  </div>
+  <div class="card-body">
+    <p class="mb-2 text-muted small">
+      Lade die CSV-Datei herunter, lade sie auf der
+      <a href="https://tkamo.ch" target="_blank">TKAMO-Website</a> hoch und
+      kopiere das Ergebnis in Schritt 2.
+    </p>
+    <a href="{{ url_for('print_bp.lizenzcheck_csv', event_id=event.id) }}"
+       class="btn btn-outline-primary">
+      <i class="fas fa-file-csv me-1"></i> CSV herunterladen
+    </a>
+    {% if event.get('lizenzcheck_done') %}
+    <span class="badge bg-success ms-3">✅ Lizenzcheck abgeschlossen</span>
+    {% else %}
+    <span class="badge bg-warning text-dark ms-3">⏳ Noch nicht durchgeführt</span>
+    {% endif %}
+  </div>
+</div>
+
+{# ── Schritt 2: TKAMO-Ergebnis einfügen ── #}
+<div class="card mb-4">
+  <div class="card-header fw-semibold">
+    <span class="me-2">2.</span> TKAMO-Ergebnis einfügen &amp; verarbeiten
+  </div>
+  <div class="card-body">
+    <form method="post" action="{{ url_for('print_bp.lizenzcheck_process', event_id=event.id) }}">
+      <div class="mb-3">
+        <label class="form-label small text-muted">TKAMO-Antworttext einfügen:</label>
+        <textarea name="tkamo_result" class="form-control font-monospace" rows="8" required
+                  placeholder="Text vom TKAMO-Lizenzcheck hier einfügen..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-warning">
+        <i class="fas fa-sync-alt me-1"></i> Ergebnis verarbeiten
+      </button>
+    </form>
+  </div>
+</div>
+
+{# ── Ergebnisse ── #}
+{% if report %}
+
+  {% if report.inactive_licenses %}
+  <div class="card mb-3 border-danger">
+    <div class="card-header bg-danger text-white fw-bold">
+      ⛔ Inaktive Lizenzen — nicht startberechtigt! ({{ report.inactive_licenses|length }})
+    </div>
+    <ul class="list-group list-group-flush">
+      {% for item in report.inactive_licenses %}
+      <li class="list-group-item list-group-item-danger small font-monospace">{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if report.class_changes %}
+  <div class="card mb-3 border-primary">
+    <div class="card-header bg-primary text-white fw-bold">
+      🔄 Klassen automatisch angepasst ({{ report.class_changes|length }})
+    </div>
+    <ul class="list-group list-group-flush">
+      {% for item in report.class_changes %}
+      <li class="list-group-item small font-monospace">{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if report.name_changes %}
+  <div class="card mb-3 border-success">
+    <div class="card-header bg-success text-white fw-bold">
+      ✏️ Hundenamen automatisch korrigiert ({{ report.name_changes|length }})
+    </div>
+    <ul class="list-group list-group-flush">
+      {% for item in report.name_changes %}
+      <li class="list-group-item small font-monospace">{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if not report.inactive_licenses and not report.class_changes and not report.name_changes %}
+  <div class="alert alert-success">
+    ✅ Keine Abweichungen erkannt — alles in Ordnung.
+  </div>
+  {% endif %}
+
+  {# TKAMO-Originaltext #}
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>TKAMO-Originaltext</span>
+      <button class="btn btn-sm btn-outline-secondary" onclick="copyReport(this)">
+        <i class="fas fa-copy me-1"></i> Kopieren
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <textarea id="report-text" class="form-control border-0 font-monospace"
+                rows="14" readonly style="resize:vertical; font-size:12px; border-radius:0 0 .375rem .375rem;">{{ report.report_text }}</textarea>
+    </div>
+  </div>
+
+{% endif %}
+
+<script>
+function copyReport(btn) {
+  const ta = document.getElementById('report-text');
+  ta.select();
+  document.execCommand('copy');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-check me-1"></i> Kopiert';
+  setTimeout(() => btn.innerHTML = orig, 2000);
+}
+</script>
+{% endblock %}
