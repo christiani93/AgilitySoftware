@@ -186,14 +186,16 @@ def _safe_float(v) -> Optional[float]:
         return None
 
 
-# Laufender Sequenz-Counter (pro Prozess-Session)
+# Sequenz-Counter: Timestamp-Basis (ms) + lokaler Zähler → überlebt Neustarts eindeutig
+import time as _time
 _seq_counter = 0
+_seq_base = int(_time.time() * 1000)  # fester Offset pro Prozess-Session
 
 
 def _next_seq() -> int:
     global _seq_counter
     _seq_counter += 1
-    return _seq_counter
+    return _seq_base + _seq_counter
 
 
 # ----------------------------------------------------------------------------
