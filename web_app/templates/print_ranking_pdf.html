@@ -6,103 +6,238 @@
   <style>
     @page {
       size: A4 portrait;
-      margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+      margin: 1.8cm 1.5cm 1.5cm 1.5cm;
     }
-    body { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #000; }
-
-    /* Kopfzeile */
-    .header {
-      border-bottom: 2px solid #000;
-      padding-bottom: 6pt;
-      margin-bottom: 10pt;
+    * { box-sizing: border-box; }
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 9.5pt;
+      color: #111;
+      margin: 0;
     }
-    .header-title { font-size: 14pt; font-weight: bold; margin: 0 0 2pt 0; }
-    .header-sub   { font-size: 10pt; color: #333; margin: 0; }
-    .header-meta  { font-size: 8pt; color: #555; margin: 4pt 0 0 0; }
 
-    /* Tabelle */
-    table { width: 100%; border-collapse: collapse; margin-top: 8pt; font-size: 9pt; }
+    /* ── Kopfzeile ─────────────────────────────────────────── */
+    .header-bar {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 8pt 10pt 6pt 10pt;
+      margin-bottom: 0;
+    }
+    .header-bar h1 {
+      font-size: 14pt;
+      font-weight: bold;
+      margin: 0 0 2pt 0;
+      letter-spacing: 0.02em;
+    }
+    .header-bar .sub {
+      font-size: 9pt;
+      opacity: 0.85;
+      margin: 0;
+    }
+
+    {% if is_final %}
+    .official-banner {
+      background: #c0392b;
+      color: #fff;
+      text-align: center;
+      font-size: 8.5pt;
+      font-weight: bold;
+      letter-spacing: 0.08em;
+      padding: 3pt 0;
+    }
+    {% else %}
+    .official-banner {
+      background: #7f8c8d;
+      color: #fff;
+      text-align: center;
+      font-size: 8.5pt;
+      letter-spacing: 0.05em;
+      padding: 3pt 0;
+    }
+    {% endif %}
+
+    /* ── Laufdaten-Box ────────────────────────────────────── */
+    .run-info {
+      border: 1px solid #ddd;
+      border-top: none;
+      padding: 5pt 10pt;
+      font-size: 8.5pt;
+      color: #333;
+      display: table;
+      width: 100%;
+    }
+    .run-info-cell {
+      display: table-cell;
+      padding-right: 16pt;
+      white-space: nowrap;
+    }
+    .run-info-label { color: #777; font-size: 7.5pt; display: block; }
+    .run-info-value { font-weight: bold; font-size: 9pt; }
+
+    /* ── Tabelle ─────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10pt;
+      font-size: 9pt;
+    }
     thead th {
-      background: #333; color: #fff;
-      padding: 4pt 5pt; text-align: left;
-      border: 1px solid #333;
+      background: #2c3e50;
+      color: #fff;
+      padding: 5pt 6pt;
+      text-align: left;
+      font-weight: 600;
+      font-size: 8.5pt;
+      letter-spacing: 0.03em;
+      border: none;
     }
-    tbody tr { border-bottom: 1px solid #ccc; }
-    tbody tr.even { background: #f5f5f5; }
-    tbody tr.rank1 { background: #fffbe6; font-weight: bold; }
-    tbody tr.disq  { color: #888; }
-    td { padding: 3pt 5pt; border-left: 1px solid #ddd; border-right: 1px solid #ddd; }
+    thead th.center { text-align: center; }
+    thead th.right  { text-align: right; }
+
+    tbody tr { border-bottom: 1px solid #e0e0e0; }
+    tbody tr.odd  { background: #fff; }
+    tbody tr.even { background: #f7f7f7; }
+    tbody tr.rank1 {
+      background: #fef9e7;
+      font-weight: bold;
+      border-left: 3pt solid #f39c12;
+    }
+    tbody tr.disq  { color: #aaa; }
+
+    td {
+      padding: 4pt 6pt;
+      vertical-align: middle;
+    }
     td.center { text-align: center; }
     td.right  { text-align: right; }
-    td.num    { text-align: right; font-family: Courier, monospace; }
+    td.mono   { font-family: Courier, monospace; text-align: right; }
 
-    /* Fusszeile */
+    /* ── Fusszeile ───────────────────────────────────────── */
     .footer {
       margin-top: 14pt;
       border-top: 1px solid #ccc;
       padding-top: 4pt;
-      font-size: 8pt;
-      color: #666;
+      font-size: 7.5pt;
+      color: #888;
+      display: table;
+      width: 100%;
     }
+    .footer-left  { display: table-cell; text-align: left; }
+    .footer-right { display: table-cell; text-align: right; }
   </style>
 </head>
 <body>
 
-<div class="header">
-  <p class="header-title">Rangliste: {{ run.name }}</p>
-  <p class="header-sub">{{ event.Bezeichnung }}
-    {% if event.Datum %} · {{ event.Datum | format_date }}{% endif %}
-    {% if event.Ort %} · {{ event.Ort }}{% endif %}
-  </p>
-  <p class="header-meta">
-    {% if judge_display %}Richter: {{ judge_display }} · {% endif %}
-    {% set ld = run.get('laufdaten', {}) %}
-    {% if ld.get('parcours_laenge') %}Parcours: {{ ld.parcours_laenge }} m · {% endif %}
-    {% if ld.get('anzahl_hindernisse') %}{{ ld.anzahl_hindernisse }} Geräte · {% endif %}
-    {% if ld.get('standardzeit_sct_gerundet') %}SCT: {{ ld.standardzeit_sct_gerundet }} s · {% endif %}
-    {% if ld.get('maximalzeit_mct_gerundet') %}MCT: {{ ld.maximalzeit_mct_gerundet }} s{% endif %}
-    {% if is_final %} · <strong>OFFIZIELLE RANGLISTE</strong>{% endif %}
+{% set ld = run.get('laufdaten', {}) %}
+
+{# ── Kopfzeile ──────────────────────────────────────────────── #}
+<div class="header-bar">
+  <h1>{{ run.name }}</h1>
+  <p class="sub">
+    {{ event.Bezeichnung }}{% if event.Datum %} · {{ event.Datum | format_date }}{% endif %}{% if event.Ort %} · {{ event.Ort }}{% endif %}
   </p>
 </div>
 
+<div class="official-banner">
+  {% if is_final %}✓ OFFIZIELLE RANGLISTE{% else %}VORLÄUFIGE RANGLISTE{% endif %}
+</div>
+
+{# ── Laufdaten ──────────────────────────────────────────────── #}
+{% if judge_display or ld.get('parcours_laenge') or ld.get('standardzeit_sct_gerundet') %}
+<div class="run-info">
+  {% if judge_display %}
+  <div class="run-info-cell">
+    <span class="run-info-label">Richter</span>
+    <span class="run-info-value">{{ judge_display }}</span>
+  </div>
+  {% endif %}
+  {% if ld.get('parcours_laenge') %}
+  <div class="run-info-cell">
+    <span class="run-info-label">Parcourslänge</span>
+    <span class="run-info-value">{{ ld.parcours_laenge }} m</span>
+  </div>
+  {% endif %}
+  {% if ld.get('anzahl_hindernisse') %}
+  <div class="run-info-cell">
+    <span class="run-info-label">Hindernisse</span>
+    <span class="run-info-value">{{ ld.anzahl_hindernisse }}</span>
+  </div>
+  {% endif %}
+  {% if ld.get('standardzeit_sct_gerundet') %}
+  <div class="run-info-cell">
+    <span class="run-info-label">Standardzeit (SCT)</span>
+    <span class="run-info-value">{{ ld.standardzeit_sct_gerundet }} s</span>
+  </div>
+  {% endif %}
+  {% if ld.get('maximalzeit_mct_gerundet') %}
+  <div class="run-info-cell">
+    <span class="run-info-label">Maximalzeit (MCT)</span>
+    <span class="run-info-value">{{ ld.maximalzeit_mct_gerundet }} s</span>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ── Rangliste ──────────────────────────────────────────────── #}
 <table>
   <thead>
     <tr>
-      <th style="width:5%">Rang</th>
-      <th style="width:7%">St-Nr.</th>
-      <th style="width:28%">Hundeführer</th>
-      <th style="width:25%">Hund</th>
-      <th style="width:10%">Zeit</th>
-      <th style="width:6%">F</th>
-      <th style="width:6%">V</th>
-      <th style="width:8%">Ztf.</th>
-      <th style="width:5%">Total</th>
+      <th style="width:6%"  class="center">Rang</th>
+      <th style="width:8%"  class="center">St-Nr.</th>
+      <th style="width:30%">Hundeführer</th>
+      <th style="width:26%">Hund</th>
+      <th style="width:10%" class="right">Zeit (s)</th>
+      <th style="width:5%"  class="center">F</th>
+      <th style="width:5%"  class="center">V</th>
+      <th style="width:10%" class="right">Gesamtfehler</th>
     </tr>
   </thead>
   <tbody>
     {% for res in results %}
     {% set disq = res.get('result', {}).get('disqualifikation') %}
-    {% set rowclass = 'disq' if disq else ('rank1' if res.platz == 1 else ('even' if loop.index % 2 == 0 else '')) %}
+    {% if disq %}
+      {% set rowclass = 'disq ' ~ ('odd' if loop.index % 2 != 0 else 'even') %}
+    {% elif res.platz == 1 %}
+      {% set rowclass = 'rank1' %}
+    {% else %}
+      {% set rowclass = 'odd' if loop.index % 2 != 0 else 'even' %}
+    {% endif %}
     <tr class="{{ rowclass }}">
-      <td class="center">{{ res.platz if res.platz else (disq or '') }}</td>
+      <td class="center">
+        {% if disq %}{{ disq }}{% elif res.platz %}{{ res.platz }}.{% else %}—{% endif %}
+      </td>
       <td class="center">{{ res.Startnummer }}</td>
       <td>{{ res.Hundefuehrer }}</td>
       <td>{{ res.Hundename }}</td>
-      <td class="num">{% if res.zeit_total and res.zeit_total < 998 %}{{ '%.2f'|format(res.zeit_total|float) }}{% endif %}</td>
-      <td class="center">{{ res.fehler_parcours_anzahl|int if res.fehler_parcours_anzahl is defined else '' }}</td>
-      <td class="center">{{ res.verweigerung_parcours_anzahl|int if res.verweigerung_parcours_anzahl is defined else '' }}</td>
-      <td class="num">{% if res.fehler_zeit is defined and res.fehler_zeit %}{{ '%.2f'|format(res.fehler_zeit|float) }}{% endif %}</td>
-      <td class="num"><strong>{% if res.fehler_total is defined and res.fehler_total < 998 %}{{ '%.2f'|format(res.fehler_total|float) }}{% endif %}</strong></td>
+      <td class="mono">
+        {% if res.zeit_total and res.zeit_total < 998 %}{{ '%.2f'|format(res.zeit_total|float) }}{% endif %}
+      </td>
+      <td class="center">
+        {{ res.fehler_parcours_anzahl|int if res.fehler_parcours_anzahl is defined else '—' }}
+      </td>
+      <td class="center">
+        {{ res.verweigerung_parcours_anzahl|int if res.verweigerung_parcours_anzahl is defined else '—' }}
+      </td>
+      <td class="mono">
+        {% if not disq and res.fehler_total is defined and res.fehler_total < 998 %}
+          <strong>{{ '%.2f'|format(res.fehler_total|float) }}</strong>
+        {% endif %}
+      </td>
     </tr>
     {% else %}
-    <tr><td colspan="9" class="center">Keine Ergebnisse für diesen Lauf.</td></tr>
+    <tr><td colspan="8" class="center">Keine Ergebnisse für diesen Lauf.</td></tr>
     {% endfor %}
   </tbody>
 </table>
 
+{# ── Fusszeile ──────────────────────────────────────────────── #}
 <div class="footer">
-  {{ event.Bezeichnung }}{% if judge_display %} · Richter: {{ judge_display }}{% endif %}
-  {% if is_final %} · ✓ Offizielle Rangliste{% else %} · Vorläufige Rangliste{% endif %}
+  <div class="footer-left">
+    {{ event.Bezeichnung }}{% if judge_display %} · Richter: {{ judge_display }}{% endif %}
+  </div>
+  <div class="footer-right">
+    {% if is_final %}✓ Offizielle Rangliste{% else %}Vorläufige Rangliste{% endif %}
+  </div>
 </div>
 
 </body>
