@@ -235,7 +235,7 @@ def _build_startlist_snapshot(run: dict) -> dict:
         "current_starter": _starter_brief(current) if current else None,
         "next_starter":    _starter_brief(nxt)     if nxt     else None,
         "remaining_count": len(remaining),
-        "remaining":       [_starter_brief(e) for e in remaining[:10]],  # max 10
+        "remaining":       [_starter_brief(e) for e in remaining],
     }
 
 
