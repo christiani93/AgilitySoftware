@@ -606,6 +606,19 @@ def ring_pc_dashboard(ring_number):
                 break
     if not selected_run_id and runs_for_ring:
         selected_run_id = runs_for_ring[0].get("id")
+
+    # Portal-Sync: aktuellen Lauf ans Portal melden (VAR + Live-Seite aktuell halten)
+    if selected_run_id:
+        try:
+            from portal_sync import push_run_changed as _prc
+            _settings_rc = _load_settings()
+            if _settings_rc.get("portal_url") and _settings_rc.get("portal_live_api_key"):
+                _run_rc = next((r for r in event.get("runs", []) if r.get("id") == selected_run_id), None)
+                if _run_rc:
+                    _prc(_settings_rc, event, _run_rc)
+        except Exception:
+            pass
+
     return render_template(
         'ring_pc_dashboard.html',
         event=event,
@@ -1043,6 +1056,25 @@ def upload_ranking_pdf(event_id, run_id):
     judges         = _load_data('judges.json')
     judge_display  = resolve_judge_name(event, run, judges)
 
+    # Logo-URLs berechnen (werden im Template als base64 eingebettet, falls Datei vorhanden)
+    import os as _os, base64 as _b64
+    def _logo_b64(logo_key):
+        fname = event.get(logo_key)
+        if not fname:
+            return None
+        path = _os.path.join("data", "logos", event_id, fname)
+        if not _os.path.exists(path):
+            return None
+        ext = _os.path.splitext(fname)[1].lower().lstrip(".")
+        mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
+                "gif": "image/gif", "svg": "image/svg+xml", "webp": "image/webp"}.get(ext, "image/png")
+        with open(path, "rb") as _f:
+            data = _b64.b64encode(_f.read()).decode()
+        return f"data:{mime};base64,{data}"
+
+    event_logo_data = _logo_b64("event_logo_filename")
+    club_logo_data  = _logo_b64("club_logo_filename")
+
     # HTML-String rendern (PDF-optimiertes Template, kein position:fixed)
     from flask import render_template as _rt
     html_str = _rt(
@@ -1053,6 +1085,8 @@ def upload_ranking_pdf(event_id, run_id):
         judges=judges,
         judge_display=judge_display,
         is_final=is_final,
+        event_logo_data=event_logo_data,
+        club_logo_data=club_logo_data,
     )
 
     # HTML → PDF via xhtml2pdf
