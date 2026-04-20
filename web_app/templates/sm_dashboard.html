@@ -1,0 +1,164 @@
+{% extends "layout.html" %}
+{% block title %}SM Einzel – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">🏆 SM Einzel</h1>
+    <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('sm_bp.sm_config', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-cog me-1"></i>Konfiguration
+    </a>
+    <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Zurück zur Übersicht
+    </a>
+  </div>
+</div>
+
+{% if not sm_data %}
+<div class="alert alert-info">
+  <i class="fas fa-info-circle me-2"></i>
+  Noch keine SM-Läufe konfiguriert. Bearbeite die Läufe und setze den <strong>SM-Lauftyp</strong>
+  (z.B. «Quali Agility», «Quali Jumping»).
+</div>
+{% endif %}
+
+{% for cat in categories %}
+{% set cd = sm_data.get(cat) %}
+{% if cd %}
+<div class="card mb-4 shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">
+      <span class="badge bg-primary me-2">{{ cat }}</span>
+      <span class="text-muted small">
+        {{ cd.starters }} Starter ·
+        {{ cd.final_spots }} Finalplätze ·
+        {{ cd.direct_per_run }} direkte Qualifier/Lauf (16%)
+      </span>
+    </h5>
+    <a href="{{ url_for('sm_bp.sm_final_list', event_id=event.id, category=cat) }}"
+       class="btn btn-sm btn-outline-primary" target="_blank">
+      <i class="fas fa-print me-1"></i>Finalliste drucken
+    </a>
+  </div>
+  <div class="card-body p-0">
+
+    <!-- Kombinationsrangliste -->
+    <div class="px-3 pt-3">
+      <h6 class="text-muted mb-2">
+        <i class="fas fa-list-ol me-1"></i>Kombinationsrangliste
+        {% if cd.defending_champion %}
+        <span class="badge bg-warning text-dark ms-2">
+          <i class="fas fa-crown me-1"></i>Titelverteidiger:
+          {{ cd.defending_champion.dog_name }} / {{ cd.defending_champion.handler_name }}
+        </span>
+        {% endif %}
+      </h6>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Hund</th>
+            <th>Führerin/Führer</th>
+            <th class="text-center">Quali A<br><small class="text-muted">Fehler / Zeit</small></th>
+            <th class="text-center">Quali J<br><small class="text-muted">Fehler / Zeit</small></th>
+            <th class="text-center">Kombi<br><small class="text-muted">Fehler / Zeit</small></th>
+            <th class="text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in cd.combined_ranking %}
+          <tr class="{% if r.is_defending %}table-warning{% elif r.is_direct %}table-success{% elif r in cd.final_list and not r.kombi_dis %}table-light{% endif %}">
+            <td>
+              {% if r.kombi_rang %}{{ r.kombi_rang }}{% else %}–{% endif %}
+            </td>
+            <td>
+              {{ r.dog_name }}
+              {% if r.is_defending %}<i class="fas fa-crown text-warning ms-1" title="Titelverteidiger"></i>{% endif %}
+            </td>
+            <td>{{ r.handler_name }}</td>
+            <td class="text-center">
+              {% if r.qa_dis is defined and r.qa_dis %}
+                <span class="text-danger">DIS</span>
+              {% elif r.qa_fehler is defined %}
+                {{ r.qa_fehler | round(1) }}fp / {{ r.qa_zeit | round(2) }}s
+              {% else %}
+                <span class="text-muted">–</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if r.qj_dis is defined and r.qj_dis %}
+                <span class="text-danger">DIS</span>
+              {% elif r.qj_fehler is defined %}
+                {{ r.qj_fehler | round(1) }}fp / {{ r.qj_zeit | round(2) }}s
+              {% else %}
+                <span class="text-muted">–</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if r.kombi_dis %}
+                <span class="text-danger">DIS</span>
+              {% else %}
+                <strong>{{ r.kombi_fehler | round(1) }}fp</strong> / {{ r.kombi_zeit | round(2) }}s
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if r.is_defending %}
+                <span class="badge bg-warning text-dark"><i class="fas fa-crown"></i> Titelv.</span>
+              {% elif r.is_direct %}
+                <span class="badge bg-success">Direkt</span>
+              {% elif not r.kombi_dis and r.kombi_rang and r.kombi_rang <= (cd.final_spots - (cd.direct_set | count)) %}
+                <span class="badge bg-primary">Kombi</span>
+              {% elif r.kombi_dis %}
+                <span class="badge bg-secondary">DIS</span>
+              {% else %}
+                <span class="badge bg-light text-dark border">–</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Finalliste Zusammenfassung -->
+    <div class="p-3 border-top">
+      <h6 class="text-success mb-2">
+        <i class="fas fa-flag-checkered me-1"></i>
+        Finalliste ({{ cd.final_list | length }} / {{ cd.final_spots }} Plätze)
+      </h6>
+      {% if cd.final_list %}
+      <ol class="mb-0">
+        {% for r in cd.final_list %}
+        <li class="{% if r.is_defending %}fw-bold{% endif %}">
+          {{ r.dog_name }} / {{ r.handler_name }}
+          {% if r.is_defending %}<span class="badge bg-warning text-dark ms-1"><i class="fas fa-crown"></i></span>{% endif %}
+          {% if r.is_direct and not r.is_defending %}<span class="badge bg-success ms-1">Direkt</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+      {% else %}
+      <p class="text-muted mb-0">Noch keine Ergebnisse vorhanden.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+
+{% if sm_data %}
+<div class="alert alert-info mt-2 no-print">
+  <i class="fas fa-info-circle me-2"></i>
+  <strong>Legende:</strong>
+  <span class="badge bg-warning text-dark ms-2">Titelverteidiger</span>
+  <span class="badge bg-success ms-1">Direkt qualifiziert (16%/Lauf)</span>
+  <span class="badge bg-primary ms-1">Via Kombinationsrangliste</span>
+</div>
+{% endif %}
+{% endblock %}

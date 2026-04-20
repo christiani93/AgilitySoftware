@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+{% block title %}SM Finalliste {{ category }} – {{ event.Bezeichnung }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    body { font-size: 12pt; }
+    .card { border: 1px solid #aaa !important; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+  <h1>SM Finalliste – {{ category }}</h1>
+  <div>
+    <button onclick="window.print()" class="btn btn-outline-secondary me-2">
+      <i class="fas fa-print me-1"></i>Drucken
+    </button>
+    <a href="{{ url_for('sm_bp.sm_dashboard', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Zurück
+    </a>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header">
+    <div class="d-flex justify-content-between">
+      <div>
+        <strong>{{ event.Bezeichnung }}</strong> · SM Einzel {{ category }}
+      </div>
+      <div class="text-muted">
+        {{ cat_data.final_list | length }} von {{ cat_data.final_spots }} Finalplätzen besetzt
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-bordered mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:50px">#</th>
+          <th>Hund</th>
+          <th>Hundeführerin/Hundeführer</th>
+          <th>Lizenz</th>
+          <th class="text-center">Quali A<br><small>Fp / Zeit</small></th>
+          <th class="text-center">Quali J<br><small>Fp / Zeit</small></th>
+          <th class="text-center">Kombi<br><small>Fp / Zeit</small></th>
+          <th class="text-center">Qualifikation</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in cat_data.final_list %}
+        <tr class="{% if r.is_defending %}table-warning{% elif r.is_direct %}table-success{% endif %}">
+          <td>{{ loop.index }}</td>
+          <td>
+            {{ r.dog_name }}
+            {% if r.is_defending %}<i class="fas fa-crown text-warning ms-1" title="Titelverteidiger"></i>{% endif %}
+          </td>
+          <td>{{ r.handler_name }}</td>
+          <td><small>{{ r.license }}</small></td>
+          <td class="text-center">
+            {% if r.qa_dis is defined and r.qa_dis %}DIS
+            {% elif r.qa_fehler is defined %}{{ r.qa_fehler | round(1) }} / {{ r.qa_zeit | round(2) }}s
+            {% else %}–{% endif %}
+          </td>
+          <td class="text-center">
+            {% if r.qj_dis is defined and r.qj_dis %}DIS
+            {% elif r.qj_fehler is defined %}{{ r.qj_fehler | round(1) }} / {{ r.qj_zeit | round(2) }}s
+            {% else %}–{% endif %}
+          </td>
+          <td class="text-center">
+            {% if r.kombi_dis %}DIS
+            {% else %}<strong>{{ r.kombi_fehler | round(1) }}</strong> / {{ r.kombi_zeit | round(2) }}s{% endif %}
+          </td>
+          <td class="text-center">
+            {% if r.is_defending %}
+              <span class="badge bg-warning text-dark">Titelverteidiger</span>
+            {% elif r.is_direct %}
+              <span class="badge bg-success">Direkt (16%)</span>
+            {% else %}
+              <span class="badge bg-primary">Kombinationsrangliste</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+
+        {% if cat_data.final_list | length < cat_data.final_spots %}
+        {% for i in range(cat_data.final_spots - (cat_data.final_list | length)) %}
+        <tr class="table-secondary">
+          <td>{{ cat_data.final_list | length + loop.index }}</td>
+          <td colspan="7" class="text-muted fst-italic">Platz noch nicht vergeben</td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer text-muted small">
+    Direktqualifikation: Top {{ cat_data.direct_per_run }} (16%) pro Qualifikationslauf ·
+    Total Finalplätze: max(10, {{ cat_data.starters }} × 40%) = {{ cat_data.final_spots }}
+  </div>
+</div>
+{% endblock %}

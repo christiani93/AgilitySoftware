@@ -21,6 +21,12 @@
     <a href="{{ url_for('print_bp.lizenzcheck_index', event_id=event.id) }}" class="btn btn-outline-info"><i class="fas fa-search me-2"></i>Lizenzcheck{% if event.get('lizenzcheck_done') %} ✅{% endif %}</a>
     <a href="{{ url_for('debug_bp.generate_test_results', event_id=event.id) }}" class="btn btn-warning" onclick="return confirm('Achtung: Dies überschreibt alle bestehenden Resultate für dieses Event. Fortfahren?');"><i class="fas fa-magic me-2"></i>Test-Resultate generieren</a>
 
+    {% if event.get('Veranstaltungsart') == 'SM Einzel' %}
+    <a href="{{ url_for('sm_bp.sm_dashboard', event_id=event.id) }}" class="btn btn-primary">
+        <i class="fas fa-trophy me-2"></i>SM Auswertung
+    </a>
+    {% endif %}
+
     {# Bug 2 Fix: Live-Setzen direkt aus manage_runs #}
     {% if is_active %}
     <a href="{{ url_for('live_bp.live_event_dashboard') }}" class="btn btn-danger">

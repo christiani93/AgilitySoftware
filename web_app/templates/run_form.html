@@ -31,6 +31,20 @@
                         </select>
                     </div>
 
+                        {% if event.get('Veranstaltungsart') == 'SM Einzel' %}
+                    <div class="col-md-6">
+                        <label for="sm_run_type" class="form-label">SM-Lauftyp</label>
+                        <select id="sm_run_type" name="sm_run_type" class="form-select">
+                            <option value="">– kein SM-Lauf –</option>
+                            <option value="qual_agility"  {% if run.get('sm_run_type') == 'qual_agility'  %}selected{% endif %}>Quali Agility</option>
+                            <option value="qual_jumping"  {% if run.get('sm_run_type') == 'qual_jumping'  %}selected{% endif %}>Quali Jumping</option>
+                            <option value="final_jumping" {% if run.get('sm_run_type') == 'final_jumping' %}selected{% endif %}>Final Jumping (Lauf 1)</option>
+                            <option value="final_agility" {% if run.get('sm_run_type') == 'final_agility' %}selected{% endif %}>Final Agility (Lauf 2)</option>
+                        </select>
+                        <div class="form-text">Bestimmt, wie dieser Lauf in der SM-Auswertung behandelt wird.</div>
+                    </div>
+                    {% endif %}
+
                     <div class="col-12"><hr><h5>Parcours- & Zeitdaten</h5></div>
 
                     <div class="col-md-6">

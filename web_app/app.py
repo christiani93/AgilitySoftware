@@ -134,12 +134,14 @@ from blueprints.routes_master_data import master_data_bp
 from blueprints.routes_print import print_bp
 from blueprints.routes_live import live_bp
 from blueprints.routes_debug import debug_bp
+from blueprints.routes_sm import sm_bp
 
 app.register_blueprint(events_bp)
 app.register_blueprint(master_data_bp)
 app.register_blueprint(live_bp)
 app.register_blueprint(print_bp)
 app.register_blueprint(debug_bp)
+app.register_blueprint(sm_bp)
 
 @app.context_processor
 def inject_current_year():

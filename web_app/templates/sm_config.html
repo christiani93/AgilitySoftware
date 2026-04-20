@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block title %}SM Konfiguration – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">SM Konfiguration</h1>
+    <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
+  </div>
+  <a href="{{ url_for('sm_bp.sm_dashboard', event_id=event.id) }}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>Zurück zur SM-Übersicht
+  </a>
+</div>
+
+<form method="POST">
+  <div class="card shadow-sm mb-4">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="fas fa-crown me-2 text-warning"></i>Titelverteidiger</h5>
+      <div class="text-muted small">Der Titelverteidiger ist direkt für das Finale gesetzt.</div>
+    </div>
+    <div class="card-body">
+      {% for cat in categories %}
+      {% set cat_key = cat | lower %}
+      {% set cat_cfg = sm_config.get(cat, {}) %}
+      {% set defending = cat_cfg.get('defending_champion', {}) %}
+      <div class="mb-4">
+        <h6 class="text-primary">{{ cat }}</h6>
+        <div class="row g-2">
+          <div class="col-md-3">
+            <label class="form-label">Lizenznummer</label>
+            <input type="text" name="defending_license_{{ cat_key }}" class="form-control"
+                   value="{{ defending.license if defending else '' }}"
+                   placeholder="z.B. 12345">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Hundename</label>
+            <input type="text" name="defending_dog_{{ cat_key }}" class="form-control"
+                   value="{{ defending.dog_name if defending else '' }}"
+                   placeholder="z.B. Rex">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">Hundeführerin/Hundeführer</label>
+            <input type="text" name="defending_handler_{{ cat_key }}" class="form-control"
+                   value="{{ defending.handler_name if defending else '' }}"
+                   placeholder="z.B. Muster Maria">
+          </div>
+        </div>
+        <div class="form-text">Lizenznummer leer lassen = kein Titelverteidiger für {{ cat }}.</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">
+    <i class="fas fa-save me-1"></i>Konfiguration speichern
+  </button>
+  <a href="{{ url_for('sm_bp.sm_dashboard', event_id=event.id) }}" class="btn btn-outline-secondary ms-2">
+    Abbrechen
+  </a>
+</form>
+{% endblock %}

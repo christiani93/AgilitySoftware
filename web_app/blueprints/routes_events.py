@@ -1118,7 +1118,7 @@ def create_event():
         event={},
         today=date.today().isoformat(),
         is_edit=False,
-        event_types=["Meeting", "Meisterschaft"],
+        event_types=["Meeting", "Meisterschaft", "SM Einzel"],
         possible_classes=["1", "2", "3", "Oldie"],
         possible_categories=["Small", "Medium", "Intermediate", "Large"]
     )
@@ -1149,7 +1149,7 @@ def edit_event(event_id):
                            event=event,
                            clubs=_load_data(CLUBS_FILE),
                            is_edit=True,
-                           event_types=["Meeting", "Meisterschaft"])
+                           event_types=["Meeting", "Meisterschaft", "SM Einzel"])
 
 @events_bp.route('/delete/<event_id>', methods=['POST'])
 def delete_event(event_id):
@@ -1306,6 +1306,12 @@ def edit_run(event_id, run_id):
         judge_id = request.form.get('judge_id') or request.form.get('richter_id')
         run['judge_id'] = judge_id or ''
         run['richter_id'] = run['judge_id']
+        # SM-Lauftyp speichern (nur wenn Event vom Typ SM Einzel)
+        if event.get('Veranstaltungsart') == 'SM Einzel':
+            sm_run_type = request.form.get('sm_run_type', '').strip()
+            run['sm_run_type'] = sm_run_type if sm_run_type else None
+        else:
+            run.pop('sm_run_type', None)
         laufdaten = run.get('laufdaten', {})
         laufdaten.update({
             'parcours_laenge': request.form.get('parcours_laenge'),
