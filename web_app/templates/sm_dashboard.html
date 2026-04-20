@@ -11,6 +11,9 @@
     <a href="{{ url_for('sm_bp.sm_config', event_id=event.id) }}" class="btn btn-outline-secondary">
       <i class="fas fa-cog me-1"></i>Konfiguration
     </a>
+    <a href="{{ url_for('sm_bp.sm_export_csv', event_id=event.id) }}" class="btn btn-outline-success">
+      <i class="fas fa-file-csv me-1"></i>CSV Export
+    </a>
     <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary">
       <i class="fas fa-arrow-left me-1"></i>Zurück zur Übersicht
     </a>

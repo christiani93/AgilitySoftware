@@ -1,8 +1,11 @@
 """
 SM Einzel – Blueprint für SM-Verwaltung und -Auswertung.
 """
+import csv
+import io
+
 from flask import (Blueprint, render_template, request, redirect,
-                   url_for, flash, abort)
+                   url_for, flash, abort, Response)
 
 from utils import _load_data, _save_data, _load_settings, _calculate_run_results
 from sm_qualification import (
@@ -119,4 +122,57 @@ def sm_final_list(event_id, category):
         event=event,
         category=category,
         cat_data=cat_data,
+    )
+
+
+@sm_bp.get('/export-csv/<event_id>')
+def sm_export_csv(event_id):
+    """CSV-Export aller SM-Finallisten (alle Kategorien)."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+
+    settings = _load_settings()
+    for run in event.get('runs', []):
+        if run.get('sm_run_type'):
+            _calculate_run_results(run, settings)
+
+    sm_data = calculate_sm_qualification(event)
+
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow([
+        'Kategorie', 'Final-Platz', 'Lizenznummer', 'Hundename',
+        'Hundeführer/in', 'Kombi-Fehler', 'Kombi-Zeit (s)',
+        'Quali A Fehler', 'Quali A Zeit', 'Quali J Fehler', 'Quali J Zeit',
+        'Qualifikation via',
+    ])
+
+    for cat in CATEGORIES:
+        cd = sm_data.get(cat)
+        if not cd:
+            continue
+        for i, r in enumerate(cd['final_list'], 1):
+            via = 'Titelverteidiger' if r.get('is_defending') else \
+                  'Direkt (16%)' if r.get('is_direct') else 'Kombinationsrangliste'
+            writer.writerow([
+                cat,
+                i,
+                r.get('license', ''),
+                r.get('dog_name', ''),
+                r.get('handler_name', ''),
+                round(r.get('kombi_fehler', 0), 2) if not r.get('kombi_dis') else 'DIS',
+                round(r.get('kombi_zeit', 0), 2) if not r.get('kombi_dis') else 'DIS',
+                round(r.get('qa_fehler', 0), 2) if not r.get('qa_dis') else 'DIS',
+                round(r.get('qa_zeit', 0), 2) if not r.get('qa_dis') else 'DIS',
+                round(r.get('qj_fehler', 0), 2) if not r.get('qj_dis') else 'DIS',
+                round(r.get('qj_zeit', 0), 2) if not r.get('qj_dis') else 'DIS',
+                via,
+            ])
+
+    filename = f"SM_Finalisten_{event.get('Bezeichnung', event_id).replace(' ', '_')}.csv"
+    return Response(
+        output.getvalue().encode('utf-8-sig'),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'},
     )
