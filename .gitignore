@@ -5,3 +5,8 @@ web_app/data/events.json
 /web_app/flask_env
 /planner/__pycache__
 /web_app/data
+# Laufzeit-Dateien
+*.log
+**/__pycache__/
+# Claude-Projektdateien
+.claude/
