@@ -1,0 +1,59 @@
+{
+  "UUID": "tech.z-b.agility-live",
+  "Author": "z-b.tech",
+  "CodePath": "app.html",
+  "Description": "Live-Eingabe (Start, Fehler, Verweigerung) am Ring-PC für AgilitySoftware.",
+  "Name": "Agility Live",
+  "Icon": "imgs/plugin",
+  "Version": "0.1.0.0",
+  "SDKVersion": 2,
+  "Software": { "MinimumVersion": "6.5" },
+  "OS": [{ "Platform": "windows", "MinimumVersion": "10" }],
+  "Category": "Agility",
+  "CategoryIcon": "imgs/plugin",
+  "URL": "https://z-b.tech/",
+
+  "Actions": [
+    {
+      "Icon": "imgs/actions/start/icon",
+      "Name": "Verbindung & Ring",
+      "Tooltip": "Konfiguration: Software-Port + Ring, plus Verbindungstest",
+      "UUID": "tech.z-b.agility-live.settings",
+      "PropertyInspectorPath": "ui/server-settings.html",
+      "States": [
+        { "Image": "imgs/actions/start/key", "Title": "Setup", "TitleAlignment": "middle", "FontSize": "10" }
+      ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "Icon": "imgs/actions/start/icon",
+      "Name": "Startfreigabe",
+      "Tooltip": "Startfreigabe / Starter wechseln am aktuellen Ring",
+      "UUID": "tech.z-b.agility-live.start",
+      "States": [
+        { "Image": "imgs/actions/start/key", "Title": "Start", "TitleAlignment": "middle", "FontSize": "12" }
+      ],
+      "SupportedInMultiActions": true
+    },
+    {
+      "Icon": "imgs/actions/fault/icon",
+      "Name": "Fehler",
+      "Tooltip": "+1 Parcoursfehler auf den aktuellen Starter",
+      "UUID": "tech.z-b.agility-live.fault",
+      "States": [
+        { "Image": "imgs/actions/fault/key", "Title": "Fehler", "TitleAlignment": "middle", "FontSize": "12" }
+      ],
+      "SupportedInMultiActions": true
+    },
+    {
+      "Icon": "imgs/actions/refusal/icon",
+      "Name": "Verweigerung",
+      "Tooltip": "+1 Verweigerung auf den aktuellen Starter",
+      "UUID": "tech.z-b.agility-live.refusal",
+      "States": [
+        { "Image": "imgs/actions/refusal/key", "Title": "Verw.", "TitleAlignment": "middle", "FontSize": "12" }
+      ],
+      "SupportedInMultiActions": true
+    }
+  ]
+}

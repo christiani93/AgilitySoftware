@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+{% block title %}FMBB-Quali Konfiguration – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">⚙️ FMBB-Quali Konfiguration</h1>
+    <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('fmbb_bp.fmbb_dashboard', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Zurück zum Dashboard
+    </a>
+  </div>
+</div>
+
+{# ── Aktivierung ────────────────────────────────────────────────────────── #}
+<div class="card mb-3 shadow-sm">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fas fa-toggle-on me-1"></i>FMBB-Quali für diesen Event</h5>
+  </div>
+  <div class="card-body">
+    {% if is_active %}
+    <p class="mb-2">
+      <span class="badge bg-success">Aktiviert</span>
+      Die FMBB-Tag-Auswertung ist eingeschaltet. Markierte Teilnehmer erscheinen
+      im Dashboard und im CSV-Export.
+    </p>
+    <form method="post" class="d-inline">
+      <input type="hidden" name="action" value="deactivate">
+      <button type="submit" class="btn btn-outline-danger btn-sm">Deaktivieren</button>
+    </form>
+    {% else %}
+    <p class="mb-2">
+      <span class="badge bg-secondary">Deaktiviert</span>
+      FMBB-Tag-Auswertung ist ausgeschaltet.
+    </p>
+    <form method="post" class="d-inline">
+      <input type="hidden" name="action" value="activate">
+      <button type="submit" class="btn btn-success btn-sm">Aktivieren</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{# ── Bulk-Marker via Lizenz-Liste ───────────────────────────────────────── #}
+<div class="card mb-3 shadow-sm">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fas fa-list-check me-1"></i>FMBB-Teilnehmer markieren</h5>
+  </div>
+  <div class="card-body">
+    <p class="text-muted small mb-2">
+      <strong>Aktuell markiert:</strong> {{ total_fmbb_teams }} Teams.
+    </p>
+    <p class="text-muted small mb-3">
+      Liste der FMBB-angemeldeten Lizenznummern eintragen (vom SKBS erhalten).
+      Beliebige Trennzeichen: Komma, Semikolon, Whitespace oder Zeilenumbruch.
+      Anmeldungen mit übereinstimmender Lizenznummer werden als FMBB markiert.
+    </p>
+    <form method="post">
+      <input type="hidden" name="action" value="mark_licenses">
+      <div class="mb-3">
+        <label for="licenses" class="form-label">Lizenznummern</label>
+        <textarea id="licenses" name="licenses" class="form-control" rows="8"
+                  placeholder="13852&#10;14185&#10;16075&#10;...">{% for lic in current_licenses %}{{ lic }}
+{% endfor %}</textarea>
+      </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="reset" name="reset" value="1" checked>
+        <label class="form-check-label" for="reset">
+          Vorhandene FMBB-Markierungen zurücksetzen (nicht in dieser Liste enthaltene Teams werden entmarkiert)
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save me-1"></i>Markierungen anwenden
+      </button>
+    </form>
+  </div>
+</div>
+
+{# ── Alle Markierungen löschen ──────────────────────────────────────────── #}
+<div class="card mb-3 shadow-sm border-danger">
+  <div class="card-header bg-danger bg-opacity-10">
+    <h6 class="mb-0 text-danger"><i class="fas fa-eraser me-1"></i>Alle Markierungen zurücksetzen</h6>
+  </div>
+  <div class="card-body">
+    <p class="text-muted small mb-2">
+      Entfernt alle <code>is_fmbb</code>-Flags von allen Anmeldungen.
+    </p>
+    <form method="post" onsubmit="return confirm('Wirklich alle FMBB-Markierungen zurücksetzen?');">
+      <input type="hidden" name="action" value="clear_marks">
+      <button type="submit" class="btn btn-outline-danger btn-sm">Alle zurücksetzen</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

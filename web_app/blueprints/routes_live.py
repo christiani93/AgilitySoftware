@@ -181,7 +181,10 @@ def _build_ring_payload(event, ring_number):
 
 @live_bp.route('/debug/live_state')
 def debug_live_state():
-    from flask import jsonify
+    from flask import jsonify, abort
+    from utils import debug_tools_enabled
+    if not debug_tools_enabled():
+        abort(404)
     return jsonify(_load_live_state())
 def _get_live_data_for_ring(event, ring_name):
     # aktiver Lauf aus persistentem State
@@ -1133,3 +1136,118 @@ def upload_ranking_pdf(event_id, run_id):
         return jsonify({"status": "ok", "is_final": is_final})
     else:
         return jsonify({"error": resp.text, "http_status": resp.status_code}), 502
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Stream-Deck-Plugin API: Bare-Endpoints fuer schnelle Live-Eingabe
+# am Ring-PC via Hardware-Tasten. Alle Aktionen wirken auf den
+# "aktuellen Starter" des aktiven Laufs am gewaehlten Ring.
+# ──────────────────────────────────────────────────────────────────────
+
+def _resolve_active_starter(ring_no):
+    """
+    Returns (events, event, run, entry) oder None wenn etwas fehlt.
+    """
+    event_id = _get_active_event_id()
+    if not event_id:
+        return None
+    events = _load_data('events.json')
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return None
+    current_runs = event.get('current_runs_by_ring') or {}
+    run_id = current_runs.get(str(ring_no))
+    if not run_id:
+        return None
+    run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None)
+    if not run:
+        return None
+    current = run.get('current_starter') or {}
+    if not current.get('Lizenznummer'):
+        # Fallback: erster Eintrag ohne Resultat
+        for e in run.get('entries', []):
+            r = e.get('result') or {}
+            if not r.get('zeit') and not r.get('disqualifikation'):
+                current = e
+                break
+    if not current.get('Lizenznummer'):
+        return None
+    entry = next((e for e in run.get('entries', []) if e.get('Lizenznummer') == current.get('Lizenznummer')), None)
+    if not entry:
+        return None
+    return events, event, run, entry
+
+
+@live_bp.route('/api/sd/fault', methods=['POST'])
+def sd_inc_fault():
+    """Stream-Deck: +1 Parcoursfehler auf den aktuellen Starter."""
+    data = request.get_json(silent=True) or {}
+    ring_no = int(data.get('ring') or request.args.get('ring') or 1)
+    resolved = _resolve_active_starter(ring_no)
+    if not resolved:
+        return jsonify({'success': False, 'message': 'Kein aktueller Starter'}), 404
+    events, event, run, entry = resolved
+    result = entry.setdefault('result', {})
+    result['fehler'] = int(result.get('fehler') or 0) + 1
+    _save_data('events.json', events)
+    return jsonify({
+        'success': True, 'action': 'fault', 'lic': entry.get('Lizenznummer'),
+        'fehler': result['fehler'], 'verweigerungen': int(result.get('verweigerungen') or 0),
+    })
+
+
+@live_bp.route('/api/sd/refusal', methods=['POST'])
+def sd_inc_refusal():
+    """Stream-Deck: +1 Verweigerung auf den aktuellen Starter."""
+    data = request.get_json(silent=True) or {}
+    ring_no = int(data.get('ring') or request.args.get('ring') or 1)
+    resolved = _resolve_active_starter(ring_no)
+    if not resolved:
+        return jsonify({'success': False, 'message': 'Kein aktueller Starter'}), 404
+    events, event, run, entry = resolved
+    result = entry.setdefault('result', {})
+    result['verweigerungen'] = int(result.get('verweigerungen') or 0) + 1
+    _save_data('events.json', events)
+    return jsonify({
+        'success': True, 'action': 'refusal', 'lic': entry.get('Lizenznummer'),
+        'fehler': int(result.get('fehler') or 0), 'verweigerungen': result['verweigerungen'],
+    })
+
+
+@live_bp.route('/api/sd/start_release', methods=['POST'])
+def sd_start_release():
+    """
+    Stream-Deck: Startfreigabe / Startimpuls fuer den naechsten Starter
+    am gewaehlten Ring. Verwendet die bestehende ring_starter_changed-Logik.
+    """
+    data = request.get_json(silent=True) or {}
+    ring_no = int(data.get('ring') or request.args.get('ring') or 1)
+    event_id = _get_active_event_id()
+    if not event_id:
+        return jsonify({'success': False, 'message': 'Kein aktives Event'}), 404
+    events = _load_data('events.json')
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return jsonify({'success': False, 'message': 'Event nicht gefunden'}), 404
+    current_runs = event.get('current_runs_by_ring') or {}
+    run_id = current_runs.get(str(ring_no))
+    run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None) if run_id else None
+    if not run:
+        return jsonify({'success': False, 'message': f'Kein aktiver Lauf an Ring {ring_no}'}), 404
+    ring_state = event.get('ring_entry_state') or {}
+    ring_state[str(ring_no)] = apply_start_impulse(ring_state.get(str(ring_no)) or {}, run.get('entries', []))
+    event['ring_entry_state'] = ring_state
+    _save_data('events.json', events)
+    payload = _build_ring_payload(event, ring_no)
+    payload.update({'event_id': event_id})
+    try:
+        socketio.emit('ring_ready_changed', payload, room=f'event:{event_id}:ring:{ring_no}')
+        socketio.emit('ring_ready_changed', payload, room=f'event:{event_id}')
+    except Exception:
+        pass
+    starter = (ring_state[str(ring_no)] or {}).get('current_starter') or {}
+    return jsonify({
+        'success': True, 'action': 'start_release',
+        'ring': ring_no, 'current_starter_lic': starter.get('Lizenznummer'),
+    })
+

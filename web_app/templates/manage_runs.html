@@ -19,13 +19,30 @@
     <a href="{{ url_for('events_bp.export_event_package', event_id=event.id) }}" class="btn btn-outline-dark"><i class="fas fa-file-export me-2"></i>{{ _('Event-Paket exportieren') }}</a>
     <a href="{{ url_for('print_bp.tkamo_export', event_id=event.id) }}" class="btn btn-outline-secondary"><i class="fas fa-file-download me-2"></i>TKAMO Export</a>
     <a href="{{ url_for('print_bp.lizenzcheck_index', event_id=event.id) }}" class="btn btn-outline-info"><i class="fas fa-search me-2"></i>Lizenzcheck{% if event.get('lizenzcheck_done') %} ✅{% endif %}</a>
-    <a href="{{ url_for('debug_bp.generate_test_results', event_id=event.id) }}" class="btn btn-warning" onclick="return confirm('Achtung: Dies überschreibt alle bestehenden Resultate für dieses Event. Fortfahren?');"><i class="fas fa-magic me-2"></i>Test-Resultate generieren</a>
+    {% if debug_tools %}<a href="{{ url_for('debug_bp.generate_test_results', event_id=event.id) }}" class="btn btn-warning" onclick="return confirm('Achtung: Dies überschreibt alle bestehenden Resultate für dieses Event. Fortfahren?');"><i class="fas fa-magic me-2"></i>Test-Resultate generieren</a>{% endif %}
 
     {% if event.get('Veranstaltungsart') == 'SM Einzel' %}
     <a href="{{ url_for('sm_bp.sm_dashboard', event_id=event.id) }}" class="btn btn-primary">
         <i class="fas fa-trophy me-2"></i>SM Auswertung
     </a>
     {% endif %}
+    {% if event.get('Veranstaltungsart') == 'SKBS-SM' %}
+    <a href="{{ url_for('skbs_sm_bp.skbs_sm_dashboard', event_id=event.id) }}" class="btn btn-primary">
+        <i class="fas fa-trophy me-2"></i>SKBS-SM Auswertung
+    </a>
+    {% endif %}
+    {% if event.get('Veranstaltungsart') == 'BCCS-SM' %}
+    <a href="{{ url_for('bccs_sm_bp.bccs_sm_dashboard', event_id=event.id) }}" class="btn btn-primary">
+        <i class="fas fa-trophy me-2"></i>BCCS-SM Auswertung
+    </a>
+    {% endif %}
+    <a href="{{ url_for('fmbb_bp.fmbb_dashboard', event_id=event.id) }}" class="btn {% if event.get('fmbb_quali_active') %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        <i class="fas fa-flag me-2"></i>FMBB-Quali{% if event.get('fmbb_quali_active') %} <span class="badge bg-light text-dark ms-1">aktiv</span>{% endif %}
+    </a>
+    <a href="{{ url_for('debug_bp.export_event_package', event_id=event.id) }}" class="btn btn-outline-dark"
+       title="Event-Paket als eventexport.v1.zip herunterladen (für Portal-Import)">
+        <i class="fas fa-file-zipper me-2"></i>Event-Paket ZIP
+    </a>
 
     {# Bug 2 Fix: Live-Setzen direkt aus manage_runs #}
     {% if is_active %}

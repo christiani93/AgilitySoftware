@@ -823,6 +823,9 @@ def events_list():
 
 @events_bp.route('/debug_import_create_event', methods=['POST'])
 def debug_import_create_event():
+    from utils import debug_tools_enabled
+    if not debug_tools_enabled():
+        abort(404)
     f = request.files.get("startlist_file")
     if not f or not f.filename:
         flash(_("Keine Datei ausgewählt (startlist_all_combined.json)."), "warning")
@@ -1118,7 +1121,7 @@ def create_event():
         event={},
         today=date.today().isoformat(),
         is_edit=False,
-        event_types=["Meeting", "Meisterschaft", "SM Einzel"],
+        event_types=["Meeting", "Meisterschaft", "SM Einzel", "SKBS-SM", "BCCS-SM"],
         possible_classes=["1", "2", "3", "Oldie"],
         possible_categories=["Small", "Medium", "Intermediate", "Large"]
     )
@@ -1149,7 +1152,7 @@ def edit_event(event_id):
                            event=event,
                            clubs=_load_data(CLUBS_FILE),
                            is_edit=True,
-                           event_types=["Meeting", "Meisterschaft", "SM Einzel"])
+                           event_types=["Meeting", "Meisterschaft", "SM Einzel", "SKBS-SM", "BCCS-SM"])
 
 @events_bp.route('/delete/<event_id>', methods=['POST'])
 def delete_event(event_id):
@@ -1312,6 +1315,11 @@ def edit_run(event_id, run_id):
             run['sm_run_type'] = sm_run_type if sm_run_type else None
         else:
             run.pop('sm_run_type', None)
+        # SKBS-SM / BCCS-SM: is_final-Flag (Finalläufe markieren)
+        if event.get('Veranstaltungsart') in ('SKBS-SM', 'BCCS-SM'):
+            run['is_final'] = bool(request.form.get('is_final'))
+        else:
+            run.pop('is_final', None)
         laufdaten = run.get('laufdaten', {})
         laufdaten.update({
             'parcours_laenge': request.form.get('parcours_laenge'),

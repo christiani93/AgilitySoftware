@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Agility Live - Settings</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #2D2D2D; color: #D8D8D8;
+           padding: 10px; margin: 0; font-size: 13px; }
+    label { display: block; margin-bottom: 3px; color: #aaa; font-size: 11px;
+            text-transform: uppercase; letter-spacing: 0.05em; }
+    input[type="text"], select {
+      width: 100%; background: #1a1a1a; color: #D8D8D8;
+      border: 1px solid #555; border-radius: 4px;
+      padding: 5px 8px; margin-bottom: 12px; font-size: 13px;
+      box-sizing: border-box;
+    }
+    input[type="text"]:focus, select:focus { border-color: #4a90d9; outline: none; }
+    .hint { font-size: 11px; color: #888; margin-top: -8px; margin-bottom: 12px; line-height: 1.5; }
+    .status { font-size: 11px; padding: 6px 8px; border-radius: 4px; margin-bottom: 10px; }
+    .status.ok      { background: #1a3a1a; color: #4caf50; border: 1px solid #4caf50; }
+    .status.error   { background: #3a1a1a; color: #e94560; border: 1px solid #e94560; }
+    .status.testing { background: #1a2a3a; color: #4a90d9; border: 1px solid #4a90d9; }
+    button {
+      width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #4a90d9;
+      background: #0f3460; color: #eee; cursor: pointer; font-size: 12px;
+    }
+    button:hover { background: #1a4a8a; }
+    .section-title { font-size: 10px; color: #666; text-transform: uppercase;
+                     letter-spacing: 0.1em; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="section-title">Agility Live - Verbindung</div>
+
+  <div id="statusBox" class="status testing">Verbindung wird geprüft…</div>
+
+  <label>Host (lokal: localhost)</label>
+  <input type="text" id="host" placeholder="localhost" oninput="onChange()">
+  <div class="hint">
+    Auf Hauptserver: <strong>localhost</strong>.<br>
+    Auf Ring-PC: IP des Hauptservers (z.B. <code>192.168.254.5</code>).
+  </div>
+
+  <label>Port</label>
+  <input type="text" id="port" placeholder="5000" oninput="onChange()">
+  <div class="hint">
+    <code>5000</code> = Hauptserver. Ring-PCs sind 5001/5002/5003.
+  </div>
+
+  <label>Ring</label>
+  <select id="ring" onchange="onChange()">
+    <option value="1">Ring 1</option>
+    <option value="2">Ring 2</option>
+    <option value="3">Ring 3</option>
+  </select>
+
+  <button onclick="testAndSave()">Speichern &amp; Verbindung testen</button>
+
+<script>
+  const DEFAULT_HOST = 'localhost';
+  const DEFAULT_PORT = '5000';
+  const DEFAULT_RING = '1';
+
+  let uuid, sdWs;
+  let saveTimer = null;
+
+  function connectElgatoStreamDeckSocket(port, piUUID, registerEvent /*, info, actionInfoStr*/) {
+    uuid = piUUID;
+    sdWs = new WebSocket(`ws://127.0.0.1:${port}`);
+    sdWs.onopen = () => {
+      sdWs.send(JSON.stringify({ event: registerEvent, uuid }));
+      sdWs.send(JSON.stringify({ event: 'getGlobalSettings', context: uuid }));
+    };
+    sdWs.onmessage = e => {
+      const msg = JSON.parse(e.data);
+      if (msg.event === 'didReceiveGlobalSettings') {
+        const s = msg.payload?.settings || {};
+        document.getElementById('host').value = s.host || DEFAULT_HOST;
+        document.getElementById('port').value = s.port || DEFAULT_PORT;
+        document.getElementById('ring').value = s.ring || DEFAULT_RING;
+        checkConnection();
+      }
+    };
+  }
+
+  function getBaseUrl() {
+    const host = document.getElementById('host').value.trim() || DEFAULT_HOST;
+    const port = document.getElementById('port').value.trim() || DEFAULT_PORT;
+    return `http://${host}:${port}`;
+  }
+
+  function onChange() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(testAndSave, 800);
+  }
+
+  async function checkConnection() {
+    const box = document.getElementById('statusBox');
+    box.className = 'status testing';
+    box.textContent = 'Verbindung wird geprüft…';
+    try {
+      const ring = document.getElementById('ring').value || DEFAULT_RING;
+      const r = await fetch(`${getBaseUrl()}/api/sd/fault`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ring, test: true }),
+        signal: AbortSignal.timeout(3000),
+      });
+      // Wir akzeptieren 200 (kein aktiver Lauf -> 404 mit success:false) oder 200 (Aktion durch).
+      // Hauptsache: Server antwortet überhaupt.
+      if (r.status === 200 || r.status === 404) {
+        const body = await r.json().catch(() => ({}));
+        box.className = 'status ok';
+        box.textContent = `✓ Verbunden ${getBaseUrl()}  Ring ${ring}` +
+                          (body.success === false ? ` (Hinweis: ${body.message || 'kein aktiver Starter'})` : '');
+      } else {
+        throw new Error(`HTTP ${r.status}`);
+      }
+    } catch (err) {
+      box.className = 'status error';
+      box.textContent = `✗ ${getBaseUrl()} nicht erreichbar: ${err.message || err}`;
+    }
+  }
+
+  function testAndSave() {
+    const host = document.getElementById('host').value.trim() || DEFAULT_HOST;
+    const port = document.getElementById('port').value.trim() || DEFAULT_PORT;
+    const ring = document.getElementById('ring').value || DEFAULT_RING;
+    if (sdWs?.readyState === WebSocket.OPEN) {
+      sdWs.send(JSON.stringify({
+        event: 'setGlobalSettings',
+        context: uuid,
+        payload: { host, port, ring }
+      }));
+    }
+    checkConnection();
+  }
+</script>
+</body>
+</html>

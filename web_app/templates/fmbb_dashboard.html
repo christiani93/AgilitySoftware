@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+{% block title %}FMBB-Quali – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">🇧🇪 FMBB-Quali</h1>
+    <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('fmbb_bp.fmbb_config', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-cog me-1"></i>Konfiguration
+    </a>
+    <a href="{{ url_for('fmbb_bp.fmbb_export_csv', event_id=event.id) }}" class="btn btn-outline-success">
+      <i class="fas fa-file-csv me-1"></i>CSV Export
+    </a>
+    <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Zurück zur Übersicht
+    </a>
+  </div>
+</div>
+
+{% if not is_active %}
+<div class="alert alert-warning">
+  <i class="fas fa-exclamation-triangle me-2"></i>
+  FMBB-Quali ist für diesen Event <strong>nicht aktiviert</strong>.
+  Aktivieren via <a href="{{ url_for('fmbb_bp.fmbb_config', event_id=event.id) }}">Konfiguration</a>.
+</div>
+{% endif %}
+
+{% set runs = fmbb_data.runs %}
+
+<div class="alert alert-info">
+  <i class="fas fa-info-circle me-2"></i>
+  <strong>{{ fmbb_data.total_fmbb_teams }}</strong> unique FMBB-markierte Teams ·
+  <strong>{{ runs | length }}</strong> relevante Läufe.
+  Filter: Klasse 2 oder 3, Agility/Jumping, mit <code>is_fmbb=True</code>.
+</div>
+
+{% if not runs %}
+<div class="alert alert-secondary">
+  Keine FMBB-Läufe mit markierten Teilnehmern. Markiere Teilnehmer in der
+  <a href="{{ url_for('fmbb_bp.fmbb_config', event_id=event.id) }}">Konfiguration</a>
+  (via Lizenz-Liste).
+</div>
+{% endif %}
+
+{% for run_data in runs %}
+<div class="card mb-3 shadow-sm">
+  <div class="card-header bg-primary bg-opacity-10">
+    <h5 class="mb-0">
+      <span class="badge bg-primary me-2">{{ run_data.kategorie }} – Klasse {{ run_data.klasse }}</span>
+      <span class="text-muted">{{ run_data.laufart }}</span>
+      <span class="badge bg-secondary ms-2">{{ run_data.rankings | length }} Teams</span>
+    </h5>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Rang</th>
+          <th>Lizenz</th>
+          <th>Hund</th>
+          <th>Führer/in</th>
+          <th class="text-end">Fehler</th>
+          <th class="text-end">Parcours</th>
+          <th class="text-end">Zeit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in run_data.rankings %}
+        <tr class="{% if r.dis %}text-muted{% endif %}">
+          <td>{% if r.dis %}<span class="badge bg-danger">DIS</span>{% else %}{{ r.rang }}{% endif %}</td>
+          <td>{{ r.license }}</td>
+          <td>{{ r.dog_name }}</td>
+          <td>{{ r.handler_name }}</td>
+          <td class="text-end">{% if r.dis %}–{% else %}{{ r.fehler_total | round(1) }}{% endif %}</td>
+          <td class="text-end">{{ r.fehler_parcours }}</td>
+          <td class="text-end">{% if r.dis %}–{% else %}{{ r.zeit | round(2) }}s{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endfor %}
+
+{% if runs %}
+<div class="alert alert-secondary mt-3 no-print">
+  <i class="fas fa-info-circle me-2"></i>
+  <strong>Hinweis:</strong> Diese Tag-Auswertung enthält keine Punkteberechnung —
+  die Saison-Punkte werden vom SKBS-Verband berechnet (Streichresultate über alle
+  Quali-Tage). Das Tool liefert nur die Tages-Rangliste.
+</div>
+{% endif %}
+{% endblock %}

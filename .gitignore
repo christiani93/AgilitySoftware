@@ -10,3 +10,13 @@ web_app/data/events.json
 **/__pycache__/
 # Claude-Projektdateien
 .claude/
+
+# PyInstaller-Builds
+/build/
+/dist/
+*.spec.bak
+
+# Referenz-PDFs / Vendor-SDK / Import-Rohdaten (lokal halten, nicht ins Source-Repo)
+/Reglemente_Nützliches/
+/AlgeTimyUsbDLLExample/
+/Agility/

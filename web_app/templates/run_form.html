@@ -45,6 +45,40 @@
                     </div>
                     {% endif %}
 
+                    {% if event.get('Veranstaltungsart') == 'SKBS-SM' %}
+                    <div class="col-md-6">
+                        <label class="form-label d-block">SKBS-SM-Markierung</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_final" name="is_final" value="1"
+                                   {% if run.get('is_final') %}checked{% endif %}>
+                            <label class="form-check-label" for="is_final">
+                                <strong>Final-Lauf</strong> (gemeinsam für alle Klassen, Niveau Klasse 3)
+                            </label>
+                        </div>
+                        <div class="form-text">
+                            Quali-Läufe brauchen <code>Kategorie = Large</code>, <code>Klasse ∈ {1, 2, 3}</code>,
+                            <code>Laufart ∈ {Agility, Jumping}</code>. Final-Lauf nur ein einziger pro Event.
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if event.get('Veranstaltungsart') == 'BCCS-SM' %}
+                    <div class="col-md-6">
+                        <label class="form-label d-block">BCCS-SM-Markierung</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_final" name="is_final" value="1"
+                                   {% if run.get('is_final') %}checked{% endif %}>
+                            <label class="form-check-label" for="is_final">
+                                <strong>Finallauf</strong> (Jumping + Agility je Division)
+                            </label>
+                        </div>
+                        <div class="form-text">
+                            Quali: <code>Kategorie ∈ {Intermediate, Large}</code>, <code>Klasse ∈ {1, 2, 3}</code>,
+                            <code>Laufart ∈ {Agility, Jumping}</code>. Divisionen: SM = Kl.3, Nachwuchs = Kl.1+2.
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="col-12"><hr><h5>Parcours- & Zeitdaten</h5></div>
 
                     <div class="col-md-6">

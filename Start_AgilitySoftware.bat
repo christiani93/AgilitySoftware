@@ -13,14 +13,13 @@ REM ------------------------------------------------
 cd /d "%~dp0"
 
 REM ------------------------------------------------
-REM 2) Autoupdate per git (falls Repo geklont ist)
+REM 2) Autoupdate per git (DEAKTIVIERT)
 REM ------------------------------------------------
-if exist ".git" (
-  echo [UPDATE] Hole aktuelle Version von GitHub...
-  git pull
-) else (
-  echo [UPDATE] Kein .git-Ordner gefunden - Autoupdate wird uebersprungen.
-)
+REM Autoupdate ist deaktiviert weil:
+REM   - es lokale, noch nicht committete Aenderungen ueberschreiben wuerde
+REM   - OneDrive lockt Git-Objects-Dateien (.git/objects/XX) und git pull haengt
+REM Manuelles Update bei Bedarf:  git pull
+echo [UPDATE] Autoupdate deaktiviert (siehe Kommentar in der .bat)
 
 REM ------------------------------------------------
 REM 3) In web_app wechseln

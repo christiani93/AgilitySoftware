@@ -7,7 +7,7 @@ import io
 from flask import (Blueprint, render_template, request, redirect,
                    url_for, flash, abort, Response)
 
-from utils import _load_data, _save_data, _load_settings, _calculate_run_results
+from utils import _load_data, _save_data, _load_settings, _calculate_run_results, _safe_http_filename
 from sm_qualification import (
     calculate_sm_qualification, get_sm_runs,
     CATEGORIES, SM_RUN_TYPES,
@@ -170,7 +170,7 @@ def sm_export_csv(event_id):
                 via,
             ])
 
-    filename = f"SM_Finalisten_{event.get('Bezeichnung', event_id).replace(' ', '_')}.csv"
+    filename = f"SM_Finalisten_{_safe_http_filename(event.get('Bezeichnung') or event_id)}.csv"
     return Response(
         output.getvalue().encode('utf-8-sig'),
         mimetype='text/csv',

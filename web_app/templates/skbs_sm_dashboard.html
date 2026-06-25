@@ -1,0 +1,235 @@
+{% extends "layout.html" %}
+{% block title %}SKBS-SM – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">🐕 SKBS-Schweizermeisterschaft</h1>
+    <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('skbs_sm_bp.skbs_sm_config', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-cog me-1"></i>Konfiguration
+    </a>
+    <a href="{{ url_for('skbs_sm_bp.skbs_sm_final_list', event_id=event.id) }}" class="btn btn-outline-primary" target="_blank">
+      <i class="fas fa-print me-1"></i>Finalliste drucken
+    </a>
+    <a href="{{ url_for('skbs_sm_bp.skbs_sm_export_csv', event_id=event.id) }}" class="btn btn-outline-success">
+      <i class="fas fa-file-csv me-1"></i>CSV Export
+    </a>
+    <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Zurück zur Übersicht
+    </a>
+  </div>
+</div>
+
+{% set per_class = skbs_data.per_class %}
+{% set finalists = skbs_data.finalists %}
+{% set defending = skbs_data.defending_champion %}
+{% set open_spots = skbs_data.open_spots %}
+
+{% if not per_class %}
+<div class="alert alert-info">
+  <i class="fas fa-info-circle me-2"></i>
+  Noch keine SKBS-SM-Läufe konfiguriert. Lege Quali-Läufe an mit:
+  <code>Kategorie = Large</code>, <code>Klasse ∈ {1, 2, 3}</code>,
+  <code>Laufart ∈ {Agility, Jumping}</code>.
+  Final-Lauf: <code>is_final = True</code>.
+</div>
+{% endif %}
+
+{% if defending %}
+<div class="alert alert-warning mb-3">
+  <i class="fas fa-crown me-1"></i>
+  <strong>Titelverteidiger:</strong>
+  {{ defending.dog_name }} / {{ defending.handler_name }} (Lizenz {{ defending.license }})
+  — gilt automatisch als qualifiziert, sofern in mind. einem Qualilauf gestartet (SKBS-Reglement Art. 21f)
+</div>
+{% endif %}
+
+{# ── Quali-Standings pro Klasse ───────────────────────────────────────────── #}
+{% for cls in class_levels %}
+  {% set cd = per_class.get(cls) %}
+  {% if cd and (cd.qa_results or cd.qj_results) %}
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0">
+        <span class="badge bg-primary me-2">Klasse {{ cls }}</span>
+        <span class="text-muted small">
+          Quote Agi: {{ cd.qa_quota }} ·
+          Quote Jump: {{ cd.qj_quota }} ·
+          Direkt qualifiziert: {{ (cd.qa_qualifiers | length) + (cd.qj_qualifiers | length) }}
+        </span>
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="row g-0">
+        {# Agility-Lauf #}
+        <div class="col-md-6 border-end">
+          <div class="p-2 bg-light">
+            <strong><i class="fas fa-running me-1"></i>Quali Agility</strong>
+          </div>
+          {% if cd.qa_results %}
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Rang</th><th>Hund</th><th>Führer</th><th class="text-end">FP</th><th class="text-end">Zeit</th><th></th></tr></thead>
+            <tbody>
+              {% for r in cd.qa_results %}
+                {% if r.rang and not r.dis %}
+                <tr class="{% if r.license in (cd.qa_qualifiers | map(attribute='license') | list) %}table-success{% endif %}">
+                  <td>{{ r.rang }}</td>
+                  <td>{{ r.dog_name }}</td>
+                  <td>{{ r.handler_name }}</td>
+                  <td class="text-end">{{ r.fehler_total | round(1) }}</td>
+                  <td class="text-end">{{ r.zeit | round(2) }}s</td>
+                  <td>
+                    {% if r.license in (cd.qa_qualifiers | map(attribute='license') | list) %}
+                      <span class="badge bg-success">Q</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p class="text-muted p-2 mb-0">Keine Ergebnisse.</p>
+          {% endif %}
+        </div>
+        {# Jumping-Lauf #}
+        <div class="col-md-6">
+          <div class="p-2 bg-light">
+            <strong><i class="fas fa-running me-1"></i>Quali Jumping</strong>
+          </div>
+          {% if cd.qj_results %}
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Rang</th><th>Hund</th><th>Führer</th><th class="text-end">FP</th><th class="text-end">Zeit</th><th></th></tr></thead>
+            <tbody>
+              {% for r in cd.qj_results %}
+                {% if r.rang and not r.dis %}
+                <tr class="{% if r.license in (cd.qj_qualifiers | map(attribute='license') | list) %}table-success{% endif %}">
+                  <td>{{ r.rang }}</td>
+                  <td>{{ r.dog_name }}</td>
+                  <td>{{ r.handler_name }}</td>
+                  <td class="text-end">{{ r.fehler_total | round(1) }}</td>
+                  <td class="text-end">{{ r.zeit | round(2) }}s</td>
+                  <td>
+                    {% if r.license in (cd.qj_qualifiers | map(attribute='license') | list) %}
+                      <span class="badge bg-success">Q</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p class="text-muted p-2 mb-0">Keine Ergebnisse.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endfor %}
+
+{# ── Finalisten-Gesamtliste ──────────────────────────────────────────────── #}
+{% if finalists %}
+<div class="card mb-3 shadow-sm border-success">
+  <div class="card-header bg-success bg-opacity-10">
+    <h5 class="mb-0 text-success">
+      <i class="fas fa-flag-checkered me-1"></i>
+      Finalisten ({{ finalists | length }}{% if open_spots %} · {{ open_spots }} offen{% endif %})
+    </h5>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Hund</th>
+          <th>Führer/in</th>
+          <th>Quelle</th>
+          <th>Aus Klasse</th>
+          <th>Quali-Rang</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in finalists %}
+        <tr class="{% if f.source == 'title_defender' %}table-warning{% elif f.source == 'nachruecker' %}table-info{% else %}table-success{% endif %}">
+          <td>{{ loop.index }}</td>
+          <td>
+            {{ f.dog_name }}
+            {% if f.source == 'title_defender' %}<i class="fas fa-crown text-warning ms-1" title="Titelverteidiger"></i>{% endif %}
+          </td>
+          <td>{{ f.handler_name }}</td>
+          <td>
+            {% if f.source == 'title_defender' %}
+              <span class="badge bg-warning text-dark"><i class="fas fa-crown"></i> Titelv.</span>
+            {% elif f.source == 'nachruecker' %}
+              <span class="badge bg-info text-dark">Nachrücker</span>
+            {% elif f.source == 'agility' %}
+              <span class="badge bg-success">Agility</span>
+            {% elif f.source == 'jumping' %}
+              <span class="badge bg-success">Jumping</span>
+            {% else %}
+              <span class="badge bg-secondary">{{ f.source }}</span>
+            {% endif %}
+          </td>
+          <td>{% if f.from_class %}Klasse {{ f.from_class }}{% else %}–{% endif %}</td>
+          <td>{% if f.quali_rank %}{{ f.quali_rank }}{% else %}–{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if open_spots %}
+    <div class="p-2 bg-warning bg-opacity-10 border-top">
+      <i class="fas fa-exclamation-triangle me-1"></i>
+      <strong>{{ open_spots }} Finalplätze konnten nicht besetzt werden</strong> —
+      keine weiteren Nachrücker mit ≤10 FP verfügbar (SKBS-Reglement Art. 22b).
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{# ── Final-Rangierung (sobald Final gelaufen) ─────────────────────────────── #}
+{% if final_ranking %}
+<div class="card mb-3 shadow-sm border-primary">
+  <div class="card-header bg-primary bg-opacity-10">
+    <h5 class="mb-0 text-primary">
+      <i class="fas fa-trophy me-1"></i>Final-Rangierung
+    </h5>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead class="table-light">
+        <tr><th>Rang</th><th>Hund</th><th>Führer/in</th><th class="text-end">Gesamt-FP</th><th class="text-end">Parcours-FP</th><th class="text-end">Zeit</th></tr>
+      </thead>
+      <tbody>
+        {% for r in final_ranking %}
+        <tr class="{% if r.final_rang == 1 %}table-warning{% elif r.dis %}text-muted{% endif %}">
+          <td>{% if r.final_rang %}{{ r.final_rang }}{% else %}DIS{% endif %}</td>
+          <td>{{ r.dog_name }}</td>
+          <td>{{ r.handler_name }}</td>
+          <td class="text-end">{% if r.dis %}DIS{% else %}{{ r.fehler_total | round(1) }}{% endif %}</td>
+          <td class="text-end">{{ r.fehler_parcours }}</td>
+          <td class="text-end">{% if r.dis %}–{% else %}{{ r.zeit | round(2) }}s{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if per_class %}
+<div class="alert alert-info mt-2 no-print">
+  <i class="fas fa-info-circle me-2"></i>
+  <strong>Legende:</strong>
+  <span class="badge bg-success ms-2">Direkt qualifiziert (20% bzw. min. 3 pro Lauf)</span>
+  <span class="badge bg-info text-dark ms-1">Nachrücker (max. 10 FP, Klasse 3 → 2 → 1)</span>
+  <span class="badge bg-warning text-dark ms-1">Titelverteidiger</span>
+  — SKBS-Reglement Art. 22
+</div>
+{% endif %}
+{% endblock %}

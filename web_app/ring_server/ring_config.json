@@ -1,0 +1,7 @@
+{
+  "ring_number": 1,
+  "ring_label": "Ring 1",
+  "port": 5001,
+  "server_ip": "127.0.0.1",
+  "server_port": 5000
+}

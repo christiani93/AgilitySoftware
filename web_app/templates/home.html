@@ -10,6 +10,18 @@
     </div>
 </div>
 
+{% if server_lan_ips %}
+<div class="alert alert-info d-flex flex-wrap align-items-center mb-4" role="alert">
+    <div>
+        <strong>{{ _('Server-IP für Ring-Server:') }}</strong>
+        {% for ip in server_lan_ips %}
+            <code class="fs-5 ms-2">{{ ip }}:{{ server_port }}</code>{% if not loop.last %},{% endif %}
+        {% endfor %}
+        <span class="text-muted ms-3">{{ _('Diese Adresse in jeder AgilityRing-EXE als Hauptserver eintragen.') }}</span>
+    </div>
+</div>
+{% endif %}
+
 <div class="row align-items-md-stretch">
     <div class="col-md-6">
         <div class="h-100 p-5 text-white bg-dark rounded-3">

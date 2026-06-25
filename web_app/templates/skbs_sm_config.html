@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block title %}SKBS-SM Konfiguration – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">⚙️ SKBS-SM Konfiguration</h1>
+    <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
+  </div>
+  <a href="{{ url_for('skbs_sm_bp.skbs_sm_dashboard', event_id=event.id) }}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>Zurück zum Dashboard
+  </a>
+</div>
+
+<form method="post">
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="fas fa-crown me-1 text-warning"></i>Titelverteidiger</h5>
+    </div>
+    <div class="card-body">
+      <p class="text-muted small mb-3">
+        Der amtierende Schweizermeister gilt als qualifiziert, sofern er mindestens
+        einen Qualilauf bestreitet (SKBS-Reglement Art. 21f). Pro Event nur ein
+        Titelverteidiger (Kategorie Large).
+      </p>
+      {% set d = skbs_config.defending_champion or {} %}
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Lizenznummer</label>
+          <input type="text" name="defending_license" class="form-control" value="{{ d.license or '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Hundename</label>
+          <input type="text" name="defending_dog" class="form-control" value="{{ d.dog_name or '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Hundeführer/in</label>
+          <input type="text" name="defending_handler" class="form-control" value="{{ d.handler_name or '' }}">
+        </div>
+      </div>
+      <p class="text-muted small mt-2 mb-0">
+        Lizenznummer leer lassen, um den Titelverteidiger zu entfernen.
+      </p>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-save me-1"></i>Speichern
+    </button>
+    <a href="{{ url_for('skbs_sm_bp.skbs_sm_dashboard', event_id=event.id) }}" class="btn btn-secondary">
+      Abbrechen
+    </a>
+  </div>
+</form>
+{% endblock %}

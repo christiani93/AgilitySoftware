@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+{% block title %}BCCS-SM – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">🐕 BCCS-Schweizermeisterschaft</h1>
+    <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('bccs_sm_bp.bccs_sm_config', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-cog me-1"></i>Konfiguration
+    </a>
+    <a href="{{ url_for('bccs_sm_bp.bccs_sm_export_csv', event_id=event.id) }}" class="btn btn-outline-success">
+      <i class="fas fa-file-csv me-1"></i>CSV Export
+    </a>
+    <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Zurück
+    </a>
+  </div>
+</div>
+
+{% if not bccs_data.divisions %}
+<div class="alert alert-info">
+  <i class="fas fa-info-circle me-2"></i>
+  Noch keine BCCS-SM-Läufe. Quali-Läufe anlegen mit <code>Kategorie ∈ {Intermediate, Large}</code>,
+  <code>Klasse ∈ {1, 2, 3}</code>, <code>Laufart ∈ {Agility, Jumping}</code>.
+  Finalläufe (Jumping + Agility): <code>is_final = True</code>.
+  Divisionen: <strong>SM = Klasse 3</strong>, <strong>Nachwuchs = Klasse 1+2</strong>.
+</div>
+{% endif %}
+
+{% for key, div in bccs_data.divisions.items() %}
+  {% set div_label = divisions[div.division].label %}
+  {% set ranking = final_ranking.get(key) %}
+  {% if div.finalists or ranking %}
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">
+        <span class="badge bg-primary me-2">{{ div.category }}</span>
+        <span class="badge bg-info text-dark me-2">{{ div_label }}</span>
+      </h5>
+      <span class="text-muted small">
+        Quote Agi: {{ div.quota.get('Agility', 0) }} · Jump: {{ div.quota.get('Jumping', 0) }}
+        {% if div.open_spots %}· <span class="text-danger">offen: {{ div.open_spots }}</span>{% endif %}
+      </span>
+    </div>
+    <div class="card-body">
+      {% if div.finalists %}
+      <h6 class="text-muted">Finalisten ({{ div.finalists|length }})</h6>
+      <table class="table table-sm table-striped align-middle">
+        <thead><tr>
+          <th>#</th><th>Lizenz</th><th>Hund</th><th>Hundeführer/in</th>
+          <th>Quelle</th><th>Kl.</th><th>Quali-Rang</th>
+        </tr></thead>
+        <tbody>
+        {% for f in div.finalists %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ f.license }}</td>
+            <td>{{ f.dog_name }}</td>
+            <td>{{ f.handler_name }}</td>
+            <td>
+              {% if f.source == 'title_defender' %}<span class="badge bg-warning text-dark">Titelv.</span>
+              {% elif f.source == 'nachruecker' %}<span class="badge bg-secondary">Nachrücker</span>
+              {% else %}<span class="badge bg-success">{{ f.source }}</span>{% endif %}
+            </td>
+            <td>{{ f.from_class if f.from_class is not none else '–' }}</td>
+            <td>{{ f.quali_rank if f.quali_rank is not none else '–' }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="text-muted mb-0">Noch keine Finalisten.</p>
+      {% endif %}
+
+      {% if ranking %}
+      <h6 class="text-muted mt-3">Final-Rangierung (Jumping + Agility summiert)</h6>
+      <table class="table table-sm align-middle">
+        <thead><tr>
+          <th>Rang</th><th>Lizenz</th><th>Hund</th><th>Hundeführer/in</th>
+          <th>Σ Fehler</th><th>Σ Parcours</th><th>Σ Zeit (s)</th>
+        </tr></thead>
+        <tbody>
+        {% for r in ranking %}
+          <tr{% if r.dis %} class="text-muted"{% endif %}>
+            <td>{{ r.final_rang if r.final_rang is not none else 'DIS' }}</td>
+            <td>{{ r.license }}</td>
+            <td>{{ r.dog_name }}</td>
+            <td>{{ r.handler_name }}</td>
+            <td>{{ r.sum_fehler if r.sum_fehler is not none else '–' }}</td>
+            <td>{{ r.sum_parcours if r.sum_parcours is not none else '–' }}</td>
+            <td>{{ r.sum_zeit if r.sum_zeit is not none else '–' }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+{% endfor %}
+{% endblock %}

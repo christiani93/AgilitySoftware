@@ -52,6 +52,17 @@ def _norm(value):
         return ''
 
 
+def _safe_http_filename(raw: str, max_len: int = 60) -> str:
+    """
+    Sanitisiert einen String zum Verwenden im HTTP Content-Disposition header.
+    HTTP-Header sind latin-1 only; Em-Dash, Umlaute etc. brechen den Header.
+    → alle Nicht-ASCII (und unsichere Zeichen) durch '_' ersetzen.
+    """
+    raw = (raw or '').replace(' ', '_').replace('/', '_')
+    return ''.join(c if (32 <= ord(c) < 127 and c not in '"\\') else '_'
+                   for c in raw)[:max_len]
+
+
 def _to_float(value, default=0.0):
     """
     Robuste Float-Konvertierung:
@@ -72,8 +83,14 @@ def _to_float(value, default=0.0):
     except (ValueError, TypeError):
         return default
 
+try:
+    from paths import data_path as _data_path
+except ImportError:
+    from web_app.paths import data_path as _data_path
+
+
 def _load_data(filename, default_data=[]):
-    filepath = os.path.join('data', filename)
+    filepath = _data_path(filename)
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -81,10 +98,21 @@ def _load_data(filename, default_data=[]):
         return default_data
 
 def _save_data(filename, data):
-    filepath = os.path.join('data', filename)
+    filepath = _data_path(filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
+
+
+def debug_tools_enabled() -> bool:
+    """Test-/Debug-Werkzeuge (Daten-Generatoren, Test-Importe etc.) aktiv?
+
+    Default AN (Testphase). Vor Produktion: Env ``ENABLE_DEBUG_TOOLS=0`` setzen →
+    Debug-Routes liefern 404, Debug-Buttons werden ausgeblendet. Der reguläre
+    Event-Paket-Export bleibt unabhängig davon erreichbar.
+    """
+    return os.environ.get("ENABLE_DEBUG_TOOLS", "1").strip().lower() not in (
+        "0", "false", "no", "off", "")
 
 def _load_settings():
     defaults = {

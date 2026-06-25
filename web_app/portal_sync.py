@@ -359,6 +359,204 @@ def push_run_changed(settings: dict, event: dict, run: dict) -> None:
 # Result-Export ZIP
 # ----------------------------------------------------------------------------
 
+def build_event_export_zip(event: dict) -> bytes:
+    """
+    Erzeugt ein agility.exchange.eventexport.v1 ZIP aus einem Software-Event-Dict.
+    Inverse von Portal's build_event_export_zip — symmetrisch, gleiches Schema.
+
+    ZIP-Inhalt:
+      - manifest.json
+      - event.json      (external_id, name, location, starts_at, ends_at, billing_mode)
+      - entities.json   (persons[], dogs[])
+      - registrations.json
+      - start_numbers.json
+      - schedule.json
+
+    Verwendet `external_id`, `Lizenznummer` etc. aus dem Software-Event-Dict.
+    Hund-external_id = Lizenznummer (eindeutig im Software-Modell).
+    Person-external_id = "p_" + lower(nachname + vorname) (stabil).
+    """
+    import hashlib as _hashlib
+
+    event_external_id = event.get("external_id") or event.get("id") or ""
+
+    persons: dict[str, dict] = {}
+    dogs: dict[str, dict] = {}
+    registrations: list[dict] = []
+    seen_reg: set[tuple] = set()
+
+    # Erst Startnummern sammeln (pro Lizenz die kleinste aus allen Runs),
+    # damit wir sie direkt in jede Registration einsetzen koennen
+    start_no_by_lic: dict[str, int] = {}
+    for run in event.get("runs") or []:
+        for entry in run.get("entries") or []:
+            lic = (entry.get("Lizenznummer") or "").strip()
+            snr = _safe_int(entry.get("startnummer_offiziell") or entry.get("Startnummer"), 0)
+            if lic and snr > 0:
+                cur = start_no_by_lic.get(lic)
+                if cur is None or snr < cur:
+                    start_no_by_lic[lic] = snr
+
+    for run in event.get("runs") or []:
+        kategorie = run.get("kategorie") or ""
+        klasse_raw = run.get("klasse")
+        try:
+            klasse = int(klasse_raw) if klasse_raw is not None else None
+        except (ValueError, TypeError):
+            klasse = None
+        for entry in run.get("entries") or []:
+            lic = (entry.get("Lizenznummer") or "").strip()
+            if not lic:
+                continue
+            vorname = (entry.get("Vorname") or "").strip()
+            nachname = (entry.get("Nachname") or "").strip()
+            hundename = (entry.get("Hundename") or "").strip() or f"Hund_{lic}"
+
+            dog_ext = f"dog_{lic}"
+            dogs.setdefault(dog_ext, {
+                "external_id": dog_ext,
+                "name":        hundename,
+                "license_no":  lic,
+                "license_kind": "CH",
+            })
+
+            person_ext = f"p_{(nachname + vorname).lower().replace(' ', '_') or lic}"
+            persons.setdefault(person_ext, {
+                "external_id": person_ext,
+                "first_name":  vorname,
+                "last_name":   nachname,
+                "email":       (entry.get("Email") or None),
+            })
+
+            # Pro (Hund, Klasse, Kategorie) einmal eine Registration
+            reg_key = (lic, klasse, kategorie)
+            if reg_key in seen_reg:
+                continue
+            seen_reg.add(reg_key)
+            reg_ext = f"reg_{lic}_{klasse}_{kategorie}".lower().replace(" ", "_")
+            registrations.append({
+                "external_id":                reg_ext,
+                "event_external_id":          event_external_id,
+                "dog_external_id":            dog_ext,
+                "handler_person_external_id": person_ext,
+                "category_code":              kategorie,
+                "class_level":                klasse,
+                "status":                     "CONFIRMED",
+                "tka_event_check_status":     "PENDING",
+                "start_number":               start_no_by_lic.get(lic),
+                "can_start":                  True,
+                "eligibility":                {"payment_status": "NOT_MANAGED"},
+            })
+
+    start_numbers_payload = {
+        "event_external_id": event_external_id,
+        "locked":            bool(event.get("startnummern_locked", False)),
+        "generated_at":      _utc_now_iso(),
+        "rule_set":          None,
+        "numbers": [
+            {
+                "registration_external_id": f"reg_{lic}_{None}_{None}",   # Fallback; nutzt 1. Registration
+                "license_no":               lic,
+                "start_no":                 snr,
+            }
+            for lic, snr in start_no_by_lic.items()
+        ],
+    }
+    # Korrekte registration_external_id mappen (erste Registration pro Lizenz)
+    lic_to_reg = {}
+    for reg in registrations:
+        dog_ext = reg.get("dog_external_id") or ""
+        if dog_ext.startswith("dog_"):
+            lic = dog_ext[4:]
+            lic_to_reg.setdefault(lic, reg["external_id"])
+    for n in start_numbers_payload["numbers"]:
+        lic = n.get("license_no")
+        if lic and lic in lic_to_reg:
+            n["registration_external_id"] = lic_to_reg[lic]
+
+    # Schedule
+    event_date = (event.get("Datum") or "").strip()   # "YYYY-MM-DD"
+    blocks_payload: list[dict] = []
+    schedule = event.get("schedule") or {}
+    for ring_key, ring_data in (schedule.get("rings") or {}).items():
+        for block in ring_data.get("blocks") or []:
+            raw_time = (block.get("start_at") or "").strip()   # meist "HH:MM"
+            if event_date and raw_time and "T" not in raw_time:
+                # HH:MM + event_date → ISO-Timestamp damit Portal-Importer parsen kann
+                start_at_iso = f"{event_date}T{raw_time}:00" if len(raw_time) == 5 else f"{event_date}T{raw_time}"
+            else:
+                start_at_iso = raw_time
+            blocks_payload.append({
+                "ring":          str(ring_key),
+                "start_at":      start_at_iso,
+                "discipline":    (block.get("timing_run_type") or "").capitalize() or "Other",
+                "category_code": block.get("size_category") or "",
+                "class_level":   (block.get("classes") or [None])[0],
+                "notes":         block.get("notes") or block.get("title") or "",
+            })
+    schedule_payload = {
+        "event_external_id": event_external_id,
+        "timezone":          "Europe/Zurich",
+        "locked":            False,
+        "blocks":            blocks_payload,
+    }
+
+    event_payload = {
+        "external_id":  event_external_id,
+        "name":         event.get("Bezeichnung") or "",
+        "location":     event.get("Ort") or "",
+        "starts_at":    event.get("Datum") or None,
+        "ends_at":      event.get("Datum_Ende") or event.get("Datum") or None,
+        "billing_mode": "ORGANIZER",
+    }
+    entities_payload = {
+        "persons": list(persons.values()),
+        "dogs":    list(dogs.values()),
+    }
+    registrations_payload = registrations
+
+    # EventRuns (Portal hat separate event_runs-Tabelle)
+    # Pro (kategorie, klasse, laufart, is_final) ein Eintrag, dedupliziert
+    runs_payload = []
+    seen_run = set()
+    for run in event.get("runs") or []:
+        kategorie = run.get("kategorie") or ""
+        klasse_raw = run.get("klasse")
+        laufart = (run.get("laufart") or "").lower()
+        is_final = bool(run.get("is_final"))
+        try:
+            class_level = int(klasse_raw) if klasse_raw is not None else None
+        except (ValueError, TypeError):
+            class_level = None
+        cat_short = (kategorie[:1] or "L").upper()    # Small→S, Medium→M, etc.
+        key = (laufart, cat_short, class_level, is_final)
+        if key in seen_run:
+            continue
+        seen_run.add(key)
+        runs_payload.append({
+            "run_type":    laufart or "agility",
+            "category":    cat_short,
+            "class_level": class_level if class_level is not None else 1,
+            "is_final":    is_final,
+        })
+
+    manifest = {
+        "schema":       "agility.exchange.eventexport.v1",
+        "generated_at": _utc_now_iso(),
+    }
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("manifest.json",      json.dumps(manifest, ensure_ascii=False))
+        zf.writestr("event.json",         json.dumps(event_payload, ensure_ascii=False))
+        zf.writestr("entities.json",      json.dumps(entities_payload, ensure_ascii=False))
+        zf.writestr("registrations.json", json.dumps(registrations_payload, ensure_ascii=False))
+        zf.writestr("start_numbers.json", json.dumps(start_numbers_payload, ensure_ascii=False))
+        zf.writestr("schedule.json",      json.dumps(schedule_payload, ensure_ascii=False))
+        zf.writestr("runs.json",          json.dumps(runs_payload, ensure_ascii=False))
+    return buf.getvalue()
+
+
 def build_result_export_zip(event: dict, final: bool = False) -> bytes:
     """
     Erzeugt ein agility.exchange.resultexport.v1 ZIP im Arbeitsspeicher.
@@ -400,6 +598,7 @@ def build_result_export_zip(event: dict, final: bool = False) -> bytes:
                 "time_s":      _safe_float(entry.get("zeit_total")),
                 "faults":      _safe_int(entry_result.get("fehler")),
                 "refusals":    _safe_int(entry_result.get("verweigerungen")),
+                "total_faults":_safe_float(entry.get("fehler_total")),
                 "eliminated":  eliminated,
                 "status":      status,
                 "dog_name":    entry.get("Hundename") or "",
@@ -427,11 +626,74 @@ def build_result_export_zip(event: dict, final: bool = False) -> bytes:
     }
     manifest = {"schema": "agility.exchange.resultexport.v1", "generated_at": _utc_now_iso()}
 
+    # Schema v1.6: optionaler Finalisten-Block für SKBS-SM (siehe project_offline_architektur)
+    finalists_payload = _build_finalists_payload(event)
+
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False))
         zf.writestr("results.json",  json.dumps(results_payload, ensure_ascii=False))
+        if finalists_payload:
+            zf.writestr("finalists.json", json.dumps(finalists_payload, ensure_ascii=False))
     return buf.getvalue()
+
+
+def _build_finalists_payload(event: dict) -> dict | None:
+    """
+    Berechnet Finalisten-Liste für SKBS-SM-Events und liefert sie als ZIP-Payload.
+
+    Returns None wenn:
+      - Event ist nicht vom Typ SKBS-SM (kein Finalisten-Konzept)
+      - Berechnung schlägt fehl
+      - Keine Finalisten gefunden
+
+    Format (Schema v1.6):
+      {
+        "event_external_id": "...",
+        "veranstaltungsart": "SKBS-SM",
+        "finalists": [
+          {"license", "dog_name", "handler_name", "source", "from_class", "quali_rank"},
+          ...
+        ],
+        "open_spots": int,
+      }
+    """
+    art = event.get("Veranstaltungsart")
+    if art == "SKBS-SM":
+        try:
+            from skbs_sm_qualification import calculate_skbs_sm_qualification
+            result = calculate_skbs_sm_qualification(event)
+        except Exception:
+            return None
+        finalists = result.get("finalists") or []
+        if not finalists:
+            return None
+        return {
+            "event_external_id": event.get("external_id") or event.get("id") or "",
+            "veranstaltungsart": "SKBS-SM",
+            "finalists":         finalists,
+            "open_spots":        result.get("open_spots", 0),
+        }
+
+    if art == "BCCS-SM":
+        # BCCS: Finalisten je Division (I/L × SM/Nachwuchs), flach mit category+division.
+        try:
+            from bccs_sm_qualification import calculate_bccs_sm_qualification
+            result = calculate_bccs_sm_qualification(event)
+        except Exception:
+            return None
+        finalists = result.get("finalists") or []
+        if not finalists:
+            return None
+        open_total = sum(d.get("open_spots", 0) for d in result.get("divisions", {}).values())
+        return {
+            "event_external_id": event.get("external_id") or event.get("id") or "",
+            "veranstaltungsart": "BCCS-SM",
+            "finalists":         finalists,
+            "open_spots":        open_total,
+        }
+
+    return None
 
 
 def _do_send_result_export(url: str, api_key: str, zip_bytes: bytes) -> dict:

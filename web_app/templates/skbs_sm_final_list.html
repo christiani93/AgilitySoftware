@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+{% block title %}SKBS-SM Finalliste – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+{% set finalists = skbs_data.finalists %}
+{% set open_spots = skbs_data.open_spots %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+  <h1 class="mb-0">SKBS-SM Finalliste</h1>
+  <div class="d-flex gap-2">
+    <button onclick="window.print()" class="btn btn-primary">
+      <i class="fas fa-print me-1"></i>Drucken
+    </button>
+    <a href="{{ url_for('skbs_sm_bp.skbs_sm_dashboard', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Zurück
+    </a>
+  </div>
+</div>
+
+<div class="text-center mb-4">
+  <h2 class="mb-1">SKBS-Schweizermeisterschaft</h2>
+  <h3 class="text-muted">{{ event.Bezeichnung }}</h3>
+  <p class="text-muted">Finalliste — Kategorie Large, klassenübergreifend</p>
+</div>
+
+{% if finalists %}
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Startnummer Final</th>
+      <th>Lizenznummer</th>
+      <th>Hund</th>
+      <th>Führer/in</th>
+      <th>Qualifiziert via</th>
+      <th>Aus Klasse</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for f in finalists %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ f.license }}</td>
+      <td>
+        {{ f.dog_name }}
+        {% if f.source == 'title_defender' %}<i class="fas fa-crown text-warning ms-1"></i>{% endif %}
+      </td>
+      <td>{{ f.handler_name }}</td>
+      <td>
+        {% if f.source == 'title_defender' %}Titelverteidiger
+        {% elif f.source == 'nachruecker' %}Nachrücker (max. 10 FP)
+        {% elif f.source == 'agility' %}Agility (Rang {{ f.quali_rank }})
+        {% elif f.source == 'jumping' %}Jumping (Rang {{ f.quali_rank }})
+        {% else %}{{ f.source }}{% endif %}
+      </td>
+      <td>{% if f.from_class %}Klasse {{ f.from_class }}{% else %}–{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if open_spots %}
+<p class="text-muted mt-3">
+  <em>{{ open_spots }} Finalplätze blieben unbesetzt (keine weiteren Nachrücker mit ≤10 FP verfügbar).</em>
+</p>
+{% endif %}
+
+<p class="text-muted small mt-4">
+  Reihenfolge gemäss SKBS-Reglement Art. 22b. Startreihenfolge im Final wird ausgelost (Art. 22c).
+</p>
+
+{% else %}
+<div class="alert alert-info">
+  Keine Finalisten ermittelt. Quali-Resultate noch nicht vorhanden oder unvollständig.
+</div>
+{% endif %}
+{% endblock %}
