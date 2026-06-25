@@ -166,23 +166,21 @@ def test_nachruecken_endet_wenn_keine_kandidaten():
 # Nachwuchs: Klassen 1+2 kombiniert nach Leistung
 # ---------------------------------------------------------------------------
 
-def test_nachwuchs_kombiniert_klasse_1_und_2_nach_leistung():
-    """Kl.1 und Kl.2 werden zu einem Pool; ein Kl.2-Hund kann Kl.1-Hunde überholen."""
-    klasse1 = [_entry("N1", 0), _entry("N2", 3), _entry("N3", 6)]
-    klasse2 = [_entry("N4", 1), _entry("N5", 4), _entry("N6", 7), _entry("N7", 9)]
+def test_nachwuchs_klasse_1_und_2_separat_gewertet():
+    """Kl.1 und Kl.2 werden GETRENNT gewertet — je eigene 15 %-Quote.
+    Unterscheidet sich von 'kombiniert': der schwache Kl.2-Hund (10 FP) qualifiziert
+    sich als Klassenbester, obwohl er im kombinierten Pool rausfiele."""
+    klasse1 = [_entry(f"A{i}", i) for i in range(7)]                  # 7 → Quote 2 → A0, A1
+    klasse2 = [_entry("B0", 10), _entry("B1", 11), _entry("B2", 12)]  # 3 → Quote 1 → B0
     event = {"runs": [
         _run("Intermediate", "1", "Agility", klasse1),
         _run("Intermediate", "2", "Agility", klasse2),
     ]}
-    res = calculate_bccs_sm_qualification(event)
-    nw = res["divisions"]["Intermediate/nachwuchs"]
-    # 7 kombinierte Starter → Quote 2; Leistungsreihenfolge N1(0), N4(1), ...
-    assert nw["quota"]["Agility"] == 2
-    quali = [f for f in nw["finalists"] if f["source"] == "agility"]
-    assert [f["license"] for f in quali] == ["N1", "N4"]
-    # from_class spiegelt die echte Klasse (N4 stammt aus Klasse 2)
-    fc = {f["license"]: f["from_class"] for f in quali}
-    assert fc == {"N1": 1, "N4": 2}
+    nw = calculate_bccs_sm_qualification(event)["divisions"]["Intermediate/nachwuchs"]
+    quali = {f["license"]: f for f in nw["finalists"] if f["source"] == "agility"}
+    assert set(quali) == {"A0", "A1", "B0"}          # 2 aus Kl.1 + 1 aus Kl.2 (getrennt)
+    assert quali["A0"]["from_class"] == 1 and quali["B0"]["from_class"] == 2
+    assert nw["quota"]["Agility"] == 3               # Quote-Summe Division = 2 (Kl1) + 1 (Kl2)
 
 
 # ---------------------------------------------------------------------------

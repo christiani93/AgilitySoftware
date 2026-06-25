@@ -31,16 +31,14 @@ durch Addition beider Läufe. 3-stufiger Tiebreaker + ex aequo:
   2. kleinere Summe Parcoursfehler
   3. kleinere Summe Laufzeiten
 
-OFFENE ANNAHMEN (vor produktivem Einsatz mit User verifizieren!):
-- **Nachwuchs-Kombination**: Klassen 1 + 2 werden hier zu EINEM Pool je Laufart
-  zusammengefasst und rein nach Leistung (Fehler→Parcours→Zeit) gerankt (für den
-  15 %-Cutoff). Ob das Reglement Kl.1/Kl.2 wirklich kombiniert oder getrennt
-  wertet, ist nicht 100 % eindeutig — annehmen & bestätigen lassen.
-- **Quali-Lauf-Reihenfolge** (für die Nachrück-Alternierung): Reihenfolge ist
-  Veranstaltersache. Default hier ["Agility", "Jumping"]; überschreibbar via
-  event["bccs_sm_config"]["quali_run_order"].
-- **Keine Mindest-Quote**: reines ceil(15 %). Reglement nennt keinen Minimalwert
-  (anders als SKBS min. 3).
+GEKLÄRT (User-Klarstellung 2026-06-25):
+- **Nachwuchs Kl.1 und Kl.2 werden SEPARAT gewertet** in den Qualiläufen → die 15 %-Quote
+  gilt **pro (Kategorie × Klasse)** (I-Kl1, I-Kl2, L-Kl1, L-Kl2 je eigene Quali). NICHT kombiniert.
+  Der gemeinsame Final je Kategorie kombiniert Kl.1+2 (siehe rank_final_bccs).
+- **Quali-Lauf-Reihenfolge** (Nachrück-Alternierung) = tatsächliche Reihenfolge an der
+  Veranstaltung (Veranstaltersache); via event["bccs_sm_config"]["quali_run_order"],
+  Default ["Agility", "Jumping"].
+- **Keine Mindest-Quote**: reines ceil(15 %) (anders als SKBS min. 3).
 
 Datenformat-Erwartungen am `event`-Dict (identisch zu skbs_sm_qualification.py):
   event["runs"]: Liste von Lauf-Dicts mit Feldern:
@@ -102,16 +100,40 @@ def calculate_bccs_sm_qualification(event: dict) -> dict:
 
     for category in CATEGORIES:
         for div_key, div_def in DIVISIONS.items():
-            quali_pools, _final_pools = _collect_division(event, category, div_def["classes"])
+            qualified: set[str] = set()
+            div_finalists: list[dict] = []
+
+            # Titelverteidiger division-weit (gesetzt, wenn in >=1 Quali-Lauf der Division gestartet)
             defending = _find_defender(defenders, category, div_key)
-            res = _compute_division(quali_pools, quali_order, defending)
-            res["category"] = category
-            res["division"] = div_key
-            for f in res["finalists"]:
+            if defending and (defending.get("license") or "").strip():
+                lic = defending["license"].strip()
+                if _defender_started(event, category, div_def["classes"], lic):
+                    div_finalists.append({
+                        "license": lic,
+                        "dog_name": defending.get("dog_name", ""),
+                        "handler_name": defending.get("handler_name", ""),
+                        "source": "title_defender", "from_class": None, "quali_rank": None,
+                    })
+                    qualified.add(lic)
+
+            # Klassen der Division SEPARAT werten (Kl.1/Kl.2 getrennt; 15 % je Klasse)
+            quota: dict[str, int] = {}
+            open_spots = 0
+            for cls in div_def["classes"]:
+                res = _compute_class(_collect_class(event, category, cls), quali_order, qualified)
+                div_finalists.extend(res["finalists"])
+                for la, q in res["quota"].items():
+                    quota[la] = quota.get(la, 0) + q
+                open_spots += res["open_spots"]
+
+            for f in div_finalists:
                 f["category"] = category
                 f["division"] = div_key
                 all_finalists.append(f)
-            divisions[f"{category}/{div_key}"] = res
+            divisions[f"{category}/{div_key}"] = {
+                "category": category, "division": div_key,
+                "quota": quota, "finalists": div_finalists, "open_spots": open_spots,
+            }
 
     return {"divisions": divisions, "finalists": all_finalists}
 
@@ -182,6 +204,41 @@ def _collect_division(event: dict, category: str, division_classes: list[str]):
     return quali, final
 
 
+def _collect_class(event: dict, category: str, cls: str) -> dict:
+    """Quali-Einträge EINER (Kategorie × Klasse) je Laufart (Kl.1/Kl.2 getrennt werten)."""
+    quali = {"Agility": [], "Jumping": []}
+    for run in event.get("runs", []):
+        if run.get("kategorie") != category or run.get("is_final"):
+            continue
+        if str(run.get("klasse") or "") != cls:
+            continue
+        laufart = run.get("laufart") or ""
+        if laufart not in QUALI_RUN_TYPES:
+            continue
+        for e in run.get("entries", []):
+            if not (e.get("Lizenznummer") or "").strip():
+                continue
+            ne = _normalise_entry(e)
+            ne["from_class"] = int(cls) if cls.isdigit() else None
+            quali[laufart].append(ne)
+    return quali
+
+
+def _defender_started(event: dict, category: str, classes: list[str], lic: str) -> bool:
+    """True, wenn der Titelverteidiger in >=1 Quali-Lauf der Division (Kategorie+Klassen) gestartet ist."""
+    for run in event.get("runs", []):
+        if run.get("kategorie") != category or run.get("is_final"):
+            continue
+        if str(run.get("klasse") or "") not in classes:
+            continue
+        if run.get("laufart") not in QUALI_RUN_TYPES:
+            continue
+        for e in run.get("entries", []):
+            if (e.get("Lizenznummer") or "").strip() == lic:
+                return True
+    return False
+
+
 def _normalise_entry(entry: dict) -> dict:
     """Wandelt ein AgilitySoftware-entry in eine normalisierte Result-Repräsentation."""
     license_no = (entry.get("Lizenznummer") or "").strip()
@@ -235,32 +292,14 @@ def _count_starters(pool: list[dict]) -> int:
 # Internal — Qualifikation pro Division
 # ---------------------------------------------------------------------------
 
-def _compute_division(quali_pools: dict, quali_order: list[str], defending) -> dict:
+def _compute_class(quali_pools: dict, quali_order: list[str], qualified: set) -> dict:
     """
-    Qualifikation einer einzelnen Division (z.B. Large/SM):
-    15 %-Direktquote pro Lauf, Doppelqualifikation überspringen, alternierendes
-    Nachrücken zwischen den beiden Quali-Läufen bis zur Maximalzahl.
+    Qualifikation EINER (Kategorie × Klasse): 15 %-Direktquote pro Lauf,
+    Doppelqualifikation überspringen, alternierendes Nachrücken zwischen den 2
+    Quali-Läufen. Nutzt die division-weite `qualified`-Menge (Titelverteidiger
+    ist dort schon enthalten und wird so übersprungen).
     """
-    qualified: set[str] = set()
     finalists: list[dict] = []
-
-    # Titelverteidiger zuerst (zählt extra, nimmt keinen Direktslot weg)
-    if defending and defending.get("license"):
-        lic = defending["license"].strip()
-        started = any(
-            any(e["license"] == lic for e in quali_pools.get(la, []))
-            for la in QUALI_RUN_TYPES
-        )
-        if started and lic not in qualified:
-            finalists.append({
-                "license":      lic,
-                "dog_name":     defending.get("dog_name", ""),
-                "handler_name": defending.get("handler_name", ""),
-                "source":       "title_defender",
-                "from_class":   None,
-                "quali_rank":   None,
-            })
-            qualified.add(lic)
 
     # Direkt-Qualifikation pro Lauf (in konfigurierter Reihenfolge)
     run_quota: dict[str, int] = {}
@@ -291,9 +330,9 @@ def _compute_division(quali_pools: dict, quali_order: list[str], defending) -> d
             given += 1
 
     # Maximalzahl = Summe der Quoten; offene Plätze per Nachrücken alternierend füllen
+    # (finalists enthält hier nur Direkt-Qualifizierte; Titelverteidiger zählt division-weit extra)
     target = sum(run_quota.values())
-    direct = sum(1 for f in finalists if f["source"] != "title_defender")
-    remaining = max(0, target - direct)
+    remaining = max(0, target - len(finalists))
 
     if remaining > 0:
         pointers = {la: 0 for la in quali_order}
