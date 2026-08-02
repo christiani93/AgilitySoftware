@@ -46,9 +46,22 @@ def _is_bccs_sm_run(run: dict) -> bool:
 
 
 def _recalc(event, settings):
+    """Ergebnisse neu berechnen und die berechneten Felder (fehler_total/zeit_total/platz/…)
+    zurück auf die Entries schreiben — Startreihenfolge bleibt erhalten.
+    (_calculate_run_results liefert Kopien zurück und mutiert die Entries NICHT; ohne dieses
+    Zurückschreiben liest die BCCS-Berechnung keine platzierten Hunde → 0 Finalisten.)"""
+    fields = ('fehler_total', 'zeit_total', 'fehler_parcours', 'platz',
+              'qualifikation', 'disqualifikation')
     for run in event.get('runs', []):
-        if _is_bccs_sm_run(run):
-            _calculate_run_results(run, settings)
+        if not _is_bccs_sm_run(run):
+            continue
+        computed = _calculate_run_results(run, settings)
+        by_key = {(str(c.get('Lizenznummer')), c.get('Startnummer')): c for c in computed}
+        for e in run.get('entries', []):
+            c = by_key.get((str(e.get('Lizenznummer')), e.get('Startnummer')))
+            if c:
+                for f in fields:
+                    e[f] = c.get(f)
 
 
 # ── Routen ────────────────────────────────────────────────────────────────────
