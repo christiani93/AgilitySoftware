@@ -312,7 +312,9 @@ def _calculate_run_results(run, settings):
 
     parcours_laenge = _to_float(laufdaten.get("parcours_laenge"), 0.0)
     sct_factor_config = {
-        "2": {"standard": 1.4, "qualification": 1.2},
+        # Weisung Standardzeit 2026: Standard Kl.2=1.4, Kl.3=1.3.
+        # FCI-Quali einheitlich 1.15 (klassenunabhängig, gemäss FCI-Reglement).
+        "2": {"standard": 1.4, "qualification": 1.15},
         "3": {"standard": 1.3, "qualification": 1.15},
     }
     is_qualification = bool(
