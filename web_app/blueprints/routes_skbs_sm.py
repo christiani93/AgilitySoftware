@@ -13,7 +13,7 @@ import io
 from flask import (Blueprint, render_template, request, redirect,
                    url_for, flash, abort, Response)
 
-from utils import _load_data, _save_data, _load_settings, _calculate_run_results, _safe_http_filename
+from utils import _load_data, _save_data, _load_settings, recalc_and_store, _safe_http_filename
 from skbs_sm_qualification import (
     calculate_skbs_sm_qualification, rank_final,
     CLASS_LEVELS, CATEGORY,
@@ -55,7 +55,7 @@ def skbs_sm_dashboard(event_id):
     settings = _load_settings()
     for run in event.get('runs', []):
         if _is_skbs_sm_run(run):
-            _calculate_run_results(run, settings)
+            recalc_and_store(run, settings)
     _save_data(EVENTS_FILE, events)
 
     skbs_data = calculate_skbs_sm_qualification(event)
@@ -116,7 +116,7 @@ def skbs_sm_final_list(event_id):
     settings = _load_settings()
     for run in event.get('runs', []):
         if _is_skbs_sm_run(run):
-            _calculate_run_results(run, settings)
+            recalc_and_store(run, settings)
 
     skbs_data = calculate_skbs_sm_qualification(event)
 
@@ -137,7 +137,7 @@ def skbs_sm_export_csv(event_id):
     settings = _load_settings()
     for run in event.get('runs', []):
         if _is_skbs_sm_run(run):
-            _calculate_run_results(run, settings)
+            recalc_and_store(run, settings)
 
     skbs_data = calculate_skbs_sm_qualification(event)
     final_ranking = rank_final(event)

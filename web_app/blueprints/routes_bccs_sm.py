@@ -14,7 +14,7 @@ import io
 from flask import (Blueprint, render_template, request, redirect,
                    url_for, flash, abort, Response)
 
-from utils import _load_data, _save_data, _load_settings, _calculate_run_results, _safe_http_filename
+from utils import _load_data, _save_data, _load_settings, recalc_and_store, _safe_http_filename
 from bccs_sm_qualification import (
     calculate_bccs_sm_qualification, rank_final_bccs,
     CATEGORIES, DIVISIONS, QUALI_RUN_TYPES,
@@ -46,22 +46,11 @@ def _is_bccs_sm_run(run: dict) -> bool:
 
 
 def _recalc(event, settings):
-    """Ergebnisse neu berechnen und die berechneten Felder (fehler_total/zeit_total/platz/…)
-    zurück auf die Entries schreiben — Startreihenfolge bleibt erhalten.
-    (_calculate_run_results liefert Kopien zurück und mutiert die Entries NICHT; ohne dieses
-    Zurückschreiben liest die BCCS-Berechnung keine platzierten Hunde → 0 Finalisten.)"""
-    fields = ('fehler_total', 'zeit_total', 'fehler_parcours', 'platz',
-              'qualifikation', 'disqualifikation')
+    """Ergebnisse neu berechnen und aufs Entry zurückschreiben (Reihenfolge bleibt) —
+    sonst liest die BCCS-Berechnung keine platzierten Hunde → 0 Finalisten. Siehe recalc_and_store."""
     for run in event.get('runs', []):
-        if not _is_bccs_sm_run(run):
-            continue
-        computed = _calculate_run_results(run, settings)
-        by_key = {(str(c.get('Lizenznummer')), c.get('Startnummer')): c for c in computed}
-        for e in run.get('entries', []):
-            c = by_key.get((str(e.get('Lizenznummer')), e.get('Startnummer')))
-            if c:
-                for f in fields:
-                    e[f] = c.get(f)
+        if _is_bccs_sm_run(run):
+            recalc_and_store(run, settings)
 
 
 # ── Routen ────────────────────────────────────────────────────────────────────

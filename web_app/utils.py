@@ -466,6 +466,26 @@ def _calculate_run_results(run, settings):
             rank += 1
     return results
 
+
+_RECALC_WRITEBACK_FIELDS = ('fehler_total', 'zeit_total', 'fehler_parcours',
+                            'platz', 'qualifikation', 'disqualifikation')
+
+
+def recalc_and_store(run, settings):
+    """Berechnet die Lauf-Ergebnisse und schreibt fehler_total/zeit_total/platz/… ZURÜCK
+    auf die Entries (Startreihenfolge bleibt erhalten). _calculate_run_results liefert nur
+    Kopien zurück und mutiert die Entries nicht — die SM-Varianten-Dashboards (SM/SKBS/BCCS/
+    FMBB) lesen aber entry['fehler_total']/'platz', sonst 0 Finalisten. Gibt zusätzlich die
+    berechnete (sortierte) Ergebnisliste zurück."""
+    computed = _calculate_run_results(run, settings)
+    by_key = {(str(c.get('Lizenznummer')), c.get('Startnummer')): c for c in computed}
+    for e in run.get('entries', []):
+        c = by_key.get((str(e.get('Lizenznummer')), e.get('Startnummer')))
+        if c:
+            for f in _RECALC_WRITEBACK_FIELDS:
+                e[f] = c.get(f)
+    return computed
+
 def _calculate_timelines(event, round_to_minutes=None):
     settings = _load_settings()
     schedule = event.get('schedule')
