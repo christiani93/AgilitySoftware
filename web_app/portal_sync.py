@@ -565,7 +565,7 @@ def build_result_export_zip(event: dict, final: bool = False) -> bytes:
     Nur Entries mit gespeichertem Ergebnis werden inkludiert.
     """
     try:
-        from utils import _calculate_run_results, _load_settings
+        from utils import recalc_and_store, _load_settings
         settings = _load_settings()
     except Exception:
         settings = {}
@@ -576,7 +576,7 @@ def build_result_export_zip(event: dict, final: bool = False) -> bytes:
     for run in event.get("runs") or []:
         run_id_for_log = run.get("id") or ""
         try:
-            results_all = _calculate_run_results(run, settings)
+            results_all = recalc_and_store(run, settings)
         except Exception:
             results_all = []
 
