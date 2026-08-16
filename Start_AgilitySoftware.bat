@@ -12,6 +12,9 @@ REM 1) Zum Projekt-Root wechseln (Ordner dieser BAT-Datei)
 REM ------------------------------------------------
 cd /d "%~dp0"
 
+REM crashguard scharf schalten (Token via gitignorierte crashguard.local.bat, nur auf Prod-PCs)
+if exist "%~dp0crashguard.local.bat" call "%~dp0crashguard.local.bat"
+
 REM ------------------------------------------------
 REM 2) Autoupdate per git (DEAKTIVIERT)
 REM ------------------------------------------------

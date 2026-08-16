@@ -3,21 +3,20 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-05-30
+Stand: 2026-08-16
 
-## Crashguard-Rollout
+## Crashguard-Rollout — ✅ ERLEDIGT (2026-08-16)
 
-Code (`crashguard.py` im Projekt-Root) ist eingebaut. **Lokales Projekt** — kein
-Server-`.env`-Eintrag, sondern Env-Vars beim Start setzen.
+Client scharf via **gitignorierte `crashguard.local.bat`** (enthält `CRASHGUARD_URL` +
+`CRASHGUARD_TOKEN`, Secret bleibt aus Git). Die Prod-Start-Skripte laden sie per `call`:
+`Start_AgilitySoftware.bat`, `Start_Launcher.bat`, `Start_Ring_1/2/3.bat` (+ die Launcher-
+Generatoren, damit neu-erzeugte Ring-Skripte die Zeile behalten). Dev/Test-Skripte
+(`Start_Ring_dev*.bat`, `Start_Launcher_DEBUG.bat`, `run_tests.bat`, `web_app/start_dev*.bat`)
+setzen `CRASHGUARD_DISABLE=1` → kein Reporting aus Entwicklung/pytest.
 
-- [ ] In den `Start_*.bat`-Skripten (Hauptserver + Ring-PCs) ergaenzen:
-  ```bat
-  set CRASHGUARD_URL=https://admin.z-b.tech
-  set CRASHGUARD_TOKEN=<token-aus-AdminPortal-Setup>
-  ```
-  Betroffen: `Start_AgilitySoftware.bat`, `Start_Launcher.bat`, `Start_Ring_1.bat`, `Start_Ring_2.bat`, `Start_Ring_3.bat`
-- [ ] Achtung: **Offline-first**! Wenn Turnier ohne Internet laeuft, fallen Reports in die lokale Retry-Queue (kein Datenverlust, werden beim naechsten Online-Zustand nachgereicht). Funktion bleibt unbeeintraechtigt.
-- [ ] DEV-PC: `CRASHGUARD_DISABLE=1` setzen, damit Debug/pytest nicht reported
+- **Pro Prod-PC muss `crashguard.local.bat` vorhanden sein** (via OneDrive-Sync, NICHT Git).
+- Offline-first: ohne Internet landen Reports in der lokalen Retry-Queue (kein Datenverlust,
+  werden beim nächsten Online-Zustand nachgereicht).
 
 ## Aktive Entwicklung / offene Testplaene
 

@@ -7,6 +7,8 @@ echo.
 
 REM 1) In den ring_server-Ordner wechseln (relativ zum Projektpfad)
 cd /d "%~dp0"
+REM DEV-Ring (Minimal): crashguard aus
+set CRASHGUARD_DISABLE=1
 cd web_app\ring_server
 
 if not exist "ring_server.py" (

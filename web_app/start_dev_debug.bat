@@ -14,6 +14,7 @@ call flask_env\Scripts\activate.bat
 set APP_RELOAD=0
 set APP_DEBUG=1
 set PYTHONIOENCODING=UTF-8
+set CRASHGUARD_DISABLE=1
 
 echo Starte app.py ohne Reloader ...
 python app.py

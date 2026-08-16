@@ -22,6 +22,9 @@ cd /d "%SCRIPT_DIR%" || (
 )
 set "ROOT_DIR=%SCRIPT_DIR%"
 
+REM crashguard scharf schalten (Token via gitignorierte crashguard.local.bat; wird an gestartete Fenster vererbt)
+if exist "%ROOT_DIR%crashguard.local.bat" call "%ROOT_DIR%crashguard.local.bat"
+
 :menu
 cls
 echo ============================================
@@ -202,6 +205,9 @@ echo set "RING_PORT=%RING_PORT%"
 echo set "PY32=C:\Users\chris\AppData\Local\Programs\Python\Python313-32\python.exe"
 echo.
 echo cd /d "%%~dp0"
+echo.
+echo REM crashguard scharf schalten (nur auf Prod-PCs vorhanden)
+echo if exist "%%~dp0crashguard.local.bat" call "%%~dp0crashguard.local.bat"
 echo.
 echo if not exist "web_app" ^(
 echo   echo FEHLER: Ordner web_app wurde nicht gefunden.

@@ -17,6 +17,8 @@ set "DEFAULT_PKGS32=pyserial"
 rem ===================== Setup / Logging =====================
 chcp 65001 >nul
 cd /d "%~dp0"
+REM DEV-Webserver: crashguard aus (kein Reporting aus der Entwicklungsumgebung)
+set CRASHGUARD_DISABLE=1
 set "_LOG=%~dp0start_dev.log"
 call :log "=== Start: %DATE% %TIME% ==="
 call :log "[INFO] PROJECT_DIR=%CD%"

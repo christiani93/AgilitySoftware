@@ -4,6 +4,9 @@ setlocal
 REM In den Ordner wechseln, in dem diese BAT-Datei liegt (AgilitySoftware)
 cd /d "%~dp0"
 
+REM Tests/pytest: crashguard aus (keine Crash-Reports aus Testlaeufen)
+set CRASHGUARD_DISABLE=1
+
 REM Jetzt in den web_app-Ordner wechseln, wo app.py und flask_env liegen
 cd web_app
 

@@ -26,6 +26,9 @@ REM 1) Zum Projekt-Root wechseln
 REM ------------------------------------------------
 cd /d "%~dp0"
 
+REM DEV-Ring: crashguard aus (kein Reporting aus der Entwicklungsumgebung)
+set CRASHGUARD_DISABLE=1
+
 if not exist "web_app" (
   echo FEHLER: Ordner web_app wurde nicht gefunden.
   echo Pfad: %CD%\web_app

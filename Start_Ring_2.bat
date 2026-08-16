@@ -15,6 +15,9 @@ set "PY32=C:\Users\chris\AppData\Local\Programs\Python\Python313-32\python.exe"
 
 cd /d "%~dp0"
 
+REM crashguard scharf schalten (Token via gitignorierte crashguard.local.bat, nur auf Prod-PCs)
+if exist "%~dp0crashguard.local.bat" call "%~dp0crashguard.local.bat"
+
 if not exist "web_app" (
   echo FEHLER: Ordner web_app wurde nicht gefunden.
   echo Pfad: %CD%\web_app

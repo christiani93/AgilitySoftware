@@ -11,6 +11,9 @@ web_app/data/events.json
 # Claude-Projektdateien
 .claude/
 
+# Lokale Secrets (nie committen) - crashguard-Token je PC
+crashguard.local.bat
+
 # PyInstaller-Builds
 /build/
 /dist/

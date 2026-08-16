@@ -24,6 +24,9 @@ cd /d "%SCRIPT_DIR%" || (
     exit /b 1
 )
 
+REM DEV/Debug-Launcher: crashguard aus (kein Reporting aus der Entwicklungsumgebung)
+set CRASHGUARD_DISABLE=1
+
 :menu
 cls
 echo ============================================
@@ -222,6 +225,9 @@ echo set "RING_PORT=%RING_PORT%"
 echo set "PY32=C:\Users\chris\AppData\Local\Programs\Python\Python313-32\python.exe"
 echo.
 echo cd /d "%%~dp0"
+echo.
+echo REM crashguard scharf schalten (nur auf Prod-PCs vorhanden)
+echo if exist "%%~dp0crashguard.local.bat" call "%%~dp0crashguard.local.bat"
 echo.
 echo if not exist "web_app" ^(
 echo   echo FEHLER: Ordner web_app wurde nicht gefunden.
