@@ -5,6 +5,15 @@
 
 Stand: 2026-08-16
 
+## Offene Branches / Reglement-Sprints
+
+- [ ] Branch `claude/vibrant-swartz` prüfen und mergen — P1-Fixes: manage_runs Ring-Anzeige,
+      live-set, MCT Klasse 1, DNS-Status (deckt sich mit länger offenen P1-Bugs, siehe Memory
+      `master-todo-list`)
+- [ ] SKBS-SM + FMBB-Quali Münsingen fertigstellen (Deadline 05.–06.12.2026, Doppelnutzungs-Event) —
+      siehe AgilityPortal `DEV_PLAN.md` + Memory `project_implementation_plan_dec2026`
+- [ ] Edelweiss Challenge: Berechnungsmodul bauen, sobald Reglement geklärt ist (Deadline 08.–10.01.2027)
+
 ## Crashguard-Rollout — ✅ ERLEDIGT (2026-08-16)
 
 Client scharf via **gitignorierte `crashguard.local.bat`** (enthält `CRASHGUARD_URL` +
