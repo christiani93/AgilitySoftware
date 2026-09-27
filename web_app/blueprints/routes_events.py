@@ -557,6 +557,7 @@ def _apply_eventexport_registrations(event: dict, registrations: list, entities:
                 "kategorie": category,
                 "klasse": class_level,
                 "entries": [],
+                "laufdaten": {},
             }
             runs_by_key[run_key] = run
         is_in_season = bool(_get_first_value(reg, ("is_in_season", "laeufig", "in_season"), False))
@@ -632,6 +633,7 @@ def _apply_eventexport_start_numbers(event: dict, start_numbers_payload) -> dict
         start_no_val = int(start_no) if str(start_no).isdigit() else str(start_no)
         for entry in target_entries:
             entry["Startnummer"] = start_no_val
+            entry["startnummer_offiziell"] = start_no_val
         applied += 1
 
     if locked:
@@ -1296,7 +1298,7 @@ def set_live_run(event_id):
     return render_template('manage_runs.html', event=event, judges=judges, run_judges=run_judges,
                            ring_runs=ring_runs, unassigned=unassigned, is_active=is_active)
 
-@events_bp.route('/edit_run/<event_id>/<uuid:run_id>', methods=['GET', 'POST'])
+@events_bp.route('/edit_run/<event_id>/<run_id>', methods=['GET', 'POST'])
 def edit_run(event_id, run_id):
     run_id = str(run_id)
     events = _load_data(EVENTS_FILE)
@@ -1304,6 +1306,9 @@ def edit_run(event_id, run_id):
     run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None)
     if not event or not run:
         return redirect(url_for('events_bp.events_list'))
+    # Robustheit: aeltere/importierte Laeufe haben evtl. kein laufdaten-Feld,
+    # run_form.html greift aber ungeprueft auf run.laufdaten.* zu -> 500.
+    run.setdefault('laufdaten', {})
     if request.method == 'POST':
         run.update({'name': request.form.get('name')})
         judge_id = request.form.get('judge_id') or request.form.get('richter_id')
@@ -1340,7 +1345,7 @@ def edit_run(event_id, run_id):
     return render_template('run_form.html', event=event, run=run, judges=_load_data(JUDGES_FILE), return_url=request.args.get('return_url'))
 
 # NEU: Echte Lauf-spezifische Teilnehmerverwaltung
-@events_bp.route('/manage_run_participants/<event_id>/<uuid:run_id>', methods=['GET', 'POST'])
+@events_bp.route('/manage_run_participants/<event_id>/<run_id>', methods=['GET', 'POST'])
 def manage_run_participants(event_id, run_id):
     run_id = str(run_id)
     events = _load_data(EVENTS_FILE)

@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         ui.tbody.innerHTML = entries.map(e => `
           <tr>
-            <td>${e.startnummer_offiziell || e.Startnummer_offiziell || ''}</td>
+            <td>${e.startnummer_offiziell || e.Startnummer_offiziell || e.Startnummer || ''}</td>
             <td><code>${e.Lizenznummer || ''}</code></td>
             <td>${e.Hundename || ''}</td>
             <td>${e.Hundefuehrer || ''}</td>

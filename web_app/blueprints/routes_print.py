@@ -265,13 +265,14 @@ def print_participant_list(event_id):
     all_entries, unique_participants_dict = [entry for run in event.get('runs', []) for entry in run.get('entries', [])], {v['Lizenznummer']: v for v in [entry for run in event.get('runs', []) for entry in run.get('entries', [])]}
     handlers_map, dogs_map, participants_with_data = {h['id']: h for h in _load_data('handlers.json')}, {d['Lizenznummer']: d for d in _load_data('dogs.json')}, []
     for lic, entry in unique_participants_dict.items():
-        dog_info, handler_info = dogs_map.get(lic, {}), handlers_map.get(dog_info.get('Hundefuehrer_ID'), {})
+        dog_info = dogs_map.get(lic, {})
+        handler_info = handlers_map.get(dog_info.get('Hundefuehrer_ID'), {})
         entry.update({'Kategorie': dog_info.get('Kategorie'), 'Klasse': dog_info.get('Klasse'), 'Hundefuehrer_Nachname': handler_info.get('Nachname', ''), 'Hundefuehrer_Vorname': handler_info.get('Vorname', '')})
         participants_with_data.append(entry)
     sorted_participants = sorted(participants_with_data, key=lambda x: (x.get('Hundefuehrer_Nachname', 'z').lower(), x.get('Hundefuehrer_Vorname', 'z').lower()))
     return render_template('print/participant_list.html', event=event, participants=sorted_participants)
 
-@print_bp.route('/print/ranking_single/<event_id>/<uuid:run_id>')
+@print_bp.route('/print/ranking_single/<event_id>/<run_id>')
 def print_ranking_single(event_id, run_id):
     """Archiv-Rangliste."""
     run_id = str(run_id)

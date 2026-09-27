@@ -255,7 +255,7 @@ def live_event_dashboard():
         ring_cards=ring_cards,
     )
 
-@live_bp.route('/live/run_entry/<event_id>/<uuid:run_id>')
+@live_bp.route('/live/run_entry/<event_id>/<run_id>')
 def live_run_entry(event_id, run_id):
     run_id = str(run_id)
     events = _load_data('events.json')
@@ -270,7 +270,7 @@ def live_run_entry(event_id, run_id):
     all_entries_json = json.dumps(run.get('entries', []))
     return render_template('live_run_entry.html', event=event, run=run, all_entries_json=all_entries_json, run_id_from_url=run_id, sct_display=sct_display, mct_display=mct_display)
 
-@live_bp.route('/live/save_result/<event_id>/<uuid:run_id>', methods=['POST','GET'])
+@live_bp.route('/live/save_result/<event_id>/<run_id>', methods=['POST','GET'])
 def save_result(event_id, run_id):
     run_id = str(run_id)
 
@@ -390,7 +390,7 @@ def save_result(event_id, run_id):
         return jsonify({"success": False, "message": f"Fehler beim Speichern: {ex}"}), 500
 
 
-@live_bp.route('/live/ranking/<event_id>/<uuid:run_id>')
+@live_bp.route('/live/ranking/<event_id>/<run_id>')
 def show_ranking(event_id, run_id):
     run_id = str(run_id)
     events = _load_data('events.json')
@@ -424,7 +424,7 @@ def announcer_dashboard(event_id):
     ring_numbers = collect_ring_numbers(event)
     ring_views = {ring_no: build_ring_view_model(event, ring_no) for ring_no in ring_numbers}
     return render_template('announcer_dashboard.html', event=event, ring_numbers=ring_numbers, ring_views=ring_views, kiosk_mode=True)
-@live_bp.route('/live/set_active_announcer_run/<event_id>/<uuid:run_id>')
+@live_bp.route('/live/set_active_announcer_run/<event_id>/<run_id>')
 def set_active_announcer_run(event_id, run_id):
     # Setzt den aktiven Lauf für Sprecher/Monitore.
     # Schreibt kanonisch NUR unter "Ring N" in live_state.json und entfernt Alt-Keys.
@@ -869,7 +869,7 @@ def render_ring_monitor_content(ring_number: int):
     return Response(''.join(parts), mimetype='text/html')
 
 
-@live_bp.route('/live/api/update_run_laufdaten/<event_id>/<uuid:run_id>', methods=['POST'])
+@live_bp.route('/live/api/update_run_laufdaten/<event_id>/<run_id>', methods=['POST'])
 def api_update_run_laufdaten(event_id, run_id):
     """Aktualisiert Laufdaten (Parcours, Richter, SCT) direkt vom Ring-PC-Dashboard."""
     run_id = str(run_id)
@@ -928,7 +928,7 @@ def api_update_run_laufdaten(event_id, run_id):
     })
 
 
-@live_bp.route('/live/api/set_participant_status/<event_id>/<uuid:run_id>', methods=['POST'])
+@live_bp.route('/live/api/set_participant_status/<event_id>/<run_id>', methods=['POST'])
 def api_set_participant_status(event_id, run_id):
     """Setzt den Status eines Teilnehmers (DNS = nicht gestartet, a.K. = ausser Konkurrenz)."""
     run_id = str(run_id)

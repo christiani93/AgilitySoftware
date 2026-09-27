@@ -245,7 +245,7 @@
                   {% set secondary = (block.sort or {}).get('secondary', {}) %}
                   <div class="small text-muted">Sortierung: {{ primary.get('field', 'none') }} ({{ primary.get('direction', 'asc') }}) / {{ secondary.get('field', 'none') }} ({{ secondary.get('direction', 'asc') }})</div>
                   {% if block.estimated %}
-                    <div class="small text-muted">Teilnehmer: {{ block.estimated.participants_total or 0 }}, Dauer ca.: {{ (block.estimated.total_seconds or 0) / 60 }} min</div>
+                    <div class="small text-muted">Teilnehmer: {{ block.estimated.participants_total or 0 }}, Dauer ca.: {{ ((block.estimated.total_seconds or 0) / 60) | round(1) }} min</div>
                   {% endif %}
                 {% else %}
                   <div class="small text-muted">Dauer: {{ block.duration_seconds or (rank_announcement_default or 300) }} Sekunden</div>

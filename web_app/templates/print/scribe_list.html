@@ -54,14 +54,15 @@
                 <td>
         {% for run in ordered_runs %}
              <div class="run-container">
+                {% set ld = run.laufdaten or {} %}
                 <h4 class="mt-4 text-center">{{ run.name }}</h4>
                 {# NEU: Platzhalter für Geräteanzahl hinzugefügt (Punkt 1.1) #}
                 <p class="run-meta-info">
                     {{ _('Richter') }}: {{ run.judge_display or '—' }} |
-                    Parcourslänge: {{ run.laufdaten.parcours_laenge or '___' }}m |
-                    Anz. Geräte: {{ run.laufdaten.anzahl_hindernisse or '___' }} <br>
-                    Standardzeit (SCT): {{ run.laufdaten.standardzeit_sct or '___' }}s |
-                    Maximalzeit (MCT): {{ run.laufdaten.maximalzeit_mct or '___' }}s
+                    Parcourslänge: {{ ld.parcours_laenge or '___' }}m |
+                    Anz. Geräte: {{ ld.anzahl_hindernisse or '___' }} <br>
+                    Standardzeit (SCT): {{ ld.standardzeit_sct or '___' }}s |
+                    Maximalzeit (MCT): {{ ld.maximalzeit_mct or '___' }}s
                 </p>
                 <table class="table table-sm">
                     <thead class="table-light">
