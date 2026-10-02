@@ -137,9 +137,24 @@ class RingLauncherUI:
         self.root.destroy()
 
 
+def _set_window_icon(win: "tk.Misc") -> None:
+    # Frozen (--onefile): .ico im _MEIPASS-Root; Dev: unter <projekt-root>/assets/.
+    if hasattr(sys, "_MEIPASS"):
+        ico = os.path.join(sys._MEIPASS, "ring.ico")
+    else:
+        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        ico = os.path.join(root_dir, "assets", "ring.ico")
+    try:
+        if os.path.isfile(ico):
+            win.iconbitmap(ico)
+    except tk.TclError:
+        pass
+
+
 def ask_config() -> dict | None:
     cfg = load_config()
     root = tk.Tk()
+    _set_window_icon(root)
     ui = RingLauncherUI(root, cfg)
     root.mainloop()
     return ui.result

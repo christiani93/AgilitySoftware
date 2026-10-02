@@ -107,12 +107,15 @@ def _save_data(filename, data):
 def debug_tools_enabled() -> bool:
     """Test-/Debug-Werkzeuge (Daten-Generatoren, Test-Importe etc.) aktiv?
 
-    Default AN (Testphase). Vor Produktion: Env ``ENABLE_DEBUG_TOOLS=0`` setzen →
-    Debug-Routes liefern 404, Debug-Buttons werden ausgeblendet. Der reguläre
-    Event-Paket-Export bleibt unabhängig davon erreichbar.
+    Default: in der Python-Umgebung AN (Testphase), in der gepackten EXE
+    (Produktivbetrieb, ``sys.frozen``) AUS → Debug-Routes liefern 404,
+    Debug-Buttons sind ausgeblendet. Mit Env ``ENABLE_DEBUG_TOOLS=1/0`` jederzeit
+    explizit übersteuerbar. Der reguläre Event-Paket-Export bleibt unabhängig erreichbar.
     """
-    return os.environ.get("ENABLE_DEBUG_TOOLS", "1").strip().lower() not in (
-        "0", "false", "no", "off", "")
+    override = os.environ.get("ENABLE_DEBUG_TOOLS")
+    if override is not None:
+        return override.strip().lower() not in ("0", "false", "no", "off", "")
+    return not getattr(sys, "frozen", False)
 
 def _load_settings():
     defaults = {

@@ -53,6 +53,7 @@ class RingDashboard:
 
         self.root = tk.Tk()
         self.root.title(f"{ring_label} - Status")
+        self._set_window_icon()
 
         self._build_widgets()
 
@@ -66,6 +67,19 @@ class RingDashboard:
 
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         self.root.after(100, self._poll)
+
+    def _set_window_icon(self) -> None:
+        import sys
+        if hasattr(sys, "_MEIPASS"):
+            ico = os.path.join(sys._MEIPASS, "ring.ico")
+        else:
+            root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            ico = os.path.join(root_dir, "assets", "ring.ico")
+        try:
+            if os.path.isfile(ico):
+                self.root.iconbitmap(ico)
+        except tk.TclError:
+            pass
 
     def _build_widgets(self):
         # Style fuer grosse Status-Zahlen

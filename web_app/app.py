@@ -286,7 +286,10 @@ def _open_app_window(port=5000):
         width=1280, height=900,
         resizable=True, confirm_close=False,
     )
-    webview.start()  # blockiert bis Fenster geschlossen
+    # Dev: .ico liegt unter <root>/assets/; in der gepackten EXE nicht mitgebündelt
+    # -> winforms nutzt dann das eingebettete EXE-Icon (Spec: icon=).
+    _ico = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "app.ico")
+    webview.start(icon=_ico if os.path.isfile(_ico) else None)  # blockiert bis Fenster geschlossen
     return True
 
 
