@@ -642,10 +642,33 @@ def _apply_eventexport_start_numbers(event: dict, start_numbers_payload) -> dict
     return {"applied": applied, "missing": missing, "locked": locked}
 
 
+def _ensure_portal_judge(judges: list, judge_ais_id, judge_name: str):
+    """Sorgt dafür, dass der Portal-Richter lokal existiert, gibt dessen judge_id zurück.
+
+    Portal exportiert Richter nur als (ais_judge_id, voller Name) — die lokale
+    judges.json kennt kein ais_judge_id-Feld, sondern nutzt die Nummer direkt als 'id'.
+    Fehlt der Eintrag lokal (kein manueller CSV-Import), wird er hier angelegt, damit
+    der Name im Zeitplan erscheint statt "Unbekannt".
+    """
+    if not judge_ais_id:
+        return None
+    jid = str(judge_ais_id)
+    for j in judges:
+        if str(j.get('id')) == jid:
+            return jid
+    name = (judge_name or "").strip()
+    first, _, last = name.partition(" ")
+    judges.append({"id": jid, "firstname": first, "lastname": last})
+    return jid
+
+
 def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -> dict:
     blocks = _eventexport_schedule_blocks(schedule_payload)
     if not blocks:
         return {"blocks_added": 0}
+
+    judges = _load_data(JUDGES_FILE)
+    judges_changed = False
 
     ring_ids = [str(_get_first_value(b, ("ring", "ring_id"), "1")) for b in blocks if isinstance(b, dict)]
     ring_ids = [r for r in ring_ids if r]
@@ -696,6 +719,12 @@ def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -
             discipline  = _normalize_discipline(_get_first_value(block, ("discipline", "laufart"), ""))
             category    = _get_first_value(block, ("category_code", "kategorie", "Kategorie"), "")
             class_level = str(_get_first_value(block, ("class_level", "klasse", "Klasse"), ""))
+            judge_ais_id = _get_first_value(block, ("judge_ais_id",), None)
+            judge_name_in = _get_first_value(block, ("judge_name",), "")
+            judges_before = len(judges)
+            judge_id = _ensure_portal_judge(judges, judge_ais_id, judge_name_in)
+            if len(judges) != judges_before:
+                judges_changed = True
             schedule_block = {
                 "id":             schedule_planner.generate_block_id(),
                 "type":           "run",
@@ -705,7 +734,7 @@ def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -
                 "size_category":  category,
                 "size_categories": [],
                 "classes":        [class_level] if class_level else [],
-                "judge_id":       "",
+                "judge_id":       judge_id or "",
                 "sort": {
                     "primary":   {"field": "none", "direction": "asc"},
                     "secondary": {"field": "none", "direction": "asc"},
@@ -725,6 +754,9 @@ def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -
                 schedule_block["title"] = schedule_planner.generate_run_title(schedule_block)
 
         ring_data.setdefault("blocks", []).append(schedule_block)
+
+    if judges_changed:
+        _save_data(JUDGES_FILE, judges)
 
     schedule_data = schedule_planner.ensure_run_titles(schedule_data)
     schedule_data["meta"]["last_updated"] = datetime.utcnow().isoformat()
