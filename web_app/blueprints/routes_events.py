@@ -19,7 +19,7 @@ from utils import (
     _load_data, _save_data, _decode_csv_file, _get_active_event_id,
     _get_concrete_run_list, _place_entries_with_distance,
     _load_settings, _calculate_timelines, get_category_sort_key, _recalculate_schedule_estimates,
-    resolve_judge_name, _calculate_run_results, find_run_ring_number
+    resolve_judge_name, resolve_judge_id, _calculate_run_results, find_run_ring_number
 )
 from web_app.live.ring_state import init_ring_entry_state
 import planner.schedule_planner as schedule_planner
@@ -2340,7 +2340,7 @@ def api_get_run_details(event_id, run_id):
         'laufart': run.get('laufart'),
         'kategorie': run.get('kategorie'),
         'klasse': run.get('klasse'),
-        'judge_id': run.get('judge_id') or run.get('richter_id') or '',
+        'judge_id': resolve_judge_id(event, run) or '',
         'laufdaten': run.get('laufdaten') or {},
     }
 
