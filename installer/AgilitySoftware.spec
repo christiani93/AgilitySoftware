@@ -9,6 +9,8 @@ Output: dist\\AgilitySoftware.exe (Single-File, mit Konsole)
 """
 import os
 
+from PyInstaller.utils.hooks import collect_all
+
 block_cipher = None
 
 # Projekt-Wurzel: installer/ liegt eine Ebene unter dem Root.
@@ -43,10 +45,24 @@ hiddenimports = [
     "pythonnet",
 ]
 
+# xhtml2pdf + Abhängigkeiten (reportlab/html5lib/... mit Datendateien und
+# dynamischen Submodulen) vollständig einbinden – sonst schlägt die
+# Ranglisten-PDF-Erstellung im EXE mit "xhtml2pdf nicht installiert" fehl.
+binaries = []
+for _pkg in ("xhtml2pdf", "reportlab", "html5lib", "svglib", "pypdf",
+             "arabic_reshaper", "bidi", "pyhanko", "pyhanko_certvalidator"):
+    try:
+        _d, _b, _h = collect_all(_pkg)
+        datas += _d
+        binaries += _b
+        hiddenimports += _h
+    except Exception as _e:
+        print(f"WARN: collect_all({_pkg!r}) fehlgeschlagen: {_e}")
+
 a = Analysis(
     [os.path.join(WEB_APP, "app.py")],
     pathex=[WEB_APP, PROJECT_ROOT],
-    binaries=[],
+    binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],
