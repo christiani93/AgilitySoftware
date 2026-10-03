@@ -1,5 +1,6 @@
 import argparse
 # ring_server.py
+import math
 import sys
 import time
 import requests
@@ -113,9 +114,12 @@ class TimyEvents:
                 stop_s = _time_str_to_seconds(stop_time_tod)
                 
                 if start_s > 0 and stop_s > start_s:
-                    final_time = stop_s - start_s
+                    # Agility-Zeiten werden auf Hundertstel ABGESCHNITTEN,
+                    # nicht gerundet (35.678 -> 35.67). Epsilon schützt gegen
+                    # Float-Ungenauigkeit (z.B. 35.68*100 = 3567.9999...).
+                    final_time = math.floor((stop_s - start_s) * 100 + 1e-9) / 100
                     state['run_status'] = "finished_timing"
-                    state['final_time'] = round(final_time, 2)
+                    state['final_time'] = final_time
 
                     # KORREKTUR: Sendet das ganze Paket an den Ring-PC
                     result_package = {
