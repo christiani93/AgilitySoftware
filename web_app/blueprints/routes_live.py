@@ -930,7 +930,7 @@ def api_update_run_laufdaten(event_id, run_id):
 
 @live_bp.route('/live/api/set_participant_status/<event_id>/<run_id>', methods=['POST'])
 def api_set_participant_status(event_id, run_id):
-    """Setzt den Status eines Teilnehmers (DNS = nicht gestartet, a.K. = ausser Konkurrenz)."""
+    """Setzt den Status eines Teilnehmers (DNS = nicht gestartet, a.K. = ausser Konkurrenz, DIS = disqualifiziert)."""
     run_id = str(run_id)
     data = request.get_json(force=True, silent=True) or {}
     license_nr = data.get('license_number')
@@ -953,6 +953,10 @@ def api_set_participant_status(event_id, run_id):
     elif status == 'a.K.':
         # Ausser Konkurrenz: kein Ergebnis, nur Vermerk
         entry['status_vermerk'] = 'a.K.'
+    elif status == 'DIS':
+        # Disqualifiziert: als Ergebnis speichern (wird in Rangliste als DIS gewertet)
+        entry['result'] = {'zeit': None, 'fehler': 0, 'verweigerungen': 0, 'disqualifikation': 'DIS'}
+        entry['timestamp'] = datetime.now().isoformat()
     else:
         return jsonify({'success': False, 'message': f'Unbekannter Status: {status}'}), 400
 
