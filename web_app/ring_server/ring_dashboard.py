@@ -21,6 +21,7 @@ from __future__ import annotations
 import os
 import time
 import tkinter as tk
+import webbrowser
 from tkinter import ttk
 
 
@@ -115,6 +116,9 @@ class RingDashboard:
                                             fg="#888")
         self.server_status_label.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(4, 0))
 
+        ttk.Button(head, text="Ring-PC öffnen", command=self._open_ring_pc).grid(
+            row=3, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+
         # --- Status (gross) ---
         st = ttk.LabelFrame(main, text="Status", padding=8)
         st.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
@@ -155,6 +159,11 @@ class RingDashboard:
         self.refusals_var = tk.StringVar(value="0")
         _counter(cnt, "Fehler", self.faults_var).grid(row=0, column=0, sticky="ew", padx=(0, 4))
         _counter(cnt, "Verweigerungen", self.refusals_var).grid(row=0, column=1, sticky="ew", padx=(4, 0))
+
+    def _open_ring_pc(self) -> None:
+        # Die Ring-PC-Seite wird vom Hauptserver ausgeliefert, nicht vom Ring-Server selbst.
+        url = f"http://{self.server_ip}:{self.server_port}/ring_pc_dashboard/{self.ring_number}"
+        webbrowser.open(url)
 
     def _format_starter(self) -> str:
         s = self.state.get("current_starter") or {}
