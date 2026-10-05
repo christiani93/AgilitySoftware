@@ -228,9 +228,10 @@ def generate_run_title(block: Dict) -> str:
     run_type_label = {
         "agility": "Agility",
         "jumping": "Jumping",
+        "open": "Open",
     }.get(run_type, "Other")
 
-    prefix = "Open " if run_format == "open" else ""
+    prefix = "Open " if run_format == "open" and run_type != "open" else ""
     class_part = "+".join(classes) if classes else ""
 
     category_label = None

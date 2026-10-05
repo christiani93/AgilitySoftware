@@ -369,7 +369,7 @@ def _normalize_discipline(value: str) -> str:
 
 def _normalize_timing_run_type(value: str) -> str:
     value = _norm(value).lower()
-    if value in {"agility", "jumping"}:
+    if value in {"agility", "jumping", "open"}:
         return value
     return "other"
 
