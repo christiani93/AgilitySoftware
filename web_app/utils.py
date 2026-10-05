@@ -30,16 +30,26 @@ def get_category_sort_key(category_name):
     return CATEGORY_SORT_ORDER.get(category_name, 99)
 
 
+def _starts_at_end(entry: dict) -> bool:
+    """
+    Gemeinsames Prädikat für "ans Ende starten": läufig aus dem Portal-Sync
+    (is_in_season) ODER manuell in der Software gesetzt (start_last/start_at_end).
+    Beide Sortierpfade (Startliste und abstandsbewusste Platzierung) müssen
+    dasselbe Feld-Set kennen, sonst geht die Regel je nach Ansicht verloren.
+    """
+    return bool(entry.get("is_in_season") or entry.get("start_last") or entry.get("start_at_end"))
+
+
 def sort_entries_for_startlist(entries: list) -> list:
     """
     Sortiert Entries für die Startliste:
       1. Nach Startnummer aufsteigend
-      2. Läufige Hündinnen (is_in_season=True) immer ans Ende
+      2. Läufige/"am Schluss starten"-Einträge immer ans Ende
     """
     return sorted(
         entries or [],
         key=lambda e: (
-            bool(e.get("is_in_season", False)),   # False (normal) vor True (läufig)
+            _starts_at_end(e),   # False (normal) vor True (ans Ende)
             _to_int(e.get("Startnummer"), default=999999),
         )
     )
@@ -279,8 +289,8 @@ def _get_run_list_from_schedule(event, schedule):
     return ordered_runs
 
 def _place_entries_with_distance(entries, distance):
-    start_at_end_entries = [e for e in entries if e.get('start_at_end') or e.get('start_last')]
-    regular_entries = [e for e in entries if not e.get('start_at_end')]
+    start_at_end_entries = [e for e in entries if _starts_at_end(e)]
+    regular_entries = [e for e in entries if not _starts_at_end(e)]
     
     final_order, handler_last_pos, deferred_entries = [], {}, []
     all_to_place = list(regular_entries)
