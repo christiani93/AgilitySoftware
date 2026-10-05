@@ -332,7 +332,7 @@ def tkamo_export(event_id):
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';')
     
-    header = ['Turniernummer', 'Lizenznummer', 'Hundename', 'Hundefuehrer', 'Club', 'Kategorie', 'Klasse', 'Rang', 'Laufzeit', 'Geschwindigkeit', 'Fehler', 'Verweigerung', 'Zeitfehler', 'Gesamtfehler', 'Disqualifiziert', 'Lauf', 'Richter', 'Parcourslaenge', 'Geraetezahl', 'Standardzeit', 'Maximalzeit', 'Datum']
+    header = ['Turniernummer', 'Lizenznummer', 'Hundename', 'Hundefuehrer', 'Club', 'Kategorie', 'Klasse', 'Rang', 'Laufzeit', 'Geschwindigkeit', 'Fehler', 'Verweigerung', 'Zeitfehler', 'Gesamtfehler', 'Disqualifiziert', 'Lauf', 'Richter', 'Parcourslaenge', 'Geraetezahl', 'Standardzeit', 'Maximalzeit', 'Datum', 'ASMV Rang', 'ASMV Team', 'ASMV Punkte']
     writer.writerow(header)
     
     all_runs = event.get('runs', [])
@@ -379,7 +379,12 @@ def tkamo_export(event_id):
                 run.get('laufdaten',{}).get('anzahl_hindernisse', ''),
                 run.get('laufdaten',{}).get('standardzeit_sct_berechnet', ''),
                 run.get('laufdaten',{}).get('maximalzeit_mct_berechnet', ''),
-                datetime.strptime(event.get('Datum'), '%Y-%m-%d').strftime('%d.%m.%Y')
+                datetime.strptime(event.get('Datum'), '%Y-%m-%d').strftime('%d.%m.%Y'),
+                # ASMV-Spalten (Stafette): in AgilitySoftware (noch) nicht erfasst,
+                # bleiben wie in der offiziellen TKAMO-Vorlage leer.
+                '',  # ASMV Rang
+                '',  # ASMV Team
+                '',  # ASMV Punkte
             ]
             writer.writerow(row)
             

@@ -930,7 +930,7 @@ def api_update_run_laufdaten(event_id, run_id):
 
 @live_bp.route('/live/api/set_participant_status/<event_id>/<run_id>', methods=['POST'])
 def api_set_participant_status(event_id, run_id):
-    """Setzt den Status eines Teilnehmers (DNS = nicht gestartet, a.K. = ausser Konkurrenz, DIS = disqualifiziert)."""
+    """Setzt den Status eines Teilnehmers (DNS = nicht gestartet, DIS = disqualifiziert)."""
     run_id = str(run_id)
     data = request.get_json(force=True, silent=True) or {}
     license_nr = data.get('license_number')
@@ -950,13 +950,23 @@ def api_set_participant_status(event_id, run_id):
         # Nicht gestartet: als Ergebnis speichern (wird in Rangliste als DNS gewertet)
         entry['result'] = {'zeit': None, 'fehler': 0, 'verweigerungen': 0, 'disqualifikation': 'DNS'}
         entry['timestamp'] = datetime.now().isoformat()
-    elif status == 'a.K.':
-        # Ausser Konkurrenz: kein Ergebnis, nur Vermerk
-        entry['status_vermerk'] = 'a.K.'
     elif status == 'DIS':
-        # Disqualifiziert: als Ergebnis speichern (wird in Rangliste als DIS gewertet)
+        # Disqualifiziert: als Ergebnis speichern (wird in Rangliste als DIS gewertet).
+        # Unterbricht den laufenden Lauf, daher current_starter/next_starter wie beim
+        # regulären Speichern weiterrücken (analog save_result).
         entry['result'] = {'zeit': None, 'fehler': 0, 'verweigerungen': 0, 'disqualifikation': 'DIS'}
         entry['timestamp'] = datetime.now().isoformat()
+
+        entries_sorted = sorted(
+            run.get('entries', []),
+            key=lambda e: _to_int(e.get('Startnummer'), default=999999)
+        )
+        unfinished = [
+            e for e in entries_sorted
+            if not (e.get('result') and (e['result'].get('zeit') or e['result'].get('disqualifikation')))
+        ]
+        run['current_starter'] = unfinished[0] if unfinished else {}
+        run['next_starter'] = unfinished[1] if len(unfinished) > 1 else {}
     else:
         return jsonify({'success': False, 'message': f'Unbekannter Status: {status}'}), 400
 

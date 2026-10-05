@@ -408,8 +408,7 @@
               <div class="w-48 text-right font-bold text-sm text-gray-700">${statusText}</div>
               <button onclick="window.appActions.editResult('${entry.Lizenznummer}')" class="bg-blue-200 text-black py-1 px-2 rounded text-xs hover:bg-blue-300" title="Manuelle Korrektur"><i class="fas fa-edit"></i></button>
               <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}','DNS')" class="bg-orange-200 text-black py-1 px-2 rounded text-xs hover:bg-orange-300" ${disabled} title="Nicht gestartet">DNS</button>
-              <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}','a.K.')" class="bg-gray-300 text-black py-1 px-2 rounded text-xs hover:bg-gray-400" ${disabled} title="Ausser Konkurrenz">a.K.</button>
-              <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}','DIS')" class="bg-red-200 text-black py-1 px-2 rounded text-xs hover:bg-red-300" ${disabled} title="Disqualifiziert">DIS</button>
+              <button onclick="window.appActions.setParticipantStatus('${entry.Lizenznummer}','DIS')" class="bg-red-200 text-black py-1 px-2 rounded text-xs hover:bg-red-300" ${disabled} title="Disqualifiziert – unterbricht den laufenden Lauf">DIS</button>
               <button onclick="window.appActions.reassignStarter('${entry.Lizenznummer}')" class="bg-blue-400 text-white font-bold py-1 px-2 rounded text-sm hover:bg-blue-500" ${disabled} title="Zeit diesem Starter zuweisen (kein Timer-Reset)"><i class="fas fa-user-check"></i></button>
               <button onclick="window.appActions.setStarterReady('${entry.Lizenznummer}')" class="bg-yellow-300 text-black font-bold py-1 px-3 rounded text-sm hover:bg-yellow-400" ${disabled}>Bereit</button>
             </div>
@@ -539,8 +538,16 @@
         })
         .then(r => r.ok ? r.json() : Promise.reject(r.status))
         .then(data => {
-          if (data.success) fetchRunDetails();
-          else alert('Fehler: ' + (data.message || 'Unbekannt'));
+          if (data.success) {
+            fetchRunDetails();
+            // DIS unterbricht den laufenden Lauf: TIMY-Timer-Status auf dem Ring-Server zurücksetzen,
+            // damit der nächste Starter sauber auf "Bereit" gesetzt werden kann.
+            if (status === 'DIS' && state.localSocket && state.localSocket.connected) {
+              state.localSocket.emit('reset_current_run', {});
+            }
+          } else {
+            alert('Fehler: ' + (data.message || 'Unbekannt'));
+          }
         })
         .catch(() => alert('Netzwerkfehler.'));
       }
