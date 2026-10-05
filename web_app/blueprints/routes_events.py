@@ -24,6 +24,7 @@ from utils import (
 from web_app.live.ring_state import init_ring_entry_state
 import planner.schedule_planner as schedule_planner
 from extensions import socketio
+from blueprints.routes_team_challenge import ensure_team_challenge_runs
 
 events_bp = Blueprint('events_bp', __name__, template_folder='../templates', url_prefix='/events')
 
@@ -1143,6 +1144,10 @@ def create_event():
                         "laufdaten": {}
                     }
                     new_event['runs'].append(new_run)
+        if new_event['Veranstaltungsart'] == 'Team-Challenge':
+            # Team-Challenge nutzt keine Kategorie×Klasse-Matrix, sondern 4 fixe
+            # Läufe (Agility/Jumping × Soft/Expert) — siehe routes_team_challenge.py
+            ensure_team_challenge_runs(new_event)
         events = _load_data(EVENTS_FILE)
         events.append(new_event)
         _save_data(EVENTS_FILE, events)
@@ -1155,7 +1160,7 @@ def create_event():
         event={},
         today=date.today().isoformat(),
         is_edit=False,
-        event_types=["Meeting", "Meisterschaft", "SM Einzel", "SKBS-SM", "BCCS-SM"],
+        event_types=["Meeting", "Meisterschaft", "SM Einzel", "SKBS-SM", "BCCS-SM", "Team-Challenge"],
         possible_classes=["1", "2", "3", "Oldie"],
         possible_categories=["Small", "Medium", "Intermediate", "Large"]
     )
@@ -1186,7 +1191,7 @@ def edit_event(event_id):
                            event=event,
                            clubs=_load_data(CLUBS_FILE),
                            is_edit=True,
-                           event_types=["Meeting", "Meisterschaft", "SM Einzel", "SKBS-SM", "BCCS-SM"])
+                           event_types=["Meeting", "Meisterschaft", "SM Einzel", "SKBS-SM", "BCCS-SM", "Team-Challenge"])
 
 @events_bp.route('/delete/<event_id>', methods=['POST'])
 def delete_event(event_id):

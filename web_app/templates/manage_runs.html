@@ -36,6 +36,14 @@
         <i class="fas fa-trophy me-2"></i>BCCS-SM Auswertung
     </a>
     {% endif %}
+    {% if event.get('Veranstaltungsart') == 'Team-Challenge' %}
+    <a href="{{ url_for('team_challenge_bp.team_challenge_dashboard', event_id=event.id) }}" class="btn btn-primary">
+        <i class="fas fa-trophy me-2"></i>Team-Challenge Auswertung
+    </a>
+    <a href="{{ url_for('team_challenge_bp.team_challenge_config', event_id=event.id) }}" class="btn btn-outline-primary">
+        <i class="fas fa-users me-2"></i>Teams verwalten
+    </a>
+    {% endif %}
     <a href="{{ url_for('fmbb_bp.fmbb_dashboard', event_id=event.id) }}" class="btn {% if event.get('fmbb_quali_active') %}btn-primary{% else %}btn-outline-primary{% endif %}">
         <i class="fas fa-flag me-2"></i>FMBB-Quali{% if event.get('fmbb_quali_active') %} <span class="badge bg-light text-dark ms-1">aktiv</span>{% endif %}
     </a>

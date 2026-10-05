@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% block title %}Team-Challenge – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">🤝 Team-Challenge</h1>
+    <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('team_challenge_bp.team_challenge_config', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-users me-1"></i>Teams verwalten ({{ teams_count }})
+    </a>
+    <a href="{{ url_for('team_challenge_bp.team_challenge_export_csv', event_id=event.id) }}" class="btn btn-outline-success">
+      <i class="fas fa-file-csv me-1"></i>CSV Export
+    </a>
+    <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Zurück zur Übersicht
+    </a>
+  </div>
+</div>
+
+{% if not ordered_groups %}
+<div class="alert alert-info">
+  <i class="fas fa-info-circle me-2"></i>
+  Noch keine Teams erfasst. Gehe zu <strong>„Teams verwalten"</strong> und bilde
+  Paarungen aus 2 bereits erfassten Startern derselben Grösse.
+</div>
+{% endif %}
+
+<div class="row g-3">
+  {% for kat, lvl in ordered_groups %}
+  {% set rows = grouped[(kat, lvl)] %}
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+          <span class="badge bg-primary me-2">{{ kat }}</span>
+          <span class="text-muted">{{ level_labels[lvl] }}</span>
+        </h5>
+        <span class="text-muted small">{{ rows | length }} Team(s)</span>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead>
+            <tr>
+              <th>Rang</th><th>Team</th>
+              <th class="text-end">Fehler</th><th class="text-end">Zeit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+            <tr class="{% if r.status == 'ok' and r.rank == 1 %}table-success{% elif r.status == 'incomplete' %}table-warning{% elif r.status == 'no_entries' %}text-muted{% endif %}">
+              <td>{{ r.rank if r.rank is not none else '—' }}</td>
+              <td>
+                {{ r.team_name or (r.agility.dog_name + ' / ' + r.jumping.dog_name) }}
+                <div class="small text-muted">
+                  🏃 {{ r.agility.dog_name }} ({{ r.agility.handler_name }}) ·
+                  🦘 {{ r.jumping.dog_name }} ({{ r.jumping.handler_name }})
+                </div>
+              </td>
+              <td class="text-end">
+                {% if r.status != 'no_entries' %}{{ r.total_faults | round(1) }}{% else %}—{% endif %}
+              </td>
+              <td class="text-end">
+                {% if r.status != 'no_entries' %}{{ r.total_time | round(2) }}s{% else %}—{% endif %}
+              </td>
+              <td>
+                {% if r.status == 'ok' %}<span class="badge bg-success">OK</span>
+                {% elif r.status == 'incomplete' %}<span class="badge bg-warning text-dark">unvollständig</span>
+                {% elif r.status == 'pending' %}<span class="badge bg-secondary">läuft noch</span>
+                {% else %}<span class="badge bg-light text-dark">keine Zuordnung</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
