@@ -27,12 +27,15 @@ Datenformat-Erwartungen am `event`-Dict:
     (Grösse ist hier bewusst NICHT der Lauf-Filter — Grössen sind im selben Lauf
     gemischt, nur die Rangliste wird nach Grösse gesplittet).
 
-Offene Fragen (siehe Konzept §10, Default-Annahmen bis Bestätigung durch
-Veranstalter):
-  - DIS/Ausfall eines Mitglieds → Team zählt unvollständig weiter (Sentinel-
-    Fehler für den fehlenden Lauf), nicht automatisch Totalausschluss.
-  - "Fehlerpunkte" = `fehler_total` (inkl. Zeitfehler), analog allen anderen
-    Formaten in dieser Codebase.
+Bestätigte Reglement-Regeln (Veranstalter-Entscheid 2026-10-05, Konzept §10):
+  - DIS/Ausfall eines Mitglieds → Team zählt unvollständig weiter, wird aber
+    HINTER allen Teams ohne DIS gewertet: der betroffene Lauf trägt den
+    Sentinel-Fehler (999) bei, wodurch das Team ans Gruppenende rutscht
+    (zwei DIS schlechter als eines). Kein automatischer Totalausschluss.
+  - "Fehlerpunkte" = `fehler_total` (inkl. Zeitfehler) — Zeitfehler werden
+    ganz normal eingerechnet, analog allen anderen Formaten in dieser Codebase.
+    (Die Standardzeit wird voraussichtlich so hoch gesetzt, dass praktisch
+    keine Zeitfehler anfallen — das ändert aber nichts an der Berechnung.)
 """
 from __future__ import annotations
 

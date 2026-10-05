@@ -188,6 +188,61 @@ def test_dis_eines_mitglieds_team_zaehlt_unvollstaendig_weiter():
     assert t1["rank"] < t2["rank"]
 
 
+def test_dis_team_immer_hinter_sauberem_team_auch_bei_vielen_fehlern():
+    """Reglement-Entscheid 2026-10-05: ein Team mit DIS wird hinter ALLEN Teams
+    ohne DIS gewertet — auch wenn das saubere Team selbst viele Fehler hat."""
+    runs = [
+        _run("Agility", "soft", [
+            _entry("A1", fehler_total=45, zeit_total=90.0),            # viele Fehler, aber sauber
+            _entry("A2", fehler_total=999, zeit_total=999.99, dis="DIS"),
+        ]),
+        _run("Jumping", "soft", [
+            _entry("J1", fehler_total=40, zeit_total=85.0),            # viele Fehler, aber sauber
+            _entry("J2", fehler_total=0, zeit_total=18.0),
+        ]),
+    ]
+    teams = [
+        _team("T_sauber", "Large", "soft", "A1", "J1"),   # 85 Fehler, aber kein DIS
+        _team("T_dis", "Large", "soft", "A2", "J2"),      # ein Mitglied DIS
+    ]
+    results = calculate_team_challenge_results(_event(teams, runs))
+    sauber = next(r for r in results if r["external_id"] == "T_sauber")
+    dis = next(r for r in results if r["external_id"] == "T_dis")
+
+    assert sauber["total_faults"] == 85
+    assert dis["total_faults"] >= 999
+    assert sauber["rank"] == 1
+    assert dis["rank"] == 2
+
+
+def test_zeitfehler_sind_teil_der_fehlerpunkte():
+    """Reglement-Entscheid 2026-10-05: Zeitfehler werden ganz normal in die
+    Fehlerpunkte eingerechnet. `fehler_total` (von der Lauf-Berechnung geliefert)
+    enthält Parcours- UND Zeitfehler und wird hier 1:1 als Fehlerbeitrag summiert."""
+    runs = [
+        _run("Agility", "soft", [
+            _entry("A1", fehler_total=0, zeit_total=30.0),             # 0 Fehler
+            _entry("A2", fehler_total=3, zeit_total=35.0),             # z.B. 3 Zeitfehler
+        ]),
+        _run("Jumping", "soft", [
+            _entry("J1", fehler_total=0, zeit_total=20.0),
+            _entry("J2", fehler_total=0, zeit_total=20.0),
+        ]),
+    ]
+    teams = [
+        _team("T1", "Large", "soft", "A1", "J1"),   # 0 Fehler
+        _team("T2", "Large", "soft", "A2", "J2"),   # 3 Fehler (Zeitfehler zählen)
+    ]
+    results = calculate_team_challenge_results(_event(teams, runs))
+    t1 = next(r for r in results if r["external_id"] == "T1")
+    t2 = next(r for r in results if r["external_id"] == "T2")
+
+    assert t1["total_faults"] == 0
+    assert t2["total_faults"] == 3   # Zeitfehler fließen in die Fehlersumme ein
+    assert t1["rank"] == 1
+    assert t2["rank"] == 2
+
+
 def test_team_ohne_lauf_zuordnung_bleibt_ohne_rang():
     runs = [
         _run("Agility", "soft", [_entry("A1", 0, 30.0)]),
