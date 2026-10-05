@@ -131,16 +131,16 @@
                 <tbody>
                     {% for entry in data.rankings %}
                         <tr class="
-                            {% if entry.rank == 'DIS' %}
+                            {% if entry.platz is not defined %}
                                 dis-row
-                            {% elif entry.rank is number and entry.rank > 3 %}
+                            {% elif entry.platz is number and entry.platz > 3 %}
                                 extra-row
                             {% endif %}
                         ">
-                            <td class="rank">{{ entry.rank }}</td>
+                            <td class="rank">{{ entry.platz or entry.disqualifikation or (entry.result.disqualifikation if entry.result) or '' }}</td>
                             <td>{{ entry.Hundefuehrer }}</td>
                             <td>{{ entry.Hundename }}</td>
-                            <td class="faults">{{ '%.2f'|format(entry.total_faults) if entry.total_faults is number else entry.total_faults }}</td>
+                            <td class="faults">{{ '%.2f'|format(entry.fehler_total|float) if entry.fehler_total is defined and entry.fehler_total < 998 else '' }}</td>
                             <td class="time">{{ '%.2f'|format(entry.result.zeit|float) if entry.result and entry.result.zeit else '-' }}</td>
                         </tr>
                     {% endfor %}
