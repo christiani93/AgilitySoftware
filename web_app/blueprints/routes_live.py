@@ -952,23 +952,25 @@ def api_set_participant_status(event_id, run_id):
         entry['timestamp'] = datetime.now().isoformat()
     elif status == 'DIS':
         # Disqualifiziert: als Ergebnis speichern (wird in Rangliste als DIS gewertet).
-        # Unterbricht den laufenden Lauf, daher current_starter/next_starter wie beim
-        # regulären Speichern weiterrücken (analog save_result).
         entry['result'] = {'zeit': None, 'fehler': 0, 'verweigerungen': 0, 'disqualifikation': 'DIS'}
         entry['timestamp'] = datetime.now().isoformat()
-
-        entries_sorted = sorted(
-            run.get('entries', []),
-            key=lambda e: _to_int(e.get('Startnummer'), default=999999)
-        )
-        unfinished = [
-            e for e in entries_sorted
-            if not (e.get('result') and (e['result'].get('zeit') or e['result'].get('disqualifikation')))
-        ]
-        run['current_starter'] = unfinished[0] if unfinished else {}
-        run['next_starter'] = unfinished[1] if len(unfinished) > 1 else {}
     else:
         return jsonify({'success': False, 'message': f'Unbekannter Status: {status}'}), 400
+
+    # DNS wie DIS beenden den Eintrag: current_starter/next_starter weiterrücken
+    # (analog save_result), damit der aktive Läufer nicht auf dem gesetzten
+    # Teilnehmer hängen bleibt. unfinished filtert Einträge mit Zeit ODER
+    # disqualifikation (DNS/DIS) heraus, ist also für beide Status korrekt.
+    entries_sorted = sorted(
+        run.get('entries', []),
+        key=lambda e: _to_int(e.get('Startnummer'), default=999999)
+    )
+    unfinished = [
+        e for e in entries_sorted
+        if not (e.get('result') and (e['result'].get('zeit') or e['result'].get('disqualifikation')))
+    ]
+    run['current_starter'] = unfinished[0] if unfinished else {}
+    run['next_starter'] = unfinished[1] if len(unfinished) > 1 else {}
 
     _save_data('events.json', events)
 
