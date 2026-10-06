@@ -206,6 +206,34 @@ def ko_final_detail(event_id, final_id):
     )
 
 
+@ko_cup_bp.get('/final/<event_id>/<final_id>/print')
+def ko_final_print(event_id, final_id):
+    """Druckansicht: Duell-Laufzettel (mit Ring-/Startnummer-Zuteilung),
+    Bracket-Übersicht und Endrangliste. Browser-Druck (wie übrige Drucksachen)."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+    final = _get_final(event, final_id)
+    if not final:
+        abort(404)
+
+    # Finalisten in Losnummern-Reihenfolge (unglost ans Ende)
+    participants = sorted(
+        final.get('participants', []),
+        key=lambda p: (p.get('draw_number') is None, p.get('draw_number') or 0),
+    )
+    return render_template(
+        'ko_cup_print.html',
+        event=event,
+        final=final,
+        participants=participants,
+        source_labels=SOURCE_LABELS,
+        status=ko_cup.bracket_status(final),
+        bracket=_bracket_view(final),
+        results=_results_view(final),
+    )
+
+
 @ko_cup_bp.post('/final/<event_id>/<final_id>')
 def ko_final_post(event_id, final_id):
     events, event = _get_event(event_id)
