@@ -132,6 +132,129 @@ def build_hcs_demo():
 
 
 # ---------------------------------------------------------------------------
+# KO-Cup Quali-Demo MIT Läufen (für den "Finalisten ableiten"-Button)
+# ---------------------------------------------------------------------------
+# Anders als DEMO_HCS (Finals direkt befüllt) trägt dieses Event echte
+# Quali-Läufe: Tunnellauf Fr (über Klassen kombiniert), Sa Agility/Jumping je
+# Klasse. Damit ist ko_cup_config → "Jetzt ableiten" durchklickbar.
+
+def _q_run(laufart, kategorie, klasse, entries, sct="40"):
+    """Ein Quali-Lauf. Grosszügige manuelle SCT (nur für Kl.1 wirksam; Kl.2/3
+    leiten die SCT aus der schnellsten Zeit ab) → realistische kleine
+    Zeitfehler, Rangfolge deterministisch über (Fehler, Zeit)."""
+    return {
+        "id": str(uuid.uuid4()),
+        "name": f"{laufart} {kategorie} Kl.{klasse}",
+        "laufart": laufart,
+        "kategorie": kategorie,
+        "klasse": str(klasse),
+        "entries": entries,
+        "laufdaten": {"standardzeit_sct": sct, "auto_dis_on_mct_exceeded": False},
+    }
+
+
+def build_hcs_quali_demo():
+    # Doppelqualifikanten (qualifizieren in mehreren Läufen → Dedup/Nachrücken):
+    #   L31 "Nightmare" (Large Kl.3) gewinnt Tunnellauf UND Sa-Agility.
+    #   S31 "Shadow"    (Small Kl.3) gewinnt Tunnellauf UND Sa-Jumping.
+    runs = []
+
+    # ── Freitag Tunnellauf — pro Klasse ein Lauf, Ableitung kombiniert sie ──
+    runs += [
+        _q_run("Tunnellauf", "Large", 1, [
+            _entry("L11", "Casper",    "Anna Keller",  "25.00"),
+            _entry("L12", "Bones",     "Beat Müller",  "26.20"),
+            _entry("L13", "Specter",   "Clara Rossi",  "27.10", fehler=1),
+        ]),
+        _q_run("Tunnellauf", "Large", 2, [
+            _entry("L21", "Wraith",    "Dario Weber",  "24.60"),
+            _entry("L22", "Phantom",   "Eva Steiner",  "25.40"),
+        ]),
+        _q_run("Tunnellauf", "Large", 3, [
+            _entry("L31", "Nightmare", "Finn Brun",    "23.00"),
+            _entry("L32", "Reaper",    "Gina Hofer",   "24.10"),
+            _entry("L33", "Banshee",   "Hans Graf",    "26.90"),
+        ]),
+        _q_run("Tunnellauf", "Small", 1, [
+            _entry("S11", "Mini-Bat",  "Ida Meier",    "30.00"),
+            _entry("S12", "Pebble",    "Jonas Vogt",   "31.20"),
+        ]),
+        _q_run("Tunnellauf", "Small", 3, [
+            _entry("S31", "Shadow",    "Kim Lang",     "28.00"),
+            _entry("S32", "Gremlin",   "Lea Frei",     "29.60"),
+        ]),
+    ]
+
+    # ── Samstag Agility — je Klasse getrennt (split_by_class=True) ──
+    runs += [
+        _q_run("Agility", "Large", 1, [
+            _entry("L11", "Casper",    "Anna Keller",  "28.00"),  # schon via Tunnel → rückt nach
+            _entry("L12", "Bones",     "Beat Müller",  "28.90"),
+            _entry("L14", "Ghoul",     "Mia Studer",   "30.10"),
+        ]),
+        _q_run("Agility", "Large", 3, [
+            _entry("L31", "Nightmare", "Finn Brun",    "27.00"),  # Doppelquali → Dedup
+            _entry("L35", "Mortis",    "Nico Frei",    "28.40"),
+            _entry("L36", "Hex",       "Ole Bianchi",  "29.20"),
+        ]),
+    ]
+
+    # ── Samstag Jumping — je Klasse getrennt ──
+    runs += [
+        _q_run("Jumping", "Small", 3, [
+            _entry("S31", "Shadow",    "Kim Lang",     "26.00"),  # Doppelquali → Dedup
+            _entry("S33", "Imp",       "Pia Lehmann",  "27.30"),
+            _entry("S34", "Sprite",    "Rolf Senn",    "28.10", fehler=1),
+        ]),
+    ]
+
+    # Manueller Finalist (Titelverteidiger) — bleibt bei Ableitung erhalten.
+    title_defender = {
+        "id": "p_title_L",
+        "dog_name": "Count Dracula",
+        "handler_name": "Vorjahressieger",
+        "license_no": "L99",
+        "start_number": 1,
+        "seeding_rank": None,
+        "draw_number": None,
+        "source": "title_defender",
+    }
+
+    event = {
+        "id": "DEMO_HCS_QUALI",
+        "external_id": None,
+        "Bezeichnung": "DEMO Halloween Cup (Quali-Läufe → Ableiten)",
+        "Datum": "2026-10-31",
+        "VeranstalterClubNr": "9999",
+        "Turniernummer": "DEMO-HCS-Q",
+        "num_rings": 2,
+        "runs": runs,
+        "run_order": [],
+        "start_number_schema": {},
+        "start_times_by_ring": {"ring_1": "09:00", "ring_2": "09:00"},
+        "Veranstaltungsart": "",
+        "ko_cup": {
+            "enabled": True,
+            # Finals bewusst vorbereitet: Large mit manuellem Titelverteidiger,
+            # damit die Erhaltung sichtbar ist. Rest legt die Ableitung an.
+            "finals": [
+                {
+                    "id": ko_cup._gen_id("final"),
+                    "group_label": "Large",
+                    "category_code": "Large",
+                    "class_level": None,
+                    "participants": [title_defender],
+                    "matchups": [],
+                    "results": [],
+                    "is_published": False,
+                },
+            ],
+        },
+    }
+    return event
+
+
+# ---------------------------------------------------------------------------
 # Team-Challenge (Edelweiss) Demo
 # ---------------------------------------------------------------------------
 
@@ -259,10 +382,11 @@ def main():
     else:
         events = []
 
-    demo_ids = {"DEMO_HCS", "DEMO_EDELWEISS"}
+    demo_ids = {"DEMO_HCS", "DEMO_HCS_QUALI", "DEMO_EDELWEISS"}
     events = [e for e in events if e.get("id") not in demo_ids]
 
     events.append(build_hcs_demo())
+    events.append(build_hcs_quali_demo())
     events.append(build_edelweiss_demo())
 
     with open(EVENTS_PATH, "w", encoding="utf-8") as fh:
