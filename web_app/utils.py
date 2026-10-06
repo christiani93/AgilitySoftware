@@ -137,7 +137,8 @@ def _load_settings():
             "Intermediate-3": 2300, "Intermediate-2": 2200, "Intermediate-1": 2100, "Intermediate-Oldie": 2400,
             "Medium-3": 3300, "Medium-2": 3200, "Medium-1": 3100, "Medium-Oldie": 3400,
             "Small-3": 4300, "Small-2": 4200, "Small-1": 4100, "Small-Oldie": 4400
-        }
+        },
+        "download_dir": ""
     }
     settings = _load_data('settings.json', defaults)
     for key, value in defaults.items():

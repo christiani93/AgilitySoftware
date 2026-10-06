@@ -204,6 +204,17 @@
             </div>
         </div>
 
+        <div class="card mb-4">
+            <div class="card-header"><h5>📁 {{ _('Download-Ordner') }}</h5></div>
+            <div class="card-body">
+                <label for="download_dir" class="form-label">{{ _('Zielordner für Exporte (CSV, PDF, Event-Paket)') }}</label>
+                <input type="text" class="form-control" id="download_dir" name="download_dir"
+                       placeholder="z.B. C:\Users\chris\Documents\Agility-Exporte"
+                       value="{{ settings.get('download_dir', '') }}">
+                <div class="form-text">{{ _('Leer lassen = beim Download fragen (Standard-Downloads-Ordner). Gültiger Pfad = Dateien werden ohne Nachfrage dorthin gespeichert. Gilt nur im App-Fenster, nicht im normalen Browser.') }}</div>
+            </div>
+        </div>
+
         <button type="submit" class="btn btn-primary mt-4 w-100">{{ _('Einstellungen speichern') }}</button>
     </form>
 </div>

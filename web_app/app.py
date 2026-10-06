@@ -125,6 +125,8 @@ def settings():
         print_language = request.form.get('print_language', 'de')
         if print_language in ('de', 'fr'):
             current_settings['print_language'] = print_language
+        # Download-Zielordner (leer = System-Downloads + Speichern-Dialog)
+        current_settings['download_dir'] = request.form.get('download_dir', '').strip()
         _save_data('settings.json', current_settings)
         flash(_('Einstellungen erfolgreich gespeichert.'), 'success')
         return redirect(url_for('settings'))
@@ -245,6 +247,46 @@ def _print_startup_banner(port=5000):
     print("")
 
 
+def _unique_path(directory: str, filename: str) -> str:
+    """Zielpfad in ``directory`` für ``filename``; hängt bei Kollision (n) an."""
+    base, ext = os.path.splitext(filename)
+    candidate = os.path.join(directory, filename)
+    n = 1
+    while os.path.exists(candidate):
+        candidate = os.path.join(directory, f"{base} ({n}){ext}")
+        n += 1
+    return candidate
+
+
+def _install_download_dir_override():
+    """Lenkt WebView2-Downloads in den in den Einstellungen gewählten Ordner.
+
+    Ist ``download_dir`` gesetzt und gültig, wird die Datei ohne Dialog direkt
+    dorthin gespeichert (mit eindeutigem Namen). Sonst bleibt das Standard-
+    verhalten (nativer "Speichern unter"-Dialog, Startordner = Downloads).
+    """
+    try:
+        from webview.platforms import edgechromium as _ec
+    except Exception:
+        return  # anderer Backend / pywebview-Layout → nichts zu tun
+
+    _original = _ec.EdgeChrome.on_download_starting
+
+    def _patched(self, sender, args):
+        try:
+            from utils import _load_settings
+            target_dir = (_load_settings().get("download_dir") or "").strip()
+            if target_dir and os.path.isdir(target_dir):
+                filename = os.path.basename(args.ResultFilePath)
+                args.ResultFilePath = _unique_path(target_dir, filename)
+                return
+        except Exception:
+            pass  # bei jedem Fehler auf Standard-Dialog zurückfallen
+        return _original(self, sender, args)
+
+    _ec.EdgeChrome.on_download_starting = _patched
+
+
 def _run_socketio(port=5000, debug=False):
     """Startet Flask-SocketIO. Wird im Hintergrund-Thread aufgerufen,
     wenn ein App-Fenster (pywebview) das Main-Thread besetzt."""
@@ -269,6 +311,13 @@ def _open_app_window(port=5000):
     except ImportError:
         print("[INFO] pywebview nicht installiert – kein App-Fenster.")
         return False
+
+    # Downloads sind in pywebview standardmässig deaktiviert (Default False) →
+    # Attachment-Responses (TKAMO-CSV, PDFs, Event-Export-ZIP) würden im
+    # WebView2-Fenster still abgebrochen. Aktivieren: EdgeChromium zeigt dann
+    # einen nativen "Speichern unter"-Dialog (Startordner = Downloads).
+    webview.settings['ALLOW_DOWNLOADS'] = True
+    _install_download_dir_override()
 
     # Erst warten bis der Server lauscht (kurzer Probe-Loop), sonst lädt
     # WebView eine leere Seite.

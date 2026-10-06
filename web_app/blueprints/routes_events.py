@@ -422,7 +422,8 @@ def _parse_start_time(value: str) -> str | None:
 def _merge_eventexport_handlers(handlers: list, entities: dict) -> dict:
     handler_list = []
     if isinstance(entities, dict):
-        handler_list = entities.get("handlers") or entities.get("handler") or entities.get("people") or []
+        handler_list = (entities.get("handlers") or entities.get("handler")
+                        or entities.get("people") or entities.get("persons") or [])
     handler_map = {_fullname_key(h.get("Vorname"), h.get("Nachname")): h for h in handlers}
     external_map = {h.get("external_id"): h for h in handlers if h.get("external_id")}
     for handler in handler_list or []:
@@ -452,16 +453,18 @@ def _merge_eventexport_handlers(handlers: list, entities: dict) -> dict:
     return external_map
 
 
-def _merge_eventexport_dogs(dogs: list, entities: dict, handler_external_map: dict) -> None:
+def _merge_eventexport_dogs(dogs: list, entities: dict, handler_external_map: dict) -> dict:
     dog_list = []
     if isinstance(entities, dict):
         dog_list = entities.get("dogs") or entities.get("dog") or []
     dog_map = {d.get("Lizenznummer"): d for d in dogs if d.get("Lizenznummer")}
+    dog_external_map: dict[str, dict] = {d.get("external_id"): d for d in dogs if d.get("external_id")}
     for dog in dog_list or []:
         if not isinstance(dog, dict):
             continue
         license_no = _get_first_value(dog, ("license_no", "license_number", "Lizenznummer", "lizenznummer"), "")
         dog_name = _get_first_value(dog, ("dog_name", "Hundename", "name"), "")
+        external_id = _get_first_value(dog, ("external_id", "id"), "")
         handler_external_id = _get_first_value(dog, ("handler_external_id", "handler_id"), "")
         handler_id = None
         if handler_external_id and handler_external_map.get(handler_external_id):
@@ -486,6 +489,10 @@ def _merge_eventexport_dogs(dogs: list, entities: dict, handler_external_map: di
         klasse = _get_first_value(dog, ("class_level", "Klasse", "klasse"), "")
         if klasse != "":
             existing["Klasse"] = str(klasse)
+        if external_id:
+            existing["external_id"] = external_id
+            dog_external_map[external_id] = existing
+    return dog_external_map
 
 
 def _apply_eventexport_registrations(event: dict, registrations: list, entities: dict) -> dict:
@@ -493,7 +500,7 @@ def _apply_eventexport_registrations(event: dict, registrations: list, entities:
     handlers_raw = _load_data(HANDLERS_FILE)
     dogs, handlers = _sanitize_master_data_lists(dogs_raw, handlers_raw)
     handler_external_map = _merge_eventexport_handlers(handlers, entities)
-    _merge_eventexport_dogs(dogs, entities, handler_external_map)
+    dog_external_map = _merge_eventexport_dogs(dogs, entities, handler_external_map)
 
     dog_by_license = {d.get("Lizenznummer"): d for d in dogs if d.get("Lizenznummer")}
     handler_by_full = {_fullname_key(h.get("Vorname"), h.get("Nachname")): h for h in handlers}
@@ -512,6 +519,27 @@ def _apply_eventexport_registrations(event: dict, registrations: list, entities:
         handler_full = _get_first_value(reg, ("handler_name", "Hundefuehrer"), "")
         handler_first = _get_first_value(reg, ("handler_first_name", "firstname", "Vorname", "vorname"), "")
         handler_last = _get_first_value(reg, ("handler_last_name", "lastname", "Nachname", "nachname"), "")
+        club = _get_first_value(reg, ("club_name", "club", "Vereinsnummer", "verein"), "")
+
+        # Portal-Export inlint Hund/HF nicht, sondern referenziert sie per
+        # external_id (Daten liegen in entities). Fehlende Felder von dort nachziehen.
+        dog_ext = _get_first_value(reg, ("dog_external_id", "dog_id"), "")
+        ref_dog = dog_external_map.get(dog_ext) if dog_ext else None
+        if ref_dog:
+            if not license_no:
+                license_no = ref_dog.get("Lizenznummer", "")
+            if not dog_name:
+                dog_name = ref_dog.get("Hundename", "")
+            if not category:
+                category = ref_dog.get("Kategorie", "") or category
+            if not class_level:
+                class_level = str(ref_dog.get("Klasse", "") or class_level)
+        handler_ext = _get_first_value(reg, ("handler_person_external_id", "handler_external_id", "handler_id"), "")
+        ref_handler = handler_external_map.get(handler_ext) if handler_ext else None
+        if ref_handler and not (handler_first or handler_last or handler_full):
+            handler_first = ref_handler.get("Vorname", "")
+            handler_last = ref_handler.get("Nachname", "")
+
         if handler_full and not (handler_first or handler_last):
             parts = handler_full.split(" ", 1)
             handler_first = parts[0]
@@ -528,6 +556,9 @@ def _apply_eventexport_registrations(event: dict, registrations: list, entities:
             }
             handlers.append(handler)
             handler_by_full[handler_key] = handler
+
+        if club and handler is not None and not _norm(handler.get("Vereinsnummer", "")):
+            handler["Vereinsnummer"] = _norm(club)
 
         if license_no:
             dog = dog_by_license.get(license_no)

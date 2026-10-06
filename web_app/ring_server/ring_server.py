@@ -322,6 +322,9 @@ def _resolve_ring_config():
                         help="IP des Hauptservers (AgilitySoftware)")
     parser.add_argument("--server-port", dest="server_port", type=int, default=None,
                         help="Port des Hauptservers (Default: 5000)")
+    parser.add_argument("--window", dest="window", action="store_true",
+                        help="Ring-PC-Ansicht in einem nativen pywebview-Fenster öffnen "
+                             "(statt Standard-Browser). SocketIO läuft im Hintergrund.")
     # Fallback: Positionsargumente [ring_label] [port]
     parser.add_argument("pos_ring", nargs="?", default=None)
     parser.add_argument("pos_port", nargs="?", default=None)
@@ -367,11 +370,52 @@ def _resolve_ring_config():
     except Exception:
         server_port = 5000
 
-    return ring_label, ring_number, port, server_ip, server_port
+    window = bool(getattr(args, "window", False)) or os.environ.get("RING_WINDOW") == "1"
+
+    return ring_label, ring_number, port, server_ip, server_port, window
+
+
+def _open_ring_window(title: str, url: str) -> bool:
+    """Öffnet die Ring-PC-Ansicht in einem nativen pywebview-Fenster (Edge
+    WebView2). Gibt False zurück, wenn pywebview/WebView2 nicht verfügbar ist –
+    dann fällt der Aufrufer auf das Tk-Dashboard zurück.
+    """
+    try:
+        import webview
+    except ImportError:
+        return False
+
+    # Kurz warten, bis der Hauptserver erreichbar ist (sonst lädt WebView eine
+    # Fehlerseite). Nicht-blockierend tolerant: nach Timeout trotzdem öffnen.
+    try:
+        import socket as _socket, time as _time
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or 80
+        deadline = _time.time() + 8.0
+        while _time.time() < deadline:
+            with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as s:
+                s.settimeout(0.3)
+                if s.connect_ex((host, port)) == 0:
+                    break
+            _time.sleep(0.2)
+    except Exception:
+        pass
+
+    try:
+        webview.create_window(title, url, width=1280, height=900,
+                              resizable=True, confirm_close=False)
+        webview.start()  # blockiert bis Fenster geschlossen
+        return True
+    except Exception as exc:
+        print(f"[RING] pywebview-Fenster konnte nicht gestartet werden: {exc}")
+        return False
 
 
 def run_server(ring_label=None, ring_number=None, port_num=None,
-               server_ip=None, server_port=None, with_dashboard=False):
+               server_ip=None, server_port=None, with_dashboard=False,
+               with_window=None):
     """Startet den Ring-Server. Wird sowohl vom CLI-Entry als auch vom
     Tkinter-Launcher aufgerufen. Fehlende Werte werden aus CLI/Env aufgelöst.
 
@@ -383,12 +427,13 @@ def run_server(ring_label=None, ring_number=None, port_num=None,
     """
     global _RING_LABEL, _PORT_NUM
 
-    cfg_label, cfg_number, cfg_port, cfg_server_ip, cfg_server_port = _resolve_ring_config()
+    cfg_label, cfg_number, cfg_port, cfg_server_ip, cfg_server_port, cfg_window = _resolve_ring_config()
     ring_label = ring_label or cfg_label
     ring_number = ring_number if ring_number is not None else cfg_number
     port_num = port_num or cfg_port
     server_ip = server_ip or cfg_server_ip
     server_port = server_port or cfg_server_port
+    with_window = cfg_window if with_window is None else with_window
 
     # Hauptserver-Endpoint aktualisieren (Modul-globals überschreiben)
     globals()["MAIN_SERVER_IP"] = server_ip
@@ -460,30 +505,39 @@ def run_server(ring_label=None, ring_number=None, port_num=None,
         except TypeError:
             socketio.run(app, host='127.0.0.1', port=port_num)
 
-    if with_dashboard:
-        # SocketIO im Hintergrund, Tk-Dashboard im Main-Thread.
-        import threading
-        threading.Thread(target=_run_socketio, daemon=True).start()
-
-        try:
-            from ring_dashboard import RingDashboard
-        except ImportError:
-            import os as _os, sys as _sys
-            _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
-            from ring_dashboard import RingDashboard
-
-        dash = RingDashboard(
-            state_ref=state,
-            ring_label=ring_label,
-            ring_number=ring_number,
-            listen_port=port_num,
-            server_ip=server_ip,
-            server_port=server_port,
-            timy_available=TIMY_AVAILABLE,
-        )
-        dash.run()
-    else:
+    if not (with_window or with_dashboard):
+        # CLI-/Headless-Modus: Server blockierend, Ansicht manuell im Browser.
         _run_socketio()
+        return
+
+    # Fenster-/Dashboard-Modus: Server im Hintergrund, GUI im Main-Thread.
+    import threading
+    threading.Thread(target=_run_socketio, daemon=True).start()
+
+    if with_window:
+        view_url = f"http://{server_ip}:{server_port}/ring_pc_dashboard/{ring_number}"
+        if _open_ring_window(ring_label, view_url):
+            return
+        # Kein pywebview/WebView2 → auf Tk-Dashboard zurückfallen.
+        print(f"[RING] Fenster nicht verfügbar – Fallback auf Tk-Dashboard. Ansicht: {view_url}")
+
+    try:
+        from ring_dashboard import RingDashboard
+    except ImportError:
+        import os as _os, sys as _sys
+        _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+        from ring_dashboard import RingDashboard
+
+    dash = RingDashboard(
+        state_ref=state,
+        ring_label=ring_label,
+        ring_number=ring_number,
+        listen_port=port_num,
+        server_ip=server_ip,
+        server_port=server_port,
+        timy_available=TIMY_AVAILABLE,
+    )
+    dash.run()
 
 
 if __name__ == '__main__':
