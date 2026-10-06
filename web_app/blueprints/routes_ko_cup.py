@@ -21,6 +21,7 @@ from flask import (Blueprint, render_template, request, redirect,
 
 from utils import _load_data, _save_data
 import ko_cup
+import ko_qualification
 
 try:  # Im EXE/Server vorhanden; in schlanken Unit-Tests (bare Flask) optional.
     from extensions import socketio
@@ -161,6 +162,22 @@ def ko_config_post(event_id):
         fid = request.form.get('final_id')
         ko['finals'] = [f for f in ko['finals'] if f.get('id') != fid]
         flash("Finale entfernt.", "info")
+
+    elif action == 'derive_finalists':
+        result = ko_qualification.apply_ko_qualification(event)
+        touched = result.get('finals_touched') or []
+        if not touched:
+            flash("Keine lauf-basierten Finalisten gefunden – passen Laufart/Schlüssel "
+                  "zu den erfassten Läufen (Tunnellauf, Agility, Jumping)?", "warning")
+        else:
+            parts = []
+            for cat in touched:
+                c = result['counts'][cat]
+                parts.append(f"{cat}: {c['derived']} abgeleitet"
+                             + (f" + {c['manual']} manuell" if c['manual'] else ""))
+            flash("Finalisten aus den Läufen abgeleitet (" + "; ".join(parts) + "). "
+                  "Bestehende Brackets wurden zurückgesetzt; manuelle Einträge blieben erhalten.",
+                  "success")
 
     _save_data(EVENTS_FILE, events)
     return redirect(url_for('ko_cup_bp.ko_config', event_id=event_id))
