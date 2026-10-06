@@ -245,10 +245,14 @@ class TimyEvents:
                     state['final_time'] = final_time
 
                     # KORREKTUR: Sendet das ganze Paket an den Ring-PC
+                    # start_time_tod zusaetzlich fuer die Zeitplan-Optimierung
+                    # (Schritt 1): echte C0-Tageszeit landet via save_result
+                    # im Result statt nur der Speicher-'timestamp'.
                     result_package = {
                         'final_time': f"{final_time:.2f}",
                         'faults': state['faults'],
-                        'refusals': state['refusals']
+                        'refusals': state['refusals'],
+                        'start_time_tod': state['start_time_tod']
                     }
                     socketio.emit('run_finished_timing', result_package)
                     socketio.emit('state_update', state)

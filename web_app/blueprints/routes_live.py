@@ -294,7 +294,8 @@ def save_result(event_id, run_id):
             'zeit': q.get('zeit'),
             'fehler': q.get('fehler', 0),
             'verweigerungen': q.get('verweigerungen', 0),
-            'disqualifikation': q.get('disqualifikation')
+            'disqualifikation': q.get('disqualifikation'),
+            'start_time_tod': q.get('start_time_tod')
         }
 
     license_nr = data.get('license_number')
@@ -316,12 +317,18 @@ def save_result(event_id, run_id):
         fehler = int(data.get('fehler') or 0)
         verweigerungen = int(data.get('verweigerungen') or 0)
         disq = data.get('disqualifikation') or None
+        # Scheduling-Grundlage (Zeitplan-Optimierung): echte TIMY-Startzeit
+        # (Tageszeit laut C0-Impuls, vom Ring-Server durchgereicht) statt nur
+        # der Speicher-Zeit in 'timestamp'. Optional – fehlt z.B. bei manueller
+        # Eingabe ohne TIMY, dann einfach None.
+        start_time_tod = data.get('start_time_tod') or None
 
         entry['result'] = {
             'zeit': zeit,
             'fehler': fehler,
             'verweigerungen': verweigerungen,
-            'disqualifikation': disq
+            'disqualifikation': disq,
+            'start_time_tod': start_time_tod
         }
         entry['timestamp'] = datetime.now().isoformat()
 
