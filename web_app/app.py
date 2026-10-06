@@ -155,12 +155,18 @@ def internal_server_error(e):
 
 def initialize_files():
     from utils import _save_data
+    from paths import data_path
     files = [
         'events.json', 'dogs.json', 'handlers.json', 'clubs.json', 'judges.json',
         'active_event.json', 'settings.json', 'snapshots.json', 'outbox.json'
     ]
     for filename in files:
-        if not os.path.exists(os.path.join('data', filename)):
+        # WICHTIG: Existenz gegen den ABSOLUTEN data_dir prüfen (data_path),
+        # nicht gegen das relative 'data/<file>'. Sonst greift die Prüfung – je
+        # nach Arbeitsverzeichnis beim EXE-Start – daneben und _save_data würde
+        # eine leere Liste in die REALEN Daten neben der EXE schreiben = alle
+        # Veranstaltungen/Hunde/... gelöscht.
+        if not os.path.exists(data_path(filename)):
             _save_data(filename, [] if 'active' not in filename and 'settings' not in filename else {})
 
 from blueprints.routes_events import events_bp

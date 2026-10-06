@@ -33,6 +33,7 @@
     .counters .cbox { flex: 1; }
     .btn-ready { background: #b07400; color: #fff; width: 100%; margin: 6px 0 2px; font-weight: 600; }
     .btn-ready.armed { background: #c0392b; }
+    .btn-reset { background: #4a3030; color: #ffd3d3; width: 100%; margin: 6px 0 2px; }
     .status-line { text-align: center; font-size: 0.9em; color: #aaa; margin: 4px 0 2px; }
     .hint { font-size: 0.8em; color: #888; margin-top: 4px; }
     .msg { margin-top: 10px; padding: 8px 12px; border-radius: 6px; display: none; }
@@ -59,6 +60,7 @@
     <div class="slots" id="slots"><!-- bis zu 2 Slots für diesen Ring --></div>
 
     <button class="btn-ready" id="readyBtn" disabled>Timer scharf machen (Bereit)</button>
+    <button class="btn-reset" id="resetBtn">Lauf abbrechen / Timer zurücksetzen (Fehlstart)</button>
 
     <div class="row">
       <div>
@@ -254,6 +256,18 @@
     showMsg("Timer scharf – warte auf Startimpuls (C0).", true);
   }
 
+  // Fehlstart/Abbruch: Ring-Server-Timer zurücksetzen (idle), Anzeige leeren.
+  // Betrifft nur den laufenden Lauf; gespeicherte Ergebnisse bleiben erhalten.
+  function resetRun(){
+    if(state.localSocket && state.localSocket.connected){
+      state.localSocket.emit("reset_current_run", {});
+    }
+    if(state.clockTimer) clearInterval(state.clockTimer);
+    $("clock").textContent = "--.--";
+    $("readyBtn").classList.remove("armed");
+    showMsg("Timer zurückgesetzt.", true);
+  }
+
   // Fehler/Verweigerungen am Ring-Server zählen. Während 'running' ist der
   // Server autoritativ (er schickt state_update zurück); sonst wird der Wert
   // lokal für die Nachkorrektur angepasst.
@@ -341,6 +355,7 @@
   $("matchupSelect").onchange = () => { state.matchupId = $("matchupSelect").value; renderSlots(); };
   $("saveBtn").onclick = saveRun;
   $("readyBtn").onclick = setReady;
+  $("resetBtn").onclick = resetRun;
   $("faultsPlus").onclick    = () => bumpCounter("faults", 1);
   $("faultsMinus").onclick   = () => bumpCounter("faults", -1);
   $("refusalsPlus").onclick  = () => bumpCounter("refusals", 1);

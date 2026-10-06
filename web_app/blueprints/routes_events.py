@@ -2252,7 +2252,8 @@ def import_event_package():
 
                 # ── Logos aus dem ZIP extrahieren ──────────────────────────
                 event_id_str = event["id"]
-                logo_dir = os.path.join("data", "logos", event_id_str)
+                from paths import data_path
+                logo_dir = data_path("logos", event_id_str)
                 for _zip_name, _logo_key in [
                     ("logos/event_logo.png",  "event_logo_filename"),
                     ("logos/event_logo.jpg",  "event_logo_filename"),
@@ -2564,7 +2565,8 @@ def event_logo_serve(event_id, logo_type):
     if not filename:
         abort(404)
 
-    path = os.path.join("data", "logos", event_id, filename)
+    from paths import data_path
+    path = data_path("logos", event_id, filename)
     if not os.path.exists(path):
         abort(404)
 

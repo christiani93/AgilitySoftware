@@ -1088,7 +1088,8 @@ def upload_ranking_pdf(event_id, run_id):
         fname = event.get(logo_key)
         if not fname:
             return None
-        path = _os.path.join("data", "logos", event_id, fname)
+        from paths import data_path
+        path = data_path("logos", event_id, fname)
         if not _os.path.exists(path):
             return None
         ext = _os.path.splitext(fname)[1].lower().lstrip(".")
