@@ -209,6 +209,115 @@ def apply_ko_qualification(event: dict, schluessel: dict | None = None) -> dict:
     return result
 
 
+def ranking_tables(event: dict, schluessel: dict | None = None) -> list[dict]:
+    """
+    Anzeige-/Erfassungs-Sicht: liefert pro Schlüssel-Lauf die vollständigen
+    Ranglisten je Kategorie — beim Tunnellauf **klassenübergreifend kombiniert**
+    (split_by_class=False), bei Agility/Jumping je Klasse getrennt.
+
+    Im Gegensatz zu calculate_ko_qualification werden hier ALLE platzierten Teams
+    zurückgegeben (nicht nur die qualifizierten), jede Zeile mit einem Status:
+
+      - "quali"  neu qualifiziert durch diesen Lauf (verbraucht einen Platz)
+      - "dup"    bereits via früheren Lauf/manuell qualifiziert → Platz NICHT
+                 verbraucht, nächster rückt nach (Reglement HCS)
+      - "none"   ausserhalb der Plätze
+
+    Die Dedup-/Nachrück-Logik läuft in exakt derselben Reihenfolge wie die
+    Ableitung (Schlüssel-Reihenfolge, manuelle Finalisten zuerst), damit die als
+    "quali" markierten Zeilen genau den abgeleiteten Finalisten entsprechen.
+
+    Returns: [
+      { "label": str, "split_by_class": bool, "n_runs": int,
+        "tables": { cat: {
+            "spots": int,
+            "combined": bool,                    # True = eine klassenübergreifende Liste
+            "subtables": [ {"class_label": str|None, "rows": [row, ...]} ],
+        } } },
+      ...
+    ]
+    row = {rank, dog_name, handler_name, license_no, from_class,
+           fehler_total, zeit_total, status}
+    """
+    schluessel = schluessel or get_schluessel(event)
+    settings = _load_settings()
+
+    # Gleiche Seed-Logik wie calculate: manuelle Finalisten gelten als qualifiziert.
+    qualified: dict[str, set[str]] = {cat: set() for cat in CATEGORIES}
+    for final in (event.get("ko_cup") or {}).get("finals", []):
+        cat = _norm_cat(final.get("category_code"))
+        if cat not in CATEGORIES:
+            continue
+        for p in final.get("participants", []):
+            if (p.get("source") or "run") in MANUAL_SOURCES:
+                key = _participant_key(p)
+                if key:
+                    qualified[cat].add(key)
+
+    blocks: list[dict] = []
+    for cfg in schluessel.get("runs", []):
+        blocks.append(_run_table(event, cfg, settings, qualified))
+    return blocks
+
+
+def _run_table(event, cfg, settings, qualified) -> dict:
+    match = cfg.get("match") or {}
+    split = bool(cfg.get("split_by_class"))
+    spots_cfg = cfg.get("spots") or {}
+    label = cfg.get("label") or ""
+
+    runs = [r for r in event.get("runs", []) if _run_matches(r, match)]
+
+    # key = (kategorie, klasse|None) — None heisst kombiniert (Tunnellauf)
+    groups: dict[tuple, list[dict]] = defaultdict(list)
+    for run in runs:
+        computed = recalc_and_store(run, settings)
+        for c in computed:
+            cat = _norm_cat(_entry_category(c, run))
+            if cat not in CATEGORIES:
+                continue
+            cls = _entry_class(c, run) if split else None
+            groups[(cat, cls)].append(c)
+
+    tables: dict[str, dict] = {}
+    for cat in CATEGORIES:
+        spots = _to_int(spots_cfg.get(cat, 0))
+        cat_groups = {cls: entries for (c, cls), entries in groups.items() if c == cat}
+        if not cat_groups:
+            continue
+        # kombiniert: ein Eintrag (cls=None); split: nach Klassenname sortiert
+        cls_keys = sorted(cat_groups.keys(), key=lambda x: (x is None, str(x)))
+        subtables = []
+        for cls in cls_keys:
+            ranked = _rank_combined(cat_groups[cls])
+            rows = []
+            given = 0
+            for rank, e in enumerate(ranked, start=1):
+                key = _entry_key(e)
+                if key and key in qualified[cat]:
+                    status = "dup"
+                elif given < spots and key:
+                    qualified[cat].add(key)
+                    given += 1
+                    status = "quali"
+                else:
+                    status = "none"
+                rows.append({
+                    "rank": rank,
+                    "dog_name": e.get("Hundename") or e.get("dog_name") or "",
+                    "handler_name": _handler_name(e),
+                    "license_no": (e.get("Lizenznummer") or "").strip() or None,
+                    "from_class": e.get("Klasse") or e.get("klasse"),
+                    "fehler_total": e.get("fehler_total"),
+                    "zeit_total": e.get("zeit_total"),
+                    "status": status,
+                })
+            subtables.append({"class_label": cls, "rows": rows})
+        tables[cat] = {"spots": spots, "combined": not split, "subtables": subtables}
+
+    return {"label": label, "split_by_class": split, "n_runs": len(runs), "tables": tables}
+
+
 # ---------------------------------------------------------------------------
 # Verarbeitung eines Schlüssel-Laufs
 # ---------------------------------------------------------------------------

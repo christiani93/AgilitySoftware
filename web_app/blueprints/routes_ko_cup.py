@@ -183,6 +183,25 @@ def ko_config_post(event_id):
     return redirect(url_for('ko_cup_bp.ko_config', event_id=event_id))
 
 
+# ── Kombinierte Quali-Ranglisten (Tunnellauf klassenübergreifend) ─────────────
+
+@ko_cup_bp.get('/rankings/<event_id>')
+def ko_rankings(event_id):
+    """Zeigt pro Schlüssel-Lauf die Rangliste je Kategorie — Tunnellauf
+    klassenübergreifend kombiniert — mit Markierung, wer sich qualifiziert
+    (inkl. Dedup/Nachrücken). Erfassungs-/Kontroll-Hilfe am Event-Tag."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+    blocks = ko_qualification.ranking_tables(event)
+    return render_template(
+        'ko_cup_rankings.html',
+        event=event,
+        blocks=blocks,
+        category_order=CATEGORY_ORDER,
+    )
+
+
 # ── Finale-Detail: Finalisten, Losnummern, Bracket, Ergebnisse ────────────────
 
 def _bracket_view(final: dict) -> list:

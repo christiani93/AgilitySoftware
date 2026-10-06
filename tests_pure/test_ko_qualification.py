@@ -253,3 +253,91 @@ def test_apply_legt_fehlendes_final_an():
     finals = event["ko_cup"]["finals"]
     small = next(f for f in finals if f["category_code"] == "Small")
     assert {p["dog_name"] for p in small["participants"]} == {"SA", "SB"}
+
+
+# ---------------------------------------------------------------------------
+# ranking_tables: Anzeige-Sicht (kombinierte Rangliste / Status-Markierung)
+# ---------------------------------------------------------------------------
+
+def _quali_names(block):
+    """Alle als 'quali' markierten Hunde über alle Kategorien/Subtabellen."""
+    out = []
+    for tbl in block["tables"].values():
+        for sub in tbl["subtables"]:
+            out += [r["dog_name"] for r in sub["rows"] if r["status"] == "quali"]
+    return out
+
+
+def test_ranking_tables_tunnellauf_kombiniert_und_quali_markiert():
+    tunnel = _run("Tunnellauf", "Large", "1-3", [
+        _entry("L1", "Alpha", "Large", 1, 30.0),
+        _entry("L2", "Bravo", "Large", 2, 28.0),
+        _entry("L3", "Charlie", "Large", 3, 26.0),
+        _entry("L4", "Delta", "Large", 1, 31.0),
+        _entry("L5", "Echo", "Large", 2, 32.0),
+        _entry("L6", "Foxtrot", "Large", 3, 33.0),
+    ])
+    event = {"runs": [tunnel]}
+    schluessel = {"runs": [{
+        "label": "Tunnellauf", "match": {"laufart": "Tunnellauf"},
+        "split_by_class": False, "spots": {"Large": 5, "Intermediate": 3,
+                                           "Medium": 3, "Small": 3},
+    }]}
+    blocks = koq.ranking_tables(event, schluessel)
+    assert len(blocks) == 1
+    block = blocks[0]
+    assert block["label"] == "Tunnellauf"
+    large = block["tables"]["Large"]
+    assert large["combined"] is True
+    # kombiniert: GENAU eine Subtabelle (alle Klassen zusammen)
+    assert len(large["subtables"]) == 1
+    rows = large["subtables"][0]["rows"]
+    # alle 6 Teams gelistet, nach Zeit sortiert, Rang 1..6
+    assert [r["dog_name"] for r in rows] == ["Charlie", "Bravo", "Alpha", "Delta", "Echo", "Foxtrot"]
+    assert [r["rank"] for r in rows] == [1, 2, 3, 4, 5, 6]
+    # Top 5 = quali, Foxtrot = none
+    assert rows[5]["status"] == "none"
+    # Invariante: quali-Zeilen == abgeleitete Finalisten
+    derived = _names(koq.calculate_ko_qualification(event, schluessel)["derived"]["Large"])
+    assert _quali_names(block) == derived == ["Charlie", "Bravo", "Alpha", "Delta", "Echo"]
+
+
+def test_ranking_tables_agility_split_subtabellen_pro_klasse():
+    runs = [
+        _run("Agility", "Large", 1, [
+            _entry("A", "L1a", "Large", 1, 20.0),
+            _entry("B", "L1b", "Large", 1, 21.0),
+        ]),
+        _run("Agility", "Large", 3, [
+            _entry("C", "L3a", "Large", 3, 20.0),
+            _entry("D", "L3b", "Large", 3, 21.0),
+        ]),
+    ]
+    event = {"runs": runs}
+    blocks = koq.ranking_tables(event)
+    agi = next(b for b in blocks if b["label"] == "Agility")
+    large = agi["tables"]["Large"]
+    assert large["combined"] is False
+    labels = sorted(sub["class_label"] for sub in large["subtables"])
+    assert labels == ["1", "3"]
+
+
+def test_ranking_tables_doppelquali_status_dup():
+    tunnel = _run("Tunnellauf", "Large", "1-3", [
+        _entry("STAR", "Star", "Large", 2, 25.0),
+    ])
+    agi = _run("Agility", "Large", 2, [
+        _entry("STAR", "Star", "Large", 2, 20.0),
+        _entry("B", "Second", "Large", 2, 21.0),
+        _entry("C", "Third", "Large", 2, 22.0),
+        _entry("D", "Fourth", "Large", 2, 23.0),
+    ])
+    event = {"runs": [tunnel, agi]}
+    blocks = koq.ranking_tables(event)
+    agi_block = next(b for b in blocks if b["label"] == "Agility")
+    rows = agi_block["tables"]["Large"]["subtables"][0]["rows"]
+    star_row = next(r for r in rows if r["dog_name"] == "Star")
+    assert star_row["status"] == "dup"   # schon via Tunnellauf quali
+    # die drei anderen rücken nach (3 Spots)
+    quali = [r["dog_name"] for r in rows if r["status"] == "quali"]
+    assert quali == ["Second", "Third", "Fourth"]
