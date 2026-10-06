@@ -13,7 +13,8 @@ from utils import (_load_data, _save_data, _get_active_event,
                    _calculate_run_results, _load_settings, _get_active_event_id,
                    _calculate_timelines, resolve_judge_name, resolve_judge_id, _to_int,
                    build_ring_view_model, collect_ring_numbers, format_ring_name,
-                   _format_time, _format_total_errors, get_ring_state)
+                   _format_time, _format_total_errors, get_ring_state,
+                   sort_entries_for_startlist)
 import planner.schedule_planner as schedule_planner
 from web_app.live.ring_state import apply_start_impulse, apply_result_saved, init_ring_entry_state
 
@@ -332,11 +333,11 @@ def save_result(event_id, run_id):
         }
         entry['timestamp'] = datetime.now().isoformat()
 
-        # Bug 3 Fix: current_starter / next_starter beim Speichern weiterrücken
-        entries_sorted = sorted(
-            run.get('entries', []),
-            key=lambda e: _to_int(e.get('Startnummer'), default=999999)
-        )
+        # Bug 3 Fix: current_starter / next_starter beim Speichern weiterrücken.
+        # sort_entries_for_startlist sortiert läufige Hündinnen ans Ende (wie
+        # Startliste/Monitor), damit der aktive Läufer der gleichen Reihenfolge
+        # folgt wie die Ring-PC-Liste.
+        entries_sorted = sort_entries_for_startlist(run.get('entries', []))
         unfinished = [
             e for e in entries_sorted
             if not (e.get('result') and (e['result'].get('zeit') or e['result'].get('disqualifikation')))
@@ -968,10 +969,8 @@ def api_set_participant_status(event_id, run_id):
     # (analog save_result), damit der aktive Läufer nicht auf dem gesetzten
     # Teilnehmer hängen bleibt. unfinished filtert Einträge mit Zeit ODER
     # disqualifikation (DNS/DIS) heraus, ist also für beide Status korrekt.
-    entries_sorted = sorted(
-        run.get('entries', []),
-        key=lambda e: _to_int(e.get('Startnummer'), default=999999)
-    )
+    # sort_entries_for_startlist hält läufige Hündinnen am Ende (wie Startliste).
+    entries_sorted = sort_entries_for_startlist(run.get('entries', []))
     unfinished = [
         e for e in entries_sorted
         if not (e.get('result') and (e['result'].get('zeit') or e['result'].get('disqualifikation')))

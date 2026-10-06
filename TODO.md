@@ -3,7 +3,49 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-08-16
+Stand: 2026-10-06
+
+## Halloween Cup KO-System (Deadline 30.10.–01.11.2026) — IN ARBEIT auf Branch `feature/ko-cup`
+
+Architektur entschieden (06.10.): **Variante B** — KO offline in AgilitySoftware mit TIMY,
+Portal nur read-only Live-Anzeige. Finalisten-Transfer an `eventexport.v1` inkl. **Startnummer**
+(tiefere Nr. → Ring 1).
+
+- [x] Phase 1: KO-Bracket-Engine + Management-UI (`b14673a`)
+- [x] Diagnose-Recorder im Ring-Server (C0/C1/RT-Paarung + delta_vs_timy) (`7769d89`)
+- [x] Scheduling Schritt 1: echte TIMY-Startzeit ins Result (`788706a`)
+- [ ] Phase 2: TIMY-Live Duell-Eingabe, 2-Ring-Wiring
+- [ ] Phase 3: Finalisten-Sync inkl. Startnummer an eventexport anhängen
+- [ ] Phase 4+: Print/Export Siegerehrung/Rangliste
+- [ ] Generalprobe ~25./26.10.2026
+- [ ] Branch `feature/ko-cup` nach `main` mergen (aktuell 3 Commits voraus, ungemerged)
+- [ ] 1/100-Bug weiterbeobachten: Recorder zeigt `delta_vs_timy=0` (TIMY-Zeit korrekt),
+      Fehlerquelle vermutlich im Software-Pfad danach — am HCS-Wochenende (1 Ring, EXE) weiter aufzeichnen
+
+## Team-Challenge (Edelweiss, 2er-Teams)
+
+Reglement bestätigt (DIS-Team hinter Nicht-DIS via Sentinel 999, Zeitfehler normal eingerechnet).
+
+- [x] Software P1+P2 (Team-Logik) fertig & getestet (2026-10-06)
+- [x] Portal P5 (Team-Model + Admin-UI) fertig & getestet — **noch NICHT prod-deployed**
+- [ ] P3/P4/P6: Sync Portal↔Software, EventRuns, Ranglisten (geplant erst Januar)
+
+## Scheduling-Optimierung
+
+- [x] Plan entschieden: Ø Sek/Starter **pro Klasse** (nicht Kategorie), direkt gemessen,
+      keine Regression; neue Kategorie-Umbaupause
+- [x] Standalone TIMY-Recorder gebaut (`tools/timy_recorder`, log+csv, replay/simulate getestet)
+- [ ] Schritt 2+3: Intervall-Auswertung, Portal `run_time_config` pro Disziplin×Klasse (nach HCS)
+
+## EXE-Build
+
+- [x] Neu gebaut für HCS-/Jump-Wochenende: `AgilitySoftware.exe` (64-bit) + `AgilityRing.exe` (32-bit/TIMY)
+- [ ] AgilityRing.exe: GUI-Launcher von Chris starten/prüfen (headless nicht testbar)
+
+## PDF-/Design-Arbeit (geplant ab 07.10.2026)
+
+- [ ] Layout Siegerehrungslisten, Startlisten, Ranglisten — konkrete Vorgaben/Vorbild noch offen
+- [ ] Entscheiden: Portal-seitig oder Software-seitig (offline) umsetzen
 
 ## Offene Branches / Reglement-Sprints
 

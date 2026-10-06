@@ -376,7 +376,16 @@
         });
     }
 
+    // Spiegelt utils.py _starts_at_end: läufige Hündinnen bzw. manuell auf
+    // "am Schluss starten" gesetzte Einträge laufen am Ende ihrer Gruppe,
+    // behalten aber ihre Startnummer.
+    function startsAtEnd(e){
+      return !!(e.is_in_season || e.start_last || e.start_at_end);
+    }
+
     function byStartnummer(a,b){
+      const ea = startsAtEnd(a), eb = startsAtEnd(b);
+      if (ea !== eb) return ea ? 1 : -1;
       const na = parseInt(a.Startnummer,10);
       const nb = parseInt(b.Startnummer,10);
       if (isNaN(na) && isNaN(nb)) return 0;
