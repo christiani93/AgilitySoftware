@@ -23,6 +23,16 @@
     <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
   </div>
   <div class="d-flex gap-2">
+    <div class="btn-group">
+      <a href="{{ url_for('ko_cup_bp.ko_ring', event_id=event.id) }}?ring=1"
+         class="btn btn-outline-success" target="_blank" title="Ring-Bedienung Ring 1 (Port 5001)">
+        <i class="fas fa-stopwatch me-1"></i>Ring 1
+      </a>
+      <a href="{{ url_for('ko_cup_bp.ko_ring', event_id=event.id) }}?ring=2"
+         class="btn btn-outline-success" target="_blank" title="Ring-Bedienung Ring 2 (Port 5002)">
+        <i class="fas fa-stopwatch me-1"></i>Ring 2
+      </a>
+    </div>
     <a href="{{ url_for('ko_cup_bp.ko_final_print', event_id=event.id, final_id=final.id) }}"
        class="btn btn-outline-dark" target="_blank">
       <i class="fas fa-print me-1"></i>Drucken

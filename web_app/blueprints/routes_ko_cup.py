@@ -17,10 +17,25 @@ from __future__ import annotations
 import random
 
 from flask import (Blueprint, render_template, request, redirect,
-                   url_for, flash, abort)
+                   url_for, flash, abort, jsonify)
 
 from utils import _load_data, _save_data
 import ko_cup
+
+try:  # Im EXE/Server vorhanden; in schlanken Unit-Tests (bare Flask) optional.
+    from extensions import socketio
+except Exception:  # pragma: no cover
+    socketio = None
+
+
+def _emit(event, payload, **kw):
+    """SocketIO-Emit, der in Tests ohne laufenden Server leise no-op bleibt."""
+    if socketio is None:
+        return
+    try:
+        socketio.emit(event, payload, **kw)
+    except Exception:
+        pass
 
 ko_cup_bp = Blueprint('ko_cup_bp', __name__, template_folder='../templates',
                       url_prefix='/ko-cup')
@@ -333,3 +348,144 @@ def ko_matchup_result(event_id, final_id, matchup_id):
     _save_data(EVENTS_FILE, events)
     flash("Ergebnis gespeichert.", "success")
     return redirect(url_for('ko_cup_bp.ko_final_detail', event_id=event_id, final_id=final_id))
+
+
+# ── Live/2-Ring: JSON-State + Zeit-Ingest vom Ring-PC ─────────────────────────
+#
+# Betriebsmodell (Reglement): Pro Duell laufen beide Teams je 2x, einmal pro
+# Ring. Zwischen Lauf 1 und Lauf 2 wechseln die Teams den Ring. Dadurch misst
+# JEDER Ring pro Duell zwei Laeufe (je einen von jedem Team):
+#   Ring der Seite-A-Lauf1 misst: A/run1 und B/run2
+#   der andere Ring misst:        B/run1 und A/run2
+# Die Zuteilung liefert ko_cup.ring_assignment (tiefere Startnummer -> Ring 1).
+
+def _participant_brief(final: dict, pid: str | None) -> dict | None:
+    p = ko_cup.get_participant(final, pid)
+    if not p:
+        return None
+    return {
+        "id": p["id"],
+        "dog_name": p.get("dog_name"),
+        "handler_name": p.get("handler_name"),
+        "start_number": p.get("start_number"),
+    }
+
+
+def _matchup_json(final: dict, m: dict, label: str) -> dict:
+    pa = ko_cup.get_participant(final, m.get("a_id"))
+    pb = ko_cup.get_participant(final, m.get("b_id"))
+    rings = ko_cup.ring_assignment(final, m) if (pa and pb) else None
+    return {
+        "id": m["id"],
+        "round_no": m["round_no"],
+        "matchup_no": m["matchup_no"],
+        "matchup_type": m["matchup_type"],
+        "label": label,
+        "a": _participant_brief(final, m.get("a_id")),
+        "b": _participant_brief(final, m.get("b_id")),
+        "a_runs": m.get("a"),
+        "b_runs": m.get("b"),
+        "a_total": ko_cup.score_side(m.get("a")),
+        "b_total": ko_cup.score_side(m.get("b")),
+        "winner_id": m.get("winner_id"),
+        "forfeit_id": m.get("forfeit_id"),
+        "is_tie": ko_cup.is_tie(m),
+        "rings": rings,
+    }
+
+
+def _final_json(final: dict) -> dict:
+    rounds = ko_cup.matchups_by_round(final)
+    matchups = []
+    for rnd, label, ms in rounds:
+        for m in ms:
+            matchups.append(_matchup_json(final, m, label))
+    return {
+        "id": final["id"],
+        "group_label": final.get("group_label"),
+        "category_code": final.get("category_code"),
+        "status": ko_cup.bracket_status(final),
+        "matchups": matchups,
+    }
+
+
+@ko_cup_bp.get('/api/state/<event_id>')
+def ko_api_state(event_id):
+    """Vollständiger KO-Stand als JSON – vom Ring-PC (und der Live-Anzeige)
+    gepollt/initial geladen."""
+    events, event = _get_event(event_id)
+    if not event:
+        return jsonify({"success": False, "message": "Event nicht gefunden"}), 404
+    ko = _ensure_ko_cup(event)
+    order = {c: i for i, c in enumerate(CATEGORY_ORDER)}
+    finals = sorted(ko['finals'], key=lambda f: order.get(f.get('category_code'), 99))
+    return jsonify({
+        "success": True,
+        "event_id": event_id,
+        "event_name": event.get("Bezeichnung"),
+        "finals": [_final_json(f) for f in finals],
+    })
+
+
+@ko_cup_bp.post('/api/save_run/<event_id>/<final_id>/<matchup_id>')
+def ko_api_save_run(event_id, final_id, matchup_id):
+    """Schreibt EINEN Lauf (ein Team, ein Lauf) in ein Duell – aufgerufen vom
+    Ring-PC nach TIMY-Impuls (oder manuell). Danach Bracket neu rechnen,
+    speichern und Live-Update senden.
+
+    Body (JSON): {side:'a'|'b', run:'run1'|'run2',
+                  time: float|None, faults:int, refusals:int, dis:bool}
+    """
+    events, event = _get_event(event_id)
+    if not event:
+        return jsonify({"success": False, "message": "Event nicht gefunden"}), 404
+    final = _get_final(event, final_id)
+    if not final:
+        return jsonify({"success": False, "message": "Finale nicht gefunden"}), 404
+    matchup = next((m for m in final.get('matchups', []) if m.get('id') == matchup_id), None)
+    if not matchup:
+        return jsonify({"success": False, "message": "Duell nicht gefunden"}), 404
+
+    data = request.get_json(force=True, silent=True) or {}
+    side = data.get('side')
+    run = data.get('run')
+    if side not in ('a', 'b') or run not in ('run1', 'run2'):
+        return jsonify({"success": False, "message": "side/run ungültig"}), 400
+    if not matchup.get(f"{side}_id"):
+        return jsonify({"success": False, "message": "Diese Seite ist (noch) nicht besetzt"}), 409
+
+    matchup[side][run] = {
+        "time": _to_float(data.get('time')),
+        "faults": _to_int(data.get('faults'), 0),
+        "refusals": _to_int(data.get('refusals'), 0),
+        "dis": bool(data.get('dis')),
+    }
+    ko_cup.recompute(final)
+    _save_data(EVENTS_FILE, events)
+
+    _emit('ko_update', {"event_id": event_id, "final_id": final_id,
+                        "matchup_id": matchup_id})
+    return jsonify({
+        "success": True,
+        "matchup": _matchup_json(final, matchup, ""),
+        "final_status": ko_cup.bracket_status(final),
+    })
+
+
+@ko_cup_bp.get('/ring/<event_id>')
+def ko_ring(event_id):
+    """Bedienseite für EINEN Ring-PC: nimmt TIMY-Zeiten vom lokalen Ring-Server
+    entgegen und schreibt sie ins korrekte Duell auf dem Hauptserver.
+    ?ring=N (Default 1). ?ring_url= überschreibt die Ring-Server-Adresse."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+    _ensure_ko_cup(event)
+    _save_data(EVENTS_FILE, events)
+    ring_no = _to_int(request.args.get('ring'), 1) or 1
+    return render_template(
+        'ko_cup_ring.html',
+        event=event,
+        ring_no=ring_no,
+        ring_url_override=request.args.get('ring_url', ''),
+    )

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KO-Ring {{ ring_no }} – {{ event.Bezeichnung }}</title>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+  <style>
+    body { font-family: sans-serif; margin: 0; background: #1b1b1f; color: #eee; }
+    header { background: #2a2a30; padding: 10px 16px; display: flex; align-items: center; gap: 16px; }
+    header h1 { font-size: 1.2em; margin: 0; }
+    .pill { padding: 3px 10px; border-radius: 999px; font-size: 0.85em; }
+    .pill.ok { background: #1e5631; color: #c8f7d0; }
+    .pill.bad { background: #6a1b1b; color: #ffd3d3; }
+    main { padding: 16px; max-width: 900px; margin: 0 auto; }
+    label { display: block; font-size: 0.85em; color: #aaa; margin: 10px 0 3px; }
+    select, input { font-size: 1.1em; padding: 8px; border-radius: 6px; border: 1px solid #555;
+                    background: #26262c; color: #eee; width: 100%; box-sizing: border-box; }
+    .clock { font-size: 3.2em; font-weight: 700; text-align: center; margin: 10px 0; font-variant-numeric: tabular-nums; }
+    .slots { display: flex; gap: 12px; margin: 14px 0; }
+    .slot { flex: 1; border: 2px solid #555; border-radius: 10px; padding: 12px; cursor: pointer; background: #26262c; }
+    .slot.armed { border-color: #f5a623; background: #3a2e13; }
+    .slot.done { border-color: #1e5631; background: #16301f; opacity: 0.8; }
+    .slot .team { font-size: 1.15em; font-weight: 600; }
+    .slot .meta { font-size: 0.85em; color: #aaa; }
+    .row { display: flex; gap: 10px; align-items: flex-end; }
+    .row > div { flex: 1; }
+    button { font-size: 1.05em; padding: 11px 14px; border-radius: 8px; border: none; cursor: pointer; }
+    .btn-save { background: #2f7d32; color: #fff; width: 100%; margin-top: 12px; font-weight: 600; }
+    .btn-save:disabled { background: #444; cursor: not-allowed; }
+    .counters { display: flex; gap: 8px; align-items: flex-end; }
+    .counters button { background: #3a3a44; color: #eee; min-width: 54px; }
+    .counters .cbox { flex: 1; }
+    .btn-ready { background: #b07400; color: #fff; width: 100%; margin: 6px 0 2px; font-weight: 600; }
+    .btn-ready.armed { background: #c0392b; }
+    .status-line { text-align: center; font-size: 0.9em; color: #aaa; margin: 4px 0 2px; }
+    .hint { font-size: 0.8em; color: #888; margin-top: 4px; }
+    .msg { margin-top: 10px; padding: 8px 12px; border-radius: 6px; display: none; }
+    .msg.show { display: block; }
+    .msg.ok { background: #1e5631; } .msg.err { background: #6a1b1b; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎃 KO-Ring {{ ring_no }}</h1>
+    <span id="conn" class="pill bad">Ring-Server …</span>
+    <span style="color:#aaa; font-size:0.9em;">{{ event.Bezeichnung }}</span>
+  </header>
+  <main>
+    <label>Finale (Grössenklasse)</label>
+    <select id="finalSelect"></select>
+
+    <label>Duell</label>
+    <select id="matchupSelect"></select>
+
+    <div class="clock" id="clock">--.--</div>
+    <div class="status-line">TIMY-Status: <span id="runStatus">idle</span></div>
+
+    <div class="slots" id="slots"><!-- bis zu 2 Slots für diesen Ring --></div>
+
+    <button class="btn-ready" id="readyBtn" disabled>Timer scharf machen (Bereit)</button>
+
+    <div class="row">
+      <div>
+        <label>Zeit (s)</label>
+        <input type="number" step="0.01" min="0" id="timeInput" placeholder="z.B. 34.56">
+      </div>
+      <div style="flex:0 0 auto;">
+        <label>DIS</label>
+        <input type="checkbox" id="disInput" style="width:auto; transform:scale(1.5); margin:10px;">
+      </div>
+    </div>
+
+    <label>Fehler / Verweigerungen (werden am Ring-Server gezählt)</label>
+    <div class="counters">
+      <button type="button" id="faultsMinus">−</button>
+      <div class="cbox">
+        <input type="number" min="0" id="faultsInput" value="0" title="Fehler">
+      </div>
+      <button type="button" id="faultsPlus">+ Fehler</button>
+      <button type="button" id="refusalsMinus">−</button>
+      <div class="cbox">
+        <input type="number" min="0" id="refusalsInput" value="0" title="Verweigerungen">
+      </div>
+      <button type="button" id="refusalsPlus">+ Verweig.</button>
+    </div>
+
+    <button class="btn-save" id="saveBtn" disabled>Lauf speichern</button>
+    <div class="hint">Slot wählen → <b>Bereit</b> → der TIMY startet/stoppt die Zeit automatisch.
+      Fehler/Verweigerungen am Ring-Server zählen (Tasten <b>F</b>/<b>V</b> oder Buttons);
+      die Zählung erscheint hier live. Vor dem Speichern noch korrigierbar. Nach dem Speichern
+      springt der aktive Slot weiter.</div>
+    <div class="msg" id="msg"></div>
+  </main>
+
+<script>
+(function(){
+  const EVENT_ID = "{{ event.id }}";
+  const RING_NO  = {{ ring_no }};
+  const OVERRIDE = "{{ ring_url_override }}";
+  const host = window.location.hostname || "127.0.0.1";
+  const RING_URL = OVERRIDE || ("http://" + host + ":" + (5000 + RING_NO));
+
+  const $ = id => document.getElementById(id);
+  const state = {
+    finals: [], finalId: null, matchupId: null,
+    armed: null,              // {side, run, start_number, team}
+    runStatus: "idle",
+    liveFaults: 0, liveRefusals: 0,
+    localSocket: null, mainSocket: null, clockTimer: null,
+  };
+
+  function showMsg(text, ok){
+    const m = $("msg"); m.textContent = text;
+    m.className = "msg show " + (ok ? "ok" : "err");
+    setTimeout(()=>{ m.className = "msg"; }, 4000);
+  }
+
+  // ---- State vom Hauptserver laden ----
+  async function loadState(keep){
+    try{
+      const r = await fetch(`/ko-cup/api/state/${EVENT_ID}`, {cache:"no-store"});
+      const j = await r.json();
+      if(!j.success){ showMsg(j.message || "Fehler beim Laden", false); return; }
+      state.finals = j.finals || [];
+      renderFinals(keep);
+    }catch(e){ showMsg("Keine Verbindung zum Hauptserver", false); }
+  }
+
+  function renderFinals(keep){
+    const sel = $("finalSelect");
+    const prev = keep ? state.finalId : null;
+    sel.innerHTML = "";
+    state.finals.forEach(f => {
+      const o = document.createElement("option");
+      o.value = f.id; o.textContent = f.group_label + (f.status === "done" ? " ✓" : "");
+      sel.appendChild(o);
+    });
+    if(prev && state.finals.some(f=>f.id===prev)) sel.value = prev;
+    state.finalId = sel.value || null;
+    renderMatchups(keep);
+  }
+
+  function currentFinal(){ return state.finals.find(f => f.id === state.finalId) || null; }
+
+  // Duelle, an denen DIESER Ring beteiligt ist (ring_assignment).
+  function matchupsForThisRing(f){
+    if(!f) return [];
+    return f.matchups.filter(m => m.rings && m.a && m.b &&
+      (m.rings.a.run1===RING_NO || m.rings.a.run2===RING_NO ||
+       m.rings.b.run1===RING_NO || m.rings.b.run2===RING_NO));
+  }
+
+  function renderMatchups(keep){
+    const f = currentFinal();
+    const sel = $("matchupSelect");
+    const prev = keep ? state.matchupId : null;
+    sel.innerHTML = "";
+    const list = matchupsForThisRing(f);
+    list.forEach(m => {
+      const o = document.createElement("option");
+      o.value = m.id;
+      const done = m.winner_id ? " ✓" : "";
+      o.textContent = `${m.label} · Duell ${m.matchup_no}: ${m.a.dog_name} vs ${m.b.dog_name}${done}`;
+      sel.appendChild(o);
+    });
+    if(list.length === 0){
+      const o = document.createElement("option"); o.textContent = "— keine Duelle für diesen Ring —";
+      sel.appendChild(o); sel.disabled = true;
+    } else { sel.disabled = false; }
+    if(prev && list.some(m=>m.id===prev)) sel.value = prev;
+    state.matchupId = sel.value || null;
+    renderSlots();
+  }
+
+  function currentMatchup(){
+    const f = currentFinal(); if(!f) return null;
+    return f.matchups.find(m => m.id === state.matchupId) || null;
+  }
+
+  // Für dieses Ring die (side,run)-Slots bestimmen (je 1 pro Team).
+  function slotsForThisRing(m){
+    if(!m || !m.rings) return [];
+    const out = [];
+    for(const side of ["a","b"]){
+      for(const run of ["run1","run2"]){
+        if(m.rings[side][run] === RING_NO){
+          const part = m[side];
+          const existing = (m[side+"_runs"]||{})[run] || {};
+          out.push({ side, run, team: part.dog_name, start_number: part.start_number,
+                     done: existing.time !== null && existing.time !== undefined,
+                     time: existing.time });
+        }
+      }
+    }
+    // Reihenfolge: Lauf 1 zuerst
+    out.sort((x,y)=> (x.run>y.run?1:-1));
+    return out;
+  }
+
+  function renderSlots(){
+    const m = currentMatchup();
+    const box = $("slots"); box.innerHTML = "";
+    state.armed = null; $("saveBtn").disabled = true; $("readyBtn").disabled = true;
+    $("readyBtn").classList.remove("armed");
+    const slots = slotsForThisRing(m);
+    slots.forEach((s, idx) => {
+      const div = document.createElement("div");
+      div.className = "slot" + (s.done ? " done" : "");
+      div.innerHTML = `<div class="team">${s.team}</div>
+        <div class="meta">${runLabel(s.run)} · Start-Nr. ${s.start_number ?? "–"}
+        ${s.done ? "· erfasst: "+Number(s.time).toFixed(2)+" s" : ""}</div>`;
+      div.onclick = () => armSlot(s, div);
+      box.appendChild(div);
+    });
+    // Ersten offenen Slot vorwählen
+    const firstOpen = slots.find(s=>!s.done);
+    if(firstOpen){ const el = box.children[slots.indexOf(firstOpen)]; if(el) armSlot(firstOpen, el); }
+  }
+
+  function runLabel(run){ return run === "run1" ? "Lauf 1" : "Lauf 2"; }
+
+  function armSlot(s, el){
+    document.querySelectorAll(".slot").forEach(e=>e.classList.remove("armed"));
+    if(el) el.classList.add("armed");
+    state.armed = {side: s.side, run: s.run, start_number: s.start_number, team: s.team};
+    // Vorhandene Werte in die Felder
+    const m = currentMatchup();
+    const existing = (m[s.side+"_runs"]||{})[s.run] || {};
+    $("timeInput").value = (existing.time ?? "");
+    $("faultsInput").value = (existing.faults ?? 0);
+    $("refusalsInput").value = (existing.refusals ?? 0);
+    $("disInput").checked = !!existing.dis;
+    $("saveBtn").disabled = false;
+    $("readyBtn").disabled = false;
+  }
+
+  // TIMY für den aktiven Slot scharf machen: der Ring-Server setzt sich auf
+  // 'ready', misst mit dem nächsten C0/C1 die Zeit selbst und zählt F/V.
+  function setReady(){
+    if(!state.armed){ return; }
+    if(!state.localSocket || !state.localSocket.connected){
+      showMsg("Keine Verbindung zum Ring-Server – Timer kann nicht scharf gemacht werden.", false); return;
+    }
+    state.localSocket.emit("set_starter_ready", {
+      run_id: `${state.matchupId}:${state.armed.side}:${state.armed.run}`,
+      starter: { Startnummer: state.armed.start_number, Lizenznummer: null,
+                 dog_name: state.armed.team },
+    });
+    // Zähler lokal nullen – der Server setzt faults/refusals ebenfalls auf 0.
+    $("faultsInput").value = 0; $("refusalsInput").value = 0;
+    $("clock").textContent = "0.00";
+    $("readyBtn").classList.add("armed");
+    showMsg("Timer scharf – warte auf Startimpuls (C0).", true);
+  }
+
+  // Fehler/Verweigerungen am Ring-Server zählen. Während 'running' ist der
+  // Server autoritativ (er schickt state_update zurück); sonst wird der Wert
+  // lokal für die Nachkorrektur angepasst.
+  function bumpCounter(type, delta){
+    if(state.localSocket && state.localSocket.connected){
+      state.localSocket.emit("increment_counter", {type, value: delta});
+    }
+    const inp = $(type === "faults" ? "faultsInput" : "refusalsInput");
+    inp.value = Math.max(0, (parseInt(inp.value||"0",10) || 0) + delta);
+  }
+
+  // ---- Speichern ----
+  async function saveRun(){
+    const m = currentMatchup(); if(!m || !state.armed){ return; }
+    const body = {
+      side: state.armed.side, run: state.armed.run,
+      time: $("timeInput").value === "" ? null : parseFloat($("timeInput").value),
+      faults: parseInt($("faultsInput").value||"0",10),
+      refusals: parseInt($("refusalsInput").value||"0",10),
+      dis: $("disInput").checked,
+    };
+    try{
+      const r = await fetch(`/ko-cup/api/save_run/${EVENT_ID}/${state.finalId}/${m.id}`, {
+        method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)
+      });
+      const j = await r.json();
+      if(!j.success){ showMsg(j.message || "Speichern fehlgeschlagen", false); return; }
+      showMsg("Lauf gespeichert.", true);
+      $("clock").textContent = "--.--";
+      await loadState(true);   // Slots/Status aktualisieren, Auswahl behalten
+    }catch(e){ showMsg("Speichern fehlgeschlagen (Netz)", false); }
+  }
+
+  // ---- Sockets: lokaler TIMY-Ring-Server + Hauptserver ----
+  function connect(){
+    if(typeof io !== "function") return;
+    state.mainSocket = io();
+    state.mainSocket.on("ko_update", d => {
+      if(d && d.event_id === EVENT_ID) loadState(true);
+    });
+
+    state.localSocket = io(RING_URL, {transports:["websocket","polling"],
+      reconnection:true, reconnectionAttempts:60, reconnectionDelay:1000, timeout:5000});
+    const conn = ok => { const c=$("conn"); c.textContent = ok?"Ring-Server verbunden":"Ring-Server getrennt";
+                         c.className = "pill " + (ok?"ok":"bad"); };
+    state.localSocket.on("connect", ()=>conn(true));
+    state.localSocket.on("disconnect", ()=>conn(false));
+    state.localSocket.on("connect_error", ()=>conn(false));
+
+    state.localSocket.on("state_update", s => {
+      state.runStatus = s.run_status || "idle";
+      $("runStatus").textContent = state.runStatus;
+      state.liveFaults = s.faults ?? 0; state.liveRefusals = s.refusals ?? 0;
+      // Während eines aktiven Laufs zeigt der Ring-Server-Zähler autoritativ an.
+      if(state.runStatus === "ready" || state.runStatus === "running"){
+        $("faultsInput").value = state.liveFaults;
+        $("refusalsInput").value = state.liveRefusals;
+      }
+      if(state.runStatus === "idle") $("readyBtn").classList.remove("armed");
+    });
+    state.localSocket.on("start_clock", () => {
+      if(state.clockTimer) clearInterval(state.clockTimer);
+      const t0 = Date.now();
+      state.clockTimer = setInterval(()=>{ $("clock").textContent = ((Date.now()-t0)/1000).toFixed(2); }, 50);
+    });
+    state.localSocket.on("run_finished_timing", data => {
+      if(state.clockTimer) clearInterval(state.clockTimer);
+      $("clock").textContent = data.final_time;
+      $("readyBtn").classList.remove("armed");
+      // Zeit + die am Ring-Server gezählten Fehler/Verweigerungen in die Felder
+      // (noch editierbar für die Nachkorrektur).
+      $("timeInput").value = data.final_time;
+      if(data.faults !== undefined) $("faultsInput").value = data.faults;
+      if(data.refusals !== undefined) $("refusalsInput").value = data.refusals;
+      $("saveBtn").disabled = !state.armed;
+    });
+
+    // Health-Poll (wie Ring-Dashboard)
+    async function poll(){ try{ const r = await fetch(RING_URL + "/health", {cache:"no-store", credentials:"omit"}); conn(r.ok); }catch(e){ conn(false); } }
+    poll(); setInterval(poll, 3000);
+  }
+
+  // ---- Wiring ----
+  $("finalSelect").onchange = () => { state.finalId = $("finalSelect").value; renderMatchups(true); };
+  $("matchupSelect").onchange = () => { state.matchupId = $("matchupSelect").value; renderSlots(); };
+  $("saveBtn").onclick = saveRun;
+  $("readyBtn").onclick = setReady;
+  $("faultsPlus").onclick    = () => bumpCounter("faults", 1);
+  $("faultsMinus").onclick   = () => bumpCounter("faults", -1);
+  $("refusalsPlus").onclick  = () => bumpCounter("refusals", 1);
+  $("refusalsMinus").onclick = () => bumpCounter("refusals", -1);
+
+  // Tastatur F/V während des Laufs (nicht wenn ein Eingabefeld fokussiert ist).
+  document.addEventListener("keydown", e => {
+    if(state.runStatus !== "running") return;
+    if(e.target && e.target.tagName === "INPUT") return;
+    const k = e.key.toLowerCase();
+    if(k === "f"){ e.preventDefault(); bumpCounter("faults", 1); }
+    if(k === "v"){ e.preventDefault(); bumpCounter("refusals", 1); }
+  });
+
+  connect();
+  loadState(false);
+})();
+</script>
+</body>
+</html>

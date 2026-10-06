@@ -215,7 +215,10 @@
 
     const eventId = (ui.runSelect && ui.runSelect.dataset.eventId) ? ui.runSelect.dataset.eventId : "{{ event.id }}";
     const ringNumber = "{{ ring_name }}".replace(/[^0-9]/g, "") || "1";
-    const RING_SERVER_URL = "http://127.0.0.1:5001";
+    // Konvention: Ring-Server-Port = 5000 + Ring-Nr (Ring 1 -> 5001, Ring 2 -> 5002, ...).
+    // Frueher fest 5001 -> Ringe 2/3 landeten faelschlich auf dem Server von Ring 1.
+    const RING_PORT = 5000 + (parseInt(ringNumber, 10) || 1);
+    const RING_SERVER_URL = "http://127.0.0.1:" + RING_PORT;
 
     const state = {
       currentRunId: null,
@@ -260,7 +263,7 @@
       state.mainSocket = io(); // Haupt-App
 
       const host = window.location.hostname || "127.0.0.1";
-      const localUrl = "http://" + host + ":5001";
+      const localUrl = "http://" + host + ":" + RING_PORT;
 
       state.localSocket = io(localUrl, {
         transports: ["websocket","polling"],
