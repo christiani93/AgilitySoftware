@@ -24,14 +24,16 @@
         .group-container { page-break-after: always; }
         .group-container:last-child { page-break-after: auto; }
 
-        .run-meta { font-size: 10pt; margin: 0 0 8px 0; color: #555; }
+        .run-title { text-align: center; font-size: 15pt; font-weight: 700; font-style: italic; margin: 0.4cm 0 2px 0; }
+        .run-count { text-align: center; font-size: 10pt; font-weight: 600; margin: 0 0 10px 0; }
 
         table { width: 100%; border-collapse: collapse; font-size: 10pt; page-break-inside: auto; }
-        th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
-        th { background-color: #f2f2f2; }
+        .data-table th, .data-table td { border: none; border-bottom: 1px solid #ccc; padding: 4px 6px; text-align: left; }
+        .data-table thead th { border-bottom: 1.5px solid #333; background: transparent; font-weight: 700; }
         thead { display: table-header-group; }
         tr { page-break-inside: avoid; page-break-after: auto; }
-        h3 { background-color: #e9ecef; font-size: 14pt; padding: 8px; text-align: left; margin-top: 1cm; margin-bottom: 5px;}
+
+        .print-footer { margin-top: 10px; padding-top: 4px; border-top: 1px solid #999; display: flex; justify-content: space-between; font-size: 8pt; color: #666; }
 
         @media print {
             body { margin: 0; }
@@ -53,17 +55,17 @@
                 <td>
         {% for run in ordered_runs %}
             <div class="group-container">
-                <h3>{{ run.name }}</h3>
-                <p class="run-meta">{{ _('Kategorie') }}: {{ run.kategorie or 'N/A' }} | {{ _('Klasse') }}: {{ run.klasse or 'N/A' }}</p>
+                <div class="run-title">{{ _('Startliste') }} {{ run.name }}</div>
+                <div class="run-count">{{ _('Anzahl Teams') }}: {{ run.entries|length }}</div>
                 {% if run.entries %}
-                    <table>
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th style="width:10%;">{{ _('Start-Nr.') }}</th>
-                                <th style="width:35%;">{{ _('Hundeführer') }}</th>
-                                <th style="width:35%;">{{ _('Hund') }}</th>
-                                <th style="width:10%;">{{ _('Kategorie') }}</th>
-                                <th style="width:10%;">{{ _('Klasse') }}</th>
+                                <th style="width:9%;">{{ _('Start-Nr.') }}</th>
+                                <th style="width:25%;">{{ _('Name') }}</th>
+                                <th style="width:16%;">{{ _('Hund') }}</th>
+                                <th style="width:18%;">{{ _('Rasse') }}</th>
+                                <th style="width:32%;">{{ _('Verein') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -71,9 +73,9 @@
                                 <tr>
                                     <td><strong>{{ entry.Startnummer }}</strong></td>
                                     <td>{{ entry.Hundefuehrer }}</td>
-                                    <td>{{ entry.Hundename }} ({{ entry.Lizenznummer }})</td>
-                                    <td>{{ run.kategorie or 'N/A' }}</td>
-                                    <td>{{ run.klasse or 'N/A' }}</td>
+                                    <td>{{ entry.Hundename }}</td>
+                                    <td>{{ entry.Rasse }}</td>
+                                    <td>{{ entry.Verein }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -81,6 +83,10 @@
                 {% else %}
                     <p>{{ _('Keine Startenden für diesen Block.') }}</p>
                 {% endif %}
+                <div class="print-footer">
+                    <span>{{ event.Bezeichnung }} — {{ event.Datum | format_date }}</span>
+                    <span>{{ _('Gedruckt') }}: {{ now_str }}</span>
+                </div>
             </div>
         {% else %}
             <p style="text-align: center; font-weight: bold; margin-top: 2cm;">

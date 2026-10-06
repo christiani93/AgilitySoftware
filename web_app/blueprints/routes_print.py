@@ -174,13 +174,31 @@ def print_briefing_groups(event_id=None):
         show_participants_table=show_participants_table,
     )
 
+def _enrich_entries_rasse_verein(ordered_runs):
+    """Reichert die Entries der Läufe um Rasse (aus dogs.json) und Vereinsname
+    (handlers.json → clubs.json) an, damit die Listen der SportyDog-Vorlage
+    entsprechen. Fehlende Werte bleiben leer (z.B. Rasse nicht erfasst)."""
+    dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
+    handlers_map = {h['id']: h for h in _load_data('handlers.json')}
+    clubs_map = {str(c.get('nummer')): c.get('name', '') for c in _load_data('clubs.json')}
+    for run in ordered_runs:
+        for entry in run.get('entries', []):
+            dog = dogs_map.get(entry.get('Lizenznummer'), {})
+            if not entry.get('Rasse'):
+                entry['Rasse'] = dog.get('Rasse', '')
+            handler = handlers_map.get(dog.get('Hundefuehrer_ID'), {})
+            entry['Verein'] = clubs_map.get(str(handler.get('Vereinsnummer', '')), '')
+    return ordered_runs
+
+
 @print_bp.route('/print/startlists/<event_id>')
 def print_startlists(event_id):
     """Offizielle Startliste, sortiert nach Zeitplan-Reihenfolge."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    ordered_runs = get_ordered_runs_for_print(event)
-    return render_template('print_startlists.html', event=event, ordered_runs=ordered_runs)
+    ordered_runs = _enrich_entries_rasse_verein(get_ordered_runs_for_print(event))
+    now_str = datetime.now().strftime('%d.%m.%Y %H:%M')
+    return render_template('print_startlists.html', event=event, ordered_runs=ordered_runs, now_str=now_str)
 
 
 @print_bp.route('/print/startlists_by_schedule/<event_id>')
