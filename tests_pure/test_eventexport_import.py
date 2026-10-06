@@ -44,8 +44,10 @@ def _portal_payload():
             {"external_id": "P2", "first_name": "Claire", "last_name": "Arola", "email": None},
         ],
         "dogs": [
-            {"external_id": "D1", "name": "Mac", "license_no": "15333", "license_kind": "CH"},
-            {"external_id": "D2", "name": "Fate", "license_no": "FRA-105002", "license_kind": "FOREIGN"},
+            {"external_id": "D1", "name": "Mac", "license_no": "15333", "license_kind": "CH",
+             "breed": "Border Collie"},
+            {"external_id": "D2", "name": "Fate", "license_no": "FRA-105002", "license_kind": "FOREIGN",
+             "breed": "Sheltie"},
         ],
     }
     regs = [
@@ -75,6 +77,11 @@ def test_eventexport_resolves_dog_handler_and_club_by_external_id(fresh_data_dir
     handlers = {h.get("Nachname"): h for h in utils._load_data("handlers.json")}
     assert handlers["Broennimann"]["Vereinsnummer"] == "512"
     assert handlers["Arola"]["Vereinsnummer"] == "--- AUSLAND ---"
+
+    # Rasse (Stufe 2) wird vom Portal-Export auf den Hund übernommen
+    saved_dogs = {d.get("Lizenznummer"): d for d in utils._load_data("dogs.json")}
+    assert saved_dogs["15333"]["Rasse"] == "Border Collie"
+    assert saved_dogs["FRA-105002"]["Rasse"] == "Sheltie"
 
 
 def test_eventexport_persons_key_is_recognized_as_handlers(fresh_data_dir):

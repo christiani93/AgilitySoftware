@@ -464,6 +464,7 @@ def _merge_eventexport_dogs(dogs: list, entities: dict, handler_external_map: di
             continue
         license_no = _get_first_value(dog, ("license_no", "license_number", "Lizenznummer", "lizenznummer"), "")
         dog_name = _get_first_value(dog, ("dog_name", "Hundename", "name"), "")
+        breed = _get_first_value(dog, ("breed", "Rasse", "rasse"), "")
         external_id = _get_first_value(dog, ("external_id", "id"), "")
         handler_external_id = _get_first_value(dog, ("handler_external_id", "handler_id"), "")
         handler_id = None
@@ -479,10 +480,12 @@ def _merge_eventexport_dogs(dogs: list, entities: dict, handler_external_map: di
                 "Hundefuehrer_ID": handler_id or "",
                 "Kategorie": _get_first_value(dog, ("category_code", "Kategorie", "kategorie"), ""),
                 "Klasse": str(_get_first_value(dog, ("class_level", "Klasse", "klasse"), "")),
+                "Rasse": breed,
             }
             dogs.append(existing)
             dog_map[license_no] = existing
         _safe_update(existing, "Hundename", dog_name)
+        _safe_update(existing, "Rasse", breed)
         if handler_id:
             existing["Hundefuehrer_ID"] = handler_id
         _safe_update(existing, "Kategorie", _get_first_value(dog, ("category_code", "Kategorie", "kategorie"), ""))
