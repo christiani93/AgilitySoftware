@@ -147,10 +147,77 @@ def _log_timing_calc(start_tod: str, stop_tod: str, start_s: float, stop_s: floa
         pass
 
 
+# ---------------------------------------------------------------------------
+# Diagnose-Recorder – paart C0/C1/RT über die Lauf-Nummer, schreibt delta_vs_timy
+# ---------------------------------------------------------------------------
+# Läuft PARALLEL zum operativen Zeitmess-Pfad (OnUSBInput unten) und berührt
+# diesen NICHT. Der operative Pfad nutzt weiter die Ein-Slot-Logik über
+# state['start_time_tod']; der Recorder paart unabhängig über die Lauf-Nummer
+# (das TIMY kann mehrere Zeiten gleichzeitig laufen lassen) und hält pro Lauf
+# fest, ob die berechnete Zeit zur RT-Zeile (Anzeigetafel) passt. Ziel am
+# Wochenende (Weg B, 1 Ring, EXE): automatischer Mitschnitt C0/C1/RT + delta.
+# Ergebnis liegt neben dem bestehenden timy_raw_<ring>.log (Analyse-Zeilen) und
+# in timy_diag_<ring>.csv (eine Zeile pro Lauf). Abschaltbar via TIMY_RAW_LOG_DISABLE.
+_diag = None  # DiagRecorder-Instanz, in run_server gesetzt
+
+
+def _diag_csv_path() -> str:
+    base = (os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, "frozen", False)
+            else os.path.dirname(os.path.abspath(__file__)))
+    ring_tag = re.sub(r"[^A-Za-z0-9_-]+", "_", state.get("ring_id") or "ring")
+    return os.path.join(base, f"timy_diag_{ring_tag}.csv")
+
+
+def _append_raw_log_line(text: str) -> None:
+    """log_fn des DiagRecorders: hängt eine Analyse-Zeile (mit Zeitstempel) an
+    die bestehende Roh-Log-Datei an – ein chronologisches File."""
+    try:
+        ts = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        with open(_raw_log_path(), "a", encoding="utf-8") as f:
+            f.write(f"[{ts}] {text}\n")
+    except Exception:
+        pass
+
+
+def _append_diag_csv_line(line: str) -> None:
+    """csv_fn des DiagRecorders: hängt eine fertige CSV-Zeile an die CSV an."""
+    try:
+        with open(_diag_csv_path(), "a", encoding="utf-8") as f:
+            f.write(line)
+    except Exception:
+        pass
+
+
+def _init_diag_recorder() -> None:
+    """Baut den DiagRecorder auf (einmal pro Prozess, nach bekanntem Ring-Label).
+    Scheitert der Import/Aufbau, bleibt _diag None – der Ring-Server läuft normal
+    weiter, nur ohne erweiterten Mitschnitt."""
+    global _diag
+    if not _RAW_LOG_ENABLED:
+        return
+    try:
+        try:
+            from timy_diag import DiagRecorder
+        except ImportError:
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            from timy_diag import DiagRecorder
+        _diag = DiagRecorder(ring=state.get("ring_id") or "ring",
+                             log_fn=_append_raw_log_line,
+                             csv_fn=_append_diag_csv_line)
+        _append_raw_log_line(f"=== Diagnose-Recorder gestartet — Ring {state.get('ring_id')!r} "
+                             f"— CSV: {_diag_csv_path()} ===")
+    except Exception:
+        _diag = None
+
+
 class TimyEvents:
     def OnConnectionOpen(self): print(f"[{state['ring_id']}] >> Verbindung zum Timy erfolgreich.")
     def OnUSBInput(self, data):
         line = data.strip()
+        # Diagnose-Mitschnitt (parallel, berührt den operativen Pfad nicht;
+        # handle_line schluckt alle internen Fehler selbst).
+        if _diag is not None:
+            _diag.handle_line(line)
         parsed = parse_timy_output(line)
         _log_raw_timy(line, parsed)
         if not parsed: return
@@ -326,6 +393,9 @@ def run_server(ring_label=None, ring_number=None, port_num=None,
 
     _RING_LABEL, _PORT_NUM = ring_label, port_num
     state['ring_id'] = ring_label
+
+    # Diagnose-Recorder aufbauen (nach bekanntem Ring-Label, vor TIMY-Thread).
+    _init_diag_recorder()
 
     print("============================================")
     print(f"  Ring-Server '{ring_label}' (Nr. {ring_number})")
