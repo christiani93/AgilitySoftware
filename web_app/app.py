@@ -171,6 +171,7 @@ from blueprints.routes_skbs_sm import skbs_sm_bp
 from blueprints.routes_bccs_sm import bccs_sm_bp
 from blueprints.routes_fmbb import fmbb_bp
 from blueprints.routes_team_challenge import team_challenge_bp
+from blueprints.routes_ko_cup import ko_cup_bp
 
 app.register_blueprint(events_bp)
 app.register_blueprint(master_data_bp)
@@ -182,6 +183,7 @@ app.register_blueprint(skbs_sm_bp)
 app.register_blueprint(bccs_sm_bp)
 app.register_blueprint(fmbb_bp)
 app.register_blueprint(team_challenge_bp)
+app.register_blueprint(ko_cup_bp)
 
 @app.context_processor
 def inject_current_year():

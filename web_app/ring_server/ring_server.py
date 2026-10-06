@@ -1,8 +1,10 @@
 import argparse
 # ring_server.py
 import math
+import os
 import sys
 import time
+import datetime
 import requests
 import re
 import threading
@@ -93,11 +95,64 @@ def parse_timy_output(line):
     if impulse_match: return {'type': 'impulse', 'channel': impulse_match.group(2), 'time_of_day': impulse_match.group(3)}
     return None
 
+
+# ---------------------------------------------------------------------------
+# Rohdaten-Log – Diagnose des 1/100s-Rundungsfehlers
+# ---------------------------------------------------------------------------
+# Zeichnet JEDE vom TIMY über die USB/Serielle Schnittstelle empfangene Zeile
+# auf, auch solche, die parse_timy_output() NICHT erkennt (die würden sonst
+# stillschweigend verworfen, bevor überhaupt etwas geloggt wird – falls der
+# TIMY zusätzliche/präzisere Zeilenformate sendet, ginge das sonst verloren).
+# Ablage neben der Ring-EXE (bzw. neben dieser Datei im Dev-Modus), analog zu
+# ring_launcher._config_path(). Abschaltbar via TIMY_RAW_LOG_DISABLE=1.
+_RAW_LOG_ENABLED = os.environ.get("TIMY_RAW_LOG_DISABLE", "").strip().lower() not in ("1", "true", "yes", "on")
+_raw_log_path_cache = None
+
+
+def _raw_log_path() -> str:
+    global _raw_log_path_cache
+    if _raw_log_path_cache is None:
+        base = (os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, "frozen", False)
+                else os.path.dirname(os.path.abspath(__file__)))
+        ring_tag = re.sub(r"[^A-Za-z0-9_-]+", "_", state.get("ring_id") or "ring")
+        _raw_log_path_cache = os.path.join(base, f"timy_raw_{ring_tag}.log")
+    return _raw_log_path_cache
+
+
+def _log_raw_timy(line: str, parsed: dict | None) -> None:
+    if not _RAW_LOG_ENABLED:
+        return
+    try:
+        ts = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        tag = f"ch={parsed['channel']} tod={parsed['time_of_day']}" if parsed else "UNMATCHED"
+        with open(_raw_log_path(), "a", encoding="utf-8") as f:
+            f.write(f"[{ts}] raw={line!r} | {tag} | run_status={state.get('run_status')}\n")
+    except Exception:
+        pass  # Logging darf den Zeitmess-Pfad nie stören
+
+
+def _log_timing_calc(start_tod: str, stop_tod: str, start_s: float, stop_s: float, final_time: float) -> None:
+    """Hält die konkrete Berechnung eines Laufs fest (C0→C1), damit sich ein
+    1/100s-Abweichung zur TIMY-eigenen Anzeige konkret nachvollziehen lässt."""
+    if not _RAW_LOG_ENABLED:
+        return
+    try:
+        with open(_raw_log_path(), "a", encoding="utf-8") as f:
+            f.write(
+                f"  >> BERECHNUNG: start_tod={start_tod!r} stop_tod={stop_tod!r} "
+                f"start_s={start_s!r} stop_s={stop_s!r} diff={stop_s - start_s!r} "
+                f"-> final_time={final_time!r}\n"
+            )
+    except Exception:
+        pass
+
+
 class TimyEvents:
     def OnConnectionOpen(self): print(f"[{state['ring_id']}] >> Verbindung zum Timy erfolgreich.")
     def OnUSBInput(self, data):
         line = data.strip()
         parsed = parse_timy_output(line)
+        _log_raw_timy(line, parsed)
         if not parsed: return
 
         print(f"[{state['ring_id']}] Impuls: {line} | Status: {state['run_status']}")
@@ -118,6 +173,7 @@ class TimyEvents:
                     # nicht gerundet (35.678 -> 35.67). Epsilon schützt gegen
                     # Float-Ungenauigkeit (z.B. 35.68*100 = 3567.9999...).
                     final_time = math.floor((stop_s - start_s) * 100 + 1e-9) / 100
+                    _log_timing_calc(state['start_time_tod'], stop_time_tod, start_s, stop_s, final_time)
                     state['run_status'] = "finished_timing"
                     state['final_time'] = final_time
 
