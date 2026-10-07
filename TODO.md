@@ -62,6 +62,14 @@ Reglement bestätigt (DIS-Team hinter Nicht-DIS via Sentinel 999, Zeitfehler nor
       Duell).
 - [ ] Ring-Startlisten: generische Annäherung, KEIN exaktes Ring-Auslastungs-Balancing wie
       handgemachte Excel-Ablauftabelle (Foto) — bei Bedarf explizitere Scheduling-Regel definieren.
+- [x] **Direkter Startlisten-Link am Ring-PC** (2026-10-07, nur lokal): `ko_cup_ring.html` hat jetzt
+      Button "📋 Startliste Ring N" → `/ko-cup/rings_print/<event_id>#ring-N` (neuer Tab), Sprungmarke
+      `id="ring-N"` in `ko_cup_rings_print.html`. Vorher nur über Admin-Config erreichbar. 142/142 Tests grün.
+- [ ] **Edelweiss: Agi+Jumping pro Team direkt nacheinander** (aufgefallen 2026-10-07): bei Edelweiss
+      (Team-Challenge) müssen die beiden Läufe eines Teams (Agility + Jumping) im Zeitplan unmittelbar
+      hintereinander kommen, nicht wie bisher nach Klasse getrennt in eigenen Blöcken. Technische
+      Anpassung an der Zeitplan-/Laufreihenfolge-Logik noch offen — siehe Memory
+      `project_schedule_optimization` + `project_team_challenge_status`.
 - [ ] **KO-Schlüssel-Einstellung (UI)**: Finalisten-Ableitung in `ko_qualification.py` nutzt aktuell
       fest `DEFAULT_SCHLUESSEL` (2026). Noch keine Oberfläche, um den Schlüssel pro Event
       einzustellen/überschreiben (welche Läufe zählen, Anzahl Finalisten je Kategorie). Später

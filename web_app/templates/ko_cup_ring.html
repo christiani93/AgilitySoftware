@@ -39,6 +39,8 @@
     .msg { margin-top: 10px; padding: 8px 12px; border-radius: 6px; display: none; }
     .msg.show { display: block; }
     .msg.ok { background: #1e5631; } .msg.err { background: #6a1b1b; }
+    .btn-startlist { background: #3a3a44; color: #eee; text-decoration: none; padding: 6px 12px;
+                      border-radius: 6px; font-size: 0.9em; margin-left: auto; }
   </style>
 </head>
 <body>
@@ -46,6 +48,10 @@
     <h1>🎃 KO-Ring {{ ring_no }}</h1>
     <span id="conn" class="pill bad">Ring-Server …</span>
     <span style="color:#aaa; font-size:0.9em;">{{ event.Bezeichnung }}</span>
+    <a class="btn-startlist" target="_blank" rel="noopener"
+       href="{{ url_for('ko_cup_bp.ko_rings_print', event_id=event.id) }}#ring-{{ ring_no }}">
+      📋 Startliste Ring {{ ring_no }}
+    </a>
   </header>
   <main>
     <label>Finale (Grössenklasse)</label>

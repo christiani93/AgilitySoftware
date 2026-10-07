@@ -41,7 +41,7 @@
 
     {% for rs in ring_startlists %}
     {% if not loop.first %}<div class="pagebreak"></div>{% endif %}
-    <h2>Startliste Ring {{ rs.ring }}</h2>
+    <h2 id="ring-{{ rs.ring }}">Startliste Ring {{ rs.ring }}</h2>
     <table>
         <thead>
             <tr>

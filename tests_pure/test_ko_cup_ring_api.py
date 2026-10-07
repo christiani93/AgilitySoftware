@@ -64,6 +64,16 @@ def _load_final(tmp_path):
     return ev["ko_cup"]["finals"][0]
 
 
+def test_ring_page_links_to_its_own_ring_startlist(ctx):
+    """Der Ring-PC braucht einen direkten Link zur Ring-Startliste (statt
+    ueber die Admin-Config zu gehen) -- Anker springt zum richtigen Ring."""
+    client, _ = ctx
+    resp = client.get(f"/ko-cup/ring/{EVENT_ID}?ring=2")
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    assert f"/ko-cup/rings_print/{EVENT_ID}#ring-2" in html
+
+
 def test_state_returns_matchup_with_ring_assignment(ctx):
     client, _ = ctx
     resp = client.get(f"/ko-cup/api/state/{EVENT_ID}")
