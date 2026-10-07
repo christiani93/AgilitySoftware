@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}Ring-PC: {{ ring_name }} - {{ event.Bezeichnung }}{% endblock %}
 {% set kiosk_mode = True %}
-{% block extra_head %}<script src="https://cdn.tailwindcss.com"></script>{% endblock %}
+{% block extra_head %}<script src="{{ url_for('static', filename='vendor/tailwind.min.js') }}"></script>{% endblock %}
 
 {% block content %}
 <!-- RING-PC STATUS BANNER START -->
@@ -174,7 +174,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+{# Socket.IO wird bereits via layout.html (vendored) geladen #}
 <script>
 /* ===== Ring-PC Dashboard (konsolidiert, saubere Klammern) ===== */
 (function(){

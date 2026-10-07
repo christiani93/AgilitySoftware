@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>KO-Ring {{ ring_no }} – {{ event.Bezeichnung }}</title>
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+  <script src="{{ url_for('static', filename='vendor/socket.io.min.js') }}"></script>
   <style>
     body { font-family: sans-serif; margin: 0; background: #1b1b1f; color: #eee; }
     header { background: #2a2a30; padding: 10px 16px; display: flex; align-items: center; gap: 16px; }
