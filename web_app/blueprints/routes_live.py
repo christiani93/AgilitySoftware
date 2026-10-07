@@ -1042,6 +1042,76 @@ def export_results_to_portal(event_id):
 # Ranglisten-PDF generieren und ans Portal hochladen
 # ---------------------------------------------------------------------------
 
+def _render_ranking_pdf_html(event, run, event_id, is_final):
+    """Baut das Rangliste-HTML (Grundlage für PDF-Upload und Vorschau)."""
+    from blueprints.routes_print import _enrich_entries_rasse_verein
+    _enrich_entries_rasse_verein([run])
+
+    settings = _load_settings()
+    results       = _calculate_run_results(run, settings)
+    judges        = _load_data('judges.json')
+    judge_display = resolve_judge_name(event, run, judges)
+
+    import os as _os, base64 as _b64
+    def _logo_b64(logo_key):
+        fname = event.get(logo_key)
+        if not fname:
+            return None
+        from paths import data_path
+        path = data_path("logos", event_id, fname)
+        if not _os.path.exists(path):
+            return None
+        ext = _os.path.splitext(fname)[1].lower().lstrip(".")
+        mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
+                "gif": "image/gif", "svg": "image/svg+xml", "webp": "image/webp"}.get(ext, "image/png")
+        with open(path, "rb") as _f:
+            data = _b64.b64encode(_f.read()).decode()
+        return f"data:{mime};base64,{data}"
+
+    from flask import render_template as _rt
+    return _rt(
+        'print_ranking_pdf.html',
+        event=event,
+        run=run,
+        results=results,
+        judges=judges,
+        judge_display=judge_display,
+        is_final=is_final,
+        event_logo_data=_logo_b64("event_logo_filename"),
+        club_logo_data=_logo_b64("club_logo_filename"),
+    )
+
+
+@live_bp.route('/live/preview_ranking_pdf/<event_id>/<run_id>')
+def preview_ranking_pdf(event_id, run_id):
+    """Zeigt die Rangliste-PDF im Browser an (kein Upload) — zum Layout-Check."""
+    try:
+        from xhtml2pdf import pisa
+        import io as _io
+    except ImportError:
+        return "xhtml2pdf nicht installiert.", 500
+
+    events = _load_data('events.json')
+    event  = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return "Event nicht gefunden", 404
+    run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None)
+    if not run:
+        return "Lauf nicht gefunden", 404
+
+    is_final = request.args.get('final', '0') == '1'
+    html_str = _render_ranking_pdf_html(event, run, event_id, is_final)
+
+    buf = _io.BytesIO()
+    pisa_status = pisa.CreatePDF(_io.StringIO(html_str), dest=buf)
+    if pisa_status.err:
+        return f"PDF-Generierung fehlgeschlagen (pisa errors: {pisa_status.err})", 500
+
+    from flask import Response
+    return Response(buf.getvalue(), mimetype='application/pdf',
+                    headers={"Content-Disposition": "inline; filename=rangliste_vorschau.pdf"})
+
+
 @live_bp.route('/live/upload_ranking_pdf/<event_id>/<run_id>', methods=['POST'])
 def upload_ranking_pdf(event_id, run_id):
     """
@@ -1077,44 +1147,7 @@ def upload_ranking_pdf(event_id, run_id):
     if not external_id:
         return jsonify({"error": "Event hat keine external_id – bitte Turnier neu vom Portal importieren"}), 400
 
-    # Ergebnisse berechnen
-    results        = _calculate_run_results(run, settings)
-    judges         = _load_data('judges.json')
-    judge_display  = resolve_judge_name(event, run, judges)
-
-    # Logo-URLs berechnen (werden im Template als base64 eingebettet, falls Datei vorhanden)
-    import os as _os, base64 as _b64
-    def _logo_b64(logo_key):
-        fname = event.get(logo_key)
-        if not fname:
-            return None
-        from paths import data_path
-        path = data_path("logos", event_id, fname)
-        if not _os.path.exists(path):
-            return None
-        ext = _os.path.splitext(fname)[1].lower().lstrip(".")
-        mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
-                "gif": "image/gif", "svg": "image/svg+xml", "webp": "image/webp"}.get(ext, "image/png")
-        with open(path, "rb") as _f:
-            data = _b64.b64encode(_f.read()).decode()
-        return f"data:{mime};base64,{data}"
-
-    event_logo_data = _logo_b64("event_logo_filename")
-    club_logo_data  = _logo_b64("club_logo_filename")
-
-    # HTML-String rendern (PDF-optimiertes Template, kein position:fixed)
-    from flask import render_template as _rt
-    html_str = _rt(
-        'print_ranking_pdf.html',
-        event=event,
-        run=run,
-        results=results,
-        judges=judges,
-        judge_display=judge_display,
-        is_final=is_final,
-        event_logo_data=event_logo_data,
-        club_logo_data=club_logo_data,
-    )
+    html_str = _render_ranking_pdf_html(event, run, event_id, is_final)
 
     # HTML → PDF via xhtml2pdf
     try:

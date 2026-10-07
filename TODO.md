@@ -44,6 +44,17 @@ Reglement bestätigt (DIS-Team hinter Nicht-DIS via Sentinel 999, Zeitfehler nor
 
 ## PDF-/Design-Arbeit (geplant ab 07.10.2026)
 
+- [~] **Rangliste-PDF** `print_ranking_pdf.html` (Software→Portal-Upload, feature/ko-cup, **UNCOMMITTED**):
+      an SportyDog-Vorlage angeglichen (Logo-Header, Laufvorgaben-Box 2×3, m/s-Spalten, Statistik mit %).
+      Session 2 (2026-10-07): Spalten **Start-Nr. + Liz. entfernt** (12 statt 14 Spalten); **Banner
+      "OFFIZIELLE/VORLÄUFIGE RANGLISTE" oben entfernt**; Statistik-Block-Abstände gefixt (`&nbsp;` zwischen
+      Label/Wert + `.stats-block td` horizontales Padding, da `table{width:100%}` das Box-Padding überrennt).
+      Headless-Render: `flask_env`-Python + Test-Client `/live/preview_ranking_pdf/<eid>/<rid>?final=1`,
+      Rastern mit `pymupdf` (neu in flask_env installiert). → **noch committen auf feature/ko-cup**.
+- [ ] **Rangliste-PDF BUG — Fusszeile allein auf Seite 2** bei grossen Läufen (Large 3, 30+ Zeilen):
+      Tabelle+Statistik passen auf Seite 1 (Ende y≈789/842pt), aber der `display:table`-Footer wird
+      komplett auf Seite 2 geschoben (xhtml2pdf bricht display:table nicht um) → fast leere 2. Seite.
+      User-Entscheid offen: Abstände enger / Footer als normaler Flow / akzeptieren.
 - [x] **Siegerehrungsliste** `print_award_list.html` überarbeitet (2026-10-07, `31f185f`, nur lokal):
       Kategorie-Sortierung L→I→M→S; echte Logos via neuem Helper `utils.get_event_logo_data_uris()`
       + `_print_header.html` (`<img>` mit Platzhalter-Fallback); Seiten-Überlappung behoben
