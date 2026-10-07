@@ -62,6 +62,10 @@ Reglement bestätigt (DIS-Team hinter Nicht-DIS via Sentinel 999, Zeitfehler nor
       Duell).
 - [ ] Ring-Startlisten: generische Annäherung, KEIN exaktes Ring-Auslastungs-Balancing wie
       handgemachte Excel-Ablauftabelle (Foto) — bei Bedarf explizitere Scheduling-Regel definieren.
+- [ ] **KO-Schlüssel-Einstellung (UI)**: Finalisten-Ableitung in `ko_qualification.py` nutzt aktuell
+      fest `DEFAULT_SCHLUESSEL` (2026). Noch keine Oberfläche, um den Schlüssel pro Event
+      einzustellen/überschreiben (welche Läufe zählen, Anzahl Finalisten je Kategorie). Später
+      nachrüsten — für HCS reicht der Default.
 - [ ] Logo-Übergabe Portal→Software: Pipeline ist BEREITS komplett (Export packt `logos/*`, Import
       entpackt nach `data/logos/<event_id>/`) — bestehende Events haben noch keine Logos; nach
       erneutem Export/Import erscheinen sie. Logo-Grösse im Kopf ggf. feinjustieren.
