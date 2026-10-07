@@ -52,13 +52,18 @@
 
   <!-- Block hinzufügen -->
   <div class="card mb-3">
-    <div class="card-header">{{ _('Block hinzufügen') }}</div>
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <span>{{ _('Block hinzufügen') }}</span>
+      <button type="button" class="btn btn-sm btn-outline-warning" id="btn-quick-tunnellauf">
+        🌀 Tunnellauf-Block (1 Ring, alle Kategorien/Klassen)
+      </button>
+    </div>
     <div class="card-body">
-      <form method="post" action="{{ url_for('events_bp.add_schedule_block', event_id=event.id) }}">
+      <form method="post" action="{{ url_for('events_bp.add_schedule_block', event_id=event.id) }}" id="form-add-block">
         <div class="row g-3">
           <div class="col-12 col-md-2">
             <label class="form-label">{{ _('Block-Typ') }}</label>
-            <select name="block_type" class="form-select">
+            <select name="block_type" class="form-select" id="block-type-select">
               <option value="run" selected>Lauf</option>
               <option value="rank_announcement">Rangverkündigung</option>
             </select>
@@ -66,7 +71,7 @@
 
           <div class="col-12 col-md-2">
             <label class="form-label">{{ _('Ring') }}</label>
-            <select name="ring" class="form-select">
+            <select name="ring" class="form-select" id="block-ring-select">
               {% for i in range(1, (num_rings or 1)+1) %}
                 <option value="{{ i }}">Ring {{ i }}</option>
               {% endfor %}
@@ -75,7 +80,7 @@
 
           <div class="col-12 col-md-2">
             <label class="form-label">{{ _('Titel (optional)') }}</label>
-            <input name="title" type="text" class="form-control" placeholder="Bezeichnung">
+            <input name="title" type="text" class="form-control" placeholder="Bezeichnung" id="block-title-input">
           </div>
 
           <div class="col-12 col-md-2">
@@ -89,10 +94,11 @@
 
           <div class="col-12 col-md-2">
             <label class="form-label">Zeit-Laufart (run)</label>
-            <select name="timing_run_type" class="form-select">
+            <select name="timing_run_type" class="form-select" id="timing-run-type-select">
               <option value="agility">Agility</option>
               <option value="jumping">Jumping</option>
               <option value="open">Open</option>
+              <option value="Tunnellauf">Tunnellauf</option>
               <option value="other">Other</option>
             </select>
           </div>
@@ -413,5 +419,23 @@
     </div>
   </div>
 </div>
+
+<script>
+(function(){
+  var btn = document.getElementById('btn-quick-tunnellauf');
+  if(!btn) return;
+  btn.addEventListener('click', function(){
+    document.getElementById('block-type-select').value = 'run';
+    document.getElementById('timing-run-type-select').value = 'Tunnellauf';
+    document.getElementById('block-title-input').value = 'Tunnellauf';
+    // Tunnellauf wird klassenübergreifend kombiniert gewertet und läuft
+    // immer nur auf einem Ring (kein Ringwechsel wie bei den Finalläufen).
+    document.querySelectorAll('input[name="size_categories"]').forEach(function(cb){ cb.checked = true; });
+    document.querySelectorAll('input[name="classes"]').forEach(function(cb){ cb.checked = true; });
+    document.getElementById('form-add-block').scrollIntoView({behavior:'smooth', block:'start'});
+    document.getElementById('block-ring-select').focus();
+  });
+})();
+</script>
 
 {% endblock %}
