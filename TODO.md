@@ -80,7 +80,16 @@ Reglement bestätigt (DIS-Team hinter Nicht-DIS via Sentinel 999, Zeitfehler nor
 - [ ] `ko_cup_rankings.html` (Bildschirm/Bootstrap): sauberes Offline-Druckbild erst beim CDN-Umbau.
 - [ ] Offline-CDN generell: `layout.html` zieht Bootstrap/Font-Awesome/socket.io von CDN →
       lokale Bundles ablegen (ganze Software-UI offline unformatiert)
-- [ ] Startlisten/Steward/Marshall/Teilnehmer/Zeitplan: gemeinsames Druck-Design-System
+- [x] **Startlisten: Logo-Header** (2026-10-07, nur lokal): `print_startlists` + `print_startlists_by_schedule`
+      (routes_print.py) gaben bisher KEIN Eventlogo an `_print_header.html` weiter (im Unterschied zu
+      den KO-Drucksachen) — jetzt via `get_event_logo_data_uris()` wie dort. Templates hatten das
+      Overlap-Problem (position:fixed) NICHT, nutzen bereits die Tabellen-Wiederhol-Kopfzeile. 146/146
+      Tests grün (neu: `test_print_startlists_route.py`).
+- [ ] Startlisten/Steward/Marshall/Teilnehmer/Zeitplan: gemeinsames Druck-Design-System — Rest offen:
+      `print_marshall_list.html`, `print_ranking_single.html`, `print/participant_list.html` haben noch
+      das alte `position:fixed`-Overlap-Problem (siehe `print_award_list.html`-Fix als Vorlage); deren
+      Routen übergeben zudem ebenfalls keine Logos. `startlist_print.html`/`startlist_print_all.html`
+      sind toter Code (keine Route verweist mehr drauf) — Aufräumen separat prüfen.
 
 ## Offene Branches / Reglement-Sprints
 

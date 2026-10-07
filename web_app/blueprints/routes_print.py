@@ -199,7 +199,9 @@ def print_startlists(event_id):
     if not event: abort(404)
     ordered_runs = _enrich_entries_rasse_verein(get_ordered_runs_for_print(event))
     now_str = datetime.now().strftime('%d.%m.%Y %H:%M')
-    return render_template('print_startlists.html', event=event, ordered_runs=ordered_runs, now_str=now_str)
+    logos = get_event_logo_data_uris(event)
+    return render_template('print_startlists.html', event=event, ordered_runs=ordered_runs, now_str=now_str,
+                           event_logo_data=logos['event'], club_logo_data=logos['club'])
 
 
 @print_bp.route('/print/startlists_by_schedule/<event_id>')
@@ -209,7 +211,9 @@ def print_startlists_by_schedule(event_id):
     if not event:
         abort(404)
     sections = build_schedule_print_sections(event)
-    return render_template('print/startlists_by_schedule.html', event=event, sections=sections)
+    logos = get_event_logo_data_uris(event)
+    return render_template('print/startlists_by_schedule.html', event=event, sections=sections,
+                           event_logo_data=logos['event'], club_logo_data=logos['club'])
 
 @print_bp.route('/print/stewardlists/<event_id>')
 def print_stewardlists(event_id):
