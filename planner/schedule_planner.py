@@ -21,6 +21,12 @@ DEFAULT_START_TIME_SECONDS = {
         "intermediate": {"1": 60, "2": 60, "3": 60},
         "large": {"1": 60, "2": 60, "3": 60},
     },
+    "tunnellauf": {
+        "small": {"1": 60, "2": 60, "3": 60},
+        "medium": {"1": 60, "2": 60, "3": 60},
+        "intermediate": {"1": 60, "2": 60, "3": 60},
+        "large": {"1": 60, "2": 60, "3": 60},
+    },
     "other": {
         "small": {"1": 65, "2": 65, "3": 65},
         "medium": {"1": 65, "2": 65, "3": 65},
@@ -229,6 +235,7 @@ def generate_run_title(block: Dict) -> str:
         "agility": "Agility",
         "jumping": "Jumping",
         "open": "Open",
+        "tunnellauf": "Tunnellauf",
     }.get(run_type, "Other")
 
     prefix = "Open " if run_format == "open" and run_type != "open" else ""

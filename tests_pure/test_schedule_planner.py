@@ -173,6 +173,29 @@ def test_class_change_starts_new_group():
     assert segments.count("run") == 4
 
 
+def test_tunnellauf_matches_and_times_60s():
+    """Tunnellauf (Portal-Export discipline='Tunnellauf') muss als eigene
+    Laufart erkannt werden: Block.timing_run_type='tunnellauf' matcht nur
+    Tunnellauf-Läufe, 60 s/Starter, und erzeugt den Titel 'Tunnellauf …'."""
+    settings = sp.upgrade_settings({})
+    block = {
+        "timing_run_type": "tunnellauf",
+        "size_category": "large",
+        "classes": ["3"],
+        "run_format": "normal",
+        "sort": {"primary": {"field": "none"}},
+    }
+    # Matcht einen Tunnellauf, nicht aber einen Agility-Lauf
+    assert sp._match_run_to_block(
+        {"laufart": "Tunnellauf", "kategorie": "large", "klasse": "3"}, block)
+    assert not sp._match_run_to_block(
+        {"laufart": "Agility", "kategorie": "large", "klasse": "3"}, block)
+    # 60 s/Starter inkl. Ringwechsel
+    assert sp.calculate_run_seconds({"3": 10}, "tunnellauf", "large", ["3"], settings) == 600
+    # Titel-Label
+    assert sp.generate_run_title(block) == "Tunnellauf 3 Large"
+
+
 def test_generate_title_with_sorting():
     block = {
         "run_format": "open",
