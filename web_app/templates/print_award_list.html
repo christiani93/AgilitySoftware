@@ -3,25 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ _('Siegerliste') }} - {{ event_name }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Bewusst KEIN Bootstrap-CDN: die Siegerliste wird am Event oft OHNE
+           Internet gedruckt. Alles Nötige steht hier inline. */
         body {
             font-family: sans-serif;
+            margin: 0;
         }
-        .print-header { position: fixed; top: 0; left: 0; right: 0; height: 3cm; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        main.container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        /* Minimale Button-/Utility-Styles (ersetzen die wegfallenden Bootstrap-Klassen) */
+        .btn { display: inline-block; padding: 0.4rem 0.9rem; margin: 0 0.2rem; border: 1px solid #888;
+               border-radius: 4px; background: #e9ecef; color: #212529; text-decoration: none; font-size: 0.95rem; cursor: pointer; }
+        .btn-primary { background: #0d6efd; border-color: #0d6efd; color: #fff; }
+        .btn-secondary { background: #6c757d; border-color: #6c757d; color: #fff; }
+        .btn-outline-secondary { background: #fff; }
+        .text-center { text-align: center; }
+        .text-muted { color: #6c757d; }
+        .mb-4 { margin-bottom: 1.5rem; }
+        /* Im Bildschirm fliesst der Header normal mit dem Inhalt (kein "Mitwandern" beim Scrollen). */
+        .print-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 3cm; margin-bottom: 0.3cm; }
         .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
         .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .print-header__logo-img { max-width: 2.5cm; max-height: 2.8cm; object-fit: contain; }
         .print-header__titles { text-align: center; flex: 1; font-size: 10pt; }
         .print-header__title { font-size: 1.1em; font-weight: 600; }
         .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
         .print-header__meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 9pt; color: #444; }
-        main { padding-top: 3.3cm; }
-        /* --- START DER ÄNDERUNG --- */
         .award-list {
-            margin-top: 2rem;
+            margin-top: 1.2rem;
             page-break-inside: avoid; /* Verhindert, dass eine Tabelle über zwei Seiten getrennt wird */
         }
-        /* --- ENDE DER ÄNDERUNG --- */
         h1, h2, h3 {
             text-align: center;
         }
@@ -29,35 +44,35 @@
             text-align: center;
         }
         .run-header h3 {
-            font-size: 1.5rem;
-            margin-bottom: 0.2rem;
+            font-size: 1.3rem;
+            margin-bottom: 0.15rem;
             border-bottom: 1px solid #ccc;
-            padding-bottom: 0.5rem;
+            padding-bottom: 0.3rem;
             display: inline-block;
         }
         .run-header .judge-name {
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: #6c757d;
-            margin-bottom: 1rem;
-        }
-        h1 {
-            font-size: 2.5rem;
             margin-bottom: 0.5rem;
         }
-        h2 {
+        h1 {
             font-size: 2rem;
-            margin-bottom: 2rem;
+            margin-bottom: 0.3rem;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
             border-bottom: 2px solid #333;
-            padding-bottom: 0.5rem;
+            padding-bottom: 0.3rem;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 1.2rem;
+            font-size: 1rem;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 5px 8px;
             text-align: left;
         }
         th {
@@ -87,6 +102,23 @@
         @media print {
             body { -webkit-print-color-adjust: exact; }
             .no-print { display: none !important; }
+
+            /* Header fliesst EINMAL oben mit (kein position:fixed → keine Überlappung
+               ab Seite 2). Der Browser druckt zusätzlich seine eigene Kopf-/Fusszeile
+               mit Titel + Seitenzahl auf jeder Seite. */
+            @page {
+                size: A4;
+                margin: 1.2cm;
+            }
+            main.container {
+                padding: 0;
+                max-width: none;
+            }
+            /* Ein Lauf-Block soll nicht über einen Seitenumbruch zerrissen werden. */
+            .award-list {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
         }
     </style>
 </head>
@@ -131,10 +163,10 @@
                 <tbody>
                     {% for entry in data.rankings %}
                         <tr class="
-                            {% if entry.platz is not defined %}
+                            {% if entry.platz is number and entry.platz > 0 %}
+                                {% if entry.platz > 3 %}extra-row{% endif %}
+                            {% else %}
                                 dis-row
-                            {% elif entry.platz is number and entry.platz > 3 %}
-                                extra-row
                             {% endif %}
                         ">
                             <td class="rank">{{ entry.platz or entry.disqualifikation or (entry.result.disqualifikation if entry.result) or '' }}</td>
@@ -170,9 +202,38 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             this.textContent = isHidden ? '{{ _('Nur Top 3 anzeigen') }}' : '{{ _('Alle Ränge anzeigen') }}';
+            fitContentToPages();
         });
     }
+
+    fitContentToPages();
+    window.addEventListener('resize', fitContentToPages);
+    window.addEventListener('beforeprint', fitContentToPages);
 });
+
+// Passt die Schriftgrösse (via CSS-Zoom) so an, dass der Inhalt in maximal
+// MAX_PAGES A4-Seiten passt. Zoom wirkt in Chromium (pywebview/WebView2) auch
+// auf den Druck-Layout, nicht nur auf die Bildschirmdarstellung.
+function fitContentToPages() {
+    const MAX_PAGES = 2;
+    const MIN_ZOOM = 0.5;
+    const CM_TO_PX = 37.7953; // 96dpi
+    // A4 (29.7cm) minus @page-Rand (2×1.2cm) minus Browser-Kopf/Fuss (~2cm gesamt).
+    const USABLE_PAGE_CM = 29.7 - 2 * 1.2 - 2.0;
+    // Der Logo-Header (.print-header) steht nur auf Seite 1 und liegt ausserhalb <main>.
+    const HEADER_CM = 3.3;
+    const main = document.querySelector('main');
+    if (!main) return;
+
+    main.style.zoom = 1;
+    const availableCm = MAX_PAGES * USABLE_PAGE_CM - HEADER_CM;
+    const availablePx = availableCm * CM_TO_PX;
+    const neededPx = main.scrollHeight;
+    if (neededPx <= availablePx) return;
+
+    const zoom = Math.max(MIN_ZOOM, availablePx / neededPx);
+    main.style.zoom = zoom;
+}
 </script>
 
 </body>

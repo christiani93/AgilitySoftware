@@ -3,7 +3,7 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-10-06
+Stand: 2026-10-07
 
 ## Halloween Cup KO-System (Deadline 30.10.–01.11.2026) — IN ARBEIT auf Branch `feature/ko-cup`
 
@@ -44,8 +44,18 @@ Reglement bestätigt (DIS-Team hinter Nicht-DIS via Sentinel 999, Zeitfehler nor
 
 ## PDF-/Design-Arbeit (geplant ab 07.10.2026)
 
-- [ ] Layout Siegerehrungslisten, Startlisten, Ranglisten — konkrete Vorgaben/Vorbild noch offen
-- [ ] Entscheiden: Portal-seitig oder Software-seitig (offline) umsetzen
+- [x] **Siegerehrungsliste** `print_award_list.html` überarbeitet (2026-10-07, nur lokal, kein Deploy/Rebuild):
+      Kategorie-Sortierung L→I→M→S; echte Logos via neuem Helper `utils.get_event_logo_data_uris()`
+      + `_print_header.html` (`<img>` mit Platzhalter-Fallback); Seiten-Überlappung behoben
+      (fixed-Header verworfen → Flow + Browser-Kopf/Fuss); `fitContentToPages()` Zoom auf 1–2 Seiten;
+      Bootstrap-CDN entfernt (offline-tauglich). ← **User-Review im Dev ausstehend**
+- [ ] Logo-Übergabe Portal→Software: Pipeline ist BEREITS komplett (Export packt `logos/*`, Import
+      entpackt nach `data/logos/<event_id>/`) — nur bestehende Events haben noch keine Logos; nach
+      erneutem Export/Import erscheinen sie. Logo-Grösse im Kopf ggf. feinjustieren.
+- [ ] KO-Druck-Templates (`ko_cup_rankings.html`, `ko_cup_print.html`) aufs Design abstimmen
+- [ ] Offline-CDN generell: `layout.html` zieht Bootstrap/Font-Awesome/socket.io von CDN →
+      lokale Bundles ablegen (ganze Software-UI offline unformatiert)
+- [ ] Startlisten/Steward/Marshall/Teilnehmer/Zeitplan: gemeinsames Druck-Design-System
 
 ## Offene Branches / Reglement-Sprints
 

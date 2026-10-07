@@ -4,7 +4,8 @@ from datetime import datetime
 import csv
 import io
 from utils import (_load_data, _save_data, _calculate_run_results, _load_settings,
-                   _calculate_timelines, get_category_sort_key, resolve_judge_id, resolve_judge_name)
+                   _calculate_timelines, get_category_sort_key, resolve_judge_id, resolve_judge_name,
+                   get_event_logo_data_uris)
 from planner.print_order import get_ordered_runs_for_print
 from planner.print_schedule_order import (
     build_schedule_print_sections,
@@ -330,6 +331,7 @@ def print_award_list(event_id):
     settings, event = _load_settings(), next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     award_data, runs_to_print = [], [r for r in event.get('runs', []) if r.get('id') in run_ids]
+    runs_to_print.sort(key=lambda r: get_category_sort_key(r.get('kategorie')))
     judges = _load_data('judges.json')
     for run in runs_to_print:
         results = _calculate_run_results(run, settings)
@@ -338,7 +340,10 @@ def print_award_list(event_id):
             'full_judge_name': resolve_judge_name(event, run, judges),
             'rankings': results,
         })
-    return render_template('print_award_list.html', event=event, event_name=event.get('Bezeichnung'), award_data=award_data, event_id=event_id)
+    logos = get_event_logo_data_uris(event)
+    return render_template('print_award_list.html', event=event, event_name=event.get('Bezeichnung'),
+                           award_data=award_data, event_id=event_id,
+                           event_logo_data=logos['event'], club_logo_data=logos['club'])
 
 @print_bp.route('/print/tkamo_export/<event_id>')
 def tkamo_export(event_id):
