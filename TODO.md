@@ -40,21 +40,30 @@ Reglement bestätigt (DIS-Team hinter Nicht-DIS via Sentinel 999, Zeitfehler nor
 ## EXE-Build
 
 - [x] Neu gebaut für HCS-/Jump-Wochenende: `AgilitySoftware.exe` (64-bit) + `AgilityRing.exe` (32-bit/TIMY)
-- [ ] AgilityRing.exe: GUI-Launcher von Chris starten/prüfen (headless nicht testbar)
+- [x] `AgilitySoftware.exe` neu gebaut 2026-10-07 14:13 aus feature/ko-cup (Logo-Startlisten `45dcdaa`,
+      Datenverlust-Fix `6d57db4`, CDN-Vendoring `07ead9b`, Rangliste-PDF `15ce585`). `flask_env` war leer →
+      mit Python 3.13 64-bit + `web_app/requirements.txt` neu erstellt. Smoke-getestet (Startliste 200,
+      Rangliste `%PDF-`, Daten intakt). Backup alte EXE: `dist/AgilitySoftware_prebuild_20261007.exe.bak`
+      (gitignored, nach Bestätigung löschbar).
+- [ ] AgilityRing.exe: GUI-Launcher von Chris starten/prüfen (headless nicht testbar); ist von 07.10. 09:29
+      (vor CDN-Vendoring 12:15 — für Startlisten-Druck irrelevant, bei Bedarf rebuilden)
+- [ ] feature/ko-cup → main mergen (Software)
 
 ## PDF-/Design-Arbeit (geplant ab 07.10.2026)
 
-- [~] **Rangliste-PDF** `print_ranking_pdf.html` (Software→Portal-Upload, feature/ko-cup, **UNCOMMITTED**):
-      an SportyDog-Vorlage angeglichen (Logo-Header, Laufvorgaben-Box 2×3, m/s-Spalten, Statistik mit %).
-      Session 2 (2026-10-07): Spalten **Start-Nr. + Liz. entfernt** (12 statt 14 Spalten); **Banner
-      "OFFIZIELLE/VORLÄUFIGE RANGLISTE" oben entfernt**; Statistik-Block-Abstände gefixt (`&nbsp;` zwischen
-      Label/Wert + `.stats-block td` horizontales Padding, da `table{width:100%}` das Box-Padding überrennt).
-      Headless-Render: `flask_env`-Python + Test-Client `/live/preview_ranking_pdf/<eid>/<rid>?final=1`,
-      Rastern mit `pymupdf` (neu in flask_env installiert). → **noch committen auf feature/ko-cup**.
-- [ ] **Rangliste-PDF BUG — Fusszeile allein auf Seite 2** bei grossen Läufen (Large 3, 30+ Zeilen):
-      Tabelle+Statistik passen auf Seite 1 (Ende y≈789/842pt), aber der `display:table`-Footer wird
-      komplett auf Seite 2 geschoben (xhtml2pdf bricht display:table nicht um) → fast leere 2. Seite.
-      User-Entscheid offen: Abstände enger / Footer als normaler Flow / akzeptieren.
+- [x] **Sammeldruck** `print_all` (`/print/all/<event_id>`, `print/all.html`) — ein Druckauftrag, drei
+      Bündel mit Titelseiten: (1) Teilnehmerinfo (Alle Ringe) = Zeitplan + Startlisten, (2) Einweiser
+      (pro Ring) = Ring-Zeitplan + Einweiserliste nach Ringzeitplan, (3) Ringbüro (pro Ring) = Ring-Zeitplan
+      + Ringschreiberliste nach Ringzeitplan. CSS pro Layout gescopt (.sec-schedule/-startlist/-steward/-scribe).
+      Button auf `print/index.html`. Smoke-Test `tests_pure/test_print_all_route.py`. feature/ko-cup, braucht EXE-Rebuild.
+- [x] **Rangliste-PDF** `print_ranking_pdf.html` (Software→Portal-Upload) — COMMITTED `15ce585`
+      (feature/ko-cup, in neuer EXE; noch NICHT nach main gemerged): an SportyDog-Vorlage angeglichen
+      (Logo-Header, Laufvorgaben-Box 2×3, m/s-Spalten, Statistik mit %); Start-Nr. + Liz. entfernt (12 Spalten);
+      Banner oben entfernt; Statistik-Abstände gefixt.
+- [x] **Rangliste-PDF BUG — Fusszeile allein auf Seite 2** GEFIXT (`15ce585`): Footer von `display:table`
+      auf echtes `<table>` (td `border-top`) → kein Orphan mehr; Zeilen gestrafft (`padding:1pt` +
+      `line-height:1.1`). 30 realistische Teams (sogar 40) auf 1 Seite; nur Worst-Case (jede Zeile bricht
+      um) → 2 Seiten (vom User akzeptiert). Verifiziert via pisa+pymupdf-Harness in `%LOCALAPPDATA%\AgilityBuild`.
 - [x] **Siegerehrungsliste** `print_award_list.html` überarbeitet (2026-10-07, `31f185f`, nur lokal):
       Kategorie-Sortierung L→I→M→S; echte Logos via neuem Helper `utils.get_event_logo_data_uris()`
       + `_print_header.html` (`<img>` mit Platzhalter-Fallback); Seiten-Überlappung behoben

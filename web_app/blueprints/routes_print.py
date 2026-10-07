@@ -26,12 +26,92 @@ from planner.briefing_groups import (
 
 print_bp = Blueprint('print_bp', __name__, template_folder='../templates')
 
+
+def _safe_timelines(event):
+    """Berechnet timelines_by_ring mit denselben Fallbacks wie print_schedule."""
+    try:
+        timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
+    except Exception:
+        timelines_by_ring = None
+    if not timelines_by_ring:
+        fallback_event = dict(event)
+        fallback_event.pop('schedule', None)
+        try:
+            timelines_by_ring = _calculate_timelines(fallback_event, round_to_minutes=5)
+        except Exception:
+            timelines_by_ring = None
+    if not timelines_by_ring:
+        num_rings = event.get('num_rings') or 1
+        timelines_by_ring = {str(ring): [] for ring in range(1, num_rings + 1)}
+    return timelines_by_ring
+
+
 @print_bp.route('/print/<event_id>')
 def print_index(event_id):
     """Übersichtsseite für Vorbereitungsdrucksachen."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     return render_template('print/index.html', event=event)
+
+
+@print_bp.route('/print/all/<event_id>')
+def print_all(event_id):
+    """Sammeldruck aller Vorbereitungsdrucksachen in einem Dokument (ein Druckauftrag),
+    gegliedert in drei Bündel mit Titelseiten:
+      1. Teilnehmerinfo (Alle Ringe): Zeitplan + Startlisten
+      2. Einweiser (pro Ring): Ring-Zeitplan + Einweiserliste nach Ringzeitplan
+      3. Ringbüro (pro Ring): Ring-Zeitplan + Ringschreiberliste nach Ringzeitplan
+    """
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+
+    judges = _load_data('judges.json')
+    judges_map = {j['id']: f"{j.get('firstname', '')} {j.get('lastname', '')}".strip() for j in judges}
+    logos = get_event_logo_data_uris(event)
+
+    timelines_by_ring = _safe_timelines(event)
+    ring_keys = sorted(timelines_by_ring.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x))
+
+    # Bündel 1: offizielle Startlisten in Zeitplan-Reihenfolge
+    ordered_runs = _enrich_entries_rasse_verein(get_ordered_runs_for_print(event))
+
+    # Bündel 2: Einweiserlisten nach Ringzeitplan, pro Ring gruppiert
+    steward_sections = build_schedule_steward_sections(event)
+    # Bündel 3: Ringschreiberlisten nach Ringzeitplan, pro Ring gruppiert
+    scribe_sections = build_schedule_print_sections(event)
+    for section in scribe_sections:
+        first_run = (section.get("runs") or [{}])[0]
+        section["judge_name"] = resolve_judge_name(event, first_run, judges, section.get("block"))
+
+    einweiser_by_ring = {
+        rk: {
+            "timeline": timelines_by_ring.get(rk, []),
+            "sections": [s for s in steward_sections if str(s.get("ring")) == str(rk)],
+        }
+        for rk in ring_keys
+    }
+    ringbuero_by_ring = {
+        rk: {
+            "timeline": timelines_by_ring.get(rk, []),
+            "sections": [s for s in scribe_sections if str(s.get("ring")) == str(rk)],
+        }
+        for rk in ring_keys
+    }
+
+    now_str = datetime.now().strftime('%d.%m.%Y %H:%M')
+    return render_template(
+        'print/all.html',
+        event=event,
+        judges_map=judges_map,
+        event_logo_data=logos['event'],
+        club_logo_data=logos['club'],
+        timelines_by_ring=timelines_by_ring,
+        ring_keys=ring_keys,
+        ordered_runs=ordered_runs,
+        einweiser_by_ring=einweiser_by_ring,
+        ringbuero_by_ring=ringbuero_by_ring,
+        now_str=now_str,
+    )
 
 def _get_enriched_participants(event):
     """Hilfsfunktion, um Teilnehmerdaten mit Kategorie und Klasse anzureichern."""
@@ -56,20 +136,7 @@ def print_schedule(event_id):
     """Druckansicht für den Zeitplan."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    try:
-        timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
-    except Exception:
-        timelines_by_ring = None
-    if not timelines_by_ring:
-        fallback_event = dict(event)
-        fallback_event.pop('schedule', None)
-        try:
-            timelines_by_ring = _calculate_timelines(fallback_event, round_to_minutes=5)
-        except Exception:
-            timelines_by_ring = None
-    if not timelines_by_ring:
-        num_rings = event.get('num_rings') or 1
-        timelines_by_ring = {str(ring): [] for ring in range(1, num_rings + 1)}
+    timelines_by_ring = _safe_timelines(event)
     judges_map = {j['id']: f"{j.get('firstname', '')} {j.get('lastname', '')}" for j in _load_data('judges.json')}
     return render_template('print/schedule.html', event=event, timelines_by_ring=timelines_by_ring, judges_map=judges_map)
 
