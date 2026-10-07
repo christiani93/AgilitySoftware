@@ -65,7 +65,12 @@ PEN_FAULT = 2.0      # pro Fehler
 PEN_REFUSAL = 2.0    # pro Verweigerung
 PEN_DIS = 5.0        # pro DIS (disqualifiziert, aber nicht ausgeschieden)
 
-CATEGORY_ORDER = ["Large", "Intermediate", "Medium", "Small"]
+# Anzeige-/Ablauf-Reihenfolge der Kategorien: Small zuerst, Large zuletzt.
+# Begruendung: je groesser die Kategorie, desto mehr Laeufer -> der Large-Final
+# ist das Highlight und laeuft als grosses Finale ganz am Schluss (S-M-I-L).
+# Betrifft NUR Anzeige/Sortierung (Config-Liste, API-State fuer Ring/Live,
+# Ranglisten) -- NICHT die Bracket-Mathematik (die laeuft ueber draw_number).
+CATEGORY_ORDER = ["Small", "Medium", "Intermediate", "Large"]
 
 
 # ---------------------------------------------------------------------------

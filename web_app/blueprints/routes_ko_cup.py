@@ -19,7 +19,7 @@ import random
 from flask import (Blueprint, render_template, request, redirect,
                    url_for, flash, abort, jsonify)
 
-from utils import _load_data, _save_data
+from utils import _load_data, _save_data, get_event_logo_data_uris
 import ko_cup
 import ko_qualification
 
@@ -273,6 +273,7 @@ def ko_final_print(event_id, final_id):
         final.get('participants', []),
         key=lambda p: (p.get('draw_number') is None, p.get('draw_number') or 0),
     )
+    logos = get_event_logo_data_uris(event)
     return render_template(
         'ko_cup_print.html',
         event=event,
@@ -282,6 +283,9 @@ def ko_final_print(event_id, final_id):
         status=ko_cup.bracket_status(final),
         bracket=_bracket_view(final),
         results=_results_view(final),
+        title='KO-Final %s' % (final.get('group_label') or ''),
+        event_logo_data=logos['event'],
+        club_logo_data=logos['club'],
     )
 
 
