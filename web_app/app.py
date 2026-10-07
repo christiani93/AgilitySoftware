@@ -27,8 +27,20 @@ app.config['BABEL_TRANSLATION_DIRECTORIES'] = resource_path("translations")
 babel = Babel()
 
 def _select_locale():
-    """Für /print/-Routen: Sprache aus den Einstellungen lesen. Sonst immer 'de'."""
-    if request.path.startswith('/print/'):
+    """Für Druck-Routen: Sprache aus den Einstellungen lesen. Sonst immer 'de'.
+
+    Neben /print/* zählen dazu die Rangliste-PDF-Routen unter /live/ (dort
+    wird das für den Portal-Upload bzw. die Vorschau gerenderte PDF erzeugt)
+    sowie die KO-Cup-Druckseiten unter /ko-cup/ (Endrangliste, Ring-Listen)."""
+    path = request.path
+    is_print_route = (
+        path.startswith('/print/')
+        or path.startswith('/live/preview_ranking_pdf/')
+        or path.startswith('/live/upload_ranking_pdf/')
+        or path.startswith('/ko-cup/rings_print/')
+        or path.endswith('/print')
+    )
+    if is_print_route:
         from utils import _load_settings
         return _load_settings().get('print_language', 'de')
     return 'de'

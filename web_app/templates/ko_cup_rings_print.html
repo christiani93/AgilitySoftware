@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Ring-Startlisten – {{ event.Bezeichnung }}</title>
+    <title>{{ _('Ring-Startlisten') }} – {{ event.Bezeichnung }}</title>
     <style>
         /* Bewusst KEIN Bootstrap-CDN: wird am Event oft OHNE Internet gedruckt.
            Logo-Header + Typo bewusst gleich wie die uebrigen KO-Drucksachen. */
@@ -27,30 +27,27 @@
 </head>
 <body>
     <div class="noprint">
-        <button onclick="window.print()">🖨️ Drucken</button>
+        <button onclick="window.print()">🖨️ {{ _('Drucken') }}</button>
     </div>
 
     {% include 'print/_print_header.html' %}
 
     <p class="muted" style="margin-top:-0.4em;">
-        Laufreihenfolge über alle Kategorien: frühe Runden zuerst, Finalrunden
-        (Spiel um Platz 3, dann Final) aller Kategorien gemeinsam am Schluss in
-        der Reihenfolge Small – Medium – Intermediate – Large. Nur Lauf 1
-        aufgelistet — bei Lauf 2 wechseln dieselben Teams intern den Ring.
+        {{ _('Laufreihenfolge über alle Kategorien: frühe Runden zuerst, Finalrunden (Spiel um Platz 3, dann Final) aller Kategorien gemeinsam am Schluss in der Reihenfolge Small – Medium – Intermediate – Large. Nur Lauf 1 aufgelistet — bei Lauf 2 wechseln dieselben Teams intern den Ring.') }}
     </p>
 
     {% for rs in ring_startlists %}
     {% if not loop.first %}<div class="pagebreak"></div>{% endif %}
-    <h2 id="ring-{{ rs.ring }}">Startliste Ring {{ rs.ring }}</h2>
+    <h2 id="ring-{{ rs.ring }}">{{ _('Startliste Ring') }} {{ rs.ring }}</h2>
     <table>
         <thead>
             <tr>
-                <th>Kategorie</th>
-                <th>Runde</th>
-                <th class="num">Duell</th>
-                <th class="num">Start-Nr.</th>
-                <th>Hund</th>
-                <th>Hundeführer</th>
+                <th>{{ _('Kategorie') }}</th>
+                <th>{{ _('Runde') }}</th>
+                <th class="num">{{ _('Duell') }}</th>
+                <th class="num">{{ _('Start-Nr.') }}</th>
+                <th>{{ _('Hund') }}</th>
+                <th>{{ _('Hundeführer') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -64,7 +61,7 @@
                 <td>{{ row.handler_name or '' }}</td>
             </tr>
             {% else %}
-            <tr><td colspan="6" class="muted">Noch keine Duelle mit Ring-Zuteilung.</td></tr>
+            <tr><td colspan="6" class="muted">{{ _('Noch keine Duelle mit Ring-Zuteilung.') }}</td></tr>
             {% endfor %}
         </tbody>
     </table>

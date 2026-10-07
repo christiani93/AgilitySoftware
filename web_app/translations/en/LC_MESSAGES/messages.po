@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AgilitySuite 4.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-07 10:24+0200\n"
+"POT-Creation-Date: 2026-10-07 20:47+0200\n"
 "PO-Revision-Date: 2026-10-07 00:00+0000\n"
 "Last-Translator: \n"
 "Language: en\n"
@@ -15,24 +15,24 @@ msgstr ""
 "Generated-By: Babel 2.18.0\n"
 
 # --- Flash messages ---
-#: app.py:131
+#: app.py:143
 msgid "Einstellungen erfolgreich gespeichert."
 msgstr "Settings saved successfully."
 
 # --- Error pages ---
-#: app.py:147
+#: app.py:159
 msgid "Seite nicht gefunden"
 msgstr "Page not found"
 
-#: app.py:147
+#: app.py:159
 msgid "Die angeforderte Seite existiert nicht."
 msgstr "The requested page does not exist."
 
-#: app.py:154
+#: app.py:166
 msgid "Serverfehler"
 msgstr "Server error"
 
-#: app.py:154
+#: app.py:166
 msgid "Auf dem Server ist ein interner Fehler aufgetreten."
 msgstr "An internal error occurred on the server."
 
@@ -149,6 +149,29 @@ msgstr "Portal export failed: %(error)s"
 #, python-format
 msgid "Ergebnisse erfolgreich ans Portal übertragen %(detail)s"
 msgstr "Results successfully transferred to the portal %(detail)s"
+
+#: blueprints/routes_print.py:295 templates/print/index.html:42
+#: templates/print/scribe_list.html:5 templates/print/scribe_list.html:44
+#: templates/print/scribe_list_by_schedule.html:5
+#: templates/print/scribe_list_by_schedule.html:43
+msgid "Ringschreiberlisten"
+msgstr "Ring scribe lists"
+
+#: blueprints/routes_print.py:311 templates/print/index.html:43
+msgid "Ringschreiberlisten (nach Zeitplan)"
+msgstr "Ring scribe lists (by schedule)"
+
+#: blueprints/routes_print.py:388
+msgid "Keine Läufe für die Liste ausgewählt."
+msgstr "No runs selected for the list."
+
+#: blueprints/routes_print.py:550
+msgid "Lizenzcheck-Export abgebrochen."
+msgstr "License check export cancelled."
+
+#: blueprints/routes_print.py:607
+msgid "Bitte TKAMO-Ergebnis einfügen."
+msgstr "Please paste the TKAMO result."
 
 # --- Event form ---
 #: templates/event_form.html:12
@@ -275,12 +298,8 @@ msgid "Willkommen bei der AgilitySuite"
 msgstr "Welcome to AgilitySuite"
 
 #: templates/home.html:8
-msgid ""
-"Ihre web-basierte Lösung zur Verwaltung von Agility-Turnieren. Von der "
-"Erstellung der Veranstaltung bis zur Live-Anzeige der Resultate."
-msgstr ""
-"Your web-based solution for managing agility tournaments. From creating"
-" the event to the live display of results."
+msgid "Ihre web-basierte Lösung zur Verwaltung von Agility-Turnieren. Von der Erstellung der Veranstaltung bis zur Live-Anzeige der Resultate."
+msgstr "Your web-based solution for managing agility tournaments. From creating the event to the live display of results."
 
 #: templates/home.html:9
 msgid "Zu den Veranstaltungen"
@@ -300,12 +319,8 @@ msgid "Stammdaten"
 msgstr "Master data"
 
 #: templates/home.html:29
-msgid ""
-"Verwalten Sie hier zentral alle Richter, Vereine, Hundeführer und Hunde. "
-"Importieren Sie neue Daten einfach via CSV-Upload."
-msgstr ""
-"Centrally manage all judges, clubs, handlers and dogs here. Import new "
-"data easily via CSV upload."
+msgid "Verwalten Sie hier zentral alle Richter, Vereine, Hundeführer und Hunde. Importieren Sie neue Daten einfach via CSV-Upload."
+msgstr "Centrally manage all judges, clubs, handlers and dogs here. Import new data easily via CSV upload."
 
 #: templates/home.html:30
 msgid "Stammdaten verwalten"
@@ -317,16 +332,202 @@ msgid "Einstellungen"
 msgstr "Settings"
 
 #: templates/home.html:36
-msgid ""
-"Passen Sie globale Parameter wie Berechnungsfaktoren für SCT/MCT und die "
-"Standard-Startnummern-Schemata an Ihre Bedürfnisse an."
-msgstr ""
-"Adjust global parameters such as SCT/MCT calculation factors and the "
-"default start number schemes to your needs."
+msgid "Passen Sie globale Parameter wie Berechnungsfaktoren für SCT/MCT und die Standard-Startnummern-Schemata an Ihre Bedürfnisse an."
+msgstr "Adjust global parameters such as SCT/MCT calculation factors and the default start number schemes to your needs."
 
 #: templates/home.html:37
 msgid "Zu den Einstellungen"
 msgstr "Go to settings"
+
+#: templates/ko_cup_print.html:5
+msgid "KO-Final"
+msgstr "KO final"
+
+# --- Startlist print ---
+#: templates/ko_cup_print.html:38 templates/ko_cup_rings_print.html:30
+#: templates/print/_print_button.html:10 templates/print_award_list.html:132
+#: templates/print_stewardlists.html:7
+msgid "Drucken"
+msgstr "Print"
+
+#: templates/ko_cup_print.html:39
+msgid "Ring-Startlisten (alle Kategorien)"
+msgstr "Ring start lists (all categories)"
+
+# --- Ranking ---
+#: templates/ko_cup_print.html:48
+msgid "Endrangliste"
+msgstr "Final ranking"
+
+#: templates/ko_cup_print.html:48
+msgid "Zwischenstand"
+msgstr "Interim standing"
+
+#: templates/ko_cup_print.html:51 templates/ranking.html:30
+msgid "Rang"
+msgstr "Rank"
+
+#: templates/ko_cup_print.html:51 templates/ko_cup_print.html:132
+#: templates/ko_cup_rings_print.html:49 templates/live_run_entry.html:25
+#: templates/manage_event_participants.html:25
+#: templates/print/_steward_list_table.html:10 templates/print/all.html:156
+#: templates/print/all.html:191 templates/print/all.html:225
+#: templates/print/briefing_groups.html:67
+#: templates/print/master_steward_list.html:102
+#: templates/print/master_steward_list_by_schedule.html:68
+#: templates/print/participant_list.html:31 templates/print/scribe_list.html:72
+#: templates/print/scribe_list_by_schedule.html:65
+#: templates/print/startlists_by_schedule.html:62
+#: templates/print_award_list.html:158 templates/print_ranking_pdf.html:201
+#: templates/print_ranking_single.html:38 templates/print_startlists.html:67
+#: templates/ranking.html:32
+msgid "Hund"
+msgstr "Dog"
+
+#: templates/ko_cup_print.html:51 templates/ko_cup_print.html:133
+msgid "Führer"
+msgstr "Handler"
+
+#: templates/ko_cup_print.html:51 templates/ko_cup_print.html:82
+#: templates/ko_cup_print.html:131 templates/ko_cup_rings_print.html:48
+#: templates/print/all.html:154 templates/print/all.html:189
+#: templates/print/all.html:224 templates/print/briefing_groups.html:65
+#: templates/print/master_steward_list.html:100
+#: templates/print/master_steward_list_by_schedule.html:66
+#: templates/print/participant_list.html:33 templates/print/scribe_list.html:71
+#: templates/print/scribe_list_by_schedule.html:64
+#: templates/print/startlists_by_schedule.html:60
+#: templates/print_ranking_single.html:36 templates/print_startlists.html:65
+msgid "Start-Nr."
+msgstr "Start no."
+
+#: templates/ko_cup_print.html:71
+msgid "Duell-Laufzettel"
+msgstr "Duel run sheet"
+
+#: templates/ko_cup_print.html:77 templates/ko_cup_rings_print.html:47
+msgid "Duell"
+msgstr "Duel"
+
+#: templates/ko_cup_print.html:81
+msgid "Team"
+msgstr "Team"
+
+#: templates/ko_cup_print.html:83 templates/ko_cup_print.html:85
+#: templates/print/all.html:90 templates/print/master_steward_list.html:73
+#: templates/print/schedule.html:62 templates/ring_pc_dashboard.html:22
+msgid "Lauf"
+msgstr "Run"
+
+#: templates/ko_cup_print.html:83 templates/ko_cup_print.html:85
+#: templates/plan_schedule.html:73 templates/print/all.html:84
+#: templates/print/all.html:185 templates/print/all.html:219
+#: templates/print/all.html:286 templates/print/all.html:307
+#: templates/print/briefing_groups.html:56
+#: templates/print/master_steward_list_by_schedule.html:62
+#: templates/print/schedule.html:56
+#: templates/print/scribe_list_by_schedule.html:57
+#: templates/print/startlists_by_schedule.html:55
+msgid "Ring"
+msgstr "Ring"
+
+#: templates/ko_cup_print.html:84 templates/ko_cup_print.html:86
+msgid "Zeit / F / V / DIS"
+msgstr "Time / F / R / DIS"
+
+#: templates/ko_cup_print.html:87
+msgid "Total"
+msgstr "Total"
+
+#: templates/ko_cup_print.html:97 templates/ko_cup_print.html:112
+#: templates/ko_cup_print.html:115
+msgid "Sieger"
+msgstr "Winner"
+
+#: templates/ko_cup_print.html:97
+msgid "Verlierer"
+msgstr "Loser"
+
+#: templates/ko_cup_print.html:97
+msgid "Vorrunde"
+msgstr "Preliminary round"
+
+#: templates/ko_cup_print.html:97
+msgid "Freilos"
+msgstr "Bye"
+
+#: templates/ko_cup_print.html:113
+msgid "Gleichstand – manuell entscheiden"
+msgstr "Tie – decide manually"
+
+#: templates/ko_cup_print.html:114
+msgid "Forfeit"
+msgstr "Forfeit"
+
+#: templates/ko_cup_print.html:117
+msgid "F = Fehler (+2 s) · V = Verweigerung (+2 s) · DIS (+5 s)"
+msgstr "F = fault (+2 s) · R = refusal (+2 s) · DIS (+5 s)"
+
+# print templates
+#: templates/ko_cup_print.html:126
+msgid "Finalisten"
+msgstr "Finalists"
+
+#: templates/ko_cup_print.html:130
+msgid "Los"
+msgstr "Draw"
+
+#: templates/ko_cup_print.html:134
+msgid "Quelle"
+msgstr "Source"
+
+#: templates/ko_cup_print.html:147
+msgid "Noch keine Finalisten."
+msgstr "No finalists yet."
+
+# print templates
+#: templates/ko_cup_rings_print.html:5
+msgid "Ring-Startlisten"
+msgstr "Ring start lists"
+
+#: templates/ko_cup_rings_print.html:36
+msgid "Laufreihenfolge über alle Kategorien: frühe Runden zuerst, Finalrunden (Spiel um Platz 3, dann Final) aller Kategorien gemeinsam am Schluss in der Reihenfolge Small – Medium – Intermediate – Large. Nur Lauf 1 aufgelistet — bei Lauf 2 wechseln dieselben Teams intern den Ring."
+msgstr "Running order across all categories: early rounds first, final rounds (3rd place match, then final) of all categories together at the end, in the order Small – Medium – Intermediate – Large. Only run 1 is listed — for run 2 the same teams switch rings internally."
+
+# print templates
+#: templates/ko_cup_rings_print.html:41
+msgid "Startliste Ring"
+msgstr "Start list Ring"
+
+#: templates/ko_cup_rings_print.html:45 templates/plan_schedule.html:331
+#: templates/print/briefing_groups.html:68
+#: templates/print/master_steward_list.html:69
+#: templates/print/startlists_by_schedule.html:63
+#: templates/print_ranking_pdf.html:183
+msgid "Kategorie"
+msgstr "Category"
+
+#: templates/ko_cup_rings_print.html:46
+msgid "Runde"
+msgstr "Round"
+
+#: templates/ko_cup_rings_print.html:50 templates/live_run_entry.html:25
+#: templates/manage_event_participants.html:26 templates/master_data.html:17
+#: templates/print/_steward_list_table.html:10 templates/print/all.html:190
+#: templates/print/all.html:225 templates/print/briefing_groups.html:66
+#: templates/print/master_steward_list.html:101
+#: templates/print/master_steward_list_by_schedule.html:67
+#: templates/print/participant_list.html:30 templates/print/scribe_list.html:72
+#: templates/print/scribe_list_by_schedule.html:65
+#: templates/print/startlists_by_schedule.html:61
+#: templates/print_award_list.html:157 templates/print_ranking_pdf.html:200
+#: templates/print_ranking_single.html:37 templates/ranking.html:32
+msgid "Hundeführer"
+msgstr "Handler"
+
+#: templates/ko_cup_rings_print.html:64
+msgid "Noch keine Duelle mit Ring-Zuteilung."
+msgstr "No duels with ring assignment yet."
 
 # --- Live event dashboard ---
 #: templates/live_event_dashboard.html:2 templates/live_event_dashboard.html:7
@@ -366,12 +567,12 @@ msgid "Abschluss-Export ans Portal"
 msgstr "Final export to the portal"
 
 #: templates/live_event_dashboard.html:77 templates/master_data.html:11
-#: templates/print/_steward_list_table.html:2
-#: templates/print/master_steward_list.html:78 templates/print/schedule.html:63
-#: templates/print/scribe_list.html:62
+#: templates/print/_steward_list_table.html:2 templates/print/all.html:91
+#: templates/print/all.html:220 templates/print/master_steward_list.html:78
+#: templates/print/schedule.html:63 templates/print/scribe_list.html:62
 #: templates/print/scribe_list_by_schedule.html:59
-#: templates/print_award_list.html:149 templates/print_ranking_pdf.html:219
-#: templates/print_ranking_pdf.html:347 templates/ranking.html:22
+#: templates/print_award_list.html:149 templates/print_ranking_pdf.html:162
+#: templates/print_ranking_pdf.html:290 templates/ranking.html:22
 #: templates/ring_pc_dashboard.html:106
 msgid "Richter"
 msgstr "Judge"
@@ -401,14 +602,11 @@ msgid "Für diesen Ring sind keine Läufe im Zeitplan eingetragen."
 msgstr "No runs are scheduled for this ring."
 
 #: templates/live_event_dashboard.html:102
-msgid ""
-"Für diese Veranstaltung wurden keine Läufe einem Ring zugewiesen. Bitte "
-"erstellen Sie zuerst einen"
-msgstr ""
-"No runs have been assigned to a ring for this event. Please first "
-"create a"
+msgid "Für diese Veranstaltung wurden keine Läufe einem Ring zugewiesen. Bitte erstellen Sie zuerst einen"
+msgstr "No runs have been assigned to a ring for this event. Please first create a"
 
-#: templates/live_event_dashboard.html:102 templates/print/index.html:38
+#: templates/live_event_dashboard.html:102 templates/print/all.html:84
+#: templates/print/all.html:258 templates/print/index.html:44
 #: templates/print/schedule.html:5 templates/print/schedule.html:42
 #: templates/print/schedule.html:56
 msgid "Zeitplan"
@@ -436,46 +634,18 @@ msgstr "Length"
 msgid "Für Sprecher-Anzeige aktivieren"
 msgstr "Activate for speaker display"
 
-#: templates/live_run_entry.html:25 templates/manage_event_participants.html:25
-#: templates/print/_steward_list_table.html:10
-#: templates/print/briefing_groups.html:67
-#: templates/print/master_steward_list.html:102
-#: templates/print/master_steward_list_by_schedule.html:68
-#: templates/print/participant_list.html:31 templates/print/scribe_list.html:72
-#: templates/print/scribe_list_by_schedule.html:65
-#: templates/print/startlists_by_schedule.html:62
-#: templates/print_award_list.html:158 templates/print_marshall_list.html:46
-#: templates/print_ranking_pdf.html:257 templates/print_ranking_single.html:38
-#: templates/print_startlists.html:67 templates/ranking.html:32
-#: templates/startlist_print.html:73 templates/startlist_print_all.html:73
-msgid "Hund"
-msgstr "Dog"
-
-#: templates/live_run_entry.html:25 templates/manage_event_participants.html:26
-#: templates/master_data.html:17 templates/print/_steward_list_table.html:10
-#: templates/print/briefing_groups.html:66
-#: templates/print/master_steward_list.html:101
-#: templates/print/master_steward_list_by_schedule.html:67
-#: templates/print/participant_list.html:30 templates/print/scribe_list.html:72
-#: templates/print/scribe_list_by_schedule.html:65
-#: templates/print/startlists_by_schedule.html:61
-#: templates/print_award_list.html:157 templates/print_marshall_list.html:46
-#: templates/print_ranking_pdf.html:256 templates/print_ranking_single.html:37
-#: templates/ranking.html:32 templates/startlist_print.html:72
-#: templates/startlist_print_all.html:72
-msgid "Hundeführer"
-msgstr "Handler"
-
-#: templates/live_run_entry.html:25 templates/ranking.html:33
+#: templates/live_run_entry.html:25 templates/print/all.html:226
+#: templates/ranking.html:33
 msgid "Zeit"
 msgstr "Time"
 
 #: templates/live_run_entry.html:25 templates/live_run_entry.html:50
-#: templates/ranking.html:34
+#: templates/print/all.html:227 templates/ranking.html:34
 msgid "Fehler"
 msgstr "Faults"
 
-#: templates/live_run_entry.html:25 templates/ranking.html:35
+#: templates/live_run_entry.html:25 templates/print/all.html:228
+#: templates/ranking.html:35
 msgid "Verw."
 msgstr "Ref."
 
@@ -579,9 +749,9 @@ msgstr "Runs"
 
 # --- Ranking ---
 #: templates/manage_runs.html:100 templates/manage_runs.html:130
-#: templates/print_ranking_pdf.html:5 templates/print_ranking_single.html:5
-#: templates/print_ranking_single.html:25 templates/ranking.html:2
-#: templates/ranking.html:7
+#: templates/print_ranking_pdf.html:5 templates/print_ranking_pdf.html:161
+#: templates/print_ranking_single.html:5 templates/print_ranking_single.html:25
+#: templates/ranking.html:2 templates/ranking.html:7
 msgid "Rangliste"
 msgstr "Ranking"
 
@@ -681,15 +851,6 @@ msgstr "Add block"
 msgid "Block-Typ"
 msgstr "Block type"
 
-#: templates/plan_schedule.html:73 templates/print/briefing_groups.html:56
-#: templates/print/master_steward_list_by_schedule.html:62
-#: templates/print/schedule.html:56
-#: templates/print/scribe_list_by_schedule.html:57
-#: templates/print/startlists_by_schedule.html:55
-#: templates/print_marshall_list.html:37
-msgid "Ring"
-msgstr "Ring"
-
 #: templates/plan_schedule.html:82
 msgid "Titel (optional)"
 msgstr "Title (optional)"
@@ -717,12 +878,6 @@ msgstr "Start number scheme"
 #: templates/plan_schedule.html:322
 msgid "Vorlage laden"
 msgstr "Load template"
-
-#: templates/plan_schedule.html:331 templates/print/briefing_groups.html:68
-#: templates/print/master_steward_list.html:69
-#: templates/print/startlists_by_schedule.html:63
-msgid "Kategorie"
-msgstr "Category"
 
 #: templates/plan_schedule.html:332 templates/print/briefing_groups.html:69
 #: templates/print/master_steward_list.html:69
@@ -763,13 +918,6 @@ msgstr "No start numbers assigned yet."
 msgid "Siegerliste"
 msgstr "Winners list"
 
-# --- Startlist print ---
-#: templates/print/_print_button.html:10 templates/print_award_list.html:132
-#: templates/print_stewardlists.html:7 templates/startlist_print.html:60
-#: templates/startlist_print_all.html:60
-msgid "Drucken"
-msgstr "Print"
-
 #: templates/print_award_list.html:133 templates/print_award_list.html:204
 msgid "Alle Ränge anzeigen"
 msgstr "Show all ranks"
@@ -782,7 +930,7 @@ msgstr "Back to live dashboard"
 msgid "Zurück zur Veranstaltung"
 msgstr "Back to event"
 
-#: templates/print_award_list.html:182 templates/print_ranking_pdf.html:299
+#: templates/print_award_list.html:182 templates/print_ranking_pdf.html:252
 #: templates/print_ranking_single.html:60
 msgid "Keine Ergebnisse für diesen Lauf."
 msgstr "No results for this run."
@@ -791,82 +939,58 @@ msgstr "No results for this run."
 msgid "Nur Top 3 anzeigen"
 msgstr "Show top 3 only"
 
-#: templates/print/index.html:34 templates/print_marshall_list.html:5
-#: templates/print_marshall_list.html:30
-msgid "Einweiserlisten"
-msgstr "Marshal lists"
-
-#: templates/print/_steward_list_table.html:9
-#: templates/print_marshall_list.html:45
-msgid "Nr."
-msgstr "No."
-
-#: templates/print_marshall_list.html:47
-msgid "Gestartet"
-msgstr "Started"
-
-#: templates/print/_steward_list_table.html:32
-#: templates/print/startlists_by_schedule.html:80
-#: templates/print_marshall_list.html:58 templates/print_startlists.html:85
-msgid "Keine Startenden für diesen Block."
-msgstr "No starters for this block."
-
-#: templates/print_ranking_pdf.html:211 templates/print_ranking_pdf.html:350
-msgid "Offizielle Rangliste"
-msgstr "Official ranking"
-
-#: templates/print_ranking_pdf.html:211 templates/print_ranking_pdf.html:350
-msgid "Vorläufige Rangliste"
-msgstr "Provisional ranking"
-
-#: templates/print/briefing_groups.html:65
-#: templates/print/master_steward_list.html:100
-#: templates/print/master_steward_list_by_schedule.html:66
-#: templates/print/participant_list.html:33 templates/print/scribe_list.html:71
-#: templates/print/scribe_list_by_schedule.html:64
-#: templates/print/startlists_by_schedule.html:60
-#: templates/print_ranking_pdf.html:255 templates/print_ranking_single.html:36
-#: templates/print_startlists.html:65 templates/startlist_print.html:71
-#: templates/startlist_print_all.html:71
-msgid "Start-Nr."
-msgstr "Start no."
-
-#: templates/print_ranking_pdf.html:308
+#: templates/print_ranking_pdf.html:259
 msgid "Gestartete Teams"
 msgstr "Teams started"
 
-#: templates/print_ranking_pdf.html:331
+#: templates/print_ranking_pdf.html:273
 msgid "Schnellste Zeit"
 msgstr "Fastest time"
 
-#: templates/print/startlists_by_schedule.html:5
+#: templates/print_ranking_pdf.html:293
+msgid "Offizielle Rangliste"
+msgstr "Official ranking"
+
+#: templates/print_ranking_pdf.html:293
+msgid "Vorläufige Rangliste"
+msgstr "Provisional ranking"
+
+#: templates/print/all.html:148 templates/print/startlists_by_schedule.html:5
 #: templates/print/startlists_by_schedule.html:41
 #: templates/print_startlists.html:5 templates/print_startlists.html:45
-#: templates/print_startlists.html:59 templates/startlist_print_all.html:66
+#: templates/print_startlists.html:59
 msgid "Startliste"
 msgstr "Start list"
 
-#: templates/print_startlists.html:60
+#: templates/print/all.html:149 templates/print_startlists.html:60
 msgid "Anzahl Teams"
 msgstr "Number of teams"
 
-#: templates/print_startlists.html:66
+#: templates/print/all.html:155 templates/print_startlists.html:66
 msgid "Name"
 msgstr "Name"
 
-#: templates/print_startlists.html:68 templates/startlist_print.html:74
+#: templates/print/all.html:157 templates/print_startlists.html:68
 msgid "Rasse"
 msgstr "Breed"
 
-#: templates/print_startlists.html:69
+#: templates/print/all.html:158 templates/print_startlists.html:69
 msgid "Verein"
 msgstr "Club"
 
+#: templates/print/_steward_list_table.html:32 templates/print/all.html:174
+#: templates/print/startlists_by_schedule.html:80
+#: templates/print_startlists.html:85
+msgid "Keine Startenden für diesen Block."
+msgstr "No starters for this block."
+
 # --- Startlist print ---
-#: templates/print_startlists.html:89
+#: templates/print/all.html:178 templates/print_startlists.html:89
 msgid "Gedruckt"
 msgstr "Printed"
 
+#: templates/print/all.html:139 templates/print/all.html:273
+#: templates/print/all.html:292 templates/print/all.html:313
 #: templates/print/briefing_groups.html:51
 #: templates/print/briefing_groups.html:87
 #: templates/print/briefing_groups.html:92
@@ -890,10 +1014,6 @@ msgstr "Printable version"
 msgid "Parcourslänge"
 msgstr "Course length"
 
-#: templates/ranking.html:30
-msgid "Rang"
-msgstr "Rank"
-
 #: templates/ranking.html:36
 msgid "Zeitfehler"
 msgstr "Time faults"
@@ -906,11 +1026,6 @@ msgstr "No results have been entered for the ranking yet."
 #: templates/ring_pc_dashboard.html:21
 msgid "Keine Verbindung"
 msgstr "No connection"
-
-#: templates/print/master_steward_list.html:73 templates/print/schedule.html:62
-#: templates/ring_pc_dashboard.html:22
-msgid "Lauf"
-msgstr "Run"
 
 #: templates/ring_pc_dashboard.html:23
 msgid "Kein Lauf ausgewählt"
@@ -979,12 +1094,8 @@ msgid "Hund auswählen für"
 msgstr "Select dog for"
 
 #: templates/select_dog_for_run.html:10
-msgid ""
-"Dieser Hundeführer hat mehrere Hunde. Bitte wählen Sie aus, welcher Hund "
-"zum Lauf"
-msgstr ""
-"This handler has several dogs. Please select which dog should be added "
-"to the run"
+msgid "Dieser Hundeführer hat mehrere Hunde. Bitte wählen Sie aus, welcher Hund zum Lauf"
+msgstr "This handler has several dogs. Please select which dog should be added to the run"
 
 #: templates/select_dog_for_run.html:10
 msgid "hinzugefügt werden soll."
@@ -1020,12 +1131,8 @@ msgid "Vorlage für Startnummern-Schema"
 msgstr "Template for start number scheme"
 
 #: templates/settings.html:86
-msgid ""
-"Wenn aktiviert, werden Live-Ergebnisse automatisch an das AgilityPortal "
-"übertragen."
-msgstr ""
-"When enabled, live results are automatically transferred to the "
-"AgilityPortal."
+msgid "Wenn aktiviert, werden Live-Ergebnisse automatisch an das AgilityPortal übertragen."
+msgstr "When enabled, live results are automatically transferred to the AgilityPortal."
 
 #: templates/settings.html:87
 msgid "URL und API-Keys findest du im Portal unter"
@@ -1076,44 +1183,25 @@ msgstr "Print language"
 msgid "Sprache für alle Ausdrucke"
 msgstr "Language for all printouts"
 
-#: templates/settings.html:203
-msgid ""
-"Gilt für Startlisten, Zeitplan, Ranglisten und alle weiteren "
-"Druckvorlagen."
-msgstr ""
-"Applies to start lists, schedule, rankings and all other print "
-"templates."
+#: templates/settings.html:204
+msgid "Gilt für Startlisten, Zeitplan, Ranglisten und alle weiteren Druckvorlagen."
+msgstr "Applies to start lists, schedule, rankings and all other print templates."
 
-#: templates/settings.html:208
+#: templates/settings.html:209
 msgid "Download-Ordner"
 msgstr "Download folder"
 
-#: templates/settings.html:210
+#: templates/settings.html:211
 msgid "Zielordner für Exporte (CSV, PDF, Event-Paket)"
 msgstr "Target folder for exports (CSV, PDF, event package)"
 
-#: templates/settings.html:214
-msgid ""
-"Leer lassen = beim Download fragen (Standard-Downloads-Ordner). Gültiger "
-"Pfad = Dateien werden ohne Nachfrage dorthin gespeichert. Gilt nur im "
-"App-Fenster, nicht im normalen Browser."
-msgstr ""
-"Leave empty = ask on download (default downloads folder). Valid path ="
-" files are saved there without prompting. Only applies within the app"
-" window, not in a regular browser."
+#: templates/settings.html:215
+msgid "Leer lassen = beim Download fragen (Standard-Downloads-Ordner). Gültiger Pfad = Dateien werden ohne Nachfrage dorthin gespeichert. Gilt nur im App-Fenster, nicht im normalen Browser."
+msgstr "Leave empty = ask on download (default downloads folder). Valid path = files are saved there without prompting. Only applies within the app window, not in a regular browser."
 
-#: templates/settings.html:218
+#: templates/settings.html:219
 msgid "Einstellungen speichern"
 msgstr "Save settings"
-
-#: templates/startlist_print.html:66
-msgid "Startliste für"
-msgstr "Start list for"
-
-# print templates
-#: templates/print/index.html:32 templates/startlist_print_all.html:5
-msgid "Startlisten"
-msgstr "Start lists"
 
 #: templates/print/_print_header.html:4 templates/print/_print_header.html:6
 msgid "Eventlogo"
@@ -1123,15 +1211,77 @@ msgstr "Event logo"
 msgid "Vereinslogo"
 msgstr "Club logo"
 
-#: templates/print/briefing_groups.html:5
-#: templates/print/briefing_groups.html:37
-#: templates/print/briefing_groups.html:49 templates/print/index.html:39
-msgid "Briefing-Gruppen"
-msgstr "Briefing groups"
+#: templates/print/_steward_list_table.html:9
+msgid "Nr."
+msgstr "No."
 
-#: templates/print/briefing_groups.html:57 templates/print/schedule.html:64
+# --- Startlist print ---
+#: templates/print/all.html:5
+msgid "Sammeldruck"
+msgstr "Bulk print"
+
+#: templates/print/all.html:88
+msgid "Start"
+msgstr "Start"
+
+#: templates/print/all.html:89
+msgid "Ende"
+msgstr "End"
+
+#: templates/print/all.html:92 templates/print/briefing_groups.html:57
+#: templates/print/schedule.html:64
 msgid "Starter"
 msgstr "Starters"
+
+#: templates/print/all.html:131 templates/print/schedule.html:107
+msgid "Kategorien"
+msgstr "Categories"
+
+#: templates/print/all.html:132 templates/print/schedule.html:108
+msgid "Klassen"
+msgstr "Classes"
+
+#: templates/print/all.html:230 templates/print/scribe_list.html:77
+#: templates/print/scribe_list_by_schedule.html:70
+msgid "Notizen"
+msgstr "Notes"
+
+# settings.html — Drucksprache
+#: templates/print/all.html:252 templates/print/all.html:279
+#: templates/print/all.html:300
+msgid "Drucksachen"
+msgstr "Print documents"
+
+#: templates/print/all.html:253
+msgid "Teilnehmerinfo"
+msgstr "Participant info"
+
+#: templates/print/all.html:253
+msgid "Alle Ringe"
+msgstr "All rings"
+
+# print templates
+#: templates/print/all.html:268 templates/print/index.html:38
+msgid "Startlisten"
+msgstr "Start lists"
+
+#: templates/print/all.html:280 templates/print/all.html:286
+msgid "Einweiser"
+msgstr "Stewards"
+
+#: templates/print/all.html:280 templates/print/all.html:301
+msgid "pro Ring"
+msgstr "per ring"
+
+#: templates/print/all.html:301 templates/print/all.html:307
+msgid "Ringbüro"
+msgstr "Ring office"
+
+#: templates/print/briefing_groups.html:5
+#: templates/print/briefing_groups.html:37
+#: templates/print/briefing_groups.html:49 templates/print/index.html:45
+msgid "Briefing-Gruppen"
+msgstr "Briefing groups"
 
 #: templates/print/briefing_groups.html:57
 msgid "Gruppen"
@@ -1145,28 +1295,25 @@ msgstr "Group sizes"
 msgid "Gruppe"
 msgstr "Group"
 
-#: templates/print/index.html:30
-msgid "Bitte wählen"
-msgstr "Please select"
-
 #: templates/print/index.html:33
+msgid "Alles drucken (Sammeldruck)"
+msgstr "Print everything (bulk print)"
+
+#: templates/print/index.html:36
+msgid "Oder einzeln wählen"
+msgstr "Or choose individually"
+
+#: templates/print/index.html:39
 msgid "Startlisten (nach Zeitplan)"
 msgstr "Start lists (by schedule)"
 
-#: templates/print/index.html:35
+#: templates/print/index.html:40
+msgid "Einweiserlisten"
+msgstr "Marshal lists"
+
+#: templates/print/index.html:41
 msgid "Einweiserliste (nach Zeitplan)"
 msgstr "Marshal list (by schedule)"
-
-#: templates/print/index.html:36 templates/print/scribe_list.html:5
-#: templates/print/scribe_list.html:44
-#: templates/print/scribe_list_by_schedule.html:5
-#: templates/print/scribe_list_by_schedule.html:43
-msgid "Ringschreiberlisten"
-msgstr "Ring scribe lists"
-
-#: templates/print/index.html:37
-msgid "Ringschreiberlisten (nach Zeitplan)"
-msgstr "Ring scribe lists (by schedule)"
 
 #: templates/print/lizenzcheck.html:2 templates/print/lizenzcheck.html:7
 msgid "Lizenzcheck"
@@ -1213,15 +1360,43 @@ msgstr "Participant list"
 msgid "Keine Teilnehmer gefunden."
 msgstr "No participants found."
 
-#: templates/print/schedule.html:107
-msgid "Kategorien"
-msgstr "Categories"
+msgid "Final"
+msgstr "Final"
 
-#: templates/print/schedule.html:108
-msgid "Klassen"
-msgstr "Classes"
+msgid "Halbfinal"
+msgstr "Semi-final"
 
-#: templates/print/scribe_list.html:77
-#: templates/print/scribe_list_by_schedule.html:70
-msgid "Notizen"
-msgstr "Notes"
+msgid "Viertelfinal"
+msgstr "Quarter-final"
+
+msgid "Achtelfinal"
+msgstr "Round of 16"
+
+msgid "Spiel um Platz 3"
+msgstr "3rd place match"
+
+#, python-format
+msgid "Runde %(n)s"
+msgstr "Round %(n)s"
+
+msgid "Quali-Lauf"
+msgstr "Qualifying run"
+
+msgid "Auffüller"
+msgstr "Fill-up"
+
+msgid "Titelverteidiger"
+msgstr "Title holder"
+
+msgid "Wildcard"
+msgstr "Wildcard"
+
+#~ msgid "Gestartet"
+#~ msgstr "Started"
+
+#~ msgid "Startliste für"
+#~ msgstr "Start list for"
+
+#~ msgid "Bitte wählen"
+#~ msgstr "Please select"
+

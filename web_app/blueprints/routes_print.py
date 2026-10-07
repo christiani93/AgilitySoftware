@@ -1,5 +1,6 @@
 # blueprints/routes_print.py
 from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, Response
+from flask_babel import gettext as _
 from datetime import datetime
 import csv
 import io
@@ -291,7 +292,7 @@ def print_stewardlists(event_id):
     judges = _load_data('judges.json')
     for run in ordered_runs:
         run["judge_display"] = resolve_judge_name(event, run, judges)
-    return render_template('print/scribe_list.html', event=event, title="Ringschreiberlisten", ordered_runs=ordered_runs, judges=judges)
+    return render_template('print/scribe_list.html', event=event, title=_("Ringschreiberlisten"), ordered_runs=ordered_runs, judges=judges)
 
 
 @print_bp.route('/print/stewardlists_by_schedule/<event_id>', endpoint='print_stewardlists_by_schedule_view')
@@ -307,7 +308,7 @@ def print_stewardlists_by_schedule_view(event_id):
     return render_template(
         'print/scribe_list_by_schedule.html',
         event=event,
-        title="Ringschreiberlisten (nach Zeitplan)",
+        title=_("Ringschreiberlisten (nach Zeitplan)"),
         sections=sections,
         judges=judges,
     )
@@ -384,7 +385,7 @@ def select_award_list(event_id):
     if not event: abort(404)
     if request.method == 'POST':
         run_ids = request.form.getlist('run_ids')
-        if not run_ids: flash("Keine Läufe für die Liste ausgewählt.", "warning"); return redirect(url_for('print_bp.select_award_list', event_id=event_id))
+        if not run_ids: flash(_("Keine Läufe für die Liste ausgewählt."), "warning"); return redirect(url_for('print_bp.select_award_list', event_id=event_id))
         events = _load_data('events.json')
         event_to_update = next((e for e in events if e.get('id') == event_id), None)
         for run in event_to_update.get('runs', []):
@@ -546,7 +547,7 @@ def lizenzcheck_cancel(event_id):
     if not event: abort(404)
     event.pop('lizenzcheck_csv_exported_at', None)
     _save_data('events.json', all_events)
-    flash('Lizenzcheck-Export abgebrochen.', 'info')
+    flash(_('Lizenzcheck-Export abgebrochen.'), 'info')
     return redirect(url_for('print_bp.lizenzcheck_index', event_id=event_id))
 
 
@@ -603,7 +604,7 @@ def lizenzcheck_process(event_id):
 
     report_text = request.form.get('tkamo_result', '').strip()
     if not report_text:
-        flash('Bitte TKAMO-Ergebnis einfügen.', 'warning')
+        flash(_('Bitte TKAMO-Ergebnis einfügen.'), 'warning')
         return redirect(url_for('print_bp.lizenzcheck_index', event_id=event_id))
 
     dogs_all = _load_data('dogs.json')

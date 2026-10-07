@@ -89,12 +89,24 @@ def _gen_id(prefix: str = "ko") -> str:
 
 
 def round_label(round_no: int, rounds_total: int, matchup_type: str = "winner") -> str:
-    """Menschenlesbarer Rundenname (de)."""
+    """Menschenlesbarer Rundenname. Innerhalb eines Request-Kontexts (z.B.
+    Druckseiten) übersetzt gemäss aktueller Locale, sonst (Tests/Tools ohne
+    App-Kontext) immer deutsch."""
     if matchup_type == "third_place":
-        return "Spiel um Platz 3"
-    offset = rounds_total - round_no
-    names = {0: "Final", 1: "Halbfinal", 2: "Viertelfinal", 3: "Achtelfinal"}
-    return names.get(offset, f"Runde {round_no}")
+        label, params = "Spiel um Platz 3", {}
+    else:
+        offset = rounds_total - round_no
+        names = {0: "Final", 1: "Halbfinal", 2: "Viertelfinal", 3: "Achtelfinal"}
+        if offset in names:
+            label, params = names[offset], {}
+        else:
+            label, params = "Runde %(n)s", {"n": round_no}
+
+    from flask import has_request_context
+    if has_request_context():
+        from flask_babel import gettext
+        return gettext(label, **params)
+    return label % params if params else label
 
 
 def _new_run() -> dict:

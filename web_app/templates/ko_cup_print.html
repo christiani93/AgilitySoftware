@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>KO-Final {{ final.group_label }} – {{ event.Bezeichnung }}</title>
+    <title>{{ _('KO-Final') }} {{ final.group_label }} – {{ event.Bezeichnung }}</title>
     <style>
         /* Bewusst KEIN Bootstrap-CDN: wird am Event oft OHNE Internet gedruckt.
            Logo-Header + Typo bewusst gleich wie die Siegerliste (print_award_list). */
@@ -35,8 +35,8 @@
 </head>
 <body>
     <div class="noprint">
-        <button onclick="window.print()">🖨️ Drucken</button>
-        <a href="{{ url_for('ko_cup_bp.ko_rings_print', event_id=event.id) }}">Ring-Startlisten (alle Kategorien)</a>
+        <button onclick="window.print()">🖨️ {{ _('Drucken') }}</button>
+        <a href="{{ url_for('ko_cup_bp.ko_rings_print', event_id=event.id) }}">{{ _('Ring-Startlisten (alle Kategorien)') }}</a>
     </div>
 
     {% include 'print/_print_header.html' %}
@@ -45,10 +45,10 @@
 
     {# ── Endrangliste ───────────────────────────────────────────────── #}
     {% if results %}
-    <h2>Endrangliste{% if status != 'done' %} <span class="muted">(Zwischenstand)</span>{% endif %}</h2>
+    <h2>{{ _('Endrangliste') }}{% if status != 'done' %} <span class="muted">({{ _('Zwischenstand') }})</span>{% endif %}</h2>
     <table>
         <thead>
-            <tr><th class="num">Rang</th><th>Hund</th><th>Führer</th><th class="num">Start-Nr.</th></tr>
+            <tr><th class="num">{{ _('Rang') }}</th><th>{{ _('Hund') }}</th><th>{{ _('Führer') }}</th><th class="num">{{ _('Start-Nr.') }}</th></tr>
         </thead>
         <tbody>
             {% for r in results %}
@@ -68,23 +68,23 @@
     {% if bracket %}
     {% if ns.section_started %}<div class="pagebreak"></div>{% endif %}
     {% set ns.section_started = true %}
-    <h2>Duell-Laufzettel</h2>
+    <h2>{{ _('Duell-Laufzettel') }}</h2>
     {% for rnd in bracket %}
       <h3 style="margin-top:0.8em;">{{ rnd.label }}</h3>
       {% for mv in rnd.matchups %}
         {% set m = mv.m %}
         <div class="duell">
-          <h3>{{ rnd.label }} · Duell {{ m.matchup_no }}</h3>
+          <h3>{{ rnd.label }} · {{ _('Duell') }} {{ m.matchup_no }}</h3>
           <table>
             <thead>
               <tr>
-                <th>Team</th>
-                <th class="num">Start-Nr.</th>
-                <th class="ring">Lauf 1{% if mv.rings %} (Ring {{ mv.rings.a.run1 }}/{{ mv.rings.b.run1 }}){% endif %}</th>
-                <th>Zeit / F / V / DIS</th>
-                <th class="ring">Lauf 2{% if mv.rings %} (Ring {{ mv.rings.a.run2 }}/{{ mv.rings.b.run2 }}){% endif %}</th>
-                <th>Zeit / F / V / DIS</th>
-                <th class="num">Total</th>
+                <th>{{ _('Team') }}</th>
+                <th class="num">{{ _('Start-Nr.') }}</th>
+                <th class="ring">{{ _('Lauf') }} 1{% if mv.rings %} ({{ _('Ring') }} {{ mv.rings.a.run1 }}/{{ mv.rings.b.run1 }}){% endif %}</th>
+                <th>{{ _('Zeit / F / V / DIS') }}</th>
+                <th class="ring">{{ _('Lauf') }} 2{% if mv.rings %} ({{ _('Ring') }} {{ mv.rings.a.run2 }}/{{ mv.rings.b.run2 }}){% endif %}</th>
+                <th>{{ _('Zeit / F / V / DIS') }}</th>
+                <th class="num">{{ _('Total') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -94,7 +94,7 @@
                   {% if part %}{{ part.dog_name }}{% if part.handler_name %} <span class="muted">({{ part.handler_name }})</span>{% endif %}
                   {% else %}<span class="muted">
                     {%- set src = m.a_source if side == 'a' else m.b_source -%}
-                    {%- if src %}{{ 'Sieger' if src.take == 'winner' else 'Verlierer' }} Vorrunde{% else %}Freilos{% endif -%}
+                    {%- if src %}{{ _('Sieger') if src.take == 'winner' else _('Verlierer') }} {{ _('Vorrunde') }}{% else %}{{ _('Freilos') }}{% endif -%}
                   </span>{% endif %}
                 </td>
                 <td class="num">{{ part.start_number if part and part.start_number is not none else '–' }}</td>
@@ -109,12 +109,12 @@
           </table>
           <div class="foot">
             <span>
-              {% if mv.winner %}Sieger: <strong>{{ mv.winner.dog_name }}</strong>
-              {% elif mv.is_tie %}<strong>Gleichstand – manuell entscheiden</strong>
-              {% elif m.forfeit_id %}Forfeit
-              {% else %}Sieger: __________________________{% endif %}
+              {% if mv.winner %}{{ _('Sieger') }}: <strong>{{ mv.winner.dog_name }}</strong>
+              {% elif mv.is_tie %}<strong>{{ _('Gleichstand – manuell entscheiden') }}</strong>
+              {% elif m.forfeit_id %}{{ _('Forfeit') }}
+              {% else %}{{ _('Sieger') }}: __________________________{% endif %}
             </span>
-            <span class="muted">F = Fehler (+2 s) · V = Verweigerung (+2 s) · DIS (+5 s)</span>
+            <span class="muted">{{ _('F = Fehler (+2 s) · V = Verweigerung (+2 s) · DIS (+5 s)') }}</span>
           </div>
         </div>
       {% endfor %}
@@ -123,15 +123,15 @@
     {# ── Fallback vor Bracket-Erstellung: Finalisten-/Losliste zum Pruefen ── #}
     {% if ns.section_started %}<div class="pagebreak"></div>{% endif %}
     {% set ns.section_started = true %}
-    <h2>Finalisten ({{ participants | length }})</h2>
+    <h2>{{ _('Finalisten') }} ({{ participants | length }})</h2>
     <table>
         <thead>
             <tr>
-                <th class="num">Los</th>
-                <th class="num">Start-Nr.</th>
-                <th>Hund</th>
-                <th>Führer</th>
-                <th>Quelle</th>
+                <th class="num">{{ _('Los') }}</th>
+                <th class="num">{{ _('Start-Nr.') }}</th>
+                <th>{{ _('Hund') }}</th>
+                <th>{{ _('Führer') }}</th>
+                <th>{{ _('Quelle') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -141,10 +141,10 @@
                 <td class="num">{{ p.start_number if p.start_number is not none else '–' }}</td>
                 <td>{{ p.dog_name }}</td>
                 <td>{{ p.handler_name or '' }}</td>
-                <td>{{ source_labels.get(p.source, p.source) }}</td>
+                <td>{{ _(source_labels.get(p.source, p.source)) }}</td>
             </tr>
             {% else %}
-            <tr><td colspan="5" class="muted">Noch keine Finalisten.</td></tr>
+            <tr><td colspan="5" class="muted">{{ _('Noch keine Finalisten.') }}</td></tr>
             {% endfor %}
         </tbody>
     </table>
