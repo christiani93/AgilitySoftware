@@ -52,6 +52,9 @@
        href="{{ url_for('ko_cup_bp.ko_rings_print', event_id=event.id) }}#ring-{{ ring_no }}">
       📋 Startliste Ring {{ ring_no }}
     </a>
+    <button class="btn-startlist" onclick="window.print()" style="background: #b07400;">
+      🖨️ Drucken
+    </button>
   </header>
   <main>
     <label>Finale (Grössenklasse)</label>
