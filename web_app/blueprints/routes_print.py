@@ -250,6 +250,7 @@ def print_master_steward_list(event_id):
     """Erstellt eine Master-Einweiserliste: 1 Zeile pro Teilnehmer, 1 Spalte pro Lauf."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
+    judges = _load_data('judges.json')
     participants, grouped_participants = _get_enriched_participants(event), {}
     for p in participants:
         cat, cls = p.get('Kategorie', 'N/A'), str(p.get('Klasse', 'N/A'))
@@ -261,6 +262,8 @@ def print_master_steward_list(event_id):
         final_grouped_data[cat] = {}
         for cls, participants_in_group in grouped_participants[cat].items():
             runs_for_group = [r for r in ordered_runs if r.get('kategorie') == cat and str(r.get('klasse')) == cls]
+            for run in runs_for_group:
+                run['judge_display'] = resolve_judge_name(event, run, judges)
             participant_run_map = {p['Lizenznummer']: {r['id']: False for r in runs_for_group} for p in participants_in_group}
             for run in runs_for_group:
                 for entry in run.get('entries', []):

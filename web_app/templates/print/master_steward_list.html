@@ -35,6 +35,11 @@
         .run-col { width: 25px; }
         .run-header { height: 150px; }
 
+        .laufvorgaben-table { font-size: 8pt; table-layout: auto; margin-bottom: 8px; }
+        .laufvorgaben-table th, .laufvorgaben-table td { white-space: normal; text-align: center; }
+        .laufvorgaben-table th:first-child, .laufvorgaben-table td:first-child { text-align: left; }
+        .laufvorgaben-table .signature-cell { min-width: 2.5cm; }
+
         table { page-break-inside: auto; }
         thead { display: table-header-group; }
         tr { page-break-inside: avoid; page-break-after: auto; }
@@ -58,10 +63,37 @@
         <tbody>
             <tr>
                 <td>
-        {% for cat, classes in final_grouped_data.items()|sort %}
+        {% for cat, classes in final_grouped_data.items() %}
             {% for cls, group_data in classes.items()|sort %}
                 <div class="group-container">
                     <h3>{{ _('Kategorie') }}: {{ cat }} - {{ _('Klasse') }}: {{ cls }}</h3>
+                    <table class="laufvorgaben-table">
+                        <thead>
+                            <tr>
+                                <th>{{ _('Lauf') }}</th>
+                                <th>{{ _('Parcourslänge (m)') }}</th>
+                                <th>{{ _('Hindernisse') }}</th>
+                                <th>{{ _('SCT (s)') }}</th>
+                                <th>{{ _('MCT (s)') }}</th>
+                                <th>{{ _('Richter') }}</th>
+                                <th>{{ _('Unterschrift') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for run in group_data.runs %}
+                                {% set ld = run.get('laufdaten', {}) %}
+                                <tr>
+                                    <td>{{ run.name }}</td>
+                                    <td>{{ ld.get('parcours_laenge', '') }}</td>
+                                    <td>{{ ld.get('anzahl_hindernisse', '') }}</td>
+                                    <td>{{ ld.get('standardzeit_sct_berechnet', ld.get('standardzeit_sct_gerundet', '')) }}</td>
+                                    <td>{{ ld.get('maximalzeit_mct_berechnet', ld.get('maximalzeit_mct_gerundet', '')) }}</td>
+                                    <td>{{ run.get('judge_display', '') }}</td>
+                                    <td class="signature-cell"></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                     <table>
                         <thead>
                             <tr>
