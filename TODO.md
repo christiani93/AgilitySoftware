@@ -44,15 +44,28 @@ Reglement bestätigt (DIS-Team hinter Nicht-DIS via Sentinel 999, Zeitfehler nor
 
 ## PDF-/Design-Arbeit (geplant ab 07.10.2026)
 
-- [x] **Siegerehrungsliste** `print_award_list.html` überarbeitet (2026-10-07, nur lokal, kein Deploy/Rebuild):
+- [x] **Siegerehrungsliste** `print_award_list.html` überarbeitet (2026-10-07, `31f185f`, nur lokal):
       Kategorie-Sortierung L→I→M→S; echte Logos via neuem Helper `utils.get_event_logo_data_uris()`
       + `_print_header.html` (`<img>` mit Platzhalter-Fallback); Seiten-Überlappung behoben
       (fixed-Header verworfen → Flow + Browser-Kopf/Fuss); `fitContentToPages()` Zoom auf 1–2 Seiten;
-      Bootstrap-CDN entfernt (offline-tauglich). ← **User-Review im Dev ausstehend**
+      Bootstrap-CDN entfernt (offline-tauglich); **DIS-Läufe ausgeblendet** (positiv-check `platz is
+      number and >0`, da `platz` bei DIS defined-but-None). ← **User-Review im Dev ausstehend**
+- [x] **KO-Druck** `ko_cup_print.html` (2026-10-07, `f851c00`+`e8d8d5c`, nur lokal): geteilter Logo-Header;
+      Reihenfolge Endrangliste→Duell-Laufzettel; **CATEGORY_ORDER S-M-I-L** (bewusst ANDERS als
+      Siegerliste L-I-M-S — Large-Final zuletzt; nur Anzeige, nicht Bracket-Mathe).
+- [x] **NEU Ring-Startlisten** `/ko-cup/rings_print/<event_id>` + `ko_cup_rings_print.html` + Helper
+      `_event_ring_startlists`: kombiniert über ALLE Kategorien, Sortierung `(-phase, cat_rank,
+      type_rank, matchup_no)`. Link ab `ko_cup_config.html`. 141/141 Tests grün.
+- [x] Ring-Startlisten verfeinert (2026-10-07, nur lokal): nur **Lauf 1** gelistet (bei Lauf 2
+      wechseln dieselben Teams intern den Ring, kein eigener Eintrag nötig — Spalte "Lauf" entfernt);
+      innerhalb der Finalrunde **Spiel um Platz 3 vor dem Final** (Grosses Finale läuft als letztes
+      Duell).
+- [ ] Ring-Startlisten: generische Annäherung, KEIN exaktes Ring-Auslastungs-Balancing wie
+      handgemachte Excel-Ablauftabelle (Foto) — bei Bedarf explizitere Scheduling-Regel definieren.
 - [ ] Logo-Übergabe Portal→Software: Pipeline ist BEREITS komplett (Export packt `logos/*`, Import
-      entpackt nach `data/logos/<event_id>/`) — nur bestehende Events haben noch keine Logos; nach
+      entpackt nach `data/logos/<event_id>/`) — bestehende Events haben noch keine Logos; nach
       erneutem Export/Import erscheinen sie. Logo-Grösse im Kopf ggf. feinjustieren.
-- [ ] KO-Druck-Templates (`ko_cup_rankings.html`, `ko_cup_print.html`) aufs Design abstimmen
+- [ ] `ko_cup_rankings.html` (Bildschirm/Bootstrap): sauberes Offline-Druckbild erst beim CDN-Umbau.
 - [ ] Offline-CDN generell: `layout.html` zieht Bootstrap/Font-Awesome/socket.io von CDN →
       lokale Bundles ablegen (ganze Software-UI offline unformatiert)
 - [ ] Startlisten/Steward/Marshall/Teilnehmer/Zeitplan: gemeinsames Druck-Design-System

@@ -187,6 +187,31 @@ def test_rings_print_404_for_unknown_event(client):
     assert resp.status_code == 404
 
 
+def test_event_ring_startlists_third_place_before_final_and_only_lauf1():
+    """Innerhalb der letzten Runde (phase 0) muss 'Spiel um Platz 3' vor dem
+    Final stehen (Grosses Finale laeuft als letztes Duell), und jedes Team
+    darf je Duell nur EINMAL je Ring auftauchen (nur Lauf 1 -- bei Lauf 2
+    wechseln dieselben Teams intern den Ring, kein eigener Eintrag)."""
+    large = _build_large_final()  # komplett durchgespielt (Runde 1 + 2)
+    ring_startlists = kc._event_ring_startlists({"finals": [large]})
+
+    for rs in ring_startlists:
+        final_rows = [r for r in rs["rows"] if r["round_label"] in ("Final", "Spiel um Platz 3")]
+        labels_in_order = [r["round_label"] for r in final_rows]
+        if "Final" in labels_in_order and "Spiel um Platz 3" in labels_in_order:
+            assert labels_in_order.index("Spiel um Platz 3") < labels_in_order.index("Final")
+
+        # Je Duell (Runde + Duell-Nr.) darf ein Hund nur einmal auftauchen --
+        # sonst waere Lauf 2 (Ringwechsel) faelschlich zusaetzlich gelistet.
+        seen = set()
+        for r in rs["rows"]:
+            key = (r["round_label"], r["matchup_no"], r["dog_name"])
+            assert key not in seen, (
+                f"Ring {rs['ring']}: {r['dog_name']} doppelt im selben Duell -- Lauf 2 duerfte nicht extra gelistet sein"
+            )
+            seen.add(key)
+
+
 def test_event_ring_startlists_orders_by_phase_then_category():
     """Direkter Test der reinen Sortierlogik (unabhaengig von Namens-
     Wiederholungen ueber Runden hinweg, die eine HTML-String-Suche

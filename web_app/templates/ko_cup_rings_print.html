@@ -34,8 +34,9 @@
 
     <p class="muted" style="margin-top:-0.4em;">
         Laufreihenfolge über alle Kategorien: frühe Runden zuerst, Finalrunden
-        (Final + Spiel um Platz 3) aller Kategorien gemeinsam am Schluss in der
-        Reihenfolge Small – Medium – Intermediate – Large.
+        (Spiel um Platz 3, dann Final) aller Kategorien gemeinsam am Schluss in
+        der Reihenfolge Small – Medium – Intermediate – Large. Nur Lauf 1
+        aufgelistet — bei Lauf 2 wechseln dieselben Teams intern den Ring.
     </p>
 
     {% for rs in ring_startlists %}
@@ -47,7 +48,6 @@
                 <th>Kategorie</th>
                 <th>Runde</th>
                 <th class="num">Duell</th>
-                <th class="num">Lauf</th>
                 <th class="num">Start-Nr.</th>
                 <th>Hund</th>
                 <th>Hundeführer</th>
@@ -59,13 +59,12 @@
                 <td>{{ row.category }}</td>
                 <td>{{ row.round_label }}</td>
                 <td class="num">{{ row.matchup_no }}</td>
-                <td class="num">{{ row.lauf }}</td>
                 <td class="num">{{ row.start_number if row.start_number is not none else '–' }}</td>
                 <td>{{ row.dog_name }}</td>
                 <td>{{ row.handler_name or '' }}</td>
             </tr>
             {% else %}
-            <tr><td colspan="7" class="muted">Noch keine Duelle mit Ring-Zuteilung.</td></tr>
+            <tr><td colspan="6" class="muted">Noch keine Duelle mit Ring-Zuteilung.</td></tr>
             {% endfor %}
         </tbody>
     </table>
