@@ -1,14 +1,14 @@
-# French translations for AgilitySuite
+# English translations for AgilitySuite
 msgid ""
 msgstr ""
 "Project-Id-Version: AgilitySuite 4.4\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-10-07 10:24+0200\n"
-"PO-Revision-Date: 2026-04-19 00:00+0000\n"
+"PO-Revision-Date: 2026-10-07 00:00+0000\n"
 "Last-Translator: \n"
-"Language: fr\n"
-"Language-Team: French\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: en\n"
+"Language-Team: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -17,143 +17,143 @@ msgstr ""
 # --- Flash messages ---
 #: app.py:131
 msgid "Einstellungen erfolgreich gespeichert."
-msgstr "Paramètres enregistrés avec succès."
+msgstr "Settings saved successfully."
 
 # --- Error pages ---
 #: app.py:147
 msgid "Seite nicht gefunden"
-msgstr "Page non trouvée"
+msgstr "Page not found"
 
 #: app.py:147
 msgid "Die angeforderte Seite existiert nicht."
-msgstr "La page demandée n'existe pas."
+msgstr "The requested page does not exist."
 
 #: app.py:154
 msgid "Serverfehler"
-msgstr "Erreur serveur"
+msgstr "Server error"
 
 #: app.py:154
 msgid "Auf dem Server ist ein interner Fehler aufgetreten."
-msgstr "Une erreur interne s'est produite sur le serveur."
+msgstr "An internal error occurred on the server."
 
 #: blueprints/routes_events.py:900
 msgid "Keine Datei ausgewählt (startlist_all_combined.json)."
-msgstr "Aucun fichier sélectionné (startlist_all_combined.json)."
+msgstr "No file selected (startlist_all_combined.json)."
 
 #: blueprints/routes_events.py:905
 msgid "Bitte eine JSON-Datei hochladen (startlist_all_combined.json)."
-msgstr "Veuillez télécharger un fichier JSON (startlist_all_combined.json)."
+msgstr "Please upload a JSON file (startlist_all_combined.json)."
 
 #: blueprints/routes_events.py:1188
 #, python-format
 msgid "Veranstaltung '%(name)s' erfolgreich erstellt."
-msgstr "Événement '%(name)s' créé avec succès."
+msgstr "Event '%(name)s' created successfully."
 
 #: blueprints/routes_events.py:1207
 msgid "Event nicht gefunden."
-msgstr "Événement non trouvé."
+msgstr "Event not found."
 
 #: blueprints/routes_events.py:1221
 msgid "Veranstaltung erfolgreich aktualisiert."
-msgstr "Événement mis à jour avec succès."
+msgstr "Event updated successfully."
 
 #: blueprints/routes_events.py:1236
 msgid "Veranstaltung wurde gelöscht."
-msgstr "Événement supprimé."
+msgstr "Event has been deleted."
 
 #: blueprints/routes_events.py:1242
 msgid "Event als 'Live' markiert."
-msgstr "Événement marqué comme 'En direct'."
+msgstr "Event marked as 'Live'."
 
 #: blueprints/routes_events.py:1248
 msgid "Kein Event mehr als 'Live' markiert."
-msgstr "Aucun événement n'est plus marqué comme 'En direct'."
+msgstr "No event is marked as 'Live' anymore."
 
 #: blueprints/routes_events.py:1451
 msgid "Lizenznummer fehlt."
-msgstr "Numéro de licence manquant."
+msgstr "License number missing."
 
 #: blueprints/routes_events.py:1456
 msgid "Hund nicht gefunden."
-msgstr "Chien non trouvé."
+msgstr "Dog not found."
 
 #: blueprints/routes_events.py:1461
 msgid "Kategorie/Klasse passt für diesen Lauf nicht."
-msgstr "La catégorie/classe ne correspond pas à cette épreuve."
+msgstr "Category/class does not match this run."
 
 #: blueprints/routes_events.py:1465
 msgid "Teilnehmer ist bereits in diesem Lauf."
-msgstr "Le participant est déjà dans cette épreuve."
+msgstr "Participant is already in this run."
 
 #: blueprints/routes_events.py:1476
 msgid "Teilnehmer hinzugefügt."
-msgstr "Participant ajouté."
+msgstr "Participant added."
 
 #: blueprints/routes_events.py:1485
 msgid "Teilnehmer entfernt."
-msgstr "Participant supprimé."
+msgstr "Participant removed."
 
 #: blueprints/routes_events.py:1485
 msgid "Teilnehmer war nicht in diesem Lauf."
-msgstr "Le participant n'était pas dans cette épreuve."
+msgstr "Participant was not in this run."
 
 #: blueprints/routes_events.py:1494
 msgid "Einstellungen gespeichert."
-msgstr "Paramètres enregistrés."
+msgstr "Settings saved."
 
 #: blueprints/routes_events.py:1501
 msgid "Ungültige Startnummer."
-msgstr "Numéro de départ invalide."
+msgstr "Invalid start number."
 
 #: blueprints/routes_events.py:1505
 msgid "Startnummer in diesem Lauf bereits vergeben."
-msgstr "Numéro de départ déjà attribué dans cette épreuve."
+msgstr "Start number already assigned in this run."
 
 #: blueprints/routes_events.py:1511
 msgid "Startnummer gesetzt."
-msgstr "Numéro de départ attribué."
+msgstr "Start number set."
 
 #: blueprints/routes_events.py:1513
 msgid "Teilnehmer nicht gefunden."
-msgstr "Participant non trouvé."
+msgstr "Participant not found."
 
 #: blueprints/routes_live.py:243
 msgid "Kein Event als 'Live' markiert."
-msgstr "Aucun événement n'est marqué comme 'En direct'."
+msgstr "No event marked as 'Live'."
 
 #: blueprints/routes_live.py:247
 #, python-format
 msgid "Live-Event mit ID %(id)s wurde nicht gefunden."
-msgstr "L'événement en direct avec l'ID %(id)s n'a pas été trouvé."
+msgstr "Live event with ID %(id)s was not found."
 
 #: blueprints/routes_live.py:446
 msgid "Lauf konnte nicht für Sprecher/Monitore aktiviert werden."
-msgstr "L'épreuve n'a pas pu être activée pour le speaker/les moniteurs."
+msgstr "Run could not be activated for speaker/monitors."
 
 #: blueprints/routes_live.py:516
 #, python-format
 msgid "'%(run)s' ist jetzt aktiv für die Anzeige auf %(ring)s."
-msgstr "'%(run)s' est maintenant actif pour l'affichage sur %(ring)s."
+msgstr "'%(run)s' is now active for display on %(ring)s."
 
 #: blueprints/routes_live.py:593
 #, python-format
 msgid "Zeitplan gefunden, aber keine Lauf-Blöcke für %(ring)s: %(debug)s"
-msgstr "Programme trouvé, mais aucun bloc d'épreuve pour %(ring)s : %(debug)s"
+msgstr "Schedule found, but no run blocks for %(ring)s: %(debug)s"
 
 #: blueprints/routes_live.py:1034
 #, python-format
 msgid "Portal-Export fehlgeschlagen: %(error)s"
-msgstr "Échec de l'export portail : %(error)s"
+msgstr "Portal export failed: %(error)s"
 
 #: blueprints/routes_live.py:1037
 #, python-format
 msgid "Ergebnisse erfolgreich ans Portal übertragen %(detail)s"
-msgstr "Résultats transmis avec succès au portail %(detail)s"
+msgstr "Results successfully transferred to the portal %(detail)s"
 
 # --- Event form ---
 #: templates/event_form.html:12
 msgid "Bezeichnung"
-msgstr "Désignation"
+msgstr "Name"
 
 #: templates/event_form.html:16
 msgid "Datum"
@@ -161,209 +161,209 @@ msgstr "Date"
 
 #: templates/event_form.html:22
 msgid "Veranstalter"
-msgstr "Organisateur"
+msgstr "Organiser"
 
 #: templates/event_form.html:24
 msgid "--- Bitte auswählen ---"
-msgstr "--- Veuillez sélectionner ---"
+msgstr "--- Please select ---"
 
 #: templates/event_form.html:31
 msgid "Turniernummer"
-msgstr "Numéro de tournoi"
+msgstr "Tournament number"
 
 #: templates/event_form.html:37
 msgid "Anzahl Ringe"
-msgstr "Nombre de rings"
+msgstr "Number of rings"
 
 #: templates/event_form.html:47
 msgid "Veranstaltungsart"
-msgstr "Type d'événement"
+msgstr "Event type"
 
 #: templates/event_form.html:56
 msgid "Läufe automatisch erstellen"
-msgstr "Créer des épreuves automatiquement"
+msgstr "Create runs automatically"
 
 #: templates/event_form.html:59
 msgid "Laufarten:"
-msgstr "Types d'épreuves :"
+msgstr "Run types:"
 
 #: templates/event_form.html:68
 msgid "Kategorien:"
-msgstr "Catégories :"
+msgstr "Categories:"
 
 #: templates/event_form.html:77
 msgid "Klassen:"
-msgstr "Classes :"
+msgstr "Classes:"
 
 #: templates/event_form.html:89 templates/live_run_entry.html:58
 #: templates/ring_pc_dashboard.html:149 templates/ring_pc_dashboard.html:168
 msgid "Speichern"
-msgstr "Enregistrer"
+msgstr "Save"
 
 #: templates/event_form.html:90 templates/live_run_entry.html:57
 #: templates/ring_pc_dashboard.html:150 templates/ring_pc_dashboard.html:169
 #: templates/select_dog_for_run.html:30
 msgid "Abbrechen"
-msgstr "Annuler"
+msgstr "Cancel"
 
 # --- Navigation ---
 #: templates/events_list.html:2 templates/events_list.html:6
 #: templates/layout.html:38
 msgid "Veranstaltungen"
-msgstr "Événements"
+msgstr "Events"
 
 # --- Events list ---
 #: templates/events_list.html:8
 msgid "Event-Paket importieren"
-msgstr "Importer un package d'événement"
+msgstr "Import event package"
 
 #: templates/events_list.html:9
 msgid "Neue Veranstaltung erstellen"
-msgstr "Créer un nouvel événement"
+msgstr "Create new event"
 
 #: templates/events_list.html:18
 msgid "Schnell-Generatoren für FMBB-/SKBS-Tests:"
-msgstr "Générateurs rapides pour les tests FMBB/SKBS :"
+msgstr "Quick generators for FMBB/SKBS tests:"
 
 #: templates/events_list.html:22
 msgid "Aaretaler-Demo (echte Startlisten)"
-msgstr "Démo Aaretaler (listes de départ réelles)"
+msgstr "Aaretaler demo (real start lists)"
 
 #: templates/events_list.html:27
 msgid "FMBB-Test-Event (zufällig)"
-msgstr "Événement test FMBB (aléatoire)"
+msgstr "FMBB test event (random)"
 
 #: templates/events_list.html:32
 msgid "Startlisten-JSON hochladen und daraus ein neues Test-Event erstellen."
-msgstr "Télécharger un JSON de liste de départ et créer un événement de test."
+msgstr "Upload a start list JSON and create a new test event from it."
 
 #: templates/events_list.html:43
 msgid "Event-Name (optional)"
-msgstr "Nom de l'événement (optionnel)"
+msgstr "Event name (optional)"
 
 #: templates/events_list.html:48
 msgid "Teilnehmer anlegen (dogs + handlers)"
-msgstr "Créer des participants (chiens + conducteurs)"
+msgstr "Create participants (dogs + handlers)"
 
 #: templates/events_list.html:52
 msgid "Läufe anlegen (Agility/Jumping pro Klasse/Kategorie)"
-msgstr "Créer des épreuves (Agility/Jumping par classe/catégorie)"
+msgstr "Create runs (Agility/Jumping per class/category)"
 
 #: templates/events_list.html:56
 msgid "Entries hinzufügen"
-msgstr "Ajouter des inscriptions"
+msgstr "Add entries"
 
 #: templates/events_list.html:60
 msgid "Entries nach offizieller Startnummer sortieren"
-msgstr "Trier les inscriptions par numéro de départ officiel"
+msgstr "Sort entries by official start number"
 
 #: templates/events_list.html:63
 msgid "Startlisten-JSON → Test-Event erstellen"
-msgstr "JSON liste de départ → Créer événement test"
+msgstr "Start list JSON → Create test event"
 
 #: templates/events_list.html:93
 msgid "Keine Veranstaltungen gefunden."
-msgstr "Aucun événement trouvé."
+msgstr "No events found."
 
 # --- Home ---
 #: templates/home.html:2
 msgid "Willkommen"
-msgstr "Bienvenue"
+msgstr "Welcome"
 
 #: templates/home.html:7
 msgid "Willkommen bei der AgilitySuite"
-msgstr "Bienvenue dans AgilitySuite"
+msgstr "Welcome to AgilitySuite"
 
 #: templates/home.html:8
 msgid ""
 "Ihre web-basierte Lösung zur Verwaltung von Agility-Turnieren. Von der "
 "Erstellung der Veranstaltung bis zur Live-Anzeige der Resultate."
 msgstr ""
-"Votre solution web pour la gestion des tournois d'agility. De la création"
-" de l'événement jusqu'à l'affichage en direct des résultats."
+"Your web-based solution for managing agility tournaments. From creating"
+" the event to the live display of results."
 
 #: templates/home.html:9
 msgid "Zu den Veranstaltungen"
-msgstr "Vers les événements"
+msgstr "Go to events"
 
 #: templates/home.html:16
 msgid "Server-IP für Ring-Server:"
-msgstr "IP du serveur pour le serveur ring :"
+msgstr "Server IP for ring server:"
 
 #: templates/home.html:20
 msgid "Diese Adresse in jeder AgilityRing-EXE als Hauptserver eintragen."
-msgstr "Saisir cette adresse comme serveur principal dans chaque exécutable AgilityRing."
+msgstr "Enter this address as the main server in every AgilityRing executable."
 
 #: templates/home.html:28 templates/layout.html:41 templates/master_data.html:2
 #: templates/master_data.html:6
 msgid "Stammdaten"
-msgstr "Données de base"
+msgstr "Master data"
 
 #: templates/home.html:29
 msgid ""
 "Verwalten Sie hier zentral alle Richter, Vereine, Hundeführer und Hunde. "
 "Importieren Sie neue Daten einfach via CSV-Upload."
 msgstr ""
-"Gérez ici de manière centralisée tous les juges, clubs, conducteurs et "
-"chiens. Importez facilement de nouvelles données via CSV."
+"Centrally manage all judges, clubs, handlers and dogs here. Import new "
+"data easily via CSV upload."
 
 #: templates/home.html:30
 msgid "Stammdaten verwalten"
-msgstr "Gérer les données de base"
+msgstr "Manage master data"
 
 #: templates/home.html:35 templates/layout.html:44 templates/settings.html:2
 #: templates/settings.html:5
 msgid "Einstellungen"
-msgstr "Paramètres"
+msgstr "Settings"
 
 #: templates/home.html:36
 msgid ""
 "Passen Sie globale Parameter wie Berechnungsfaktoren für SCT/MCT und die "
 "Standard-Startnummern-Schemata an Ihre Bedürfnisse an."
 msgstr ""
-"Adaptez les paramètres globaux tels que les facteurs de calcul SCT/MCT et"
-" les schémas de numéros de départ à vos besoins."
+"Adjust global parameters such as SCT/MCT calculation factors and the "
+"default start number schemes to your needs."
 
 #: templates/home.html:37
 msgid "Zu den Einstellungen"
-msgstr "Vers les paramètres"
+msgstr "Go to settings"
 
 # --- Live event dashboard ---
 #: templates/live_event_dashboard.html:2 templates/live_event_dashboard.html:7
 msgid "Live Dashboard"
-msgstr "Tableau de bord en direct"
+msgstr "Live dashboard"
 
 #: templates/live_event_dashboard.html:11
 msgid "Zurück zur Verwaltung"
-msgstr "Retour à la gestion"
+msgstr "Back to management"
 
 #: templates/live_event_dashboard.html:17
 msgid "Öffentliche Anzeigen & Teilen"
-msgstr "Affichages publics & partage"
+msgstr "Public displays & sharing"
 
 #: templates/live_event_dashboard.html:21
 msgid "Sprecher-Dashboard"
-msgstr "Tableau de bord speaker"
+msgstr "Speaker dashboard"
 
 #: templates/live_event_dashboard.html:29
 msgid "Rangverkündigungsliste erstellen"
-msgstr "Créer la liste de remise des prix"
+msgstr "Create award ceremony list"
 
 #: templates/live_event_dashboard.html:33
 msgid "Portal-Synchronisation"
-msgstr "Synchronisation portail"
+msgstr "Portal synchronisation"
 
 #: templates/live_event_dashboard.html:37
 msgid "Ergebnisse als ZIP"
-msgstr "Résultats en ZIP"
+msgstr "Results as ZIP"
 
 #: templates/live_event_dashboard.html:44
 msgid "Ergebnisse ans Portal senden"
-msgstr "Envoyer les résultats au portail"
+msgstr "Send results to the portal"
 
 #: templates/live_event_dashboard.html:52
 msgid "Abschluss-Export ans Portal"
-msgstr "Export final vers le portail"
+msgstr "Final export to the portal"
 
 #: templates/live_event_dashboard.html:77 templates/master_data.html:11
 #: templates/print/_steward_list_table.html:2
@@ -374,67 +374,67 @@ msgstr "Export final vers le portail"
 #: templates/print_ranking_pdf.html:347 templates/ranking.html:22
 #: templates/ring_pc_dashboard.html:106
 msgid "Richter"
-msgstr "Juge"
+msgstr "Judge"
 
 #: templates/live_event_dashboard.html:79
 msgid "Resultate erfassen"
-msgstr "Saisir les résultats"
+msgstr "Enter results"
 
 #: templates/live_event_dashboard.html:80
 msgid "Rangliste (Druck)"
-msgstr "Classement (impression)"
+msgstr "Ranking (print)"
 
 #: templates/live_event_dashboard.html:81
 msgid "Für Sprecher"
-msgstr "Pour le speaker"
+msgstr "For speaker"
 
 #: templates/live_event_dashboard.html:89
 msgid "Aktiver Lauf"
-msgstr "Épreuve active"
+msgstr "Active run"
 
 #: templates/live_event_dashboard.html:92
 msgid "Kein Zeitplan – aktiver Lauf manuell gesetzt."
-msgstr "Pas de programme – épreuve active définie manuellement."
+msgstr "No schedule – active run set manually."
 
 #: templates/live_event_dashboard.html:95
 msgid "Für diesen Ring sind keine Läufe im Zeitplan eingetragen."
-msgstr "Aucune épreuve n'est inscrite au programme pour ce ring."
+msgstr "No runs are scheduled for this ring."
 
 #: templates/live_event_dashboard.html:102
 msgid ""
 "Für diese Veranstaltung wurden keine Läufe einem Ring zugewiesen. Bitte "
 "erstellen Sie zuerst einen"
 msgstr ""
-"Aucune épreuve n'a été attribuée à un ring pour cet événement. Veuillez "
-"d'abord créer un"
+"No runs have been assigned to a ring for this event. Please first "
+"create a"
 
 #: templates/live_event_dashboard.html:102 templates/print/index.html:38
 #: templates/print/schedule.html:5 templates/print/schedule.html:42
 #: templates/print/schedule.html:56
 msgid "Zeitplan"
-msgstr "Programme"
+msgstr "Schedule"
 
 # --- Live run entry ---
 #: templates/live_run_entry.html:2 templates/live_run_entry.html:7
 msgid "Resultaterfassung"
-msgstr "Saisie des résultats"
+msgstr "Result entry"
 
 #: templates/live_run_entry.html:11
 msgid "Zurück zum Dashboard"
-msgstr "Retour au tableau de bord"
+msgstr "Back to dashboard"
 
 #: templates/live_run_entry.html:16 templates/manage_runs.html:102
 #: templates/manage_runs.html:132
 msgid "Laufdaten"
-msgstr "Données de l'épreuve"
+msgstr "Run data"
 
 #: templates/live_run_entry.html:16
 msgid "Länge"
-msgstr "Longueur"
+msgstr "Length"
 
 #: templates/live_run_entry.html:17
 msgid "Für Sprecher-Anzeige aktivieren"
-msgstr "Activer pour l'affichage speaker"
+msgstr "Activate for speaker display"
 
 #: templates/live_run_entry.html:25 templates/manage_event_participants.html:25
 #: templates/print/_steward_list_table.html:10
@@ -449,7 +449,7 @@ msgstr "Activer pour l'affichage speaker"
 #: templates/print_startlists.html:67 templates/ranking.html:32
 #: templates/startlist_print.html:73 templates/startlist_print_all.html:73
 msgid "Hund"
-msgstr "Chien"
+msgstr "Dog"
 
 #: templates/live_run_entry.html:25 templates/manage_event_participants.html:26
 #: templates/master_data.html:17 templates/print/_steward_list_table.html:10
@@ -464,16 +464,16 @@ msgstr "Chien"
 #: templates/ranking.html:32 templates/startlist_print.html:72
 #: templates/startlist_print_all.html:72
 msgid "Hundeführer"
-msgstr "Conducteur"
+msgstr "Handler"
 
 #: templates/live_run_entry.html:25 templates/ranking.html:33
 msgid "Zeit"
-msgstr "Temps"
+msgstr "Time"
 
 #: templates/live_run_entry.html:25 templates/live_run_entry.html:50
 #: templates/ranking.html:34
 msgid "Fehler"
-msgstr "Erreur"
+msgstr "Faults"
 
 #: templates/live_run_entry.html:25 templates/ranking.html:35
 msgid "Verw."
@@ -485,15 +485,15 @@ msgstr "Actions"
 
 #: templates/live_run_entry.html:34
 msgid "Vollständige Rangliste anzeigen"
-msgstr "Afficher le classement complet"
+msgstr "Show full ranking"
 
 #: templates/live_run_entry.html:49
 msgid "Zeit (s)"
-msgstr "Temps (s)"
+msgstr "Time (s)"
 
 #: templates/live_run_entry.html:51
 msgid "Verweigerungen"
-msgstr "Refus"
+msgstr "Refusals"
 
 #: templates/live_run_entry.html:52
 msgid "Disqualifikation"
@@ -501,81 +501,81 @@ msgstr "Disqualification"
 
 #: templates/live_run_entry.html:52
 msgid "Nein"
-msgstr "Non"
+msgstr "No"
 
 #: templates/live_run_entry.html:52
 msgid "nicht gestartet"
-msgstr "non démarré"
+msgstr "not started"
 
 # --- Manage event participants ---
 #: templates/manage_event_participants.html:2
 msgid "Teilnehmer-Optionen für"
-msgstr "Options des participants pour"
+msgstr "Participant options for"
 
 #: templates/manage_event_participants.html:7
 msgid "Teilnehmer-Optionen"
-msgstr "Options des participants"
+msgstr "Participant options"
 
 #: templates/manage_event_participants.html:11
 msgid "Zurück zur Lauf-Verwaltung"
-msgstr "Retour à la gestion des épreuves"
+msgstr "Back to run management"
 
 #: templates/manage_event_participants.html:18
 msgid "Option \"Am Schluss starten\""
-msgstr "Option \"Démarrer en dernier\""
+msgstr "Option \"Start last\""
 
 #: templates/manage_event_participants.html:27
 msgid "Am Schluss starten?"
-msgstr "Démarrer en dernier ?"
+msgstr "Start last?"
 
 #: templates/manage_event_participants.html:43
 msgid "Für dieses Event wurden noch keine Teilnehmer importiert."
-msgstr "Aucun participant n'a encore été importé pour cet événement."
+msgstr "No participants have been imported for this event yet."
 
 #: templates/manage_event_participants.html:52
 msgid "Änderungen speichern"
-msgstr "Enregistrer les modifications"
+msgstr "Save changes"
 
 # --- Manage runs ---
 #: templates/manage_runs.html:2 templates/manage_runs.html:7
 msgid "Läufe verwalten"
-msgstr "Gérer les épreuves"
+msgstr "Manage runs"
 
 #: templates/manage_runs.html:11
 msgid "Zurück zur Event-Übersicht"
-msgstr "Retour à la liste des événements"
+msgstr "Back to event overview"
 
 #: templates/manage_runs.html:16
 msgid "Zeitplan & Startnummern"
-msgstr "Programme & numéros de départ"
+msgstr "Schedule & start numbers"
 
 #: templates/manage_runs.html:17
 msgid "Teilnehmer importieren"
-msgstr "Importer des participants"
+msgstr "Import participants"
 
 #: templates/manage_runs.html:18
 msgid "Alle Teilnehmer verwalten"
-msgstr "Gérer tous les participants"
+msgstr "Manage all participants"
 
 #: templates/manage_runs.html:19
 msgid "Event-Paket exportieren"
-msgstr "Exporter le package d'événement"
+msgstr "Export event package"
 
 #: templates/manage_runs.html:61
 msgid "Live-Dashboard öffnen"
-msgstr "Ouvrir le tableau de bord en direct"
+msgstr "Open live dashboard"
 
 #: templates/manage_runs.html:65
 msgid "Live beenden"
-msgstr "Terminer le direct"
+msgstr "End live"
 
 #: templates/manage_runs.html:69
 msgid "Als Live setzen & starten"
-msgstr "Définir comme direct & démarrer"
+msgstr "Set as live & start"
 
 #: templates/manage_runs.html:82
 msgid "Läufe"
-msgstr "Épreuves"
+msgstr "Runs"
 
 # --- Ranking ---
 #: templates/manage_runs.html:100 templates/manage_runs.html:130
@@ -583,7 +583,7 @@ msgstr "Épreuves"
 #: templates/print_ranking_single.html:25 templates/ranking.html:2
 #: templates/ranking.html:7
 msgid "Rangliste"
-msgstr "Classement"
+msgstr "Ranking"
 
 #: templates/manage_runs.html:101 templates/manage_runs.html:131
 msgid "Teilnehmer"
@@ -591,11 +591,11 @@ msgstr "Participants"
 
 #: templates/manage_runs.html:114
 msgid "Ohne Ringzuweisung"
-msgstr "Sans attribution de ring"
+msgstr "Without ring assignment"
 
 #: templates/manage_runs.html:143
 msgid "Für diese Veranstaltung wurden noch keine Läufe erstellt."
-msgstr "Aucune épreuve n'a encore été créée pour cet événement."
+msgstr "No runs have been created for this event yet."
 
 #: templates/master_data.html:14
 msgid "Vereine"
@@ -603,83 +603,83 @@ msgstr "Clubs"
 
 #: templates/master_data.html:20
 msgid "Hunde"
-msgstr "Chiens"
+msgstr "Dogs"
 
 # --- Master data ---
 #: templates/master_data.html:29
 msgid "Richter-Daten"
-msgstr "Données des juges"
+msgstr "Judge data"
 
 #: templates/master_data.html:30
 msgid "Neuen Richter hinzufügen"
-msgstr "Ajouter un nouveau juge"
+msgstr "Add new judge"
 
 #: templates/master_data.html:35
 msgid "Richter importieren (CSV)"
-msgstr "Importer des juges (CSV)"
+msgstr "Import judges (CSV)"
 
 #: templates/master_data.html:41 templates/master_data.html:64
 #: templates/master_data.html:87 templates/master_data.html:110
 msgid "Bearbeiten"
-msgstr "Modifier"
+msgstr "Edit"
 
 #: templates/master_data.html:52
 msgid "Vereins-Daten"
-msgstr "Données des clubs"
+msgstr "Club data"
 
 #: templates/master_data.html:53
 msgid "Neuen Verein hinzufügen"
-msgstr "Ajouter un nouveau club"
+msgstr "Add new club"
 
 #: templates/master_data.html:58
 msgid "Vereine importieren (CSV)"
-msgstr "Importer des clubs (CSV)"
+msgstr "Import clubs (CSV)"
 
 #: templates/master_data.html:75
 msgid "Hundeführer-Daten"
-msgstr "Données des conducteurs"
+msgstr "Handler data"
 
 #: templates/master_data.html:76
 msgid "Neuen Hundeführer hinzufügen"
-msgstr "Ajouter un nouveau conducteur"
+msgstr "Add new handler"
 
 #: templates/master_data.html:81
 msgid "Hundeführer importieren (CSV)"
-msgstr "Importer des conducteurs (CSV)"
+msgstr "Import handlers (CSV)"
 
 #: templates/master_data.html:98
 msgid "Hunde-Daten"
-msgstr "Données des chiens"
+msgstr "Dog data"
 
 #: templates/master_data.html:99
 msgid "Neuen Hund hinzufügen"
-msgstr "Ajouter un nouveau chien"
+msgstr "Add new dog"
 
 #: templates/master_data.html:104
 msgid "Hunde importieren (CSV)"
-msgstr "Importer des chiens (CSV)"
+msgstr "Import dogs (CSV)"
 
 # --- Plan schedule ---
 #: templates/plan_schedule.html:9
 msgid "Zurück"
-msgstr "Retour"
+msgstr "Back"
 
 #: templates/plan_schedule.html:11 templates/print/index.html:5
 #: templates/print/index.html:26
 msgid "Vorbereitungsdrucksachen"
-msgstr "Documents de préparation"
+msgstr "Preparation documents"
 
 #: templates/plan_schedule.html:25
 msgid "Zeitplan speichern"
-msgstr "Enregistrer le programme"
+msgstr "Save schedule"
 
 #: templates/plan_schedule.html:56 templates/plan_schedule.html:205
 msgid "Block hinzufügen"
-msgstr "Ajouter un bloc"
+msgstr "Add block"
 
 #: templates/plan_schedule.html:65
 msgid "Block-Typ"
-msgstr "Type de bloc"
+msgstr "Block type"
 
 #: templates/plan_schedule.html:73 templates/print/briefing_groups.html:56
 #: templates/print/master_steward_list_by_schedule.html:62
@@ -692,132 +692,132 @@ msgstr "Ring"
 
 #: templates/plan_schedule.html:82
 msgid "Titel (optional)"
-msgstr "Titre (optionnel)"
+msgstr "Title (optional)"
 
 #: templates/plan_schedule.html:161
 msgid "Richter (run)"
-msgstr "Juge (épreuve)"
+msgstr "Judge (run)"
 
 #: templates/plan_schedule.html:241
 msgid "Entfernen"
-msgstr "Supprimer"
+msgstr "Remove"
 
 #: templates/plan_schedule.html:266
 msgid "Noch keine Blöcke geplant."
-msgstr "Aucun bloc planifié pour l'instant."
+msgstr "No blocks planned yet."
 
 #: templates/plan_schedule.html:276
 msgid "Zeitplan-Vorschau (berechnete Timeline)"
-msgstr "Aperçu du programme (timeline calculée)"
+msgstr "Schedule preview (calculated timeline)"
 
 #: templates/plan_schedule.html:320
 msgid "Startnummern-Schema"
-msgstr "Schéma des numéros de départ"
+msgstr "Start number scheme"
 
 #: templates/plan_schedule.html:322
 msgid "Vorlage laden"
-msgstr "Charger le modèle"
+msgstr "Load template"
 
 #: templates/plan_schedule.html:331 templates/print/briefing_groups.html:68
 #: templates/print/master_steward_list.html:69
 #: templates/print/startlists_by_schedule.html:63
 msgid "Kategorie"
-msgstr "Catégorie"
+msgstr "Category"
 
 #: templates/plan_schedule.html:332 templates/print/briefing_groups.html:69
 #: templates/print/master_steward_list.html:69
 #: templates/print/startlists_by_schedule.html:64
 msgid "Klasse"
-msgstr "Classe"
+msgstr "Class"
 
 #: templates/plan_schedule.html:333
 msgid "Startnummer ab"
-msgstr "Numéro de départ à partir de"
+msgstr "Start number from"
 
 #: templates/plan_schedule.html:366
 msgid "Schema speichern"
-msgstr "Enregistrer le schéma"
+msgstr "Save scheme"
 
 #: templates/plan_schedule.html:374
 msgid "Startnummern vergeben"
-msgstr "Attribuer les numéros de départ"
+msgstr "Assign start numbers"
 
 #: templates/plan_schedule.html:378
 msgid "Abstand zwischen Hundeführern"
-msgstr "Écart entre les conducteurs"
+msgstr "Gap between handlers"
 
 #: templates/plan_schedule.html:382
 msgid "Startnummern generieren"
-msgstr "Générer les numéros de départ"
+msgstr "Generate start numbers"
 
 #: templates/plan_schedule.html:393
 msgid "Vorschau – vergebene Startnummern"
-msgstr "Aperçu – numéros de départ attribués"
+msgstr "Preview – assigned start numbers"
 
 #: templates/plan_schedule.html:415
 msgid "Noch keine Startnummern vergeben."
-msgstr "Aucun numéro de départ attribué pour l'instant."
+msgstr "No start numbers assigned yet."
 
 #: templates/print_award_list.html:5 templates/print_award_list.html:127
 #: templates/print_award_list.html:142
 msgid "Siegerliste"
-msgstr "Liste des vainqueurs"
+msgstr "Winners list"
 
 # --- Startlist print ---
 #: templates/print/_print_button.html:10 templates/print_award_list.html:132
 #: templates/print_stewardlists.html:7 templates/startlist_print.html:60
 #: templates/startlist_print_all.html:60
 msgid "Drucken"
-msgstr "Imprimer"
+msgstr "Print"
 
 #: templates/print_award_list.html:133 templates/print_award_list.html:204
 msgid "Alle Ränge anzeigen"
-msgstr "Afficher tous les rangs"
+msgstr "Show all ranks"
 
 #: templates/print_award_list.html:136 templates/ring_pc_dashboard.html:39
 msgid "Zurück zum Live-Dashboard"
-msgstr "Retour au tableau de bord en direct"
+msgstr "Back to live dashboard"
 
 #: templates/print/lizenzcheck.html:12 templates/print_award_list.html:138
 msgid "Zurück zur Veranstaltung"
-msgstr "Retour à l'événement"
+msgstr "Back to event"
 
 #: templates/print_award_list.html:182 templates/print_ranking_pdf.html:299
 #: templates/print_ranking_single.html:60
 msgid "Keine Ergebnisse für diesen Lauf."
-msgstr "Aucun résultat pour cette épreuve."
+msgstr "No results for this run."
 
 #: templates/print_award_list.html:204
 msgid "Nur Top 3 anzeigen"
-msgstr "Afficher uniquement le Top 3"
+msgstr "Show top 3 only"
 
 #: templates/print/index.html:34 templates/print_marshall_list.html:5
 #: templates/print_marshall_list.html:30
 msgid "Einweiserlisten"
-msgstr "Listes des placeurs"
+msgstr "Marshal lists"
 
 #: templates/print/_steward_list_table.html:9
 #: templates/print_marshall_list.html:45
 msgid "Nr."
-msgstr "N°"
+msgstr "No."
 
 #: templates/print_marshall_list.html:47
 msgid "Gestartet"
-msgstr "Démarré"
+msgstr "Started"
 
 #: templates/print/_steward_list_table.html:32
 #: templates/print/startlists_by_schedule.html:80
 #: templates/print_marshall_list.html:58 templates/print_startlists.html:85
 msgid "Keine Startenden für diesen Block."
-msgstr "Aucun partant pour ce bloc."
+msgstr "No starters for this block."
 
 #: templates/print_ranking_pdf.html:211 templates/print_ranking_pdf.html:350
 msgid "Offizielle Rangliste"
-msgstr "Classement officiel"
+msgstr "Official ranking"
 
 #: templates/print_ranking_pdf.html:211 templates/print_ranking_pdf.html:350
 msgid "Vorläufige Rangliste"
-msgstr "Classement provisoire"
+msgstr "Provisional ranking"
 
 #: templates/print/briefing_groups.html:65
 #: templates/print/master_steward_list.html:100
@@ -829,34 +829,34 @@ msgstr "Classement provisoire"
 #: templates/print_startlists.html:65 templates/startlist_print.html:71
 #: templates/startlist_print_all.html:71
 msgid "Start-Nr."
-msgstr "N° de départ"
+msgstr "Start no."
 
 #: templates/print_ranking_pdf.html:308
 msgid "Gestartete Teams"
-msgstr "Équipes partantes"
+msgstr "Teams started"
 
 #: templates/print_ranking_pdf.html:331
 msgid "Schnellste Zeit"
-msgstr "Temps le plus rapide"
+msgstr "Fastest time"
 
 #: templates/print/startlists_by_schedule.html:5
 #: templates/print/startlists_by_schedule.html:41
 #: templates/print_startlists.html:5 templates/print_startlists.html:45
 #: templates/print_startlists.html:59 templates/startlist_print_all.html:66
 msgid "Startliste"
-msgstr "Liste de départ"
+msgstr "Start list"
 
 #: templates/print_startlists.html:60
 msgid "Anzahl Teams"
-msgstr "Nombre d'équipes"
+msgstr "Number of teams"
 
 #: templates/print_startlists.html:66
 msgid "Name"
-msgstr "Nom"
+msgstr "Name"
 
 #: templates/print_startlists.html:68 templates/startlist_print.html:74
 msgid "Rasse"
-msgstr "Race"
+msgstr "Breed"
 
 #: templates/print_startlists.html:69
 msgid "Verein"
@@ -865,7 +865,7 @@ msgstr "Club"
 # --- Startlist print ---
 #: templates/print_startlists.html:89
 msgid "Gedruckt"
-msgstr "Imprimé"
+msgstr "Printed"
 
 #: templates/print/briefing_groups.html:51
 #: templates/print/briefing_groups.html:87
@@ -876,115 +876,115 @@ msgstr "Imprimé"
 #: templates/print/startlists_by_schedule.html:85
 #: templates/print_startlists.html:94
 msgid "Kein Zeitplan vorhanden"
-msgstr "Aucun programme disponible"
+msgstr "No schedule available"
 
 #: templates/ranking.html:11
 msgid "Zurück zur Erfassung"
-msgstr "Retour à la saisie"
+msgstr "Back to entry"
 
 #: templates/ranking.html:12
 msgid "Druckversion"
-msgstr "Version imprimable"
+msgstr "Printable version"
 
 #: templates/ranking.html:19
 msgid "Parcourslänge"
-msgstr "Longueur du parcours"
+msgstr "Course length"
 
 #: templates/ranking.html:30
 msgid "Rang"
-msgstr "Rang"
+msgstr "Rank"
 
 #: templates/ranking.html:36
 msgid "Zeitfehler"
-msgstr "Temps de fautes"
+msgstr "Time faults"
 
 #: templates/ranking.html:53
 msgid "Noch keine Resultate für die Rangliste erfasst."
-msgstr "Aucun résultat encore saisi pour le classement."
+msgstr "No results have been entered for the ranking yet."
 
 # --- Ring PC dashboard ---
 #: templates/ring_pc_dashboard.html:21
 msgid "Keine Verbindung"
-msgstr "Pas de connexion"
+msgstr "No connection"
 
 #: templates/print/master_steward_list.html:73 templates/print/schedule.html:62
 #: templates/ring_pc_dashboard.html:22
 msgid "Lauf"
-msgstr "Épreuve"
+msgstr "Run"
 
 #: templates/ring_pc_dashboard.html:23
 msgid "Kein Lauf ausgewählt"
-msgstr "Aucune épreuve sélectionnée"
+msgstr "No run selected"
 
 #: templates/ring_pc_dashboard.html:44
 msgid "Lauf auswählen & Steuerung"
-msgstr "Sélectionner l'épreuve & contrôle"
+msgstr "Select run & control"
 
 #: templates/ring_pc_dashboard.html:48
 msgid "Keine Läufe verfügbar"
-msgstr "Aucune épreuve disponible"
+msgstr "No runs available"
 
 #: templates/ring_pc_dashboard.html:61
 msgid "Verbinde mit Ring-Server..."
-msgstr "Connexion au serveur ring..."
+msgstr "Connecting to ring server..."
 
 #: templates/ring_pc_dashboard.html:65
 msgid "Schnell speichern (Zeit/F/V)"
-msgstr "Enregistrement rapide (Temps/F/R)"
+msgstr "Quick save (Time/F/R)"
 
 #: templates/ring_pc_dashboard.html:72
 msgid "Aktuellen Lauf zurücksetzen"
-msgstr "Réinitialiser l'épreuve en cours"
+msgstr "Reset current run"
 
 #: templates/ring_pc_dashboard.html:76
 msgid "Portal-Export (PDF)"
-msgstr "Export portail (PDF)"
+msgstr "Portal export (PDF)"
 
 #: templates/ring_pc_dashboard.html:94
 msgid "Starterliste & Resultate"
-msgstr "Liste des partants & résultats"
+msgstr "Starter list & results"
 
 #: templates/ring_pc_dashboard.html:95
 msgid "Bitte wählen Sie links einen Lauf aus."
-msgstr "Veuillez sélectionner une épreuve à gauche."
+msgstr "Please select a run on the left."
 
 #: templates/ring_pc_dashboard.html:103
 msgid "Laufdaten bearbeiten"
-msgstr "Modifier les données de l'épreuve"
+msgstr "Edit run data"
 
 #: templates/ring_pc_dashboard.html:108
 msgid "— kein Richter —"
-msgstr "— aucun juge —"
+msgstr "— no judge —"
 
 #: templates/print/master_steward_list.html:74
 #: templates/ring_pc_dashboard.html:116
 msgid "Parcourslänge (m)"
-msgstr "Longueur du parcours (m)"
+msgstr "Course length (m)"
 
 #: templates/ring_pc_dashboard.html:120
 msgid "Anzahl Hindernisse"
-msgstr "Nombre d'obstacles"
+msgstr "Number of obstacles"
 
 #: templates/ring_pc_dashboard.html:158
 msgid "Resultat bearbeiten"
-msgstr "Modifier le résultat"
+msgstr "Edit result"
 
 # --- Select dog for run ---
 #: templates/select_dog_for_run.html:2
 msgid "Hund auswählen"
-msgstr "Sélectionner le chien"
+msgstr "Select dog"
 
 #: templates/select_dog_for_run.html:9
 msgid "Hund auswählen für"
-msgstr "Sélectionner le chien pour"
+msgstr "Select dog for"
 
 #: templates/select_dog_for_run.html:10
 msgid ""
 "Dieser Hundeführer hat mehrere Hunde. Bitte wählen Sie aus, welcher Hund "
 "zum Lauf"
 msgstr ""
-"Ce conducteur a plusieurs chiens. Veuillez sélectionner quel chien doit "
-"être ajouté à l'épreuve"
+"This handler has several dogs. Please select which dog should be added "
+"to the run"
 
 #: templates/select_dog_for_run.html:10
 msgid "hinzugefügt werden soll."
@@ -993,104 +993,104 @@ msgstr "."
 # --- Settings ---
 #: templates/settings.html:6
 msgid "Globale Konfiguration der Anwendung."
-msgstr "Configuration globale de l'application."
+msgstr "Global application configuration."
 
 #: templates/settings.html:10
 msgid "Ranglisten-Punkte"
-msgstr "Points de classement"
+msgstr "Ranking points"
 
 #: templates/settings.html:12
 msgid "Punktevergabe (kommasepariert, z.B. 10,8,6,4,2)"
-msgstr "Attribution des points (séparés par virgule, ex. 10,8,6,4,2)"
+msgstr "Point allocation (comma-separated, e.g. 10,8,6,4,2)"
 
 #: templates/settings.html:18
 msgid "Zeitplan-Berechnung"
-msgstr "Calcul du programme"
+msgstr "Schedule calculation"
 
 #: templates/settings.html:20
 msgid "Geschätzte Zeit pro Starter in Sekunden (für Zeitplan-Vorschau)"
-msgstr "Temps estimé par concurrent en secondes (pour l'aperçu du programme)"
+msgstr "Estimated time per starter in seconds (for schedule preview)"
 
 #: templates/settings.html:26
 msgid "SCT-Faktoren (m/s) für Klasse 2/3"
-msgstr "Facteurs SCT (m/s) pour classes 2/3"
+msgstr "SCT factors (m/s) for class 2/3"
 
 #: templates/settings.html:53
 msgid "Vorlage für Startnummern-Schema"
-msgstr "Modèle pour le schéma des numéros de départ"
+msgstr "Template for start number scheme"
 
 #: templates/settings.html:86
 msgid ""
 "Wenn aktiviert, werden Live-Ergebnisse automatisch an das AgilityPortal "
 "übertragen."
 msgstr ""
-"Si activé, les résultats en direct sont automatiquement transmis à "
-"l'AgilityPortal."
+"When enabled, live results are automatically transferred to the "
+"AgilityPortal."
 
 #: templates/settings.html:87
 msgid "URL und API-Keys findest du im Portal unter"
-msgstr "L'URL et les clés API se trouvent dans le portail sous"
+msgstr "You can find the URL and API keys in the portal under"
 
 #: templates/settings.html:97
 msgid "Live-Updates"
-msgstr "Mises à jour en direct"
+msgstr "Live updates"
 
 #: templates/settings.html:99 templates/settings.html:112
 msgid "Letzter erfolgreicher Transfer:"
-msgstr "Dernier transfert réussi :"
+msgstr "Last successful transfer:"
 
 #: templates/settings.html:110
 msgid "Ergebnis-Exporte"
-msgstr "Exports des résultats"
+msgstr "Result exports"
 
 #: templates/settings.html:128
 msgid "Portal-URL"
-msgstr "URL du portail"
+msgstr "Portal URL"
 
 #: templates/settings.html:132
 msgid "Basis-URL des AgilityPortals (ohne abschliessenden Schrägstrich)"
-msgstr "URL de base de l'AgilityPortal (sans barre oblique finale)"
+msgstr "Base URL of the AgilityPortal (without trailing slash)"
 
 #: templates/settings.html:135
 msgid "Live-Update API-Key"
-msgstr "Clé API mise à jour en direct"
+msgstr "Live update API key"
 
 #: templates/settings.html:142
 msgid "Ergebnis-Export API-Key"
-msgstr "Clé API export des résultats"
+msgstr "Result export API key"
 
 #: templates/settings.html:149
 msgid "Geräte-ID (optional)"
-msgstr "ID de l'appareil (optionnel)"
+msgstr "Device ID (optional)"
 
 #: templates/settings.html:153
 msgid "Eindeutige Bezeichnung dieses Geräts für die Live-Updates"
-msgstr "Identifiant unique de cet appareil pour les mises à jour en direct"
+msgstr "Unique name of this device for live updates"
 
 # settings.html — Drucksprache
 #: templates/settings.html:196
 msgid "Drucksprache"
-msgstr "Langue d'impression"
+msgstr "Print language"
 
 #: templates/settings.html:198
 msgid "Sprache für alle Ausdrucke"
-msgstr "Langue pour toutes les impressions"
+msgstr "Language for all printouts"
 
 #: templates/settings.html:203
 msgid ""
 "Gilt für Startlisten, Zeitplan, Ranglisten und alle weiteren "
 "Druckvorlagen."
 msgstr ""
-"Valable pour les listes de départ, le programme, les classements et tous "
-"les autres modèles d'impression."
+"Applies to start lists, schedule, rankings and all other print "
+"templates."
 
 #: templates/settings.html:208
 msgid "Download-Ordner"
-msgstr "Dossier de téléchargement"
+msgstr "Download folder"
 
 #: templates/settings.html:210
 msgid "Zielordner für Exporte (CSV, PDF, Event-Paket)"
-msgstr "Dossier de destination pour les exports (CSV, PDF, paquet d'événement)"
+msgstr "Target folder for exports (CSV, PDF, event package)"
 
 #: templates/settings.html:214
 msgid ""
@@ -1098,87 +1098,86 @@ msgid ""
 "Pfad = Dateien werden ohne Nachfrage dorthin gespeichert. Gilt nur im "
 "App-Fenster, nicht im normalen Browser."
 msgstr ""
-"Laisser vide = demander lors du téléchargement (dossier de téléchargements"
-" par défaut). Chemin valide = les fichiers y sont enregistrés sans "
-"demande. Valable uniquement dans la fenêtre de l'application, pas dans un "
-"navigateur normal."
+"Leave empty = ask on download (default downloads folder). Valid path ="
+" files are saved there without prompting. Only applies within the app"
+" window, not in a regular browser."
 
 #: templates/settings.html:218
 msgid "Einstellungen speichern"
-msgstr "Enregistrer les paramètres"
+msgstr "Save settings"
 
 #: templates/startlist_print.html:66
 msgid "Startliste für"
-msgstr "Liste de départ pour"
+msgstr "Start list for"
 
 # print templates
 #: templates/print/index.html:32 templates/startlist_print_all.html:5
 msgid "Startlisten"
-msgstr "Listes de départ"
+msgstr "Start lists"
 
 #: templates/print/_print_header.html:4 templates/print/_print_header.html:6
 msgid "Eventlogo"
-msgstr "Logo événement"
+msgstr "Event logo"
 
 #: templates/print/_print_header.html:15 templates/print/_print_header.html:17
 msgid "Vereinslogo"
-msgstr "Logo du club"
+msgstr "Club logo"
 
 #: templates/print/briefing_groups.html:5
 #: templates/print/briefing_groups.html:37
 #: templates/print/briefing_groups.html:49 templates/print/index.html:39
 msgid "Briefing-Gruppen"
-msgstr "Groupes de briefing"
+msgstr "Briefing groups"
 
 #: templates/print/briefing_groups.html:57 templates/print/schedule.html:64
 msgid "Starter"
-msgstr "Partant(s)"
+msgstr "Starters"
 
 #: templates/print/briefing_groups.html:57
 msgid "Gruppen"
-msgstr "Groupes"
+msgstr "Groups"
 
 #: templates/print/briefing_groups.html:57
 msgid "Gruppengrößen"
-msgstr "Tailles des groupes"
+msgstr "Group sizes"
 
 #: templates/print/briefing_groups.html:60
 msgid "Gruppe"
-msgstr "Groupe"
+msgstr "Group"
 
 #: templates/print/index.html:30
 msgid "Bitte wählen"
-msgstr "Veuillez choisir"
+msgstr "Please select"
 
 #: templates/print/index.html:33
 msgid "Startlisten (nach Zeitplan)"
-msgstr "Listes de départ (selon le programme)"
+msgstr "Start lists (by schedule)"
 
 #: templates/print/index.html:35
 msgid "Einweiserliste (nach Zeitplan)"
-msgstr "Liste des placeurs (selon le programme)"
+msgstr "Marshal list (by schedule)"
 
 #: templates/print/index.html:36 templates/print/scribe_list.html:5
 #: templates/print/scribe_list.html:44
 #: templates/print/scribe_list_by_schedule.html:5
 #: templates/print/scribe_list_by_schedule.html:43
 msgid "Ringschreiberlisten"
-msgstr "Listes des scribes"
+msgstr "Ring scribe lists"
 
 #: templates/print/index.html:37
 msgid "Ringschreiberlisten (nach Zeitplan)"
-msgstr "Listes des scribes (selon le programme)"
+msgstr "Ring scribe lists (by schedule)"
 
 #: templates/print/lizenzcheck.html:2 templates/print/lizenzcheck.html:7
 msgid "Lizenzcheck"
-msgstr "Contrôle des licences"
+msgstr "License check"
 
 #: templates/print/master_steward_list.html:5
 #: templates/print/master_steward_list.html:54
 #: templates/print/master_steward_list_by_schedule.html:5
 #: templates/print/master_steward_list_by_schedule.html:48
 msgid "Einweiserliste"
-msgstr "Liste des placeurs"
+msgstr "Marshal list"
 
 #: templates/print/master_steward_list.html:75
 msgid "Hindernisse"
@@ -1203,20 +1202,20 @@ msgstr "Signature"
 #: templates/print/startlists_by_schedule.html:5
 #: templates/print/startlists_by_schedule.html:41
 msgid "nach Zeitplan"
-msgstr "selon le programme"
+msgstr "by schedule"
 
 #: templates/print/participant_list.html:5
 #: templates/print/participant_list.html:23
 msgid "Teilnehmerliste"
-msgstr "Liste des participants"
+msgstr "Participant list"
 
 #: templates/print/participant_list.html:45
 msgid "Keine Teilnehmer gefunden."
-msgstr "Aucun participant trouvé."
+msgstr "No participants found."
 
 #: templates/print/schedule.html:107
 msgid "Kategorien"
-msgstr "Catégories"
+msgstr "Categories"
 
 #: templates/print/schedule.html:108
 msgid "Klassen"
@@ -1226,268 +1225,3 @@ msgstr "Classes"
 #: templates/print/scribe_list_by_schedule.html:70
 msgid "Notizen"
 msgstr "Notes"
-
-#~ msgid "Startliste (nach Zeitplan)"
-#~ msgstr "Liste de départ (selon le programme)"
-
-#~ msgid "Ringschreiberliste"
-#~ msgstr "Liste des scribes"
-
-#~ msgid "{editor}: Editing failed"
-#~ msgstr ""
-
-#~ msgid "{editor}: Editing failed: {e}"
-#~ msgstr ""
-
-#~ msgid "{text} {deprecated_message}"
-#~ msgstr ""
-
-#~ msgid "Options"
-#~ msgstr ""
-
-#~ msgid "Got unexpected extra argument ({args})"
-#~ msgid_plural "Got unexpected extra arguments ({args})"
-#~ msgstr[0] ""
-#~ msgstr[1] ""
-
-#~ msgid "DeprecationWarning: The command {name!r} is deprecated.{extra_message}"
-#~ msgstr ""
-
-#~ msgid "Aborted!"
-#~ msgstr ""
-
-#~ msgid "Commands"
-#~ msgstr ""
-
-#~ msgid "Missing command."
-#~ msgstr ""
-
-#~ msgid "No such command {name!r}."
-#~ msgstr ""
-
-#~ msgid "Value must be an iterable."
-#~ msgstr ""
-
-#~ msgid "Takes {nargs} values but 1 was given."
-#~ msgid_plural "Takes {nargs} values but {len} were given."
-#~ msgstr[0] ""
-#~ msgstr[1] ""
-
-#~ msgid ""
-#~ "DeprecationWarning: The {param_type} {name!r} "
-#~ "is deprecated.{extra_message}"
-#~ msgstr ""
-
-#~ msgid "env var: {var}"
-#~ msgstr ""
-
-#~ msgid "default: {default}"
-#~ msgstr ""
-
-#~ msgid "required"
-#~ msgstr ""
-
-#~ msgid "(dynamic)"
-#~ msgstr ""
-
-#~ msgid "%(prog)s, version %(version)s"
-#~ msgstr ""
-
-#~ msgid "Show the version and exit."
-#~ msgstr ""
-
-#~ msgid "Show this message and exit."
-#~ msgstr ""
-
-#~ msgid "Error: {message}"
-#~ msgstr ""
-
-#~ msgid "Try '{command} {option}' for help."
-#~ msgstr ""
-
-#~ msgid "Invalid value: {message}"
-#~ msgstr ""
-
-#~ msgid "Invalid value for {param_hint}: {message}"
-#~ msgstr ""
-
-#~ msgid "Missing argument"
-#~ msgstr ""
-
-#~ msgid "Missing option"
-#~ msgstr ""
-
-#~ msgid "Missing parameter"
-#~ msgstr ""
-
-#~ msgid "Missing {param_type}"
-#~ msgstr ""
-
-#~ msgid "Missing parameter: {param_name}"
-#~ msgstr ""
-
-#~ msgid "No such option: {name}"
-#~ msgstr ""
-
-#~ msgid "Did you mean {possibility}?"
-#~ msgid_plural "(Possible options: {possibilities})"
-#~ msgstr[0] ""
-#~ msgstr[1] ""
-
-#~ msgid "unknown error"
-#~ msgstr ""
-
-#~ msgid "Could not open file {filename!r}: {message}"
-#~ msgstr ""
-
-#~ msgid "Usage:"
-#~ msgstr ""
-
-#~ msgid "Argument {name!r} takes {nargs} values."
-#~ msgstr ""
-
-#~ msgid "Option {name!r} does not take a value."
-#~ msgstr ""
-
-#~ msgid "Option {name!r} requires an argument."
-#~ msgid_plural "Option {name!r} requires {nargs} arguments."
-#~ msgstr[0] ""
-#~ msgstr[1] ""
-
-#~ msgid "Shell completion is not supported for Bash versions older than 4.4."
-#~ msgstr ""
-
-#~ msgid "Couldn't detect Bash version, shell completion is not supported."
-#~ msgstr ""
-
-#~ msgid "Repeat for confirmation"
-#~ msgstr ""
-
-#~ msgid "Error: The value you entered was invalid."
-#~ msgstr ""
-
-#~ msgid "Error: {e.message}"
-#~ msgstr ""
-
-#~ msgid "Error: The two entered values do not match."
-#~ msgstr ""
-
-#~ msgid "Error: invalid input"
-#~ msgstr ""
-
-#~ msgid "Press any key to continue..."
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Choose from:\n"
-#~ "\t{choices}"
-#~ msgstr ""
-
-#~ msgid "{value!r} is not {choice}."
-#~ msgid_plural "{value!r} is not one of {choices}."
-#~ msgstr[0] ""
-#~ msgstr[1] ""
-
-#~ msgid "{value!r} does not match the format {format}."
-#~ msgid_plural "{value!r} does not match the formats {formats}."
-#~ msgstr[0] ""
-#~ msgstr[1] ""
-
-#~ msgid "{value!r} is not a valid {number_type}."
-#~ msgstr ""
-
-#~ msgid "{value} is not in the range {range}."
-#~ msgstr ""
-
-#~ msgid "{value!r} is not a valid boolean."
-#~ msgstr ""
-
-#~ msgid "{value!r} is not a valid UUID."
-#~ msgstr ""
-
-#~ msgid "file"
-#~ msgstr "Erreur"
-
-#~ msgid "directory"
-#~ msgstr ""
-
-#~ msgid "path"
-#~ msgstr ""
-
-#~ msgid "{name} {filename!r} does not exist."
-#~ msgstr ""
-
-#~ msgid "{name} {filename!r} is a file."
-#~ msgstr ""
-
-#~ msgid "{name} {filename!r} is a directory."
-#~ msgstr ""
-
-#~ msgid "{name} {filename!r} is not readable."
-#~ msgstr ""
-
-#~ msgid "{name} {filename!r} is not writable."
-#~ msgstr ""
-
-#~ msgid "{name} {filename!r} is not executable."
-#~ msgstr ""
-
-#~ msgid "{len_type} values are required, but {len_value} was given."
-#~ msgid_plural "{len_type} values are required, but {len_value} were given."
-#~ msgstr[0] ""
-#~ msgstr[1] ""
-
-#~ msgid "d"
-#~ msgstr ""
-
-#~ msgid "Windows error: {error}"
-#~ msgstr ""
-
-#~ msgid "deprecated"
-#~ msgstr ""
-
-#~ msgid "Name '{name}' defined twice"
-#~ msgstr ""
-
-#~ msgid "Boolean option {decl!r} cannot use the same flag for true/false."
-#~ msgstr ""
-
-#~ msgid "Could not determine name for option with declarations {decls!r}"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "No options defined but a name was"
-#~ " passed ({name}). Did you mean to "
-#~ "declare an argument instead? Did you "
-#~ "mean to pass '--{name}'?"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Arguments take exactly one parameter "
-#~ "declaration, got {length}: {decls}."
-#~ msgstr ""
-
-#~ msgid "Do you want to continue?"
-#~ msgstr ""
-
-#~ msgid "Confirm the action without prompting."
-#~ msgstr ""
-
-#~ msgid "No such option {name!r}."
-#~ msgstr ""
-
-#~ msgid "Invalid start character for option ({option})"
-#~ msgstr ""
-
-#~ msgid "Unknown color {colour!r}"
-#~ msgstr ""
-
-#~ msgid "Choice({choices})"
-#~ msgstr ""
-
-#~ msgid "{value!r} is not a valid boolean. Recognized values: {states}"
-#~ msgstr ""
-
-#~ msgid "Unknown standard stream '{name}'"
-#~ msgstr ""
-

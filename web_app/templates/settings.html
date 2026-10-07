@@ -199,6 +199,7 @@
                 <select class="form-select" id="print_language" name="print_language" style="max-width: 220px;">
                     <option value="de" {% if settings.get('print_language', 'de') == 'de' %}selected{% endif %}>🇩🇪 Deutsch</option>
                     <option value="fr" {% if settings.get('print_language', 'de') == 'fr' %}selected{% endif %}>🇫🇷 Français</option>
+                    <option value="en" {% if settings.get('print_language', 'de') == 'en' %}selected{% endif %}>🇬🇧 English</option>
                 </select>
                 <div class="form-text">{{ _('Gilt für Startlisten, Zeitplan, Ranglisten und alle weiteren Druckvorlagen.') }}</div>
             </div>

@@ -22,7 +22,7 @@ app.config['DATA_DIR'] = data_dir()
 app.config['SOFTWARE_VERSION'] = APP_VERSION
 app.config['SECRET_KEY'] = 'dein_super_geheimer_schluessel'
 app.config['BABEL_DEFAULT_LOCALE'] = 'de'
-app.config['BABEL_SUPPORTED_LOCALES'] = ['de', 'fr']
+app.config['BABEL_SUPPORTED_LOCALES'] = ['de', 'fr', 'en']
 app.config['BABEL_TRANSLATION_DIRECTORIES'] = resource_path("translations")
 babel = Babel()
 
