@@ -36,40 +36,38 @@
 <body>
     <div class="noprint">
         <button onclick="window.print()">🖨️ Drucken</button>
+        <a href="{{ url_for('ko_cup_bp.ko_rings_print', event_id=event.id) }}">Ring-Startlisten (alle Kategorien)</a>
     </div>
 
     {% include 'print/_print_header.html' %}
 
-    {# ── Finalisten ─────────────────────────────────────────────────── #}
-    <h2>Finalisten ({{ participants | length }})</h2>
+    {% set ns = namespace(section_started=false) %}
+
+    {# ── Endrangliste ───────────────────────────────────────────────── #}
+    {% if results %}
+    <h2>Endrangliste{% if status != 'done' %} <span class="muted">(Zwischenstand)</span>{% endif %}</h2>
     <table>
         <thead>
-            <tr>
-                <th class="num">Los</th>
-                <th class="num">Start-Nr.</th>
-                <th>Hund</th>
-                <th>Führer</th>
-                <th>Quelle</th>
-            </tr>
+            <tr><th class="num">Rang</th><th>Hund</th><th>Führer</th><th class="num">Start-Nr.</th></tr>
         </thead>
         <tbody>
-            {% for p in participants %}
+            {% for r in results %}
             <tr>
-                <td class="num">{{ p.draw_number if p.draw_number is not none else '–' }}</td>
-                <td class="num">{{ p.start_number if p.start_number is not none else '–' }}</td>
-                <td>{{ p.dog_name }}</td>
-                <td>{{ p.handler_name or '' }}</td>
-                <td>{{ source_labels.get(p.source, p.source) }}</td>
+                <td class="num"><strong>{{ r.rank }}</strong></td>
+                <td>{{ r.p.dog_name }}</td>
+                <td>{{ r.p.handler_name or '' }}</td>
+                <td class="num">{{ r.p.start_number if r.p.start_number is not none else '–' }}</td>
             </tr>
-            {% else %}
-            <tr><td colspan="5" class="muted">Noch keine Finalisten.</td></tr>
             {% endfor %}
         </tbody>
     </table>
+    {% set ns.section_started = true %}
+    {% endif %}
 
     {# ── Duell-Laufzettel ───────────────────────────────────────────── #}
     {% if bracket %}
-    <div class="pagebreak"></div>
+    {% if ns.section_started %}<div class="pagebreak"></div>{% endif %}
+    {% set ns.section_started = true %}
     <h2>Duell-Laufzettel</h2>
     {% for rnd in bracket %}
       <h3 style="margin-top:0.8em;">{{ rnd.label }}</h3>
@@ -121,24 +119,32 @@
         </div>
       {% endfor %}
     {% endfor %}
-    {% endif %}
-
-    {# ── Endrangliste ───────────────────────────────────────────────── #}
-    {% if results %}
-    <div class="pagebreak"></div>
-    <h2>Endrangliste{% if status != 'done' %} <span class="muted">(Zwischenstand)</span>{% endif %}</h2>
+    {% else %}
+    {# ── Fallback vor Bracket-Erstellung: Finalisten-/Losliste zum Pruefen ── #}
+    {% if ns.section_started %}<div class="pagebreak"></div>{% endif %}
+    {% set ns.section_started = true %}
+    <h2>Finalisten ({{ participants | length }})</h2>
     <table>
         <thead>
-            <tr><th class="num">Rang</th><th>Hund</th><th>Führer</th><th class="num">Start-Nr.</th></tr>
+            <tr>
+                <th class="num">Los</th>
+                <th class="num">Start-Nr.</th>
+                <th>Hund</th>
+                <th>Führer</th>
+                <th>Quelle</th>
+            </tr>
         </thead>
         <tbody>
-            {% for r in results %}
+            {% for p in participants %}
             <tr>
-                <td class="num"><strong>{{ r.rank }}</strong></td>
-                <td>{{ r.p.dog_name }}</td>
-                <td>{{ r.p.handler_name or '' }}</td>
-                <td class="num">{{ r.p.start_number if r.p.start_number is not none else '–' }}</td>
+                <td class="num">{{ p.draw_number if p.draw_number is not none else '–' }}</td>
+                <td class="num">{{ p.start_number if p.start_number is not none else '–' }}</td>
+                <td>{{ p.dog_name }}</td>
+                <td>{{ p.handler_name or '' }}</td>
+                <td>{{ source_labels.get(p.source, p.source) }}</td>
             </tr>
+            {% else %}
+            <tr><td colspan="5" class="muted">Noch keine Finalisten.</td></tr>
             {% endfor %}
         </tbody>
     </table>

@@ -202,6 +202,82 @@ def ko_rankings(event_id):
     )
 
 
+# ── Ring-Startlisten: Laufreihenfolge UEBER ALLE Finals (Kategorien) ──────────
+
+def _event_ring_startlists(ko: dict) -> list:
+    """Baut je Ring (fix 2 — Reglement: jedes Duell nutzt beide Ringe, siehe
+    ring_assignment) eine kombinierte Startliste UEBER ALLE Finals/Kategorien
+    eines Events — die Ringe laufen nacheinander alle Kategorien, nicht nur eine.
+
+    Sortierung je Ring:
+      1) Phase = Runden VOR der Entscheidung (0 = letzte Runde, also Final +
+         Spiel um Platz 3; steigend fuer fruehere Runden). Fruehe Runden aller
+         Kategorien laufen so zuerst, die Finalrunden aller Kategorien liegen
+         gemeinsam am Schluss.
+      2) Kategorie-Reihenfolge (CATEGORY_ORDER, S-M-I-L) als Tie-Breaker
+         innerhalb derselben Phase — v.a. wirksam am Schluss bei den Finalrunden.
+      3) Lauf (1 vor 2 — die Teams wechseln dazwischen den Ring), dann Duell-Nr.
+
+    Hinweis: Dies ist eine generische Annaeherung (frueheste Runden zuerst,
+    Finalrunden zuletzt in Kategorie-Reihenfolge) — keine exakte Nachbildung
+    einer manuell erstellten Ablauftabelle, die zusaetzlich Ring-Auslastung
+    pro Runde balanciert."""
+    cat_rank = {c: i for i, c in enumerate(CATEGORY_ORDER)}
+    rows_by_ring: dict[int, list] = {1: [], 2: []}
+    for final in ko.get('finals', []):
+        rounds = ko_cup.matchups_by_round(final)
+        if not rounds:
+            continue
+        rounds_total = max(rnd for rnd, _label, _ms in rounds)
+        c_rank = cat_rank.get(final.get('category_code'), 99)
+        for round_no, label, matchups in rounds:
+            phase = rounds_total - round_no  # 0 = letzte Runde
+            for m in matchups:
+                pa = ko_cup.get_participant(final, m.get('a_id'))
+                pb = ko_cup.get_participant(final, m.get('b_id'))
+                if not (pa and pb):
+                    continue
+                rings = ko_cup.ring_assignment(final, m)
+                for side, part in (('a', pa), ('b', pb)):
+                    for lauf, ring_no in ((1, rings[side]['run1']), (2, rings[side]['run2'])):
+                        rows_by_ring[ring_no].append({
+                            "sort_key": (-phase, c_rank, lauf, m['matchup_no']),
+                            "category": final.get('group_label') or final.get('category_code'),
+                            "round_label": label,
+                            "matchup_no": m['matchup_no'],
+                            "lauf": lauf,
+                            "dog_name": part.get('dog_name'),
+                            "handler_name": part.get('handler_name'),
+                            "start_number": part.get('start_number'),
+                        })
+    out = []
+    for ring_no in (1, 2):
+        rows = sorted(rows_by_ring[ring_no], key=lambda r: r['sort_key'])
+        out.append({"ring": ring_no, "rows": rows})
+    return out
+
+
+@ko_cup_bp.get('/rings_print/<event_id>')
+def ko_rings_print(event_id):
+    """Druckansicht: Startliste pro Ring, kombiniert ueber alle Kategorien/
+    Finals des Events (Laufreihenfolge respektiert Runden-Phase + Kategorie-
+    Reihenfolge S-M-I-L)."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+    ko = _ensure_ko_cup(event)
+    _save_data(EVENTS_FILE, events)
+    logos = get_event_logo_data_uris(event)
+    return render_template(
+        'ko_cup_rings_print.html',
+        event=event,
+        ring_startlists=_event_ring_startlists(ko),
+        title='Ring-Startlisten',
+        event_logo_data=logos['event'],
+        club_logo_data=logos['club'],
+    )
+
+
 # ── Finale-Detail: Finalisten, Losnummern, Bracket, Ergebnisse ────────────────
 
 def _bracket_view(final: dict) -> list:
