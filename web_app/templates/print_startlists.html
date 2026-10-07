@@ -35,20 +35,13 @@
 
         .print-footer { margin-top: 10px; padding-top: 4px; border-top: 1px solid #999; display: flex; justify-content: space-between; font-size: 8pt; color: #666; }
 
-        .btn-print-toolbar { position: fixed; top: 10px; right: 10px; z-index: 9999; background: #f5f5f5; padding: 8px 12px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .btn-print { background: #2f7d32; color: #fff; border: none; padding: 8px 14px; font-size: 14px; cursor: pointer; border-radius: 4px; }
-        .btn-print:hover { background: #1b5e20; }
-
         @media print {
             body { margin: 0; }
-            .btn-print-toolbar { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="btn-print-toolbar">
-        <button class="btn-print" onclick="window.print()">🖨️ {{ _('Drucken') }}</button>
-    </div>
+    {% include 'print/_print_button.html' %}
     {% set title = _('Startliste') %}
     <table class="page-table">
         <thead>
