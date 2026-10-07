@@ -106,6 +106,73 @@ def test_computed_timeline_segments():
     assert last_segment["num_starters"] == 49
 
 
+def test_per_category_blocks_share_one_briefing():
+    """Portal-Export liefert einen Block pro (Disziplin, Kategorie, Klasse).
+    Aufeinanderfolgende Blöcke gleicher Disziplin+Klasse müssen EIN Umbau +
+    EIN Briefing + je einen Lauf ergeben (nicht pro Kategorie ein Briefing)."""
+    settings = sp.upgrade_settings({})
+    categories = ["large", "intermediate", "medium", "small"]
+    blocks = [
+        {
+            "id": f"blk_{cat}",
+            "type": "run",
+            "run_format": "normal",
+            "timing_run_type": "agility",
+            "size_category": cat,
+            "size_categories": [],
+            "classes": ["1"],
+            "sort": {"primary": {"field": "none"}, "secondary": {"field": "none"}},
+        }
+        for cat in categories
+    ]
+    schedule = {"rings": {"1": {"start_time": "08:00", "blocks": blocks}}}
+    runs = [
+        {"laufart": "agility", "kategorie": cat, "klasse": "1", "entries": [{} for _ in range(10)]}
+        for cat in categories
+    ]
+    timeline = sp.compute_computed_timeline(
+        schedule, event_runs=runs, settings=settings,
+        start_times_by_ring={"ring_1": "08:00"}, event_date="2026-01-01",
+    )
+    segments = [item["segment_type"] for item in timeline["1"]]
+    # 40 Starter in der Gruppe -> ein Briefing-Block -> Preppause vorhanden
+    assert segments == ["changeover", "briefing", "prep_pause", "run", "run", "run", "run"]
+    assert segments.count("briefing") == 1
+    assert segments.count("changeover") == 1
+
+
+def test_class_change_starts_new_group():
+    """Klassenwechsel -> neue Gruppe -> neuer Umbau + neues Briefing."""
+    settings = sp.upgrade_settings({})
+    blocks = []
+    for cls in ("1", "2"):
+        for cat in ("large", "small"):
+            blocks.append({
+                "id": f"blk_{cls}_{cat}",
+                "type": "run",
+                "run_format": "normal",
+                "timing_run_type": "agility",
+                "size_category": cat,
+                "size_categories": [],
+                "classes": [cls],
+                "sort": {"primary": {"field": "none"}, "secondary": {"field": "none"}},
+            })
+    schedule = {"rings": {"1": {"start_time": "08:00", "blocks": blocks}}}
+    runs = []
+    for cls in ("1", "2"):
+        for cat in ("large", "small"):
+            runs.append({"laufart": "agility", "kategorie": cat, "klasse": cls,
+                         "entries": [{} for _ in range(10)]})
+    timeline = sp.compute_computed_timeline(
+        schedule, event_runs=runs, settings=settings,
+        start_times_by_ring={"ring_1": "08:00"}, event_date="2026-01-01",
+    )
+    segments = [item["segment_type"] for item in timeline["1"]]
+    assert segments.count("briefing") == 2
+    assert segments.count("changeover") == 2
+    assert segments.count("run") == 4
+
+
 def test_generate_title_with_sorting():
     block = {
         "run_format": "open",
