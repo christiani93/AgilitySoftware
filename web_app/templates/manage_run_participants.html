@@ -155,7 +155,7 @@
             <th>Hund</th>
             <th>Hundeführer</th>
             <th style="width: 120px;">Kat./Kl.</th>
-            <th style="width: 70px;"></th>
+            <th style="width: 180px;"></th>
           </tr>
           </thead>
           <tbody id="starter-tbody">
@@ -237,18 +237,28 @@ document.addEventListener('DOMContentLoaded', () => {
           ui.tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Noch keine Teilnehmer in diesem Lauf.</td></tr>`;
           return;
         }
-        ui.tbody.innerHTML = entries.map(e => `
+        ui.tbody.innerHTML = entries.map(e => {
+          const laeufig = !!e.is_in_season;
+          const badge = laeufig ? ' <span class="badge bg-warning text-dark">Läufig</span>' : '';
+          const seasonBtn = laeufig
+            ? `<button class="btn btn-sm btn-warning" data-toggle-season="${e.Lizenznummer}" title="Läufig-Markierung aufheben">Läufig</button>`
+            : `<button class="btn btn-sm btn-outline-secondary" data-toggle-season="${e.Lizenznummer}" title="Als läufig markieren – startet am Schluss ihres Laufes">Läufig</button>`;
+          return `
           <tr>
             <td>${e.startnummer_offiziell || e.Startnummer_offiziell || e.Startnummer || ''}</td>
             <td><code>${e.Lizenznummer || ''}</code></td>
-            <td>${e.Hundename || ''}</td>
+            <td>${e.Hundename || ''}${badge}</td>
             <td>${e.Hundefuehrer || ''}</td>
             <td>${e.Kategorie || ''}/${e.Klasse || ''}</td>
             <td class="text-end">
-              <button class="btn btn-sm btn-outline-dark" data-remove="${e.Lizenznummer}">Entfernen</button>
+              <div class="d-flex gap-1 justify-content-end">
+                ${seasonBtn}
+                <button class="btn btn-sm btn-outline-dark" data-remove="${e.Lizenznummer}">Entfernen</button>
+              </div>
             </td>
           </tr>
-        `).join('');
+        `;
+        }).join('');
       })
       .catch(() => {
         ui.tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Laden fehlgeschlagen.</td></tr>`;
@@ -333,6 +343,22 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchRunDetails();
       })
       .catch(err => alert('Entfernen fehlgeschlagen: ' + err.message))
+      .finally(() => btn.disabled = false);
+  });
+
+  // ------- Läufig umschalten (wirkt auf alle Läufe der Hündin)
+  ui.tbody.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-toggle-season]');
+    if (!btn) return;
+    const liz = btn.dataset.toggleSeason;
+    btn.disabled = true;
+    fetch(`/events/api/toggle_in_season/${eventId}/${encodeURIComponent(liz)}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.success) throw new Error(data.message || 'Fehlschlag');
+        fetchRunDetails();
+      })
+      .catch(err => alert('Läufig-Markierung fehlgeschlagen: ' + err.message))
       .finally(() => btn.disabled = false);
   });
 

@@ -2451,6 +2451,39 @@ def api_get_run_details(event_id, run_id):
 
     return jsonify(success=True, data={'entries': entries, 'run': run_meta})
 
+
+@events_bp.route('/api/toggle_in_season/<event_id>/<license_nr>', methods=['POST'])
+def api_toggle_in_season(event_id, license_nr):
+    """Markiert eine Hündin als läufig (oder hebt es auf).
+
+    Wirkt bewusst auf ALLE Läufe des Events (eine Hündin läuft je nach Turnier
+    Agility + Jumping), damit sie in jedem ihrer Läufe am Schluss startet.
+    Das Feld ``is_in_season`` wird vom Startlisten-Sort (``_starts_at_end``)
+    honoriert – genau wie der aus dem Portal importierte Wert. Der Toggle ist
+    das Software-Pendant zum Läufig-Schalter des Portals für Fälle, in denen die
+    Läufigkeit erst am Veranstaltungstag gemeldet wird.
+    """
+    all_events = _load_data(EVENTS_FILE)
+    event = next((e for e in all_events if isinstance(e, dict) and e.get('id') == event_id), None)
+    if not event:
+        return jsonify(success=False, message="Event nicht gefunden"), 404
+
+    lic = str(license_nr or '').strip()
+    new_state = None
+    for r in event.get('runs', []):
+        for p in r.get('entries', []):
+            if str(p.get('Lizenznummer', '')).strip() == lic:
+                if new_state is None:
+                    new_state = not bool(p.get('is_in_season'))
+                p['is_in_season'] = new_state
+
+    if new_state is None:
+        return jsonify(success=False, message="Teilnehmer nicht gefunden"), 404
+
+    _save_data(EVENTS_FILE, all_events)
+    return jsonify(success=True, is_in_season=new_state)
+
+
 @events_bp.route('/remove_participant_from_event/<event_id>/<license_nr>', methods=['POST'])
 def remove_participant_from_event(event_id, license_nr):
     """Entfernt einen Teilnehmer aus ALLEN Läufen des Events und speichert."""
