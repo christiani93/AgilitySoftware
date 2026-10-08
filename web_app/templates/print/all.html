@@ -31,6 +31,7 @@
         .bundle-cover__event { font-size: 13pt; color: #444; }
 
         .ring-head { page-break-before: always; background-color: #2f7d32 !important; color: #fff; font-size: 16pt; font-weight: 700; padding: 10px 14px; margin: 0 0 8px 0; }
+        .ring-head--inline { page-break-before: auto; margin-top: 6px; }
 
         .doc-section { page-break-before: always; }
         .doc-section--first { page-break-before: auto; }
@@ -308,17 +309,21 @@
 </div>
 
 {% for ring in ring_keys %}
-<div class="doc-section">
-    <h2 class="ring-head">{{ _('Einweiser') }} – {{ _('Ring') }} {{ ring }}</h2>
-    {{ schedule_table(ring, einweiser_by_ring[ring].timeline) }}
-    <div class="sec-steward">
-        {% for section in einweiser_by_ring[ring].sections %}
-            {{ steward_section(section) }}
-        {% else %}
-            <p style="text-align:center; margin-top:1cm;">{{ _('Kein Zeitplan vorhanden') }}</p>
-        {% endfor %}
-    </div>
-</div>
+{% set title = _('Einweiser') ~ ' – ' ~ _('Ring') ~ ' ' ~ ring %}
+<table class="page-table doc-section">
+    <thead><tr><td>{% include 'print/_print_header.html' %}</td></tr></thead>
+    <tbody><tr><td>
+        <h2 class="ring-head ring-head--inline">{{ _('Einweiser') }} – {{ _('Ring') }} {{ ring }}</h2>
+        {{ schedule_table(ring, einweiser_by_ring[ring].timeline) }}
+        <div class="sec-steward">
+            {% for section in einweiser_by_ring[ring].sections %}
+                {{ steward_section(section) }}
+            {% else %}
+                <p style="text-align:center; margin-top:1cm;">{{ _('Kein Zeitplan vorhanden') }}</p>
+            {% endfor %}
+        </div>
+    </td></tr></tbody>
+</table>
 {% endfor %}
 
 {# ───── Bündel 3: Ringbüro (pro Ring) ───── #}
@@ -329,17 +334,21 @@
 </div>
 
 {% for ring in ring_keys %}
-<div class="doc-section">
-    <h2 class="ring-head">{{ _('Ringbüro') }} – {{ _('Ring') }} {{ ring }}</h2>
-    {{ schedule_table(ring, ringbuero_by_ring[ring].timeline) }}
-    <div class="sec-scribe">
-        {% for section in ringbuero_by_ring[ring].sections %}
-            {{ scribe_section(section) }}
-        {% else %}
-            <p style="text-align:center; margin-top:1cm;">{{ _('Kein Zeitplan vorhanden') }}</p>
-        {% endfor %}
-    </div>
-</div>
+{% set title = _('Ringbüro') ~ ' – ' ~ _('Ring') ~ ' ' ~ ring %}
+<table class="page-table doc-section">
+    <thead><tr><td>{% include 'print/_print_header.html' %}</td></tr></thead>
+    <tbody><tr><td>
+        <h2 class="ring-head ring-head--inline">{{ _('Ringbüro') }} – {{ _('Ring') }} {{ ring }}</h2>
+        {{ schedule_table(ring, ringbuero_by_ring[ring].timeline) }}
+        <div class="sec-scribe">
+            {% for section in ringbuero_by_ring[ring].sections %}
+                {{ scribe_section(section) }}
+            {% else %}
+                <p style="text-align:center; margin-top:1cm;">{{ _('Kein Zeitplan vorhanden') }}</p>
+            {% endfor %}
+        </div>
+    </td></tr></tbody>
+</table>
 {% endfor %}
 
 </body>
