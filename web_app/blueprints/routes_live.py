@@ -640,6 +640,16 @@ def ring_pc_dashboard(ring_number):
         judges=_load_data('judges.json'),
     )
 
+@live_bp.route('/ring_pc_ko/<int:ring_number>')
+def ring_pc_ko(ring_number):
+    # Der Ring-Server kennt die Event-ID nicht; hier das aktive Event auflösen
+    # und auf die KO-Cup-Bedienseite dieses Rings weiterleiten.
+    event = _get_active_event()
+    if not event:
+        return "Kein aktives Event.", 404
+    return redirect(url_for('ko_cup_bp.ko_ring', event_id=event.get('id'),
+                            ring=ring_number))
+
 @live_bp.route('/api/render_announcer_schedule/<event_id>')
 def render_announcer_schedule(event_id):
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)

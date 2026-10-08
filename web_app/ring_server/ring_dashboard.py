@@ -118,6 +118,8 @@ class RingDashboard:
 
         ttk.Button(head, text="Ring-PC öffnen", command=self._open_ring_pc).grid(
             row=3, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+        ttk.Button(head, text="KO-System öffnen", command=self._open_ko_system).grid(
+            row=4, column=0, columnspan=2, sticky="ew", pady=(4, 0))
 
         # --- Status (gross) ---
         st = ttk.LabelFrame(main, text="Status", padding=8)
@@ -163,6 +165,12 @@ class RingDashboard:
     def _open_ring_pc(self) -> None:
         # Die Ring-PC-Seite wird vom Hauptserver ausgeliefert, nicht vom Ring-Server selbst.
         url = f"http://{self.server_ip}:{self.server_port}/ring_pc_dashboard/{self.ring_number}"
+        webbrowser.open(url)
+
+    def _open_ko_system(self) -> None:
+        # Der Hauptserver löst das aktive Event auf und leitet auf die
+        # KO-Cup-Bedienseite dieses Rings weiter.
+        url = f"http://{self.server_ip}:{self.server_port}/ring_pc_ko/{self.ring_number}"
         webbrowser.open(url)
 
     def _format_starter(self) -> str:
