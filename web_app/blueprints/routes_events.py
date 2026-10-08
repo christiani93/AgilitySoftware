@@ -887,6 +887,14 @@ def _norm_ring_strict(val, default_one=True):
 @events_bp.route('/')
 def events_list():
     events = _load_data(EVENTS_FILE)
+    # Sortierung hier (nicht im Template) mit sicherem Fallback: Events ganz
+    # ohne 'Datum' (z.B. uralte Legacy-Testdaten im alten Schema) dürfen die
+    # Seite nicht mehr zum Absturz bringen. Jinjas |sort(attribute='Datum')
+    # wirft UndefinedError, sobald verglichen wird (ab 2 Events) und
+    # irgendeinem das Attribut komplett fehlt — das hat die Liste nach dem
+    # Import von Event 9 lahmgelegt, weil vorher nur 1 Event (kein Vergleich
+    # nötig) in der Datei lag.
+    events = sorted(events, key=lambda e: e.get('Datum') or '', reverse=True)
     active_id = _get_active_event_id()
     return render_template('events_list.html', events=events, active_event_id=active_id)
 
