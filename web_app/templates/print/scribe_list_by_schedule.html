@@ -57,15 +57,22 @@
                 <h4 class="mt-4 text-center">{{ _('Ring') }} {{ section.ring }} – {{ section.title }}</h4>
                 <p class="run-meta-info">
                     {{ _('Richter') }}: {{ section.judge_name or '—' }}
+                    {% for run in section.runs %}
+                        {% set ld = run.laufdaten or {} %}
+                        <br>{{ run.name }}: {{ _('Parcourslänge') }} {{ ld.parcours_laenge or '___' }}m |
+                        {{ _('Anz. Geräte') }} {{ ld.anzahl_hindernisse or '___' }} |
+                        {{ _('Standardzeit (SCT)') }} {{ ld.standardzeit_sct_berechnet or ld.standardzeit_sct_gerundet or ld.standardzeit_sct or '___' }}s |
+                        {{ _('Maximalzeit (MCT)') }} {{ ld.maximalzeit_mct_berechnet or ld.maximalzeit_mct_gerundet or ld.maximalzeit_mct or '___' }}s
+                    {% endfor %}
                 </p>
                 <table class="table table-sm">
                     <thead class="table-light">
                         <tr>
                             <th style="width: 5%;">{{ _('Start-Nr.') }}</th>
                             <th style="width: 25%;">{{ _('Hundeführer') }} / {{ _('Hund') }}</th>
-                            <th style="width: 10%;">Zeit</th>
-                            <th style="width: 10%;">Fehler</th>
-                            <th style="width: 10%;">Verw.</th>
+                            <th style="width: 10%;">{{ _('Zeit') }}</th>
+                            <th style="width: 10%;">{{ _('Fehler') }}</th>
+                            <th style="width: 10%;">{{ _('Verw.') }}</th>
                             <th style="width: 10%;">DIS/ABR</th>
                             <th style="width: 30%;">{{ _('Notizen') }}</th>
                         </tr>

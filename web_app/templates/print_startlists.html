@@ -76,7 +76,7 @@
                                     <td>{{ entry.Hundefuehrer }}</td>
                                     <td>{{ entry.Hundename }}</td>
                                     <td>{{ entry.Rasse }}</td>
-                                    <td>{{ entry.Verein }}</td>
+                                    <td>{{ entry.Verein }}{% if entry.is_foreign %} ({{ entry.foreign_cc or _('Ausland') }}){% endif %}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>

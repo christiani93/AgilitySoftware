@@ -60,19 +60,19 @@
                 {# NEU: Platzhalter für Geräteanzahl hinzugefügt (Punkt 1.1) #}
                 <p class="run-meta-info">
                     {{ _('Richter') }}: {{ run.judge_display or '—' }} |
-                    Parcourslänge: {{ ld.parcours_laenge or '___' }}m |
-                    Anz. Geräte: {{ ld.anzahl_hindernisse or '___' }} <br>
-                    Standardzeit (SCT): {{ ld.standardzeit_sct or '___' }}s |
-                    Maximalzeit (MCT): {{ ld.maximalzeit_mct or '___' }}s
+                    {{ _('Parcourslänge') }}: {{ ld.parcours_laenge or '___' }}m |
+                    {{ _('Anz. Geräte') }}: {{ ld.anzahl_hindernisse or '___' }} <br>
+                    {{ _('Standardzeit (SCT)') }}: {{ ld.standardzeit_sct or '___' }}s |
+                    {{ _('Maximalzeit (MCT)') }}: {{ ld.maximalzeit_mct or '___' }}s
                 </p>
                 <table class="table table-sm">
                     <thead class="table-light">
                         <tr>
                             <th style="width: 5%;">{{ _('Start-Nr.') }}</th>
                             <th style="width: 25%;">{{ _('Hundeführer') }} / {{ _('Hund') }}</th>
-                            <th style="width: 10%;">Zeit</th>
-                            <th style="width: 10%;">Fehler</th>
-                            <th style="width: 10%;">Verw.</th>
+                            <th style="width: 10%;">{{ _('Zeit') }}</th>
+                            <th style="width: 10%;">{{ _('Fehler') }}</th>
+                            <th style="width: 10%;">{{ _('Verw.') }}</th>
                             <th style="width: 10%;">DIS/ABR</th>
                             <th style="width: 30%;">{{ _('Notizen') }}</th>
                         </tr>

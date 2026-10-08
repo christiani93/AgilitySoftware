@@ -1400,3 +1400,36 @@ msgstr "Wildcard"
 #~ msgid "Bitte wählen"
 #~ msgstr "Please select"
 
+
+msgid "Umbau"
+msgstr "Changeover"
+
+msgid "Briefing"
+msgstr "Briefing"
+
+msgid "Prep-Pause"
+msgstr "Prep break"
+
+msgid "Rangverkündigung"
+msgstr "Results announcement"
+
+msgid "Standardzeit"
+msgstr "Standard time"
+
+msgid "Maximalzeit"
+msgstr "Maximum time"
+
+msgid "Anz. Geräte"
+msgstr "No. obstacles"
+
+msgid "Standardzeit (SCT)"
+msgstr "Standard time (SCT)"
+
+msgid "Maximalzeit (MCT)"
+msgstr "Maximum time (MCT)"
+
+msgid "Bewertung"
+msgstr "Evaluation"
+
+msgid "Ausland"
+msgstr "Foreign"

@@ -139,7 +139,9 @@ def print_schedule(event_id):
     if not event: abort(404)
     timelines_by_ring = _safe_timelines(event)
     judges_map = {j['id']: f"{j.get('firstname', '')} {j.get('lastname', '')}" for j in _load_data('judges.json')}
-    return render_template('print/schedule.html', event=event, timelines_by_ring=timelines_by_ring, judges_map=judges_map)
+    logos = get_event_logo_data_uris(event)
+    return render_template('print/schedule.html', event=event, timelines_by_ring=timelines_by_ring, judges_map=judges_map,
+                           event_logo_data=logos['event'], club_logo_data=logos['club'])
 
 @print_bp.route('/print/briefing_groups')
 @print_bp.route('/print/briefing_groups/<event_id>')
@@ -231,6 +233,7 @@ def print_briefing_groups(event_id=None):
         })
 
     sessions_count = sum(len(ring_data.get('sessions', [])) for ring_data in sessions_by_ring)
+    logos = get_event_logo_data_uris(event)
     return render_template(
         'print/briefing_groups.html',
         event=event,
@@ -241,6 +244,8 @@ def print_briefing_groups(event_id=None):
         sessions_count=sessions_count,
         debug_enabled=False,
         show_participants_table=show_participants_table,
+        event_logo_data=logos['event'],
+        club_logo_data=logos['club'],
     )
 
 def _enrich_entries_rasse_verein(ordered_runs):
@@ -256,7 +261,20 @@ def _enrich_entries_rasse_verein(ordered_runs):
             if not entry.get('Rasse'):
                 entry['Rasse'] = dog.get('Rasse', '')
             handler = handlers_map.get(dog.get('Hundefuehrer_ID'), {})
-            entry['Verein'] = clubs_map.get(str(handler.get('Vereinsnummer', '')), '')
+            vn = str(handler.get('Vereinsnummer', '') or '').strip()
+            verein = clubs_map.get(vn, '')
+            if not verein and vn and not vn.isdigit():
+                # Ausland/Gastverein: club_name ist Freitext (keine CH-Vereinsnummer)
+                # → Rohwert anzeigen, analog Portal-club_display_name.
+                verein = vn
+            entry['Verein'] = verein
+            # Ausland-Kennzeichnung: FOREIGN-Lizenz (Format "AAA-12345", nicht rein
+            # numerisch). Nur Daten-Flags setzen; die Beschriftung übernimmt das
+            # Template (Übersetzung gehört nicht in die Datenaufbereitung).
+            lic = str(entry.get('Lizenznummer', '') or '').strip()
+            if lic and not lic.isdigit():
+                entry['is_foreign'] = True
+                entry['foreign_cc'] = lic.split('-', 1)[0] if '-' in lic else ''
     return ordered_runs
 
 
@@ -292,7 +310,9 @@ def print_stewardlists(event_id):
     judges = _load_data('judges.json')
     for run in ordered_runs:
         run["judge_display"] = resolve_judge_name(event, run, judges)
-    return render_template('print/scribe_list.html', event=event, title=_("Ringschreiberlisten"), ordered_runs=ordered_runs, judges=judges)
+    logos = get_event_logo_data_uris(event)
+    return render_template('print/scribe_list.html', event=event, title=_("Ringschreiberlisten"), ordered_runs=ordered_runs, judges=judges,
+                           event_logo_data=logos['event'], club_logo_data=logos['club'])
 
 
 @print_bp.route('/print/stewardlists_by_schedule/<event_id>', endpoint='print_stewardlists_by_schedule_view')
@@ -305,12 +325,15 @@ def print_stewardlists_by_schedule_view(event_id):
     sections = build_schedule_print_sections(event)
     for section in sections:
         section["judge_name"] = resolve_judge_name(event, section.get("runs", [{}])[0], judges, section.get("block"))
+    logos = get_event_logo_data_uris(event)
     return render_template(
         'print/scribe_list_by_schedule.html',
         event=event,
         title=_("Ringschreiberlisten (nach Zeitplan)"),
         sections=sections,
         judges=judges,
+        event_logo_data=logos['event'],
+        club_logo_data=logos['club'],
     )
 
 @print_bp.route('/print/master_steward_list/<event_id>')
@@ -339,7 +362,9 @@ def print_master_steward_list(event_id):
                         participant_run_map[entry['Lizenznummer']][run['id']] = True
             participants_in_group.sort(key=lambda p: int(p.get('Startnummer', 9999)))
             final_grouped_data[cat][cls] = {'participants': participants_in_group, 'runs': runs_for_group, 'run_map': participant_run_map}
-    return render_template('print/master_steward_list.html', event=event, final_grouped_data=final_grouped_data)
+    logos = get_event_logo_data_uris(event)
+    return render_template('print/master_steward_list.html', event=event, final_grouped_data=final_grouped_data,
+                           event_logo_data=logos['event'], club_logo_data=logos['club'])
 
 
 @print_bp.route('/print/master_steward_list_by_schedule/<event_id>')
@@ -349,7 +374,9 @@ def print_master_steward_list_by_schedule(event_id):
     if not event:
         abort(404)
     sections = build_schedule_steward_sections(event)
-    return render_template('print/master_steward_list_by_schedule.html', event=event, sections=sections)
+    logos = get_event_logo_data_uris(event)
+    return render_template('print/master_steward_list_by_schedule.html', event=event, sections=sections,
+                           event_logo_data=logos['event'], club_logo_data=logos['club'])
 
 @print_bp.route('/print/participant_list/<event_id>')
 def print_participant_list(event_id):

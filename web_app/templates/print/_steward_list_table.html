@@ -1,19 +1,19 @@
 <div style="margin-bottom: 1cm;">
     <h4 style="margin: 10px 0 5px 0;">{{ run.name }} ({{ _('Richter') }}: {{ run.judge_display or '—' }})</h4>
     <p style="font-size: 9pt; margin: 0 0 5px 0;">
-        Parcourslänge: {{ run.get('laufdaten', {}).get('parcours_laenge', '___') }}m | Standardzeit: {{ run.get('laufdaten', {}).get('standardzeit_sct', '___') }}s | Maximalzeit: {{ run.get('laufdaten', {}).get('maximalzeit_mct', '___') }}s
+        {{ _('Parcourslänge') }}: {{ run.get('laufdaten', {}).get('parcours_laenge', '___') }}m | {{ _('Standardzeit') }}: {{ run.get('laufdaten', {}).get('standardzeit_sct', '___') }}s | {{ _('Maximalzeit') }}: {{ run.get('laufdaten', {}).get('maximalzeit_mct', '___') }}s
     </p>
     <table style="width: 100%; border-collapse: collapse; font-size: 9pt; border: 1px solid black;">
         <thead>
             <tr>
                 <th style="width: 4%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">{{ _('Nr.') }}</th>
                 <th style="width: 26%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">{{ _('Hund') }} / {{ _('Hundeführer') }}</th>
-                <th style="width: 10%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">Zeit</th>
-                <th style="width: 10%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">Fehler</th>
-                <th style="width: 10%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">Verw.</th>
-                <th style="width: 10%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">Total</th>
-                <th style="width: 15%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">Bewertung</th>
-                <th style="width: 15%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">Unterschrift</th>
+                <th style="width: 10%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">{{ _('Zeit') }}</th>
+                <th style="width: 10%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">{{ _('Fehler') }}</th>
+                <th style="width: 10%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">{{ _('Verw.') }}</th>
+                <th style="width: 10%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">{{ _('Total') }}</th>
+                <th style="width: 15%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">{{ _('Bewertung') }}</th>
+                <th style="width: 15%; border: 1px solid black; padding: 4px; background-color: #f2f2f2;">{{ _('Unterschrift') }}</th>
             </tr>
         </thead>
         <tbody>

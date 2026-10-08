@@ -25,12 +25,13 @@
         .ring-page { page-break-after: always; }
         .ring-page:last-child { page-break-after: auto; }
 
-        table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 1cm; page-break-inside: auto;}
-        th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+        table { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 0.3cm; page-break-inside: auto;}
+        th, td { border: 1px solid #ccc; padding: 3px 5px; text-align: left; }
         th { background-color: #f2f2f2; }
         thead { display: table-header-group; }
         tr { page-break-inside: avoid; page-break-after: auto; }
-        h3 { text-align: left; margin-top: 1.5cm; }
+        h3 { text-align: left; margin-top: 0.4cm; margin-bottom: 0.2cm; font-size: 12pt; }
+        .small, .text-muted { font-size: 8pt; }
 
         @media print {
             body { margin: 0; }
@@ -40,6 +41,7 @@
 <body>
     {% include 'print/_print_button.html' %}
     {% set title = _('Zeitplan') %}
+    {% set _seg_labels = {'changeover': _('Umbau'), 'briefing': _('Briefing'), 'prep_pause': _('Prep-Pause'), 'run': _('Lauf'), 'rank_announcement': _('Rangverkündigung')} %}
     <table class="page-table">
         <thead>
             <tr>
@@ -57,8 +59,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 15%;">Start</th>
-                        <th style="width: 15%;">Ende</th>
+                        <th style="width: 15%;">{{ _('Start') }}</th>
+                        <th style="width: 15%;">{{ _('Ende') }}</th>
                         <th>{{ _('Lauf') }}</th>
                         <th style="width: 25%;">{{ _('Richter') }}</th>
                         <th style="width: 15%;">{{ _('Starter') }}</th>
@@ -70,7 +72,7 @@
                         <td>{{ item.start_time }}</td>
                         <td>{{ item.end_time }}</td>
                         <td>
-                            <strong>{{ item.label }}</strong>
+                            <strong>{{ _seg_labels.get(item.segment_type, item.label) }}</strong>
                             {% if item.block.type == 'run' %}
                               {% set run_type = (item.block.timing_run_type or '').lower() %}
                               {% set run_type_label = 'Agility' if run_type == 'agility' else 'Jumping' if run_type == 'jumping' else 'Other' %}

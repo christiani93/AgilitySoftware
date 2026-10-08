@@ -50,6 +50,7 @@
         .sec-startlist .startlist-block:last-child { page-break-after: auto; }
 
         /* ── Einweiserliste (.sec-steward) ──────────────────────────── */
+        .sec-steward { page-break-before: always; }
         .sec-steward .group-container { page-break-after: always; }
         .sec-steward .group-container:last-child { page-break-after: auto; }
         .sec-steward h4 { background-color: #e9ecef !important; font-size: 13pt; padding: 8px; text-align: left; margin: 0.3cm 0 0 0; }
@@ -62,6 +63,7 @@
         .sec-steward .run-col { width: 25px; }
 
         /* ── Ringschreiberliste (.sec-scribe) ───────────────────────── */
+        .sec-scribe { page-break-before: always; }
         .sec-scribe .run-container { page-break-after: always; padding-top: 0.4cm; }
         .sec-scribe .run-container:last-child { page-break-after: auto; }
         .sec-scribe h4 { text-align: center; font-size: 14pt; margin: 0; }
@@ -80,6 +82,7 @@
 {# ═══════════════════ MACROS ═══════════════════ #}
 
 {% macro schedule_table(ring, timeline) %}
+{% set _seg_labels = {'changeover': _('Umbau'), 'briefing': _('Briefing'), 'prep_pause': _('Prep-Pause'), 'run': _('Lauf'), 'rank_announcement': _('Rangverkündigung')} %}
 <div class="sec-schedule">
     <h3>{{ _('Zeitplan') }} {{ _('Ring') }} {{ ring }} (Start: {{ (event.start_times_by_ring or {}).get('ring_' + ring, 'N/A') }})</h3>
     <table>
@@ -98,7 +101,7 @@
                 <td>{{ item.start_time }}</td>
                 <td>{{ item.end_time }}</td>
                 <td>
-                    <strong>{{ item.label }}</strong>
+                    <strong>{{ _seg_labels.get(item.segment_type, item.label) }}</strong>
                     {% if item.block.type == 'run' %}
                       {% set run_type = (item.block.timing_run_type or '').lower() %}
                       {% set run_type_label = 'Agility' if run_type == 'agility' else 'Jumping' if run_type == 'jumping' else 'Other' %}
@@ -165,7 +168,7 @@
                 <td>{{ entry.Hundefuehrer }}</td>
                 <td>{{ entry.Hundename }}</td>
                 <td>{{ entry.Rasse }}</td>
-                <td>{{ entry.Verein }}</td>
+                <td>{{ entry.Verein }}{% if entry.is_foreign %} ({{ entry.foreign_cc or _('Ausland') }}){% endif %}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -217,7 +220,15 @@
 {% macro scribe_section(section) %}
 <div class="run-container">
     <h4>{{ _('Ring') }} {{ section.ring }} – {{ section.title }}</h4>
-    <p class="run-meta-info">{{ _('Richter') }}: {{ section.judge_name or '—' }}</p>
+    <p class="run-meta-info">{{ _('Richter') }}: {{ section.judge_name or '—' }}
+        {% for run in section.runs %}
+            {% set ld = run.laufdaten or {} %}
+            <br>{{ run.name }}: {{ _('Parcourslänge') }} {{ ld.parcours_laenge or '___' }}m |
+            {{ _('Anz. Geräte') }} {{ ld.anzahl_hindernisse or '___' }} |
+            {{ _('Standardzeit (SCT)') }} {{ ld.standardzeit_sct_berechnet or ld.standardzeit_sct_gerundet or ld.standardzeit_sct or '___' }}s |
+            {{ _('Maximalzeit (MCT)') }} {{ ld.maximalzeit_mct_berechnet or ld.maximalzeit_mct_gerundet or ld.maximalzeit_mct or '___' }}s
+        {% endfor %}
+    </p>
     <table>
         <thead>
             <tr>

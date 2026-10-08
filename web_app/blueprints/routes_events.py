@@ -711,6 +711,17 @@ def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -
     event["num_rings"] = max(event.get("num_rings", 1), max_ring)
 
     start_times_by_ring = event.get("start_times_by_ring", {}) or {}
+
+    # Ring-Startzeiten aus dem Portal-Export übernehmen (autoritativ). Das Portal
+    # liefert sie als {"<ring_num>": "HH:MM"} im schedule_payload; ohne sie würde
+    # der Zeitplan auf den Default 07:30 zurückfallen.
+    if isinstance(schedule_payload, dict):
+        for rk, start_val in (schedule_payload.get("ring_start_times") or {}).items():
+            parsed_portal = _parse_start_time(start_val)
+            if parsed_portal:
+                digits = "".join(ch for ch in str(rk) if ch.isdigit()) or str(rk)
+                start_times_by_ring[f"ring_{digits}"] = parsed_portal
+
     for block in blocks:
         if not isinstance(block, dict):
             continue
@@ -799,7 +810,47 @@ def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -
     _recalculate_schedule_estimates(event, schedule_data, settings)
     event["schedule"] = schedule_data
     event["start_times_by_ring"] = start_times_by_ring
+    # Richter vom Schedule-Block auf die zugehörigen Läufe übertragen, damit der
+    # Lauf die "Single Source of Truth" für "richtet diesen Lauf" ist (konsistent
+    # mit edit_run + resolve_judge_name). Sonst stünde der Richter nur am Block
+    # und edit_run zeigte "kein Richter".
+    _sync_block_judges_to_runs(event)
     return {"blocks_added": len(blocks)}
+
+
+def _sync_block_judges_to_runs(event: dict, overwrite: bool = False) -> None:
+    """Überträgt den am Schedule-Block gesetzten Richter auf die gematchten Läufe.
+
+    overwrite=False: nur wenn der Lauf noch keinen eigenen Richter hat (Import).
+    overwrite=True: Block-Richter ist autoritativ (Zeitplan-Editor gespeichert)."""
+    schedule = event.get("schedule") or {}
+    for ring_data in (schedule.get("rings") or {}).values():
+        for block in (ring_data.get("blocks") or []):
+            if (block.get("type") or "").lower() != "run":
+                continue
+            bj = block.get("judge_id") or block.get("richter_id")
+            if not bj and not overwrite:
+                continue
+            for run in event.get("runs", []) or []:
+                if not overwrite and (run.get("judge_id") or run.get("richter_id")):
+                    continue
+                if schedule_planner._match_run_to_block(run, block):
+                    run["judge_id"] = bj
+                    run["richter_id"] = bj
+
+
+def _sync_run_judge_to_blocks(event: dict, run: dict) -> None:
+    """Gegenstück zu _sync_block_judges_to_runs: trägt den am Lauf gesetzten
+    Richter zurück an die passenden Schedule-Blöcke, damit der Zeitplan (liest
+    block.judge_id) denselben Richter zeigt wie edit_run/Druck."""
+    jid = run.get("judge_id") or run.get("richter_id") or ""
+    schedule = event.get("schedule") or {}
+    for ring_data in (schedule.get("rings") or {}).values():
+        for block in (ring_data.get("blocks") or []):
+            if (block.get("type") or "").lower() != "run":
+                continue
+            if schedule_planner._match_run_to_block(run, block):
+                block["judge_id"] = jid
 
 
 # =========================================
@@ -1393,6 +1444,9 @@ def edit_run(event_id, run_id):
         judge_id = request.form.get('judge_id') or request.form.get('richter_id')
         run['judge_id'] = judge_id or ''
         run['richter_id'] = run['judge_id']
+        # Richter konsistent an die passenden Schedule-Blöcke zurückschreiben,
+        # damit der Zeitplan (liest block.judge_id) denselben Richter anzeigt.
+        _sync_run_judge_to_blocks(event, run)
         # SM-Lauftyp speichern (nur wenn Event vom Typ SM Einzel)
         if event.get('Veranstaltungsart') == 'SM Einzel':
             sm_run_type = request.form.get('sm_run_type', '').strip()
@@ -2089,6 +2143,9 @@ def save_schedule(event_id):
     event['schedule'] = schedule_data
     event['start_times_by_ring'] = start_times
     event['run_order'] = []
+    # Im Zeitplan-Editor gesetzte Block-Richter sind autoritativ → auf Läufe
+    # übertragen, damit edit_run/Druck/resolve denselben Richter zeigen.
+    _sync_block_judges_to_runs(event, overwrite=True)
 
     _save_data(EVENTS_FILE, events)
     flash("Zeitplan erfolgreich gespeichert.", "success")

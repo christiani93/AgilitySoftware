@@ -5,6 +5,27 @@
 
 Stand: 2026-10-08
 
+## ⏳ Druck/Export/Richter-Fix-Runde (2026-10-08) — UNCOMMITTED, bereit
+
+Alle Fixes umgesetzt + 167 Tests + Portal-Kontrakt-Test grün. Noch NICHT committet
+(User kontrolliert zuerst). Details in Memory `project_print_fixes_20261008`.
+- [x] Logo-Größen (global im `_print_header.html`), Logos an 6 Druck-Routen ergänzt
+- [x] Übersetzungen: Zeit/Fehler/Verw./Laufvorgaben + Umbau/Lauf/Start/Ende (fr/en .po + compile)
+- [x] Ausland-Kennzeichnung Startliste (is_foreign/foreign_cc; `_()` NICHT im Python!)
+- [x] print/all: Trennung Zeitplan↔Listen + Laufvorgaben bei Ringschreiberlisten
+- [x] Zeitplan auf 1 Seite verkleinert
+- [x] manage_runs: doppelter Export-Button bereinigt (JSON raus, ZIP bleibt)
+- [x] Richter „richtet Lauf": Sync Block↔Lauf (Lauf=SSoT) in Import/edit_run/save_schedule
+- [x] Portal (anderes Repo): `ring_start_times` im eventexport → braucht Portal-Deploy + neuer Export→Import
+- [ ] **COMMIT** (Software + Portal) nach User-Kontrolle
+- [ ] **EXE-Rebuild** für produktive Druckänderungen
+- [ ] **Portal-Deploy** für Startzeit-Fix
+
+### Offene Features (User-Freigabe)
+- [ ] (9) Echter Läufigkeits-Toggle in Software (bisher nur `start_last`/is_in_season via Portal-Import)
+- [ ] (10) „Ist anwesend"-Richterliste am Event (wie Portal `EventJudge`) — neues Datenmodell + UI
+- [ ] (11) Software-Zeitplan/Richter an Portal-Architektur angleichen (gemeinsame Logik, nur JSON vs SQL) — eigenes Refactoring-Projekt
+
 ## ✅ ERLEDIGT: EXE-Rebuild für KO-System-Button (2026-10-08)
 
 Commit **`9c737d7`** (feature/ko-cup) "KO-System-Button im Ring-Dashboard" ist
