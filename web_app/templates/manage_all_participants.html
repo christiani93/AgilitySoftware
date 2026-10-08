@@ -35,10 +35,17 @@
                             <div>
                                 <span class="badge bg-primary rounded-pill me-2">{{ p.Startnummer }}</span>
                                 {{ p.Hundefuehrer }} mit {{ p.Hundename }}
+                                {% if p.is_in_season %}<span class="badge bg-warning text-dark">Läufig</span>{% endif %}
                             </div>
-                            <form action="{{ url_for('events_bp.remove_participant_from_event', event_id=event.id, license_nr=p.Lizenznummer) }}" method="POST" onsubmit="return confirm('Teilnehmer wirklich aus allen Läufen entfernen?');">
-                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-                            </form>
+                            <div class="d-flex gap-1">
+                                <button type="button"
+                                        class="btn btn-sm {{ 'btn-warning' if p.is_in_season else 'btn-outline-secondary' }}"
+                                        data-toggle-season="{{ p.Lizenznummer }}"
+                                        title="{{ 'Läufig-Markierung aufheben' if p.is_in_season else 'Als läufig markieren – startet am Schluss ihres Laufes' }}">Läufig</button>
+                                <form action="{{ url_for('events_bp.remove_participant_from_event', event_id=event.id, license_nr=p.Lizenznummer) }}" method="POST" onsubmit="return confirm('Teilnehmer wirklich aus allen Läufen entfernen?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </div>
                         </li>
                         {% endfor %}
                     </ul>
@@ -85,4 +92,23 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-toggle-season]');
+    if (!btn) return;
+    const liz = btn.dataset.toggleSeason;
+    btn.disabled = true;
+    fetch(`/events/api/toggle_in_season/{{ event.id }}/${encodeURIComponent(liz)}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) throw new Error(data.message || 'Fehlschlag');
+            window.location.reload();
+        })
+        .catch(err => {
+            alert('Läufig-Markierung fehlgeschlagen: ' + err.message);
+            btn.disabled = false;
+        });
+});
+</script>
 {% endblock %}

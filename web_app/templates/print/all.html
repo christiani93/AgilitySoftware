@@ -7,6 +7,13 @@
         body { font-family: sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
 
+        /* Seiten-Tabelle: lässt den Header (inkl. Logos) auf jeder gedruckten Seite wiederholen */
+        .page-table { width: 100%; border-collapse: collapse; }
+        .page-table thead { display: table-header-group; }
+        .page-table tbody { display: table-row-group; }
+        .page-table > tbody > tr > td { padding: 0; }
+        .page-table thead td { border-bottom: none; }
+
         /* Gemeinsamer Druck-Header (aus _print_header.html) */
         .print-header { position: static !important; display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: none; }
         .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
@@ -277,12 +284,20 @@
 
 <div class="doc-section sec-startlist">
     {% set title = _('Startlisten') %}
-    {% include 'print/_print_header.html' %}
-    {% for run in ordered_runs %}
-        {{ startlist_block(run) }}
-    {% else %}
-        <p style="text-align:center; font-weight:bold; margin-top:2cm;">{{ _('Kein Zeitplan vorhanden') }}</p>
-    {% endfor %}
+    <table class="page-table">
+        <thead>
+            <tr><td>{% include 'print/_print_header.html' %}</td></tr>
+        </thead>
+        <tbody>
+            <tr><td>
+                {% for run in ordered_runs %}
+                    {{ startlist_block(run) }}
+                {% else %}
+                    <p style="text-align:center; font-weight:bold; margin-top:2cm;">{{ _('Kein Zeitplan vorhanden') }}</p>
+                {% endfor %}
+            </td></tr>
+        </tbody>
+    </table>
 </div>
 
 {# ───── Bündel 2: Einweiser (pro Ring) ───── #}
