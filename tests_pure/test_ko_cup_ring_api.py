@@ -54,6 +54,8 @@ def ctx(tmp_path, monkeypatch):
         json.dump([_event()], f, ensure_ascii=False)
     app = Flask(__name__, template_folder=os.path.join(WEB_APP_PATH, "templates"))
     app.secret_key = "test"
+    from flask_babel import Babel
+    Babel(app)  # gettext() in ko_cup.round_label braucht die babel-Extension
     app.register_blueprint(kc.ko_cup_bp)
     return app.test_client(), tmp_path
 

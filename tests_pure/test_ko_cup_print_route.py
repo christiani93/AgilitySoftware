@@ -116,6 +116,8 @@ def client(tmp_path, monkeypatch):
 
     app = Flask(__name__, template_folder=os.path.join(WEB_APP_PATH, "templates"))
     app.secret_key = "test"
+    from flask_babel import Babel
+    Babel(app)  # gettext() in ko_cup.round_label braucht die babel-Extension
     app.jinja_env.filters["format_date"] = lambda d: d  # Stub (nur Haupt-App hat ihn)
     app.jinja_env.globals["_"] = lambda s: s  # Flask-Babel-gettext (nur Haupt-App)
     app.register_blueprint(kc.ko_cup_bp)
@@ -162,6 +164,8 @@ def test_print_route_shows_finalisten_fallback_before_bracket(tmp_path, monkeypa
         json.dump([event], f, ensure_ascii=False)
     app = Flask(__name__, template_folder=os.path.join(WEB_APP_PATH, "templates"))
     app.secret_key = "test"
+    from flask_babel import Babel
+    Babel(app)  # gettext() in ko_cup.round_label braucht die babel-Extension
     app.jinja_env.filters["format_date"] = lambda d: d
     app.jinja_env.globals["_"] = lambda s: s
     app.register_blueprint(kc.ko_cup_bp)
