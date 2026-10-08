@@ -5,7 +5,7 @@
 
 Stand: 2026-10-08
 
-## ⏳ Ring-Reassign-Fix + Event-Liste-Fix + DEV-GUI-Bat (2026-10-08 Abend) — NICHT committed
+## ✅ Ring-Reassign-Fix + Event-Liste-Fix + DEV-GUI-Bat (2026-10-08 Abend) — COMMITTED + GEPUSHT + EXE GEBAUT
 
 - [x] `ring_server.py`: Handler `reassign_current_starter` (`handle_reassign`) ergänzt →
       LINKE "Starter: #N"-Nummer am Ring-PC-Panel folgt jetzt dem "Zeit zuweisen"-Button
@@ -16,8 +16,11 @@ Stand: 2026-10-08
 - [x] **NEU `Start_Ring_dev_gui.bat`** (Projekt-Root): startet Ring-Server MIT GUI aus
       Quellcode via `ring_launcher.py` (wie EXE, ohne Build). Memory `reference_ring_build_and_dev_run`.
 - [x] **AgilityRing.exe neu gebaut** (2026-10-08 21:05, enthält handle_reassign) → `dist/AgilityRing.exe`.
-- [ ] **COMMIT** dieser 3 Änderungen (ring_server.py, events_list.html, Start_Ring_dev_gui.bat).
-- [ ] **GitHub-Push** (zusammen mit dem schon offenen Push unten).
+- [x] **COMMIT** `76a0dd5` (ring_server.py, events_list.html, Start_Ring_dev_gui.bat, TODO.md).
+- [x] **GitHub-Push**: `49b5972..76a0dd5` (9 Commits) erfolgreich nach `origin/main` gepusht.
+- [x] **AgilitySoftware.exe neu gebaut** (2026-10-08 21:51, enthält ea87048+76a0dd5 — Ring-Monitor-
+      Dual-Mechanismus-Fix + Reassign-Endpoint + Event-Fallback-Label). Smoke-Test HTTP 200 grün.
+      Alte EXE gesichert als `dist/AgilitySoftware_prebuild_20261008_2152.exe.bak`.
 - [ ] Mehrring-Realtest: linke Nummer folgt Reassign auf echtem Ring-PC.
 
 ## ✅ Druck-Fixes Runde 2 + EXE-Build (2026-10-08 Abend) — COMMITTED + EXE GEBAUT
@@ -36,8 +39,8 @@ EXE neu gebaut. Details Memory `project_print_fixes_20261008`, `project_software
       Jetzt pro Ring in `page-table/thead`-Technik → Logo auf jeder Seite. Startlisten-Bündel ebenso.
 - [x] **AgilitySoftware.exe neu gebaut** aus HEAD `2fc5ea7` (64-bit, Smoke HTTP 200). AgilityRing.exe
       NICHT neu (keine Ring-Änderungen).
-- [ ] **GitHub-Push**: origin/main=`49b5972`; lokal voraus mit `bc37976`/`1262f44`/`f9618e2`/
-      `41dfbad`/`d125eb7`/`f2e9b4e`/`2fc5ea7`. Noch pushen.
+- [x] **GitHub-Push**: `bc37976`/`1262f44`/`f9618e2`/`41dfbad`/`d125eb7`/`f2e9b4e`/`2fc5ea7`
+      zusammen mit `ea87048`/`76a0dd5` am 2026-10-08 21:48 nach `origin/main` gepusht.
 
 ## ✅ Läufig-Toggle Software (2026-10-08) — COMMITTED (`41dfbad` + Teil-3-Erweiterung)
 
