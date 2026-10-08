@@ -129,13 +129,13 @@ def get_event_logo_data_uris(event):
     return result
 
 
-def _load_data(filename, default_data=[]):
+def _load_data(filename, default_data=None):
     filepath = _data_path(filename)
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
-        return default_data
+        return default_data if default_data is not None else []
 
 def _save_data(filename, data):
     filepath = _data_path(filename)

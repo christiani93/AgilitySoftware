@@ -2213,95 +2213,95 @@ def import_event_package():
                     start_numbers_payload = _read_zip_json(zip_file, 'start_numbers.json') or []
                     schedule_payload = _read_zip_json(zip_file, 'schedule.json') or []
 
-                event_block = event_payload.get("event") if isinstance(event_payload, dict) else event_payload
-                event_title = _get_first_value(
-                    event_block or {},
-                    ("Bezeichnung", "name", "title", "event_name"),
-                    "Event (Importiert)"
-                )
-                event_date = _get_first_value(
-                    event_block or {},
-                    ("Datum", "date", "event_date", "start_date"),
-                    date.today().isoformat()
-                )
-
-                events = _load_data(EVENTS_FILE)
-                _lc_done_at = _get_first_value(event_block or {}, ("lizenzcheck_done_at",), None)
-                event = {
-                    "id": str(uuid.uuid4()),
-                    "external_id": _get_first_value(event_block or {}, ("external_id", "id"), None),
-                    "Bezeichnung": f"{event_title} (Importiert)",
-                    "Datum": event_date,
-                    "VeranstalterClubNr": _get_first_value(event_block or {}, ("VeranstalterClubNr", "club_number", "club"), ""),
-                    "Turniernummer": _get_first_value(event_block or {}, ("Turniernummer", "event_number"), ""),
-                    "num_rings": 1,
-                    "runs": [],
-                    "run_order": [],
-                    "start_number_schema": {},
-                    "start_times_by_ring": {},
-                    "lizenzcheck_done": bool(_lc_done_at),
-                    "lizenzcheck_done_at": _lc_done_at,
-                }
-
-                registrations = _eventexport_registration_list(registrations_payload)
-                apply_info = _apply_eventexport_registrations(event, registrations, entities_payload)
-
-                settings = _load_settings()
-                schedule_info = _apply_eventexport_schedule(event, schedule_payload, settings)
-                start_numbers_info = _apply_eventexport_start_numbers(event, start_numbers_payload)
-
-                # ── Logos aus dem ZIP extrahieren ──────────────────────────
-                event_id_str = event["id"]
-                from paths import data_path
-                logo_dir = data_path("logos", event_id_str)
-                for _zip_name, _logo_key in [
-                    ("logos/event_logo.png",  "event_logo_filename"),
-                    ("logos/event_logo.jpg",  "event_logo_filename"),
-                    ("logos/event_logo.jpeg", "event_logo_filename"),
-                    ("logos/event_logo.webp", "event_logo_filename"),
-                    ("logos/event_logo.svg",  "event_logo_filename"),
-                    ("logos/club_logo.png",   "club_logo_filename"),
-                    ("logos/club_logo.jpg",   "club_logo_filename"),
-                    ("logos/club_logo.jpeg",  "club_logo_filename"),
-                    ("logos/club_logo.webp",  "club_logo_filename"),
-                    ("logos/club_logo.svg",   "club_logo_filename"),
-                ]:
-                    if _zip_name in zip_file.namelist():
-                        os.makedirs(logo_dir, exist_ok=True)
-                        _basename = os.path.basename(_zip_name)
-                        _out_path = os.path.join(logo_dir, _basename)
-                        with zip_file.open(_zip_name) as _zf, open(_out_path, "wb") as _of:
-                            _of.write(_zf.read())
-                        # nur setzen wenn noch nicht gesetzt (erste passende Datei gewinnt)
-                        if _logo_key not in event:
-                            event[_logo_key] = _basename
-
-                events.append(event)
-                _save_data(EVENTS_FILE, events)
-
-                flash(f"Event '{event['Bezeichnung']}' erfolgreich importiert.", 'success')
-                if start_numbers_payload:
-                    flash(
-                        f"Startnummern importiert: {start_numbers_info['applied']} "
-                        f"(locked: {str(start_numbers_info['locked']).lower()})",
-                        "info"
+                    event_block = event_payload.get("event") if isinstance(event_payload, dict) else event_payload
+                    event_title = _get_first_value(
+                        event_block or {},
+                        ("Bezeichnung", "name", "title", "event_name"),
+                        "Event (Importiert)"
                     )
-                    if start_numbers_info.get("missing"):
+                    event_date = _get_first_value(
+                        event_block or {},
+                        ("Datum", "date", "event_date", "start_date"),
+                        date.today().isoformat()
+                    )
+
+                    events = _load_data(EVENTS_FILE)
+                    _lc_done_at = _get_first_value(event_block or {}, ("lizenzcheck_done_at",), None)
+                    event = {
+                        "id": str(uuid.uuid4()),
+                        "external_id": _get_first_value(event_block or {}, ("external_id", "id"), None),
+                        "Bezeichnung": f"{event_title} (Importiert)",
+                        "Datum": event_date,
+                        "VeranstalterClubNr": _get_first_value(event_block or {}, ("VeranstalterClubNr", "club_number", "club"), ""),
+                        "Turniernummer": _get_first_value(event_block or {}, ("Turniernummer", "event_number"), ""),
+                        "num_rings": 1,
+                        "runs": [],
+                        "run_order": [],
+                        "start_number_schema": {},
+                        "start_times_by_ring": {},
+                        "lizenzcheck_done": bool(_lc_done_at),
+                        "lizenzcheck_done_at": _lc_done_at,
+                    }
+
+                    registrations = _eventexport_registration_list(registrations_payload)
+                    apply_info = _apply_eventexport_registrations(event, registrations, entities_payload)
+
+                    settings = _load_settings()
+                    schedule_info = _apply_eventexport_schedule(event, schedule_payload, settings)
+                    start_numbers_info = _apply_eventexport_start_numbers(event, start_numbers_payload)
+
+                    # ── Logos aus dem ZIP extrahieren ──────────────────────────
+                    event_id_str = event["id"]
+                    from paths import data_path
+                    logo_dir = data_path("logos", event_id_str)
+                    for _zip_name, _logo_key in [
+                        ("logos/event_logo.png",  "event_logo_filename"),
+                        ("logos/event_logo.jpg",  "event_logo_filename"),
+                        ("logos/event_logo.jpeg", "event_logo_filename"),
+                        ("logos/event_logo.webp", "event_logo_filename"),
+                        ("logos/event_logo.svg",  "event_logo_filename"),
+                        ("logos/club_logo.png",   "club_logo_filename"),
+                        ("logos/club_logo.jpg",   "club_logo_filename"),
+                        ("logos/club_logo.jpeg",  "club_logo_filename"),
+                        ("logos/club_logo.webp",  "club_logo_filename"),
+                        ("logos/club_logo.svg",   "club_logo_filename"),
+                    ]:
+                        if _zip_name in zip_file.namelist():
+                            os.makedirs(logo_dir, exist_ok=True)
+                            _basename = os.path.basename(_zip_name)
+                            _out_path = os.path.join(logo_dir, _basename)
+                            with zip_file.open(_zip_name) as _zf, open(_out_path, "wb") as _of:
+                                _of.write(_zf.read())
+                            # nur setzen wenn noch nicht gesetzt (erste passende Datei gewinnt)
+                            if _logo_key not in event:
+                                event[_logo_key] = _basename
+
+                    events.append(event)
+                    _save_data(EVENTS_FILE, events)
+
+                    flash(f"Event '{event['Bezeichnung']}' erfolgreich importiert.", 'success')
+                    if start_numbers_payload:
                         flash(
-                            f"Startnummern ohne Zuordnung: {len(start_numbers_info['missing'])}.",
-                            "warning"
+                            f"Startnummern importiert: {start_numbers_info['applied']} "
+                            f"(locked: {str(start_numbers_info['locked']).lower()})",
+                            "info"
                         )
-                if schedule_payload:
-                    flash(
-                        f"Zeitplanblöcke importiert: {schedule_info['blocks_added']}",
-                        "info"
-                    )
-                if apply_info.get("runs_count"):
-                    flash(
-                        f"Läufe importiert: {apply_info['runs_count']} (Entries: {apply_info['entries_added']}).",
-                        "info"
-                    )
-                return redirect(url_for('events_bp.events_list'))
+                        if start_numbers_info.get("missing"):
+                            flash(
+                                f"Startnummern ohne Zuordnung: {len(start_numbers_info['missing'])}.",
+                                "warning"
+                            )
+                    if schedule_payload:
+                        flash(
+                            f"Zeitplanblöcke importiert: {schedule_info['blocks_added']}",
+                            "info"
+                        )
+                    if apply_info.get("runs_count"):
+                        flash(
+                            f"Läufe importiert: {apply_info['runs_count']} (Entries: {apply_info['entries_added']}).",
+                            "info"
+                        )
+                    return redirect(url_for('events_bp.events_list'))
 
             imported_event = json.load(file)
             if 'id' not in imported_event or 'Bezeichnung' not in imported_event or 'runs' not in imported_event:
