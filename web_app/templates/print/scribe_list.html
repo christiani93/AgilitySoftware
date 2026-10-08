@@ -21,16 +21,16 @@
         .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
         .print-header__meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 9pt; color: #444; }
 
-        .run-container { page-break-after: always; padding-top: 1cm;}
+        .run-container { page-break-after: always; padding-top: 0.3cm;}
         .run-container:last-child { page-break-after: auto; }
 
-        h4 { text-align: center; font-size: 14pt; margin:0; }
-        /* NEU: Grösserer Platz für Laufvorgaben (Punkt 1.2) */
-        .run-meta-info { text-align: center; font-size: 10pt; margin-bottom: 10px; padding: 5px; border: 1px solid #ccc; border-radius: 5px; background-color: #f8f9fa !important; }
+        h4 { text-align: center; font-size: 11pt; margin: 0 0 2px 0; }
+        .run-meta-info { text-align: center; font-size: 7.5pt; margin-bottom: 4px; padding: 3px; border: 1px solid #ccc; border-radius: 5px; background-color: #f8f9fa !important; }
 
-        table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
-        th, td { border: 1px solid black !important; padding: 8px; vertical-align: middle; }
-        thead th { background-color: #e9ecef !important; font-size: 11pt; }
+        table { width: 100%; border-collapse: collapse; font-size: 8pt; page-break-inside: auto; }
+        th, td { border: 1px solid black !important; padding: 2px 5px; vertical-align: middle; line-height: 1.15; }
+        td small { font-size: 7pt; }
+        thead th { background-color: #e9ecef !important; font-size: 8.5pt; }
         thead { display: table-header-group; }
         tr { page-break-inside: avoid; page-break-after: auto; }
 
@@ -73,7 +73,7 @@
                             <th style="width: 10%;">{{ _('Zeit') }}</th>
                             <th style="width: 10%;">{{ _('Fehler') }}</th>
                             <th style="width: 10%;">{{ _('Verw.') }}</th>
-                            <th style="width: 10%;">DIS/ABR</th>
+                            <th style="width: 10%;">{{ _('DIS/ABR') }}</th>
                             <th style="width: 30%;">{{ _('Notizen') }}</th>
                         </tr>
                     </thead>

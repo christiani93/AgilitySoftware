@@ -37,13 +37,13 @@
         .doc-section--first { page-break-before: auto; }
 
         /* ── Zeitplan (.sec-schedule) ───────────────────────────────── */
-        .sec-schedule h3 { text-align: left; margin: 0.3cm 0 0.2cm 0; font-size: 13pt; }
-        .sec-schedule table { width: 100%; border-collapse: collapse; font-size: 10pt; page-break-inside: auto; }
-        .sec-schedule th, .sec-schedule td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+        .sec-schedule h3 { text-align: left; margin: 0.15cm 0 0.1cm 0; font-size: 9pt; }
+        .sec-schedule table { width: 100%; border-collapse: collapse; font-size: 7pt; page-break-inside: auto; }
+        .sec-schedule th, .sec-schedule td { border: 1px solid #ccc; padding: 0.5px 3px; text-align: left; line-height: 1.05; }
         .sec-schedule th { background-color: #f2f2f2 !important; }
         .sec-schedule thead { display: table-header-group; }
         .sec-schedule tr { page-break-inside: avoid; }
-        .sec-schedule .sub { font-size: 8pt; color: #666; }
+        .sec-schedule .sub { font-size: 6pt; color: #666; line-height: 1.05; margin: 0; }
 
         /* ── Startlisten (.sec-startlist) ───────────────────────────── */
         .sec-startlist .run-title { text-align: center; font-size: 15pt; font-weight: 700; font-style: italic; margin: 0.4cm 0 2px 0; }
@@ -72,13 +72,14 @@
 
         /* ── Ringschreiberliste (.sec-scribe) ───────────────────────── */
         .sec-scribe { page-break-before: always; }
-        .sec-scribe .run-container { page-break-after: always; padding-top: 0.4cm; }
+        .sec-scribe .run-container { page-break-after: always; padding-top: 0.3cm; }
         .sec-scribe .run-container:last-child { page-break-after: auto; }
-        .sec-scribe h4 { text-align: center; font-size: 14pt; margin: 0; }
-        .sec-scribe .run-meta-info { text-align: center; font-size: 10pt; margin-bottom: 10px; padding: 5px; border: 1px solid #ccc; border-radius: 5px; background-color: #f8f9fa !important; }
-        .sec-scribe table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
-        .sec-scribe th, .sec-scribe td { border: 1px solid black !important; padding: 8px; vertical-align: middle; }
-        .sec-scribe thead th { background-color: #e9ecef !important; font-size: 11pt; }
+        .sec-scribe h4 { text-align: center; font-size: 11pt; margin: 0 0 2px 0; }
+        .sec-scribe .run-meta-info { text-align: center; font-size: 7.5pt; margin-bottom: 4px; padding: 3px; border: 1px solid #ccc; border-radius: 5px; background-color: #f8f9fa !important; }
+        .sec-scribe table { width: 100%; border-collapse: collapse; font-size: 8pt; page-break-inside: auto; }
+        .sec-scribe th, .sec-scribe td { border: 1px solid black !important; padding: 2px 5px; vertical-align: middle; line-height: 1.15; }
+        .sec-scribe td small { font-size: 7pt; }
+        .sec-scribe thead th { background-color: #e9ecef !important; font-size: 8.5pt; }
         .sec-scribe thead { display: table-header-group; }
         .sec-scribe tr { page-break-inside: avoid; }
 
@@ -245,7 +246,7 @@
                 <th style="width: 10%;">{{ _('Zeit') }}</th>
                 <th style="width: 10%;">{{ _('Fehler') }}</th>
                 <th style="width: 10%;">{{ _('Verw.') }}</th>
-                <th style="width: 10%;">DIS/ABR</th>
+                <th style="width: 10%;">{{ _('DIS/ABR') }}</th>
                 <th style="width: 30%;">{{ _('Notizen') }}</th>
             </tr>
         </thead>

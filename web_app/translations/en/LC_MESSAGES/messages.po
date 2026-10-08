@@ -677,6 +677,11 @@ msgstr "No"
 msgid "nicht gestartet"
 msgstr "not started"
 
+#: templates/print/all.html:248 templates/print/scribe_list.html:76
+#: templates/print/scribe_list_by_schedule.html:76
+msgid "DIS/ABR"
+msgstr "DIS/WD"
+
 # --- Manage event participants ---
 #: templates/manage_event_participants.html:2
 msgid "Teilnehmer-Optionen für"
