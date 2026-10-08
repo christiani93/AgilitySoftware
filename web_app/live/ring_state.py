@@ -80,6 +80,18 @@ def apply_result_saved(state: dict, startlist: Iterable[dict], saved_entry_id: s
     return {"current_entry_id": next_current, "ready_entry_id": next_ready}
 
 
+def apply_manual_reassign(state: dict, startlist: Iterable[dict], entry_id: str | None) -> dict:
+    """Setzt current_entry_id manuell (Button 'Zeit diesem Teilnehmer zuweisen',
+    kein Timer-Reset). ready_entry_id ruckt nach, falls er jetzt mit current
+    kollidiert."""
+    ids = _normalize_ids(startlist)
+    entry_id = str(entry_id) if entry_id else None
+    ready = (state or {}).get("ready_entry_id")
+    if ready is not None and str(ready) == entry_id:
+        ready = _next_id(ids, entry_id)
+    return {"current_entry_id": entry_id, "ready_entry_id": ready}
+
+
 def build_view_model_from_state(
     state: dict,
     startlist: Iterable[dict],
@@ -104,7 +116,10 @@ def build_view_model_from_state(
     def _find_entry(entry_id: str | None) -> dict:
         for entry in startlist or []:
             if str(_entry_id(entry)) == str(entry_id):
-                return {"entry_id": str(entry_id), "name": _entry_name(entry)}
+                # Rohfelder (Vorname/Hundename/Hundefuehrer/Startnummer/...)
+                # mitgeben - format_ring_name() und Ring-Monitor/Sprecher-
+                # Display lesen direkt diese Originalschluessel, nicht "name".
+                return {**entry, "entry_id": str(entry_id), "name": _entry_name(entry)}
         return {"entry_id": entry_id, "name": "—"}
 
     return {

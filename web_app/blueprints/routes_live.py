@@ -16,7 +16,7 @@ from utils import (_load_data, _save_data, _get_active_event,
                    _format_time, _format_total_errors, get_ring_state,
                    sort_entries_for_startlist)
 import planner.schedule_planner as schedule_planner
-from web_app.live.ring_state import apply_start_impulse, apply_result_saved, init_ring_entry_state
+from web_app.live.ring_state import apply_start_impulse, apply_result_saved, apply_manual_reassign, init_ring_entry_state
 
 live_bp = Blueprint('live_bp', __name__, template_folder='../templates')
 
@@ -345,6 +345,16 @@ def save_result(event_id, run_id):
         run['current_starter'] = unfinished[0] if unfinished else {}
         run['next_starter'] = unfinished[1] if len(unfinished) > 1 else {}
 
+        # ring_entry_state (current_entry_id) ebenfalls weiterruecken - sonst
+        # bleibt der Ring-Monitor/Sprecher-Display (die ueber build_ring_view_model
+        # aus ring_entry_state lesen, nicht aus run['current_starter']) auf dem
+        # ersten Starter des Laufs haengen.
+        ring_num_for_state = re.sub(r"[^0-9]", "", str(run.get('assigned_ring') or "")) or "1"
+        ring_state_all = event.setdefault("ring_entry_state", {})
+        ring_state_all[ring_num_for_state] = apply_result_saved(
+            ring_state_all.get(ring_num_for_state) or {}, entries_sorted, license_nr
+        )
+
         _save_data('events.json', events)
 
         # Realtime Updates
@@ -565,6 +575,62 @@ def ring_starter_changed():
         pass
     return jsonify({"success": True})
 
+
+@live_bp.route('/live/api/reassign_current_starter', methods=['POST'])
+def reassign_current_starter():
+    """Setzt den aktuellen Starter manuell (Button 'Zeit diesem Teilnehmer
+    zuweisen' im Ring-PC-Dashboard, z.B. bei Fehlzuordnung am Alge-Board) -
+    ohne Timer-Reset. Aktualisiert beide State-Mechanismen (run['current_starter']
+    fuers Ring-PC-Dashboard selbst, ring_entry_state fuer Ring-Monitor/Sprecher-
+    Display) und benachrichtigt die Monitore per Socket."""
+    data = request.get_json(silent=True) or {}
+    event_id = data.get("event_id")
+    run_id = data.get("run_id")
+    license_nr = data.get("license_number")
+    if not event_id or not run_id or not license_nr:
+        return jsonify({"success": False, "message": "event_id, run_id oder license_number fehlt"}), 400
+
+    events = _load_data('events.json')
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return jsonify({"success": False, "message": "Event nicht gefunden"}), 404
+    run = next((r for r in event.get('runs', []) or [] if r.get('id') == run_id), None)
+    if not run:
+        return jsonify({"success": False, "message": "Lauf nicht gefunden"}), 404
+    entry = next((e for e in run.get('entries', []) if e.get('Lizenznummer') == license_nr), None)
+    if not entry:
+        return jsonify({"success": False, "message": "Teilnehmer nicht in diesem Lauf gefunden"}), 404
+
+    entries_sorted = sort_entries_for_startlist(run.get('entries', []))
+    unfinished = [
+        e for e in entries_sorted
+        if not (e.get('result') and (e['result'].get('zeit') or e['result'].get('disqualifikation')))
+    ]
+    run['current_starter'] = entry
+    remaining = [e for e in unfinished if e.get('Lizenznummer') != license_nr]
+    run['next_starter'] = remaining[0] if remaining else {}
+
+    ring_no = re.sub(r"[^0-9]", "", str(run.get('assigned_ring') or "")) or "1"
+    ring_state_all = event.setdefault("ring_entry_state", {})
+    ring_state_all[ring_no] = apply_manual_reassign(
+        ring_state_all.get(ring_no) or {}, entries_sorted, license_nr
+    )
+
+    _save_data('events.json', events)
+
+    try:
+        ring_room = f"event:{event_id}:ring:{ring_no}"
+        payload = {'event_id': event_id, 'ring_name': f"Ring {ring_no}"}
+        socketio.emit('announcer_update', payload, room=ring_room)
+        socketio.emit('announcer_update', payload, room=f"event:{event_id}")
+        socketio.emit('ring_ready_changed', payload, room=ring_room)
+        socketio.emit('ring_ready_changed', payload, room=f"event:{event_id}")
+    except Exception:
+        pass
+
+    return jsonify({"success": True})
+
+
 @live_bp.route('/ring_monitor/<int:ring_number>')
 def display_ring_monitor(ring_number):
     event = _get_active_event()
@@ -764,7 +830,12 @@ def render_ring_monitor_content(ring_number: int):
     view = build_ring_view_model(event, ring_number)
     current_run = view.get("current_run")
     if not current_run:
-        html = f"<div class='ring-monitor'><h2>{ring_label}</h2><p>Kein Lauf wurde für diesen Ring aktiviert.</p></div>"
+        html = (
+            f"<div class='ring-monitor'><h2>{ring_label}</h2>"
+            "<p>Kein Lauf wurde für diesen Ring aktiviert.</p>"
+            f"<a href='/print/schedule/{event.get('id')}' target='_blank' "
+            "class='btn btn-outline-primary'>📅 Zeitplan anzeigen</a></div>"
+        )
         return Response(html, mimetype='text/html')
     meta_bits = []
     if current_run.get("klasse"):
@@ -987,6 +1058,14 @@ def api_set_participant_status(event_id, run_id):
     ]
     run['current_starter'] = unfinished[0] if unfinished else {}
     run['next_starter'] = unfinished[1] if len(unfinished) > 1 else {}
+
+    # ring_entry_state ebenfalls weiterruecken, analog save_result (sonst
+    # haengt der Ring-Monitor nach DNS/DIS auf dem alten Starter fest).
+    ring_num_for_state = re.sub(r"[^0-9]", "", str(run.get('assigned_ring') or "")) or "1"
+    ring_state_all = event.setdefault("ring_entry_state", {})
+    ring_state_all[ring_num_for_state] = apply_result_saved(
+        ring_state_all.get(ring_num_for_state) or {}, entries_sorted, license_nr
+    )
 
     _save_data('events.json', events)
 

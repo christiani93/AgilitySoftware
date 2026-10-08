@@ -528,15 +528,21 @@
         .catch(()=> alert("Netzwerkfehler beim Speichern."));
       },
       reassignStarter: function(licenseNr){
-        // Wechselt den aktuellen Starter OHNE Timer-Reset und OHNE Ring-Server-Kommunikation.
+        // Wechselt den aktuellen Starter OHNE Timer-Reset.
         // Nützlich wenn Alge-Board läuft und falscher Starter gesetzt wurde.
         const starter = state.allEntries.find(e => e.Lizenznummer === licenseNr);
         if (!starter) return;
         state.currentEntryToEdit = starter;
-        // Ring-Server informieren falls verbunden (kein Timer-Reset)
+        // Lokalen TIMY/Ring-Server informieren falls verbunden (kein Timer-Reset)
         if (state.localSocket && state.localSocket.connected){
           state.localSocket.emit("reassign_current_starter", { run_id: state.currentRunId, starter: starter });
         }
+        // Hauptserver informieren -> aktualisiert Ring-Monitor + Sprecher-Display
+        fetch(`/live/api/reassign_current_starter`, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ event_id: eventId, run_id: state.currentRunId, license_number: licenseNr })
+        }).catch(()=>{});
         renderStarterList();
       },
       setStarterReady: function(licenseNr){

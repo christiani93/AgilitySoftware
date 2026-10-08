@@ -1,4 +1,5 @@
 from web_app.live.ring_state import (
+    apply_manual_reassign,
     apply_result_saved,
     apply_start_impulse,
     build_view_model_from_state,
@@ -6,8 +7,11 @@ from web_app.live.ring_state import (
 )
 
 
-def _entry(license_nr, first="A", dog="Dog"):
-    return {"Lizenznummer": license_nr, "Vorname": first, "Hundename": dog}
+def _entry(license_nr, first="A", dog="Dog", startno=None):
+    e = {"Lizenznummer": license_nr, "Vorname": first, "Hundename": dog}
+    if startno is not None:
+        e["Startnummer"] = startno
+    return e
 
 
 def test_start_impulse_only_moves_ready():
@@ -45,3 +49,32 @@ def test_view_model_keys_and_names():
     assert "last_results" in vm
     assert vm["current"]["name"] == "Anna Ava"
     assert vm["ready"]["name"] == "Berta Balu"
+
+
+def test_view_model_current_keeps_raw_fields():
+    # Regression: Ring-Monitor/Sprecher-Display lesen format_ring_name() bzw.
+    # .Startnummer direkt von current_starter - _find_entry darf die
+    # Original-Felder (Vorname/Hundename/Startnummer) nicht verwerfen.
+    startlist = [_entry("A", "Anna", "Ava", startno=1), _entry("B", "Berta", "Balu", startno=2)]
+    state = init_ring_entry_state(startlist)
+    vm = build_view_model_from_state(state, startlist)
+    assert vm["current"]["Vorname"] == "Anna"
+    assert vm["current"]["Hundename"] == "Ava"
+    assert vm["current"]["Startnummer"] == 1
+    assert vm["ready"]["Startnummer"] == 2
+
+
+def test_manual_reassign_sets_current_without_timer():
+    startlist = [_entry("A"), _entry("B"), _entry("C")]
+    state = {"current_entry_id": "A", "ready_entry_id": "B"}
+    new_state = apply_manual_reassign(state, startlist, "C")
+    assert new_state["current_entry_id"] == "C"
+    assert new_state["ready_entry_id"] == "B"  # unveraendert, kollidiert nicht
+
+
+def test_manual_reassign_advances_ready_on_collision():
+    startlist = [_entry("A"), _entry("B"), _entry("C")]
+    state = {"current_entry_id": "A", "ready_entry_id": "B"}
+    new_state = apply_manual_reassign(state, startlist, "B")
+    assert new_state["current_entry_id"] == "B"
+    assert new_state["ready_entry_id"] == "C"  # B war ready -> ruckt nach

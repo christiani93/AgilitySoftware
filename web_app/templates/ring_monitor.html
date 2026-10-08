@@ -59,7 +59,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderRunMeta(meta, current, ready) {
         if (!runMetaEl) return false;
         if (!meta || !meta.title) {
-            runMetaEl.innerHTML = `<div class="text-center text-muted py-4">Kein Lauf wurde für diesen Ring aktiviert.</div>`;
+            runMetaEl.innerHTML = `<div class="text-center text-muted py-4">
+                <p>Kein Lauf wurde für diesen Ring aktiviert.</p>
+                <a href="/print/schedule/${eventId}" target="_blank" class="btn btn-outline-primary">📅 Zeitplan anzeigen</a>
+            </div>`;
             return true;
         }
         const metaBits = [];
