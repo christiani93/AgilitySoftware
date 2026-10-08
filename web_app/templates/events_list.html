@@ -71,7 +71,7 @@
         <div>
             <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="text-decoration-none">
                 <h5 class="mb-1 {% if event.id == active_event_id %}text-danger fw-bold{% endif %}">
-                    {{ event.Bezeichnung }}
+                    {{ event.Bezeichnung or '⚠ ' + _('Unbenannte Veranstaltung (Alt-Schema – kann gelöscht werden)') }}
                     {% if event.id == active_event_id %}<span class="badge bg-danger ms-2">LIVE</span>{% endif %}
                 </h5>
             </a>

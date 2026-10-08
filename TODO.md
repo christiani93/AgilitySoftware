@@ -5,10 +5,50 @@
 
 Stand: 2026-10-08
 
-## ⏳ Druck/Export/Richter-Fix-Runde (2026-10-08) — UNCOMMITTED, bereit
+## ⏳ Ring-Reassign-Fix + Event-Liste-Fix + DEV-GUI-Bat (2026-10-08 Abend) — NICHT committed
 
-Alle Fixes umgesetzt + 167 Tests + Portal-Kontrakt-Test grün. Noch NICHT committet
-(User kontrolliert zuerst). Details in Memory `project_print_fixes_20261008`.
+- [x] `ring_server.py`: Handler `reassign_current_starter` (`handle_reassign`) ergänzt →
+      LINKE "Starter: #N"-Nummer am Ring-PC-Panel folgt jetzt dem "Zeit zuweisen"-Button
+      (ohne Timer-Reset). War die dritte, bisher ungefixte "aktueller Starter"-Quelle
+      (lokaler Ring-Server-State, NICHT Hauptserver). Memory `reference_ring_state_dual_mechanism`.
+- [x] `events_list.html`: Fallback-Label für Events ohne `Bezeichnung` (Alt-Schema) →
+      titellose Zeile jetzt sichtbar + löschbar. Memory `project_titleless_event_diagnosis`.
+- [x] **NEU `Start_Ring_dev_gui.bat`** (Projekt-Root): startet Ring-Server MIT GUI aus
+      Quellcode via `ring_launcher.py` (wie EXE, ohne Build). Memory `reference_ring_build_and_dev_run`.
+- [x] **AgilityRing.exe neu gebaut** (2026-10-08 21:05, enthält handle_reassign) → `dist/AgilityRing.exe`.
+- [ ] **COMMIT** dieser 3 Änderungen (ring_server.py, events_list.html, Start_Ring_dev_gui.bat).
+- [ ] **GitHub-Push** (zusammen mit dem schon offenen Push unten).
+- [ ] Mehrring-Realtest: linke Nummer folgt Reassign auf echtem Ring-PC.
+
+## ✅ Druck-Fixes Runde 2 + EXE-Build (2026-10-08 Abend) — COMMITTED + EXE GEBAUT
+
+Zweite Druck-Feedback-Runde committed (`d125eb7`/`f2e9b4e`/`2fc5ea7`, `main`), 170 Tests grün,
+EXE neu gebaut. Details Memory `project_print_fixes_20261008`, `project_software_exe_build`.
+- [x] `master_steward_list.html` (Einweiserliste): Laufvorgaben-Tabelle (Parcours/SCT/MCT/Richter/
+      Unterschrift) ENTFERNT (nicht benötigt).
+- [x] Zeitpläne (`print/schedule` + Sammeldruck `.sec-schedule`): Schrift/Padding verkleinert →
+      ~25 Läufe/Seite inkl. Kategorie-Unterzeile. Briefing/Umbau unverändert.
+- [x] Schreiberlisten (`scribe_list` + `_by_schedule` + Sammeldruck `.sec-scribe`): kompakter →
+      ~20 Teilnehmer/Seite.
+- [x] „DIS/ABR"-Spaltenkopf übersetzbar (`{{ _('DIS/ABR') }}`; FR=DIS/ABD, EN=DIS/WD, DE-Fallback)
+      + msgid in de/en/fr .po + `pybabel compile`.
+- [x] `print/all`: Einweiser- + Ringbüro-Bündel banden `_print_header` GAR NICHT ein → keine Logos.
+      Jetzt pro Ring in `page-table/thead`-Technik → Logo auf jeder Seite. Startlisten-Bündel ebenso.
+- [x] **AgilitySoftware.exe neu gebaut** aus HEAD `2fc5ea7` (64-bit, Smoke HTTP 200). AgilityRing.exe
+      NICHT neu (keine Ring-Änderungen).
+- [ ] **GitHub-Push**: origin/main=`49b5972`; lokal voraus mit `bc37976`/`1262f44`/`f9618e2`/
+      `41dfbad`/`d125eb7`/`f2e9b4e`/`2fc5ea7`. Noch pushen.
+
+## ✅ Läufig-Toggle Software (2026-10-08) — COMMITTED (`41dfbad` + Teil-3-Erweiterung)
+
+- [x] Route `POST /events/api/toggle_in_season/<event_id>/<license_nr>` (flippt `is_in_season` in
+      allen Läufen der Hündin). UI-Button + Badge in `manage_run_participants.html` (`41dfbad`) UND
+      zusätzlich in `manage_all_participants.html` (Teil 3). Test `test_toggle_in_season.py`.
+
+## ✅ Druck/Export/Richter-Fix-Runde 1 (2026-10-08) — COMMITTED (`f9618e2`), in EXE
+
+Erste Runde committed als `f9618e2`; Portal-Teil (`ring_start_times`) deployed (44c100c→991578f).
+Alle Fixes in der 2fc5ea7-EXE enthalten. Details in Memory `project_print_fixes_20261008`.
 - [x] Logo-Größen (global im `_print_header.html`), Logos an 6 Druck-Routen ergänzt
 - [x] Übersetzungen: Zeit/Fehler/Verw./Laufvorgaben + Umbau/Lauf/Start/Ende (fr/en .po + compile)
 - [x] Ausland-Kennzeichnung Startliste (is_foreign/foreign_cc; `_()` NICHT im Python!)
@@ -16,13 +56,13 @@ Alle Fixes umgesetzt + 167 Tests + Portal-Kontrakt-Test grün. Noch NICHT commit
 - [x] Zeitplan auf 1 Seite verkleinert
 - [x] manage_runs: doppelter Export-Button bereinigt (JSON raus, ZIP bleibt)
 - [x] Richter „richtet Lauf": Sync Block↔Lauf (Lauf=SSoT) in Import/edit_run/save_schedule
-- [x] Portal (anderes Repo): `ring_start_times` im eventexport → braucht Portal-Deploy + neuer Export→Import
-- [ ] **COMMIT** (Software + Portal) nach User-Kontrolle
-- [ ] **EXE-Rebuild** für produktive Druckänderungen
-- [ ] **Portal-Deploy** für Startzeit-Fix
+- [x] Portal (anderes Repo): `ring_start_times` im eventexport → DEPLOYED; Event-9-Reimport erledigt
+- [x] **COMMIT** (Software `f9618e2` + Portal) — erledigt
+- [x] **EXE-Rebuild** — erledigt (2fc5ea7-EXE)
+- [x] **Portal-Deploy** für Startzeit-Fix — erledigt
 
 ### Offene Features (User-Freigabe)
-- [ ] (9) Echter Läufigkeits-Toggle in Software (bisher nur `start_last`/is_in_season via Portal-Import)
+- [x] (9) Echter Läufigkeits-Toggle in Software — erledigt (`41dfbad`, s.o.)
 - [ ] (10) „Ist anwesend"-Richterliste am Event (wie Portal `EventJudge`) — neues Datenmodell + UI
 - [ ] (11) Software-Zeitplan/Richter an Portal-Architektur angleichen (gemeinsame Logik, nur JSON vs SQL) — eigenes Refactoring-Projekt
 

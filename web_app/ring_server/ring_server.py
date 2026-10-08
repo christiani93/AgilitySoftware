@@ -273,6 +273,19 @@ def handle_set_ready(data):
         socketio.emit('state_update', state)
         print(f"[{state['ring_id']}] Starter bereit: {data.get('starter', {}).get('Startnummer')}")
 
+@socketio.on('reassign_current_starter')
+def handle_reassign(data):
+    # Wechselt den angezeigten Starter OHNE Timer-/Status-Reset. Pendant zum
+    # "Zeit diesem Teilnehmer zuweisen"-Button am Ring-PC: nur current_starter
+    # (und active_run_id) werden aktualisiert, run_status/start_time_tod/faults/
+    # refusals bleiben unangetastet, damit eine bereits laufende Zeitmessung
+    # bzw. das Alge-Board nicht abreisst.
+    state['current_starter'] = data.get('starter')
+    if data.get('run_id'):
+        state['active_run_id'] = data.get('run_id')
+    socketio.emit('state_update', state)
+    print(f"[{state['ring_id']}] Starter neu zugewiesen (ohne Reset): {(data.get('starter') or {}).get('Startnummer')}")
+
 @socketio.on('increment_counter')
 def handle_increment(data):
     # KORREKTUR: Zählt Fehler/Verweigerung hoch
