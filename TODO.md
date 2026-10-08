@@ -3,9 +3,25 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-10-07
+Stand: 2026-10-08
+
+## ✅ ERLEDIGT: EXE-Rebuild für KO-System-Button (2026-10-08)
+
+Commit **`9c737d7`** (feature/ko-cup) "KO-System-Button im Ring-Dashboard" ist
+committed + lokal getestet. BEIDE EXE **im Vordergrund neu gebaut** aus HEAD
+`9c737d7`:
+- [x] **AgilityRing.exe** (32-bit, `web_app/ring_env` + `installer/AgilityRing.spec`)
+      → `dist/` Stand 07:46 — neuer Tkinter-Button "KO-System öffnen".
+- [x] **AgilitySoftware.exe** (64-bit, `web_app/flask_env` + `installer/AgilitySoftware.spec`)
+      → `dist/` Stand 07:45 — neue Route `/ring_pc_ko/<ring>`. Headless-Smoke:
+      `/health`→200, `/ring_pc_ko/1` ohne aktives Event →404 wie erwartet.
+- Mechanik dokumentiert in Memory `project_exe_rebuild_20261008`.
 
 ## Halloween Cup KO-System (Deadline 30.10.–01.11.2026) — IN ARBEIT auf Branch `feature/ko-cup`
+
+- [x] Ring-PC KO-System-Button: Tkinter-Dashboard hat jetzt 2. Button "KO-System
+      öffnen" → Hauptserver-Route `/ring_pc_ko/<ring>` löst aktives Event auf und
+      leitet auf `/ko-cup/ring/<event_id>?ring=N` weiter (`9c737d7`, EXE-Rebuild offen, s.o.)
 
 Architektur entschieden (06.10.): **Variante B** — KO offline in AgilitySoftware mit TIMY,
 Portal nur read-only Live-Anzeige. Finalisten-Transfer an `eventexport.v1` inkl. **Startnummer**
