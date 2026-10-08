@@ -3,7 +3,7 @@ setlocal EnableExtensions EnableDelayedExpansion
 
 echo ============================================
 echo   AgilitySoftware - Hauptsystem starten
-echo   (Autoupdate + Web-App + Browser)
+echo   (Autoupdate + Web-App)
 echo ============================================
 echo.
 
@@ -88,12 +88,6 @@ echo [WEB] Starte Web-App auf Port 5000...
 set "CURDIR=%CD%"
 
 start "Agility Web" cmd /k cd /d "%CURDIR%" ^& call flask_env\Scripts\activate.bat ^& python app.py ^& echo. ^& echo [WEB] Flask wurde beendet. ^& pause
-
-REM ------------------------------------------------
-REM 7) Browser auf localhost:5000 oeffnen
-REM ------------------------------------------------
-echo [WEB] Oeffne Browser auf http://localhost:5000 ...
-start "" "http://localhost:5000"
 
 echo.
 echo ============================================

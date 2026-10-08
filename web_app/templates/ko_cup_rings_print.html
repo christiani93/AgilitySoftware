@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ _('Ring-Startlisten') }} – {{ event.Bezeichnung }}</title>
+    <style>
+        /* Bewusst KEIN Bootstrap-CDN: wird am Event oft OHNE Internet gedruckt.
+           Logo-Header + Typo bewusst gleich wie die uebrigen KO-Drucksachen. */
+        body { font-family: sans-serif; color: #111; margin: 1.2cm; -webkit-print-color-adjust: exact; }
+        h2 { font-size: 1.1em; border-bottom: 2px solid #333; padding-bottom: 3px; margin: 1.1em 0 0.5em; }
+        .print-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 3cm; margin-bottom: 0.3cm; }
+        .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
+        .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .print-header__logo-img { max-width: 2.5cm; max-height: 2.8cm; object-fit: contain; }
+        .print-header__titles { text-align: center; flex: 1; font-size: 10pt; }
+        .print-header__title { font-size: 1.1em; font-weight: 600; }
+        .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #bbb; padding: 5px 7px; text-align: left; font-size: 10pt; }
+        th { background: #f2f2f2; }
+        .num { text-align: center; width: 2.2cm; }
+        .muted { color: #888; }
+        .noprint { margin-bottom: 14px; }
+        @media print { .noprint { display: none; } body { margin: 0.8cm; } }
+        .pagebreak { page-break-before: always; }
+    </style>
+</head>
+<body>
+    <div class="noprint">
+        <button onclick="window.print()">🖨️ {{ _('Drucken') }}</button>
+    </div>
+
+    {% include 'print/_print_header.html' %}
+
+    <p class="muted" style="margin-top:-0.4em;">
+        {{ _('Laufreihenfolge über alle Kategorien: frühe Runden zuerst, Finalrunden (Spiel um Platz 3, dann Final) aller Kategorien gemeinsam am Schluss in der Reihenfolge Small – Medium – Intermediate – Large. Nur Lauf 1 aufgelistet — bei Lauf 2 wechseln dieselben Teams intern den Ring.') }}
+    </p>
+
+    {% for rs in ring_startlists %}
+    {% if not loop.first %}<div class="pagebreak"></div>{% endif %}
+    <h2 id="ring-{{ rs.ring }}">{{ _('Startliste Ring') }} {{ rs.ring }}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>{{ _('Kategorie') }}</th>
+                <th>{{ _('Runde') }}</th>
+                <th class="num">{{ _('Duell') }}</th>
+                <th class="num">{{ _('Start-Nr.') }}</th>
+                <th>{{ _('Hund') }}</th>
+                <th>{{ _('Hundeführer') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rs.rows %}
+            <tr>
+                <td>{{ row.category }}</td>
+                <td>{{ row.round_label }}</td>
+                <td class="num">{{ row.matchup_no }}</td>
+                <td class="num">{{ row.start_number if row.start_number is not none else '–' }}</td>
+                <td>{{ row.dog_name }}</td>
+                <td>{{ row.handler_name or '' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="muted">{{ _('Noch keine Duelle mit Ring-Zuteilung.') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+{% extends "layout.html" %}
+{% block title %}KO-Cup {{ final.group_label }} – {{ event.Bezeichnung }}{% endblock %}
+
+{% macro run_inputs(side, run_key, run) %}
+  <div class="d-flex gap-1 align-items-center">
+    <input type="number" step="0.01" min="0" class="form-control form-control-sm" style="width:6rem"
+           name="{{ side }}_{{ run_key }}_time" value="{{ run.time if run.time is not none else '' }}" placeholder="Zeit">
+    <input type="number" min="0" class="form-control form-control-sm" style="width:3.5rem"
+           name="{{ side }}_{{ run_key }}_faults" value="{{ run.faults or 0 }}" title="Fehler">
+    <input type="number" min="0" class="form-control form-control-sm" style="width:3.5rem"
+           name="{{ side }}_{{ run_key }}_refusals" value="{{ run.refusals or 0 }}" title="Verweigerungen">
+    <div class="form-check ms-1">
+      <input class="form-check-input" type="checkbox" name="{{ side }}_{{ run_key }}_dis" {{ 'checked' if run.dis else '' }}>
+      <label class="form-check-label small">DIS</label>
+    </div>
+  </div>
+{% endmacro %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">🎃 Finale {{ final.group_label }}</h1>
+    <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <div class="btn-group">
+      <a href="{{ url_for('ko_cup_bp.ko_ring', event_id=event.id) }}?ring=1"
+         class="btn btn-outline-success" target="_blank" title="Ring-Bedienung Ring 1 (Port 5001)">
+        <i class="fas fa-stopwatch me-1"></i>Ring 1
+      </a>
+      <a href="{{ url_for('ko_cup_bp.ko_ring', event_id=event.id) }}?ring=2"
+         class="btn btn-outline-success" target="_blank" title="Ring-Bedienung Ring 2 (Port 5002)">
+        <i class="fas fa-stopwatch me-1"></i>Ring 2
+      </a>
+    </div>
+    <a href="{{ url_for('ko_cup_bp.ko_final_print', event_id=event.id, final_id=final.id) }}"
+       class="btn btn-outline-dark" target="_blank">
+      <i class="fas fa-print me-1"></i>Drucken
+    </a>
+    <a href="{{ url_for('ko_cup_bp.ko_config', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Alle Finals
+    </a>
+  </div>
+</div>
+
+{# ── Finalisten ───────────────────────────────────────────────────────────── #}
+<div class="card mb-4 shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Finalisten ({{ final.participants | length }})</h5>
+  </div>
+  <div class="card-body">
+    {# Add-Formular #}
+    <form method="post" class="row g-2 align-items-end mb-3">
+      <input type="hidden" name="action" value="add_participant">
+      <div class="col-md-3"><label class="form-label small mb-0">Hund</label>
+        <input type="text" name="dog_name" class="form-control form-control-sm" required></div>
+      <div class="col-md-3"><label class="form-label small mb-0">Führer</label>
+        <input type="text" name="handler_name" class="form-control form-control-sm"></div>
+      <div class="col-md-2"><label class="form-label small mb-0">Lizenz</label>
+        <input type="text" name="license_no" class="form-control form-control-sm"></div>
+      <div class="col-md-1"><label class="form-label small mb-0">Startnr</label>
+        <input type="number" name="start_number" class="form-control form-control-sm"></div>
+      <div class="col-md-2"><label class="form-label small mb-0">Quelle</label>
+        <select name="source" class="form-select form-select-sm">
+          {% for s in sources %}<option value="{{ s }}">{{ source_labels[s] }}</option>{% endfor %}
+        </select></div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fas fa-plus"></i></button>
+      </div>
+    </form>
+
+    {% if final.participants %}
+    {# Separate Formulare (nicht verschachtelt) für Losnummern/Random/Generate #}
+    <form id="setdraws" method="post"><input type="hidden" name="action" value="set_draws"></form>
+    <table class="table table-sm align-middle mb-3">
+      <thead><tr>
+        <th>Hund</th><th>Führer</th><th>Lizenz</th><th>Startnr</th><th>Quelle</th>
+        <th style="width:7rem">Losnr</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for p in final.participants %}
+        <tr>
+          <td>{{ p.dog_name }}</td>
+          <td>{{ p.handler_name or '—' }}</td>
+          <td>{{ p.license_no or '—' }}</td>
+          <td>{{ p.start_number if p.start_number is not none else '—' }}</td>
+          <td><span class="badge bg-light text-dark">{{ source_labels.get(p.source, p.source) }}</span></td>
+          <td>
+            <input type="number" min="1" form="setdraws" name="draw_{{ p.id }}" class="form-control form-control-sm"
+                   value="{{ p.draw_number if p.draw_number is not none else '' }}">
+          </td>
+          <td class="text-end">
+            <form method="post" class="d-inline" onsubmit="return confirm('Finalist entfernen? Das Bracket wird zurückgesetzt.');">
+              <input type="hidden" name="action" value="delete_participant">
+              <input type="hidden" name="participant_id" value="{{ p.id }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="d-flex flex-wrap gap-2">
+      <button type="submit" form="setdraws" class="btn btn-sm btn-outline-primary">
+        <i class="fas fa-save me-1"></i>Losnummern speichern</button>
+      <form method="post" class="d-inline"><input type="hidden" name="action" value="random_draws">
+        <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="fas fa-dice me-1"></i>Zufällig (Test)</button></form>
+      <form method="post" class="d-inline" onsubmit="return confirm('Bracket (neu) generieren? Bereits erfasste Ergebnisse gehen verloren.');">
+        <input type="hidden" name="action" value="generate_bracket">
+        <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-sitemap me-1"></i>Bracket generieren</button></form>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">Noch keine Finalisten erfasst.</p>
+    {% endif %}
+  </div>
+</div>
+
+{# ── Bracket ──────────────────────────────────────────────────────────────── #}
+{% if bracket %}
+<div class="card mb-4 shadow-sm">
+  <div class="card-header"><h5 class="mb-0">Bracket</h5></div>
+  <div class="card-body">
+    {% for rnd in bracket %}
+    <h6 class="text-uppercase text-muted mt-3">{{ rnd.label }}</h6>
+    {% for mv in rnd.matchups %}
+      {% set m = mv.m %}
+      <div class="border rounded p-2 mb-2 {% if mv.winner %}border-success{% endif %}">
+        <div class="row">
+          {# Seite A #}
+          <div class="col-md-5">
+            <div class="{% if m.winner_id and m.winner_id == m.a_id %}fw-bold text-success{% endif %}">
+              {% if mv.a %}{{ mv.a.handler_name }} · {{ mv.a.dog_name }}
+                {% if mv.rings %}<span class="badge bg-light text-dark ms-1">R{{ mv.rings.a.run1 }}→R{{ mv.rings.a.run2 }}</span>{% endif %}
+                {% if mv.a_total is not none %}<span class="badge bg-info text-dark ms-1">{{ '%.2f'|format(mv.a_total) }}s</span>{% endif %}
+              {% else %}<span class="text-muted">— (wartet / Freilos)</span>{% endif %}
+            </div>
+          </div>
+          <div class="col-md-2 text-center text-muted">vs</div>
+          {# Seite B #}
+          <div class="col-md-5 text-md-end">
+            <div class="{% if m.winner_id and m.winner_id == m.b_id %}fw-bold text-success{% endif %}">
+              {% if mv.b %}{{ mv.b.handler_name }} · {{ mv.b.dog_name }}
+                {% if mv.rings %}<span class="badge bg-light text-dark ms-1">R{{ mv.rings.b.run1 }}→R{{ mv.rings.b.run2 }}</span>{% endif %}
+                {% if mv.b_total is not none %}<span class="badge bg-info text-dark ms-1">{{ '%.2f'|format(mv.b_total) }}s</span>{% endif %}
+              {% else %}<span class="text-muted">— (wartet / Freilos)</span>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        {% if mv.is_tie %}<div class="alert alert-warning py-1 my-2 small">Gleichstand – bitte Sieger manuell wählen.</div>{% endif %}
+
+        {% if mv.a and mv.b %}
+        <form method="post" action="{{ url_for('ko_cup_bp.ko_matchup_result', event_id=event.id, final_id=final.id, matchup_id=m.id) }}"
+              class="mt-2 border-top pt-2">
+          <div class="row g-2 small">
+            <div class="col-md-6">
+              <div class="text-muted">A – Lauf 1 (Zeit / F / V / DIS)</div>{{ run_inputs('a','run1', m.a.run1) }}
+              <div class="text-muted mt-1">A – Lauf 2</div>{{ run_inputs('a','run2', m.a.run2) }}
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted">B – Lauf 1 (Zeit / F / V / DIS)</div>{{ run_inputs('b','run1', m.b.run1) }}
+              <div class="text-muted mt-1">B – Lauf 2</div>{{ run_inputs('b','run2', m.b.run2) }}
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-3 align-items-center mt-2 small">
+            <div>
+              <span class="text-muted">Forfeit:</span>
+              <label class="ms-1"><input type="radio" name="forfeit" value="" {{ 'checked' if not m.forfeit_id }}> keiner</label>
+              <label class="ms-1"><input type="radio" name="forfeit" value="a" {{ 'checked' if m.forfeit_id == m.a_id }}> A</label>
+              <label class="ms-1"><input type="radio" name="forfeit" value="b" {{ 'checked' if m.forfeit_id == m.b_id }}> B</label>
+            </div>
+            <div>
+              <span class="text-muted">Sieger manuell:</span>
+              <label class="ms-1"><input type="radio" name="manual_winner" value="" {{ 'checked' if not m.manual_winner_id }}> auto</label>
+              <label class="ms-1"><input type="radio" name="manual_winner" value="a" {{ 'checked' if m.manual_winner_id == m.a_id }}> A</label>
+              <label class="ms-1"><input type="radio" name="manual_winner" value="b" {{ 'checked' if m.manual_winner_id == m.b_id }}> B</label>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary ms-auto"><i class="fas fa-save me-1"></i>Speichern</button>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    {% endfor %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{# ── Schlussrangliste ─────────────────────────────────────────────────────── #}
+{% if results %}
+<div class="card shadow-sm">
+  <div class="card-header"><h5 class="mb-0">🏆 Schlussrangliste</h5></div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead><tr><th style="width:4rem">Rang</th><th>Führer</th><th>Hund</th><th>Lizenz</th></tr></thead>
+      <tbody>
+        {% for r in results %}
+        <tr class="{% if r.rank == 1 %}table-warning{% endif %}">
+          <td><strong>{{ r.rank }}</strong></td>
+          <td>{{ r.p.handler_name or '—' }}</td>
+          <td>{{ r.p.dog_name }}</td>
+          <td>{{ r.p.license_no or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

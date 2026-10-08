@@ -22,13 +22,25 @@ app.config['DATA_DIR'] = data_dir()
 app.config['SOFTWARE_VERSION'] = APP_VERSION
 app.config['SECRET_KEY'] = 'dein_super_geheimer_schluessel'
 app.config['BABEL_DEFAULT_LOCALE'] = 'de'
-app.config['BABEL_SUPPORTED_LOCALES'] = ['de', 'fr']
+app.config['BABEL_SUPPORTED_LOCALES'] = ['de', 'fr', 'en']
 app.config['BABEL_TRANSLATION_DIRECTORIES'] = resource_path("translations")
 babel = Babel()
 
 def _select_locale():
-    """Für /print/-Routen: Sprache aus den Einstellungen lesen. Sonst immer 'de'."""
-    if request.path.startswith('/print/'):
+    """Für Druck-Routen: Sprache aus den Einstellungen lesen. Sonst immer 'de'.
+
+    Neben /print/* zählen dazu die Rangliste-PDF-Routen unter /live/ (dort
+    wird das für den Portal-Upload bzw. die Vorschau gerenderte PDF erzeugt)
+    sowie die KO-Cup-Druckseiten unter /ko-cup/ (Endrangliste, Ring-Listen)."""
+    path = request.path
+    is_print_route = (
+        path.startswith('/print/')
+        or path.startswith('/live/preview_ranking_pdf/')
+        or path.startswith('/live/upload_ranking_pdf/')
+        or path.startswith('/ko-cup/rings_print/')
+        or path.endswith('/print')
+    )
+    if is_print_route:
         from utils import _load_settings
         return _load_settings().get('print_language', 'de')
     return 'de'
@@ -125,6 +137,8 @@ def settings():
         print_language = request.form.get('print_language', 'de')
         if print_language in ('de', 'fr'):
             current_settings['print_language'] = print_language
+        # Download-Zielordner (leer = System-Downloads + Speichern-Dialog)
+        current_settings['download_dir'] = request.form.get('download_dir', '').strip()
         _save_data('settings.json', current_settings)
         flash(_('Einstellungen erfolgreich gespeichert.'), 'success')
         return redirect(url_for('settings'))
@@ -153,12 +167,18 @@ def internal_server_error(e):
 
 def initialize_files():
     from utils import _save_data
+    from paths import data_path
     files = [
         'events.json', 'dogs.json', 'handlers.json', 'clubs.json', 'judges.json',
         'active_event.json', 'settings.json', 'snapshots.json', 'outbox.json'
     ]
     for filename in files:
-        if not os.path.exists(os.path.join('data', filename)):
+        # WICHTIG: Existenz gegen den ABSOLUTEN data_dir prüfen (data_path),
+        # nicht gegen das relative 'data/<file>'. Sonst greift die Prüfung – je
+        # nach Arbeitsverzeichnis beim EXE-Start – daneben und _save_data würde
+        # eine leere Liste in die REALEN Daten neben der EXE schreiben = alle
+        # Veranstaltungen/Hunde/... gelöscht.
+        if not os.path.exists(data_path(filename)):
             _save_data(filename, [] if 'active' not in filename and 'settings' not in filename else {})
 
 from blueprints.routes_events import events_bp
@@ -171,6 +191,7 @@ from blueprints.routes_skbs_sm import skbs_sm_bp
 from blueprints.routes_bccs_sm import bccs_sm_bp
 from blueprints.routes_fmbb import fmbb_bp
 from blueprints.routes_team_challenge import team_challenge_bp
+from blueprints.routes_ko_cup import ko_cup_bp
 
 app.register_blueprint(events_bp)
 app.register_blueprint(master_data_bp)
@@ -182,6 +203,7 @@ app.register_blueprint(skbs_sm_bp)
 app.register_blueprint(bccs_sm_bp)
 app.register_blueprint(fmbb_bp)
 app.register_blueprint(team_challenge_bp)
+app.register_blueprint(ko_cup_bp)
 
 @app.context_processor
 def inject_current_year():
@@ -243,6 +265,46 @@ def _print_startup_banner(port=5000):
     print("")
 
 
+def _unique_path(directory: str, filename: str) -> str:
+    """Zielpfad in ``directory`` für ``filename``; hängt bei Kollision (n) an."""
+    base, ext = os.path.splitext(filename)
+    candidate = os.path.join(directory, filename)
+    n = 1
+    while os.path.exists(candidate):
+        candidate = os.path.join(directory, f"{base} ({n}){ext}")
+        n += 1
+    return candidate
+
+
+def _install_download_dir_override():
+    """Lenkt WebView2-Downloads in den in den Einstellungen gewählten Ordner.
+
+    Ist ``download_dir`` gesetzt und gültig, wird die Datei ohne Dialog direkt
+    dorthin gespeichert (mit eindeutigem Namen). Sonst bleibt das Standard-
+    verhalten (nativer "Speichern unter"-Dialog, Startordner = Downloads).
+    """
+    try:
+        from webview.platforms import edgechromium as _ec
+    except Exception:
+        return  # anderer Backend / pywebview-Layout → nichts zu tun
+
+    _original = _ec.EdgeChrome.on_download_starting
+
+    def _patched(self, sender, args):
+        try:
+            from utils import _load_settings
+            target_dir = (_load_settings().get("download_dir") or "").strip()
+            if target_dir and os.path.isdir(target_dir):
+                filename = os.path.basename(args.ResultFilePath)
+                args.ResultFilePath = _unique_path(target_dir, filename)
+                return
+        except Exception:
+            pass  # bei jedem Fehler auf Standard-Dialog zurückfallen
+        return _original(self, sender, args)
+
+    _ec.EdgeChrome.on_download_starting = _patched
+
+
 def _run_socketio(port=5000, debug=False):
     """Startet Flask-SocketIO. Wird im Hintergrund-Thread aufgerufen,
     wenn ein App-Fenster (pywebview) das Main-Thread besetzt."""
@@ -267,6 +329,13 @@ def _open_app_window(port=5000):
     except ImportError:
         print("[INFO] pywebview nicht installiert – kein App-Fenster.")
         return False
+
+    # Downloads sind in pywebview standardmässig deaktiviert (Default False) →
+    # Attachment-Responses (TKAMO-CSV, PDFs, Event-Export-ZIP) würden im
+    # WebView2-Fenster still abgebrochen. Aktivieren: EdgeChromium zeigt dann
+    # einen nativen "Speichern unter"-Dialog (Startordner = Downloads).
+    webview.settings['ALLOW_DOWNLOADS'] = True
+    _install_download_dir_override()
 
     # Erst warten bis der Server lauscht (kurzer Probe-Loop), sonst lädt
     # WebView eine leere Seite.

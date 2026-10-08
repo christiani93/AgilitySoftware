@@ -1,12 +1,20 @@
 <div class="print-header">
     <div class="print-header__logo">
+        {% if event_logo_data %}
+        <img src="{{ event_logo_data }}" alt="{{ _('Eventlogo') }}" class="print-header__logo-img">
+        {% else %}
         <div class="print-header__logo-box">{{ _('Eventlogo') }}</div>
+        {% endif %}
     </div>
     <div class="print-header__titles">
         <div class="print-header__title">{{ title }}</div>
         <div class="print-header__subtitle">{{ event.Bezeichnung }} - {{ event.Datum | format_date }}</div>
     </div>
     <div class="print-header__logo print-header__logo--right">
+        {% if club_logo_data %}
+        <img src="{{ club_logo_data }}" alt="{{ _('Vereinslogo') }}" class="print-header__logo-img">
+        {% else %}
         <div class="print-header__logo-box">{{ _('Vereinslogo') }}</div>
+        {% endif %}
     </div>
 </div>

@@ -21,6 +21,12 @@ DEFAULT_START_TIME_SECONDS = {
         "intermediate": {"1": 60, "2": 60, "3": 60},
         "large": {"1": 60, "2": 60, "3": 60},
     },
+    "tunnellauf": {
+        "small": {"1": 60, "2": 60, "3": 60},
+        "medium": {"1": 60, "2": 60, "3": 60},
+        "intermediate": {"1": 60, "2": 60, "3": 60},
+        "large": {"1": 60, "2": 60, "3": 60},
+    },
     "other": {
         "small": {"1": 65, "2": 65, "3": 65},
         "medium": {"1": 65, "2": 65, "3": 65},
@@ -229,6 +235,7 @@ def generate_run_title(block: Dict) -> str:
         "agility": "Agility",
         "jumping": "Jumping",
         "open": "Open",
+        "tunnellauf": "Tunnellauf",
     }.get(run_type, "Other")
 
     prefix = "Open " if run_format == "open" and run_type != "open" else ""
@@ -301,24 +308,62 @@ def _compute_timeline_for_ring(ring_id: str, ring_data: Dict, settings: Dict, ev
         timeline_items.append(item)
         current_time = end_time
 
-    for block in ring_data.get("blocks") or []:
+    blocks = ring_data.get("blocks") or []
+
+    def _run_group_key(blk: Dict) -> Tuple:
+        return (
+            (blk.get("timing_run_type") or "").strip().lower(),
+            (blk.get("run_format") or "").strip().lower(),
+            tuple(str(c) for c in (blk.get("classes") or [])),
+        )
+
+    # Aufeinanderfolgende Run-Blöcke mit gleicher Disziplin + Laufformat + Klasse
+    # bilden EINE Gruppe: ein Umbau, ein gemeinsames Briefing, dann die Läufe
+    # (eine Kategorie pro Block) in Folge. Das entspricht der Portal-Logik
+    # (schedule_utils._split_into_groups). Der Portal-Export liefert einen Block
+    # pro (Disziplin, Kategorie, Klasse); ohne Gruppierung entstünde sonst pro
+    # Kategorie-Block ein eigener Umbau + Briefing (zu viele Briefings/Umbauten).
+    n = len(blocks)
+    i = 0
+    while i < n:
+        block = blocks[i]
         block_type = block.get("type")
         if block_type == "run":
-            participants_by_class = collect_participants_by_class(event_runs, block)
-            block["estimated"] = calculate_estimates(participants_by_class, block, settings)
-            est = block.get("estimated") or {}
-            add_segment("changeover", est.get("changeover_seconds", planning.get("changeover_seconds", 0)), "Umbau", block)
-            add_segment("briefing", est.get("briefing_seconds", 0), "Briefing", block)
-            prep_seconds = est.get("prep_pause_seconds", 0)
+            group = [block]
+            key = _run_group_key(block)
+            j = i + 1
+            while j < n and blocks[j].get("type") == "run" and _run_group_key(blocks[j]) == key:
+                group.append(blocks[j])
+                j += 1
+
+            # Pro-Block-Schätzung (für Lauf-Dauer/Starter) + Gruppen-Aggregat
+            # (für das gemeinsame Briefing + die Umbaupause).
+            per_block = []
+            group_participants = 0
+            for b in group:
+                participants_by_class = collect_participants_by_class(event_runs, b)
+                b["estimated"] = calculate_estimates(participants_by_class, b, settings)
+                est = b.get("estimated") or {}
+                group_participants += est.get("participants_total", 0)
+                per_block.append((b, est))
+
+            _, briefing_seconds, prep_seconds = calculate_briefing_and_prep(group_participants, planning)
+            leader = group[0]
+            add_segment("changeover", planning.get("changeover_seconds", 0), "Umbau", leader)
+            add_segment("briefing", briefing_seconds, "Briefing", leader)
             if prep_seconds:
-                add_segment("prep_pause", prep_seconds, "Prep-Pause", block)
-            add_segment("run", est.get("run_seconds", 0), "Lauf", block, num_starters=est.get("participants_total", 0))
+                add_segment("prep_pause", prep_seconds, "Prep-Pause", leader)
+            for b, est in per_block:
+                add_segment("run", est.get("run_seconds", 0), "Lauf", b, num_starters=est.get("participants_total", 0))
+            i = j
         elif block_type == "rank_announcement":
             duration_seconds = block.get("duration_seconds") or planning.get("rank_announcement_default_seconds", 300)
             add_segment("rank_announcement", duration_seconds, block.get("title") or "Rangverkündigung", block)
+            i += 1
         else:
             duration_seconds = block.get("duration_seconds", 0)
             add_segment(block_type or "other", duration_seconds, block.get("title") or block_type or "Block", block)
+            i += 1
 
     return timeline_items
 

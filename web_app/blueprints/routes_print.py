@@ -1,10 +1,12 @@
 # blueprints/routes_print.py
 from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, Response
+from flask_babel import gettext as _
 from datetime import datetime
 import csv
 import io
 from utils import (_load_data, _save_data, _calculate_run_results, _load_settings,
-                   _calculate_timelines, get_category_sort_key, resolve_judge_id, resolve_judge_name)
+                   _calculate_timelines, get_category_sort_key, resolve_judge_id, resolve_judge_name,
+                   get_event_logo_data_uris)
 from planner.print_order import get_ordered_runs_for_print
 from planner.print_schedule_order import (
     build_schedule_print_sections,
@@ -25,12 +27,92 @@ from planner.briefing_groups import (
 
 print_bp = Blueprint('print_bp', __name__, template_folder='../templates')
 
+
+def _safe_timelines(event):
+    """Berechnet timelines_by_ring mit denselben Fallbacks wie print_schedule."""
+    try:
+        timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
+    except Exception:
+        timelines_by_ring = None
+    if not timelines_by_ring:
+        fallback_event = dict(event)
+        fallback_event.pop('schedule', None)
+        try:
+            timelines_by_ring = _calculate_timelines(fallback_event, round_to_minutes=5)
+        except Exception:
+            timelines_by_ring = None
+    if not timelines_by_ring:
+        num_rings = event.get('num_rings') or 1
+        timelines_by_ring = {str(ring): [] for ring in range(1, num_rings + 1)}
+    return timelines_by_ring
+
+
 @print_bp.route('/print/<event_id>')
 def print_index(event_id):
     """Übersichtsseite für Vorbereitungsdrucksachen."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     return render_template('print/index.html', event=event)
+
+
+@print_bp.route('/print/all/<event_id>')
+def print_all(event_id):
+    """Sammeldruck aller Vorbereitungsdrucksachen in einem Dokument (ein Druckauftrag),
+    gegliedert in drei Bündel mit Titelseiten:
+      1. Teilnehmerinfo (Alle Ringe): Zeitplan + Startlisten
+      2. Einweiser (pro Ring): Ring-Zeitplan + Einweiserliste nach Ringzeitplan
+      3. Ringbüro (pro Ring): Ring-Zeitplan + Ringschreiberliste nach Ringzeitplan
+    """
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+
+    judges = _load_data('judges.json')
+    judges_map = {j['id']: f"{j.get('firstname', '')} {j.get('lastname', '')}".strip() for j in judges}
+    logos = get_event_logo_data_uris(event)
+
+    timelines_by_ring = _safe_timelines(event)
+    ring_keys = sorted(timelines_by_ring.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x))
+
+    # Bündel 1: offizielle Startlisten in Zeitplan-Reihenfolge
+    ordered_runs = _enrich_entries_rasse_verein(get_ordered_runs_for_print(event))
+
+    # Bündel 2: Einweiserlisten nach Ringzeitplan, pro Ring gruppiert
+    steward_sections = build_schedule_steward_sections(event)
+    # Bündel 3: Ringschreiberlisten nach Ringzeitplan, pro Ring gruppiert
+    scribe_sections = build_schedule_print_sections(event)
+    for section in scribe_sections:
+        first_run = (section.get("runs") or [{}])[0]
+        section["judge_name"] = resolve_judge_name(event, first_run, judges, section.get("block"))
+
+    einweiser_by_ring = {
+        rk: {
+            "timeline": timelines_by_ring.get(rk, []),
+            "sections": [s for s in steward_sections if str(s.get("ring")) == str(rk)],
+        }
+        for rk in ring_keys
+    }
+    ringbuero_by_ring = {
+        rk: {
+            "timeline": timelines_by_ring.get(rk, []),
+            "sections": [s for s in scribe_sections if str(s.get("ring")) == str(rk)],
+        }
+        for rk in ring_keys
+    }
+
+    now_str = datetime.now().strftime('%d.%m.%Y %H:%M')
+    return render_template(
+        'print/all.html',
+        event=event,
+        judges_map=judges_map,
+        event_logo_data=logos['event'],
+        club_logo_data=logos['club'],
+        timelines_by_ring=timelines_by_ring,
+        ring_keys=ring_keys,
+        ordered_runs=ordered_runs,
+        einweiser_by_ring=einweiser_by_ring,
+        ringbuero_by_ring=ringbuero_by_ring,
+        now_str=now_str,
+    )
 
 def _get_enriched_participants(event):
     """Hilfsfunktion, um Teilnehmerdaten mit Kategorie und Klasse anzureichern."""
@@ -55,20 +137,7 @@ def print_schedule(event_id):
     """Druckansicht für den Zeitplan."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    try:
-        timelines_by_ring = _calculate_timelines(event, round_to_minutes=5)
-    except Exception:
-        timelines_by_ring = None
-    if not timelines_by_ring:
-        fallback_event = dict(event)
-        fallback_event.pop('schedule', None)
-        try:
-            timelines_by_ring = _calculate_timelines(fallback_event, round_to_minutes=5)
-        except Exception:
-            timelines_by_ring = None
-    if not timelines_by_ring:
-        num_rings = event.get('num_rings') or 1
-        timelines_by_ring = {str(ring): [] for ring in range(1, num_rings + 1)}
+    timelines_by_ring = _safe_timelines(event)
     judges_map = {j['id']: f"{j.get('firstname', '')} {j.get('lastname', '')}" for j in _load_data('judges.json')}
     return render_template('print/schedule.html', event=event, timelines_by_ring=timelines_by_ring, judges_map=judges_map)
 
@@ -174,13 +243,33 @@ def print_briefing_groups(event_id=None):
         show_participants_table=show_participants_table,
     )
 
+def _enrich_entries_rasse_verein(ordered_runs):
+    """Reichert die Entries der Läufe um Rasse (aus dogs.json) und Vereinsname
+    (handlers.json → clubs.json) an, damit die Listen der SportyDog-Vorlage
+    entsprechen. Fehlende Werte bleiben leer (z.B. Rasse nicht erfasst)."""
+    dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
+    handlers_map = {h['id']: h for h in _load_data('handlers.json')}
+    clubs_map = {str(c.get('nummer')): c.get('name', '') for c in _load_data('clubs.json')}
+    for run in ordered_runs:
+        for entry in run.get('entries', []):
+            dog = dogs_map.get(entry.get('Lizenznummer'), {})
+            if not entry.get('Rasse'):
+                entry['Rasse'] = dog.get('Rasse', '')
+            handler = handlers_map.get(dog.get('Hundefuehrer_ID'), {})
+            entry['Verein'] = clubs_map.get(str(handler.get('Vereinsnummer', '')), '')
+    return ordered_runs
+
+
 @print_bp.route('/print/startlists/<event_id>')
 def print_startlists(event_id):
     """Offizielle Startliste, sortiert nach Zeitplan-Reihenfolge."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    ordered_runs = get_ordered_runs_for_print(event)
-    return render_template('print_startlists.html', event=event, ordered_runs=ordered_runs)
+    ordered_runs = _enrich_entries_rasse_verein(get_ordered_runs_for_print(event))
+    now_str = datetime.now().strftime('%d.%m.%Y %H:%M')
+    logos = get_event_logo_data_uris(event)
+    return render_template('print_startlists.html', event=event, ordered_runs=ordered_runs, now_str=now_str,
+                           event_logo_data=logos['event'], club_logo_data=logos['club'])
 
 
 @print_bp.route('/print/startlists_by_schedule/<event_id>')
@@ -190,7 +279,9 @@ def print_startlists_by_schedule(event_id):
     if not event:
         abort(404)
     sections = build_schedule_print_sections(event)
-    return render_template('print/startlists_by_schedule.html', event=event, sections=sections)
+    logos = get_event_logo_data_uris(event)
+    return render_template('print/startlists_by_schedule.html', event=event, sections=sections,
+                           event_logo_data=logos['event'], club_logo_data=logos['club'])
 
 @print_bp.route('/print/stewardlists/<event_id>')
 def print_stewardlists(event_id):
@@ -201,7 +292,7 @@ def print_stewardlists(event_id):
     judges = _load_data('judges.json')
     for run in ordered_runs:
         run["judge_display"] = resolve_judge_name(event, run, judges)
-    return render_template('print/scribe_list.html', event=event, title="Ringschreiberlisten", ordered_runs=ordered_runs, judges=judges)
+    return render_template('print/scribe_list.html', event=event, title=_("Ringschreiberlisten"), ordered_runs=ordered_runs, judges=judges)
 
 
 @print_bp.route('/print/stewardlists_by_schedule/<event_id>', endpoint='print_stewardlists_by_schedule_view')
@@ -217,7 +308,7 @@ def print_stewardlists_by_schedule_view(event_id):
     return render_template(
         'print/scribe_list_by_schedule.html',
         event=event,
-        title="Ringschreiberlisten (nach Zeitplan)",
+        title=_("Ringschreiberlisten (nach Zeitplan)"),
         sections=sections,
         judges=judges,
     )
@@ -227,6 +318,7 @@ def print_master_steward_list(event_id):
     """Erstellt eine Master-Einweiserliste: 1 Zeile pro Teilnehmer, 1 Spalte pro Lauf."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
+    judges = _load_data('judges.json')
     participants, grouped_participants = _get_enriched_participants(event), {}
     for p in participants:
         cat, cls = p.get('Kategorie', 'N/A'), str(p.get('Klasse', 'N/A'))
@@ -238,6 +330,8 @@ def print_master_steward_list(event_id):
         final_grouped_data[cat] = {}
         for cls, participants_in_group in grouped_participants[cat].items():
             runs_for_group = [r for r in ordered_runs if r.get('kategorie') == cat and str(r.get('klasse')) == cls]
+            for run in runs_for_group:
+                run['judge_display'] = resolve_judge_name(event, run, judges)
             participant_run_map = {p['Lizenznummer']: {r['id']: False for r in runs_for_group} for p in participants_in_group}
             for run in runs_for_group:
                 for entry in run.get('entries', []):
@@ -291,7 +385,7 @@ def select_award_list(event_id):
     if not event: abort(404)
     if request.method == 'POST':
         run_ids = request.form.getlist('run_ids')
-        if not run_ids: flash("Keine Läufe für die Liste ausgewählt.", "warning"); return redirect(url_for('print_bp.select_award_list', event_id=event_id))
+        if not run_ids: flash(_("Keine Läufe für die Liste ausgewählt."), "warning"); return redirect(url_for('print_bp.select_award_list', event_id=event_id))
         events = _load_data('events.json')
         event_to_update = next((e for e in events if e.get('id') == event_id), None)
         for run in event_to_update.get('runs', []):
@@ -312,6 +406,7 @@ def print_award_list(event_id):
     settings, event = _load_settings(), next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     award_data, runs_to_print = [], [r for r in event.get('runs', []) if r.get('id') in run_ids]
+    runs_to_print.sort(key=lambda r: get_category_sort_key(r.get('kategorie')))
     judges = _load_data('judges.json')
     for run in runs_to_print:
         results = _calculate_run_results(run, settings)
@@ -320,7 +415,10 @@ def print_award_list(event_id):
             'full_judge_name': resolve_judge_name(event, run, judges),
             'rankings': results,
         })
-    return render_template('print_award_list.html', event=event, event_name=event.get('Bezeichnung'), award_data=award_data, event_id=event_id)
+    logos = get_event_logo_data_uris(event)
+    return render_template('print_award_list.html', event=event, event_name=event.get('Bezeichnung'),
+                           award_data=award_data, event_id=event_id,
+                           event_logo_data=logos['event'], club_logo_data=logos['club'])
 
 @print_bp.route('/print/tkamo_export/<event_id>')
 def tkamo_export(event_id):
@@ -449,7 +547,7 @@ def lizenzcheck_cancel(event_id):
     if not event: abort(404)
     event.pop('lizenzcheck_csv_exported_at', None)
     _save_data('events.json', all_events)
-    flash('Lizenzcheck-Export abgebrochen.', 'info')
+    flash(_('Lizenzcheck-Export abgebrochen.'), 'info')
     return redirect(url_for('print_bp.lizenzcheck_index', event_id=event_id))
 
 
@@ -506,7 +604,7 @@ def lizenzcheck_process(event_id):
 
     report_text = request.form.get('tkamo_result', '').strip()
     if not report_text:
-        flash('Bitte TKAMO-Ergebnis einfügen.', 'warning')
+        flash(_('Bitte TKAMO-Ergebnis einfügen.'), 'warning')
         return redirect(url_for('print_bp.lizenzcheck_index', event_id=event_id))
 
     dogs_all = _load_data('dogs.json')

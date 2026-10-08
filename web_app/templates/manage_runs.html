@@ -47,6 +47,9 @@
     <a href="{{ url_for('fmbb_bp.fmbb_dashboard', event_id=event.id) }}" class="btn {% if event.get('fmbb_quali_active') %}btn-primary{% else %}btn-outline-primary{% endif %}">
         <i class="fas fa-flag me-2"></i>FMBB-Quali{% if event.get('fmbb_quali_active') %} <span class="badge bg-light text-dark ms-1">aktiv</span>{% endif %}
     </a>
+    <a href="{{ url_for('ko_cup_bp.ko_config', event_id=event.id) }}" class="btn {% if event.get('ko_cup', {}).get('finals') %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        <i class="fas fa-trophy me-2"></i>KO-Cup (American){% if event.get('ko_cup', {}).get('finals') %} <span class="badge bg-light text-dark ms-1">{{ event['ko_cup']['finals'] | length }}</span>{% endif %}
+    </a>
     <a href="{{ url_for('debug_bp.export_event_package', event_id=event.id) }}" class="btn btn-outline-dark"
        title="Event-Paket als eventexport.v1.zip herunterladen (für Portal-Import)">
         <i class="fas fa-file-zipper me-2"></i>Event-Paket ZIP

@@ -27,7 +27,13 @@
     {% include 'print/_print_header.html' %}
 
     <main>
-        <p>{{ _('Bitte wählen') }}:</p>
+        <p style="margin-bottom: 0.6cm;">
+            <a href="{{ url_for('print_bp.print_all', event_id=event.id) }}" target="_blank"
+               style="display:inline-block; background:#2f7d32; color:#fff; padding:10px 18px; border-radius:6px; font-size:13pt; font-weight:600;">
+               🖨️ {{ _('Alles drucken (Sammeldruck)') }}
+            </a>
+        </p>
+        <p>{{ _('Oder einzeln wählen') }}:</p>
         <ul>
             <li><a href="{{ url_for('print_bp.print_startlists', event_id=event.id) }}" target="_blank"><span>{{ _('Startlisten') }}</span></a></li>
             <li><a href="{{ url_for('print_bp.print_startlists_by_schedule', event_id=event.id) }}" target="_blank"><span>{{ _('Startlisten (nach Zeitplan)') }}</span></a></li>

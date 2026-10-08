@@ -7,6 +7,11 @@ web_app/data/events.json
 /web_app/data
 # Laufzeit-Dateien
 *.log
+# TIMY-Mitschnitte (generiert, enthalten Rohzeiten – nur Quellcode committen)
+tools/timy_recorder/timy_record_*.csv
+timy_diag_*.csv
+# Lokaler Ring-Dump mit echten Teilnehmerdaten
+ringserver_local_dump.txt
 **/__pycache__/
 # Claude-Projektdateien
 .claude/

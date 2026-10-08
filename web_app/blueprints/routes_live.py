@@ -13,7 +13,8 @@ from utils import (_load_data, _save_data, _get_active_event,
                    _calculate_run_results, _load_settings, _get_active_event_id,
                    _calculate_timelines, resolve_judge_name, resolve_judge_id, _to_int,
                    build_ring_view_model, collect_ring_numbers, format_ring_name,
-                   _format_time, _format_total_errors, get_ring_state)
+                   _format_time, _format_total_errors, get_ring_state,
+                   sort_entries_for_startlist)
 import planner.schedule_planner as schedule_planner
 from web_app.live.ring_state import apply_start_impulse, apply_result_saved, init_ring_entry_state
 
@@ -294,7 +295,8 @@ def save_result(event_id, run_id):
             'zeit': q.get('zeit'),
             'fehler': q.get('fehler', 0),
             'verweigerungen': q.get('verweigerungen', 0),
-            'disqualifikation': q.get('disqualifikation')
+            'disqualifikation': q.get('disqualifikation'),
+            'start_time_tod': q.get('start_time_tod')
         }
 
     license_nr = data.get('license_number')
@@ -316,20 +318,26 @@ def save_result(event_id, run_id):
         fehler = int(data.get('fehler') or 0)
         verweigerungen = int(data.get('verweigerungen') or 0)
         disq = data.get('disqualifikation') or None
+        # Scheduling-Grundlage (Zeitplan-Optimierung): echte TIMY-Startzeit
+        # (Tageszeit laut C0-Impuls, vom Ring-Server durchgereicht) statt nur
+        # der Speicher-Zeit in 'timestamp'. Optional – fehlt z.B. bei manueller
+        # Eingabe ohne TIMY, dann einfach None.
+        start_time_tod = data.get('start_time_tod') or None
 
         entry['result'] = {
             'zeit': zeit,
             'fehler': fehler,
             'verweigerungen': verweigerungen,
-            'disqualifikation': disq
+            'disqualifikation': disq,
+            'start_time_tod': start_time_tod
         }
         entry['timestamp'] = datetime.now().isoformat()
 
-        # Bug 3 Fix: current_starter / next_starter beim Speichern weiterrücken
-        entries_sorted = sorted(
-            run.get('entries', []),
-            key=lambda e: _to_int(e.get('Startnummer'), default=999999)
-        )
+        # Bug 3 Fix: current_starter / next_starter beim Speichern weiterrücken.
+        # sort_entries_for_startlist sortiert läufige Hündinnen ans Ende (wie
+        # Startliste/Monitor), damit der aktive Läufer der gleichen Reihenfolge
+        # folgt wie die Ring-PC-Liste.
+        entries_sorted = sort_entries_for_startlist(run.get('entries', []))
         unfinished = [
             e for e in entries_sorted
             if not (e.get('result') and (e['result'].get('zeit') or e['result'].get('disqualifikation')))
@@ -631,6 +639,16 @@ def ring_pc_dashboard(ring_number):
         selected_run_id=selected_run_id,
         judges=_load_data('judges.json'),
     )
+
+@live_bp.route('/ring_pc_ko/<int:ring_number>')
+def ring_pc_ko(ring_number):
+    # Der Ring-Server kennt die Event-ID nicht; hier das aktive Event auflösen
+    # und auf die KO-Cup-Bedienseite dieses Rings weiterleiten.
+    event = _get_active_event()
+    if not event:
+        return "Kein aktives Event.", 404
+    return redirect(url_for('ko_cup_bp.ko_ring', event_id=event.get('id'),
+                            ring=ring_number))
 
 @live_bp.route('/api/render_announcer_schedule/<event_id>')
 def render_announcer_schedule(event_id):
@@ -961,10 +979,8 @@ def api_set_participant_status(event_id, run_id):
     # (analog save_result), damit der aktive Läufer nicht auf dem gesetzten
     # Teilnehmer hängen bleibt. unfinished filtert Einträge mit Zeit ODER
     # disqualifikation (DNS/DIS) heraus, ist also für beide Status korrekt.
-    entries_sorted = sorted(
-        run.get('entries', []),
-        key=lambda e: _to_int(e.get('Startnummer'), default=999999)
-    )
+    # sort_entries_for_startlist hält läufige Hündinnen am Ende (wie Startliste).
+    entries_sorted = sort_entries_for_startlist(run.get('entries', []))
     unfinished = [
         e for e in entries_sorted
         if not (e.get('result') and (e['result'].get('zeit') or e['result'].get('disqualifikation')))
@@ -1036,6 +1052,76 @@ def export_results_to_portal(event_id):
 # Ranglisten-PDF generieren und ans Portal hochladen
 # ---------------------------------------------------------------------------
 
+def _render_ranking_pdf_html(event, run, event_id, is_final):
+    """Baut das Rangliste-HTML (Grundlage für PDF-Upload und Vorschau)."""
+    from blueprints.routes_print import _enrich_entries_rasse_verein
+    _enrich_entries_rasse_verein([run])
+
+    settings = _load_settings()
+    results       = _calculate_run_results(run, settings)
+    judges        = _load_data('judges.json')
+    judge_display = resolve_judge_name(event, run, judges)
+
+    import os as _os, base64 as _b64
+    def _logo_b64(logo_key):
+        fname = event.get(logo_key)
+        if not fname:
+            return None
+        from paths import data_path
+        path = data_path("logos", event_id, fname)
+        if not _os.path.exists(path):
+            return None
+        ext = _os.path.splitext(fname)[1].lower().lstrip(".")
+        mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
+                "gif": "image/gif", "svg": "image/svg+xml", "webp": "image/webp"}.get(ext, "image/png")
+        with open(path, "rb") as _f:
+            data = _b64.b64encode(_f.read()).decode()
+        return f"data:{mime};base64,{data}"
+
+    from flask import render_template as _rt
+    return _rt(
+        'print_ranking_pdf.html',
+        event=event,
+        run=run,
+        results=results,
+        judges=judges,
+        judge_display=judge_display,
+        is_final=is_final,
+        event_logo_data=_logo_b64("event_logo_filename"),
+        club_logo_data=_logo_b64("club_logo_filename"),
+    )
+
+
+@live_bp.route('/live/preview_ranking_pdf/<event_id>/<run_id>')
+def preview_ranking_pdf(event_id, run_id):
+    """Zeigt die Rangliste-PDF im Browser an (kein Upload) — zum Layout-Check."""
+    try:
+        from xhtml2pdf import pisa
+        import io as _io
+    except ImportError:
+        return "xhtml2pdf nicht installiert.", 500
+
+    events = _load_data('events.json')
+    event  = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return "Event nicht gefunden", 404
+    run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None)
+    if not run:
+        return "Lauf nicht gefunden", 404
+
+    is_final = request.args.get('final', '0') == '1'
+    html_str = _render_ranking_pdf_html(event, run, event_id, is_final)
+
+    buf = _io.BytesIO()
+    pisa_status = pisa.CreatePDF(_io.StringIO(html_str), dest=buf)
+    if pisa_status.err:
+        return f"PDF-Generierung fehlgeschlagen (pisa errors: {pisa_status.err})", 500
+
+    from flask import Response
+    return Response(buf.getvalue(), mimetype='application/pdf',
+                    headers={"Content-Disposition": "inline; filename=rangliste_vorschau.pdf"})
+
+
 @live_bp.route('/live/upload_ranking_pdf/<event_id>/<run_id>', methods=['POST'])
 def upload_ranking_pdf(event_id, run_id):
     """
@@ -1071,43 +1157,7 @@ def upload_ranking_pdf(event_id, run_id):
     if not external_id:
         return jsonify({"error": "Event hat keine external_id – bitte Turnier neu vom Portal importieren"}), 400
 
-    # Ergebnisse berechnen
-    results        = _calculate_run_results(run, settings)
-    judges         = _load_data('judges.json')
-    judge_display  = resolve_judge_name(event, run, judges)
-
-    # Logo-URLs berechnen (werden im Template als base64 eingebettet, falls Datei vorhanden)
-    import os as _os, base64 as _b64
-    def _logo_b64(logo_key):
-        fname = event.get(logo_key)
-        if not fname:
-            return None
-        path = _os.path.join("data", "logos", event_id, fname)
-        if not _os.path.exists(path):
-            return None
-        ext = _os.path.splitext(fname)[1].lower().lstrip(".")
-        mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
-                "gif": "image/gif", "svg": "image/svg+xml", "webp": "image/webp"}.get(ext, "image/png")
-        with open(path, "rb") as _f:
-            data = _b64.b64encode(_f.read()).decode()
-        return f"data:{mime};base64,{data}"
-
-    event_logo_data = _logo_b64("event_logo_filename")
-    club_logo_data  = _logo_b64("club_logo_filename")
-
-    # HTML-String rendern (PDF-optimiertes Template, kein position:fixed)
-    from flask import render_template as _rt
-    html_str = _rt(
-        'print_ranking_pdf.html',
-        event=event,
-        run=run,
-        results=results,
-        judges=judges,
-        judge_display=judge_display,
-        is_final=is_final,
-        event_logo_data=event_logo_data,
-        club_logo_data=club_logo_data,
-    )
+    html_str = _render_ranking_pdf_html(event, run, event_id, is_final)
 
     # HTML → PDF via xhtml2pdf
     try:

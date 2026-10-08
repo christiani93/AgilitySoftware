@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ _('KO-Final') }} {{ final.group_label }} – {{ event.Bezeichnung }}</title>
+    <style>
+        /* Bewusst KEIN Bootstrap-CDN: wird am Event oft OHNE Internet gedruckt.
+           Logo-Header + Typo bewusst gleich wie die Siegerliste (print_award_list). */
+        body { font-family: sans-serif; color: #111; margin: 1.2cm; -webkit-print-color-adjust: exact; }
+        h1 { font-size: 1.4em; margin: 0 0 2px; }
+        h2 { font-size: 1.1em; border-bottom: 2px solid #333; padding-bottom: 3px; margin: 1.1em 0 0.5em; }
+        .sub { color: #555; margin: 0 0 1em; }
+        /* Geteilter Druck-Header (Flow, kein position:fixed -> keine Ueberlappung ab Seite 2) */
+        .print-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 3cm; margin-bottom: 0.3cm; }
+        .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
+        .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .print-header__logo-img { max-width: 2.5cm; max-height: 2.8cm; object-fit: contain; }
+        .print-header__titles { text-align: center; flex: 1; font-size: 10pt; }
+        .print-header__title { font-size: 1.1em; font-weight: 600; }
+        .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #bbb; padding: 5px 7px; text-align: left; font-size: 10pt; }
+        th { background: #f2f2f2; }
+        .num { text-align: center; width: 2.2cm; }
+        .fill { background: #fcfcfc; text-align: center; min-width: 2.2cm; }
+        .duell { border: 1px solid #999; border-radius: 4px; padding: 8px 10px; margin-bottom: 10px; page-break-inside: avoid; }
+        .duell h3 { font-size: 1em; margin: 0 0 6px; }
+        .ring { font-weight: 600; white-space: nowrap; }
+        .foot { margin-top: 5px; font-size: 9pt; color: #333; display: flex; justify-content: space-between; }
+        .muted { color: #888; }
+        .noprint { margin-bottom: 14px; }
+        @media print { .noprint { display: none; } body { margin: 0.8cm; } }
+        .pagebreak { page-break-before: always; }
+    </style>
+</head>
+<body>
+    <div class="noprint">
+        <button onclick="window.print()">🖨️ {{ _('Drucken') }}</button>
+        <a href="{{ url_for('ko_cup_bp.ko_rings_print', event_id=event.id) }}">{{ _('Ring-Startlisten (alle Kategorien)') }}</a>
+    </div>
+
+    {% include 'print/_print_header.html' %}
+
+    {% set ns = namespace(section_started=false) %}
+
+    {# ── Endrangliste ───────────────────────────────────────────────── #}
+    {% if results %}
+    <h2>{{ _('Endrangliste') }}{% if status != 'done' %} <span class="muted">({{ _('Zwischenstand') }})</span>{% endif %}</h2>
+    <table>
+        <thead>
+            <tr><th class="num">{{ _('Rang') }}</th><th>{{ _('Hund') }}</th><th>{{ _('Führer') }}</th><th class="num">{{ _('Start-Nr.') }}</th></tr>
+        </thead>
+        <tbody>
+            {% for r in results %}
+            <tr>
+                <td class="num"><strong>{{ r.rank }}</strong></td>
+                <td>{{ r.p.dog_name }}</td>
+                <td>{{ r.p.handler_name or '' }}</td>
+                <td class="num">{{ r.p.start_number if r.p.start_number is not none else '–' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% set ns.section_started = true %}
+    {% endif %}
+
+    {# ── Duell-Laufzettel ───────────────────────────────────────────── #}
+    {% if bracket %}
+    {% if ns.section_started %}<div class="pagebreak"></div>{% endif %}
+    {% set ns.section_started = true %}
+    <h2>{{ _('Duell-Laufzettel') }}</h2>
+    {% for rnd in bracket %}
+      <h3 style="margin-top:0.8em;">{{ rnd.label }}</h3>
+      {% for mv in rnd.matchups %}
+        {% set m = mv.m %}
+        <div class="duell">
+          <h3>{{ rnd.label }} · {{ _('Duell') }} {{ m.matchup_no }}</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>{{ _('Team') }}</th>
+                <th class="num">{{ _('Start-Nr.') }}</th>
+                <th class="ring">{{ _('Lauf') }} 1{% if mv.rings %} ({{ _('Ring') }} {{ mv.rings.a.run1 }}/{{ mv.rings.b.run1 }}){% endif %}</th>
+                <th>{{ _('Zeit / F / V / DIS') }}</th>
+                <th class="ring">{{ _('Lauf') }} 2{% if mv.rings %} ({{ _('Ring') }} {{ mv.rings.a.run2 }}/{{ mv.rings.b.run2 }}){% endif %}</th>
+                <th>{{ _('Zeit / F / V / DIS') }}</th>
+                <th class="num">{{ _('Total') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for side, part, tot in [('a', mv.a, mv.a_total), ('b', mv.b, mv.b_total)] %}
+              <tr>
+                <td>
+                  {% if part %}{{ part.dog_name }}{% if part.handler_name %} <span class="muted">({{ part.handler_name }})</span>{% endif %}
+                  {% else %}<span class="muted">
+                    {%- set src = m.a_source if side == 'a' else m.b_source -%}
+                    {%- if src %}{{ _('Sieger') if src.take == 'winner' else _('Verlierer') }} {{ _('Vorrunde') }}{% else %}{{ _('Freilos') }}{% endif -%}
+                  </span>{% endif %}
+                </td>
+                <td class="num">{{ part.start_number if part and part.start_number is not none else '–' }}</td>
+                <td class="ring num">{% if mv.rings %}Ring {{ mv.rings[side].run1 }}{% else %}–{% endif %}</td>
+                <td class="fill">{% set r1 = m[side].run1 %}{{ r1.time if r1.time is not none else '' }}</td>
+                <td class="ring num">{% if mv.rings %}Ring {{ mv.rings[side].run2 }}{% else %}–{% endif %}</td>
+                <td class="fill">{% set r2 = m[side].run2 %}{{ r2.time if r2.time is not none else '' }}</td>
+                <td class="num">{{ '%.2f' | format(tot) if tot is not none else '' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="foot">
+            <span>
+              {% if mv.winner %}{{ _('Sieger') }}: <strong>{{ mv.winner.dog_name }}</strong>
+              {% elif mv.is_tie %}<strong>{{ _('Gleichstand – manuell entscheiden') }}</strong>
+              {% elif m.forfeit_id %}{{ _('Forfeit') }}
+              {% else %}{{ _('Sieger') }}: __________________________{% endif %}
+            </span>
+            <span class="muted">{{ _('F = Fehler (+2 s) · V = Verweigerung (+2 s) · DIS (+5 s)') }}</span>
+          </div>
+        </div>
+      {% endfor %}
+    {% endfor %}
+    {% else %}
+    {# ── Fallback vor Bracket-Erstellung: Finalisten-/Losliste zum Pruefen ── #}
+    {% if ns.section_started %}<div class="pagebreak"></div>{% endif %}
+    {% set ns.section_started = true %}
+    <h2>{{ _('Finalisten') }} ({{ participants | length }})</h2>
+    <table>
+        <thead>
+            <tr>
+                <th class="num">{{ _('Los') }}</th>
+                <th class="num">{{ _('Start-Nr.') }}</th>
+                <th>{{ _('Hund') }}</th>
+                <th>{{ _('Führer') }}</th>
+                <th>{{ _('Quelle') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in participants %}
+            <tr>
+                <td class="num">{{ p.draw_number if p.draw_number is not none else '–' }}</td>
+                <td class="num">{{ p.start_number if p.start_number is not none else '–' }}</td>
+                <td>{{ p.dog_name }}</td>
+                <td>{{ p.handler_name or '' }}</td>
+                <td>{{ _(source_labels.get(p.source, p.source)) }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="muted">{{ _('Noch keine Finalisten.') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+</body>
+</html>

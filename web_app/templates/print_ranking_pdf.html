@@ -11,153 +11,116 @@
     * { box-sizing: border-box; }
     body {
       font-family: Helvetica, Arial, sans-serif;
-      font-size: 8.5pt;
+      font-size: 8pt;
       color: #111;
       margin: 0;
     }
 
-    /* ── Logo-Kopfzeile ────────────────────────────────────────── */
-    .header-logo-bar {
-      display: table;
-      width: 100%;
-      border-bottom: 2px solid #1a1a2e;
-      padding-bottom: 6pt;
-      margin-bottom: 0;
-    }
-    .header-logo-left,
-    .header-logo-right {
-      display: table-cell;
-      vertical-align: middle;
-      width: 18%;
-    }
-    .header-logo-right { text-align: right; }
-    .header-logo-left img,
-    .header-logo-right img {
-      max-height: 48pt;
-      max-width: 100%;
-    }
-    .header-title-cell {
-      display: table-cell;
-      vertical-align: middle;
-      text-align: center;
-      padding: 0 8pt;
-    }
-    .header-title-cell h1 {
-      font-size: 14pt;
-      font-weight: bold;
-      margin: 0 0 2pt 0;
-      color: #1a1a2e;
-      letter-spacing: 0.02em;
-    }
-    .header-title-cell .sub {
-      font-size: 9pt;
-      color: #555;
-      margin: 0;
-    }
-
-    {% if is_final %}
-    .official-banner {
-      background: #c0392b;
-      color: #fff;
-      text-align: center;
-      font-size: 8.5pt;
-      font-weight: bold;
-      letter-spacing: 0.08em;
-      padding: 3pt 0;
-      margin-top: 4pt;
-    }
-    {% else %}
-    .official-banner {
-      background: #7f8c8d;
-      color: #fff;
-      text-align: center;
-      font-size: 8.5pt;
-      letter-spacing: 0.05em;
-      padding: 3pt 0;
-      margin-top: 4pt;
-    }
-    {% endif %}
-
-    /* ── Laufdaten-Box ────────────────────────────────────────── */
-    .run-info {
-      border: 1px solid #ddd;
-      border-top: none;
-      padding: 5pt 10pt;
-      font-size: 8.5pt;
-      color: #333;
+    /* ── Logo-Kopfzeile (wie print/_print_header.html, xhtml2pdf-kompatibel
+       über display:table statt flex) ─────────────────────────────────── */
+    .print-header {
       display: table;
       width: 100%;
     }
-    .run-info-cell {
+    .print-header__logo {
       display: table-cell;
-      padding-right: 16pt;
-      white-space: nowrap;
+      vertical-align: middle;
+      width: 2.5cm;
     }
-    .run-info-label { color: #777; font-size: 7.5pt; display: block; }
-    .run-info-value { font-weight: bold; font-size: 9pt; }
+    .print-header__logo--right { text-align: right; }
+    .print-header__logo img { max-width: 2.5cm; max-height: 2.8cm; }
+    .print-header__titles {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: center;
+      font-size: 10pt;
+    }
+    .print-header__title { font-size: 1.3em; font-weight: bold; font-style: italic; margin: 0; }
+    .print-header__judge { font-size: 0.95em; font-weight: bold; margin: 2pt 0 0 0; }
+    .print-header__subtitle { font-size: 0.85em; color: #555; margin: 2pt 0 0 0; }
 
-    /* ── Tabelle ─────────────────────────────────────────────── */
-    table {
+    /* ── Laufvorgaben-Box (2 Zeilen x 3 Spalten, wie SportyDog-Vorlage) ──
+       Echtes <table> statt display:table-cell, da xhtml2pdf verschachtelte
+       display:table-Konstrukte unzuverlässig rendert (jede Zelle bekam
+       fälschlich den Box-Rahmen der Elternebene). #} */
+    .run-info-box {
+      margin: 6pt 0 0 0;
+      padding: 4pt 8pt;
+      border: 1px solid #ccc;
+      border-radius: 3pt;
+      background: #f8f9fa;
+      font-size: 8pt;
+    }
+    .run-info-box table { width: 100%; border-collapse: collapse; margin: 0; font-size: 8pt; }
+    .run-info-box td { border: none; padding: 1pt 4pt; width: 33%; }
+    .run-info-box b { font-weight: bold; }
+
+    /* ── Rangliste-Tabelle ───────────────────────────────────── */
+    table.results {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 8pt;
-      font-size: 8pt;
+      margin-top: 6pt;
+      font-size: 7.5pt;
     }
-    thead th {
-      background: #2c3e50;
-      color: #fff;
-      padding: 4pt 4pt;
+    table.results thead th {
+      background: #e9ecef;
+      color: #111;
+      padding: 3pt 3pt;
       text-align: left;
       font-weight: 600;
-      font-size: 7.5pt;
-      letter-spacing: 0.02em;
-      border: none;
+      font-size: 7pt;
+      border: 1px solid #ccc;
     }
-    thead th.center { text-align: center; }
-    thead th.right  { text-align: right; }
+    table.results thead th.center { text-align: center; }
+    table.results thead th.right  { text-align: right; }
 
-    tbody tr { border-bottom: 1px solid #e0e0e0; }
-    tbody tr.odd  { background: #fff; }
-    tbody tr.even { background: #f7f7f7; }
-    tbody tr.disq  { color: #aaa; }
+    table.results tbody tr.even { background: #f9f9f9; }
+    table.results tbody tr.disq { color: #888; }
 
-    td {
-      padding: 3pt 4pt;
+    table.results td {
+      padding: 1pt 3pt;
       vertical-align: middle;
+      border: 1px solid #ddd;
+      line-height: 1.1;
     }
-    td.center { text-align: center; }
-    td.right  { text-align: right; }
-    td.mono   { font-family: Courier, monospace; text-align: right; }
+    table.results td.center { text-align: center; }
+    table.results td.right  { text-align: right; }
+    table.results td.mono   { font-family: Courier, monospace; text-align: right; }
 
     /* ── Statistik-Block ─────────────────────────────────────── */
+    .stats-title { font-weight: bold; margin-top: 10pt; }
     .stats-block {
-      margin-top: 10pt;
-      border: 1px solid #ddd;
+      margin-top: 4pt;
+      border: 1px solid #ccc;
+      border-radius: 3pt;
+      background: #f8f9fa;
       padding: 5pt 10pt;
       font-size: 8pt;
-      display: table;
-      width: 100%;
     }
-    .stats-cell {
-      display: table-cell;
-      padding-right: 20pt;
-      white-space: nowrap;
-    }
-    .stats-label { color: #777; font-size: 7.5pt; display: block; }
+    .stats-block table { width: 100%; border-collapse: collapse; margin: 0; font-size: 8pt; }
+    .stats-block td { border: none; padding: 1pt 8pt; width: 50%; vertical-align: top; }
+    .stats-row { white-space: nowrap; margin-bottom: 1pt; }
+    .stats-label { color: #6c757d; margin-right: 4pt; }
     .stats-value { font-weight: bold; }
 
-    /* ── Fusszeile ───────────────────────────────────────────── */
-    .footer {
-      margin-top: 12pt;
-      border-top: 1px solid #ccc;
-      padding-top: 4pt;
+    /* ── Fusszeile ───────────────────────────────────────────────
+       Echtes <table> statt display:table — xhtml2pdf behandelt einen
+       display:table-Block als unteilbare Box und schob ihn selbst bei
+       freiem Platz komplett auf Seite 2 (Footer-Orphan-Bug). #} */
+    table.footer {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6pt;
       font-size: 7.5pt;
       color: #888;
-      display: table;
-      width: 100%;
     }
-    .footer-left  { display: table-cell; text-align: left; }
-    .footer-right { display: table-cell; text-align: right; }
+    table.footer td {
+      border: none;
+      border-top: 1px solid #ccc;
+      padding-top: 4pt;
+    }
+    table.footer td.footer-left  { text-align: left; }
+    table.footer td.footer-right { text-align: right; }
   </style>
 </head>
 <body>
@@ -187,79 +150,64 @@
 {% endfor %}
 {% set ns_gestartet = ns.total - ns.dns_count %}
 
-{# ── Logo-Kopfzeile ──────────────────────────────────────────────────────── #}
-<div class="header-logo-bar">
-  <div class="header-logo-left">
+{# ── Logo-Kopfzeile (wie print/_print_header.html) ──────────────────────── #}
+<div class="print-header">
+  <div class="print-header__logo">
     {% if club_logo_data %}
       <img src="{{ club_logo_data }}" alt="Vereins-Logo">
     {% endif %}
   </div>
-  <div class="header-title-cell">
-    <h1>{{ run.name }}</h1>
-    <p class="sub">
+  <div class="print-header__titles">
+    <p class="print-header__title">{{ _('Rangliste') }} {{ run.name }}</p>
+    {% if judge_display %}<p class="print-header__judge">{{ _('Richter') }}: {{ judge_display }}</p>{% endif %}
+    <p class="print-header__subtitle">
       {{ event.Bezeichnung }}{% if event.Datum %} · {{ event.Datum | format_date }}{% endif %}{% if event.Ort %} · {{ event.Ort }}{% endif %}
     </p>
   </div>
-  <div class="header-logo-right">
+  <div class="print-header__logo print-header__logo--right">
     {% if event_logo_data %}
       <img src="{{ event_logo_data }}" alt="Event-Logo">
     {% endif %}
   </div>
 </div>
 
-<div class="official-banner">
-  {% if is_final %}✓ {{ _('Offizielle Rangliste')|upper }}{% else %}{{ _('Vorläufige Rangliste')|upper }}{% endif %}
-</div>
-
-{# ── Laufdaten ──────────────────────────────────────────────────────────── #}
-{% if judge_display or ld.get('parcours_laenge') or ld.get('standardzeit_sct_gerundet') %}
-<div class="run-info">
-  {% if judge_display %}
-  <div class="run-info-cell">
-    <span class="run-info-label">{{ _('Richter') }}</span>
-    <span class="run-info-value">{{ judge_display }}</span>
-  </div>
-  {% endif %}
-  {% if ld.get('parcours_laenge') %}
-  <div class="run-info-cell">
-    <span class="run-info-label">Parcourslänge</span>
-    <span class="run-info-value">{{ ld.parcours_laenge }} m</span>
-  </div>
-  {% endif %}
-  {% if ld.get('anzahl_hindernisse') %}
-  <div class="run-info-cell">
-    <span class="run-info-label">Hindernisse</span>
-    <span class="run-info-value">{{ ld.anzahl_hindernisse }}</span>
-  </div>
-  {% endif %}
-  {% if ld.get('standardzeit_sct_gerundet') %}
-  <div class="run-info-cell">
-    <span class="run-info-label">Standardzeit (SCT)</span>
-    <span class="run-info-value">{{ ld.standardzeit_sct_gerundet }} s</span>
-  </div>
-  {% endif %}
-  {% if ld.get('maximalzeit_mct_gerundet') %}
-  <div class="run-info-cell">
-    <span class="run-info-label">Maximalzeit (MCT)</span>
-    <span class="run-info-value">{{ ld.maximalzeit_mct_gerundet }} s</span>
-  </div>
-  {% endif %}
+{# ── Laufvorgaben: 2 Zeilen x 3 Spalten (Länge/Kategorie/SCT, Geschw./Hindernisse/MCT) #}
+{% set kategorie_label = (run.kategorie ~ ' ' ~ run.klasse) if run.kategorie else '' %}
+{% set soll_geschw = (ld.parcours_laenge|float / ld.standardzeit_sct_gerundet|float)
+   if (ld.get('parcours_laenge') and ld.get('standardzeit_sct_gerundet')) else None %}
+{% if ld.get('parcours_laenge') or kategorie_label or ld.get('standardzeit_sct_gerundet') or ld.get('anzahl_hindernisse') or ld.get('maximalzeit_mct_gerundet') or soll_geschw %}
+<div class="run-info-box">
+  <table>
+    <tr>
+      <td><b>Länge:</b> {% if ld.get('parcours_laenge') %}{{ ld.parcours_laenge }} m{% endif %}</td>
+      <td><b>{{ _('Kategorie') }}:</b> {{ kategorie_label }}</td>
+      <td><b>Standardzeit:</b> {% if ld.get('standardzeit_sct_gerundet') %}{{ ld.standardzeit_sct_gerundet }} s{% endif %}</td>
+    </tr>
+    <tr>
+      <td><b>Geschw.:</b> {% if soll_geschw %}{{ '%.2f'|format(soll_geschw) }} m/s{% endif %}</td>
+      <td><b>Anz. Hindernisse:</b> {% if ld.get('anzahl_hindernisse') %}{{ ld.anzahl_hindernisse }}{% endif %}</td>
+      <td><b>Maximalzeit:</b> {% if ld.get('maximalzeit_mct_gerundet') %}{{ ld.maximalzeit_mct_gerundet }} s{% endif %}</td>
+    </tr>
+  </table>
 </div>
 {% endif %}
 
 {# ── Rangliste ──────────────────────────────────────────────────────────── #}
-<table>
+<table class="results">
   <thead>
     <tr>
       <th style="width:5%"  class="center">Rang</th>
-      <th style="width:7%"  class="center">{{ _('Start-Nr.') }}</th>
-      <th style="width:27%">{{ _('Hundeführer') }}</th>
-      <th style="width:23%">{{ _('Hund') }}</th>
-      <th style="width:9%"  class="right">Zeit (s)</th>
-      <th style="width:5%"  class="center">F</th>
-      <th style="width:5%"  class="center">V</th>
-      <th style="width:9%"  class="right">Zeitfehler</th>
-      <th style="width:10%" class="right">Gesamt</th>
+      <th style="width:19%">{{ _('Hundeführer') }}</th>
+      <th style="width:15%">{{ _('Hund') }}</th>
+      <th style="width:14%">Rasse</th>
+      <th style="width:14%">Verein</th>
+      <th style="width:5%"  class="center">Kl.</th>
+      <th style="width:8%"  class="right">Zeit</th>
+      <th style="width:5%"  class="right">m/s</th>
+      <th style="width:4%"  class="center">F</th>
+      <th style="width:4%"  class="center">V</th>
+      <th style="width:7%"  class="right">Zeitf.</th>
+      <th style="width:8%"  class="right">Total</th>
     </tr>
   </thead>
   <tbody>
@@ -274,11 +222,16 @@
       <td class="center">
         {% if disq %}{{ disq }}{% elif res.platz %}{{ res.platz }}.{% else %}—{% endif %}
       </td>
-      <td class="center">{{ res.Startnummer }}</td>
       <td>{{ res.Hundefuehrer }}</td>
       <td>{{ res.Hundename }}</td>
+      <td>{{ res.Rasse }}</td>
+      <td>{{ res.Verein }}</td>
+      <td class="center">{{ res.Klasse }}</td>
       <td class="mono">
         {% if res.zeit_total and res.zeit_total < 998 %}{{ '%.2f'|format(res.zeit_total|float) }}{% endif %}
+      </td>
+      <td class="mono">
+        {% if res.zeit_total and res.zeit_total < 998 and ld.get('parcours_laenge') and res.zeit_total > 0 %}{{ '%.2f'|format(ld.parcours_laenge|float / res.zeit_total) }}{% endif %}
       </td>
       <td class="center">
         {{ res.fehler_parcours_anzahl|int if res.fehler_parcours_anzahl is defined else '—' }}
@@ -296,60 +249,51 @@
       </td>
     </tr>
     {% else %}
-    <tr><td colspan="9" class="center">{{ _('Keine Ergebnisse für diesen Lauf.') }}</td></tr>
+    <tr><td colspan="12" class="center">{{ _('Keine Ergebnisse für diesen Lauf.') }}</td></tr>
     {% endfor %}
   </tbody>
 </table>
 
 {# ── Statistik ──────────────────────────────────────────────────────────── #}
 {% if ns.total > 0 %}
+<p class="stats-title">{{ _('Gestartete Teams') }}: {{ ns_gestartet }}</p>
 <div class="stats-block">
-  <div class="stats-cell">
-    <span class="stats-label">{{ _('Gestartete Teams') }}</span>
-    <span class="stats-value">{{ ns_gestartet }}</span>
-  </div>
-  {% if ns.dq_count > 0 %}
-  <div class="stats-cell">
-    <span class="stats-label">Disqualifiziert (DIS)</span>
-    <span class="stats-value">{{ ns.dq_count }}</span>
-  </div>
-  {% endif %}
-  {% if ns.abr_count > 0 %}
-  <div class="stats-cell">
-    <span class="stats-label">Abgebrochen (ABR)</span>
-    <span class="stats-value">{{ ns.abr_count }}</span>
-  </div>
-  {% endif %}
-  {% if ns.dns_count > 0 %}
-  <div class="stats-cell">
-    <span class="stats-label">Nicht gestartet (DNS)</span>
-    <span class="stats-value">{{ ns.dns_count }}</span>
-  </div>
-  {% endif %}
-  {% if ns.fastest_time %}
-  <div class="stats-cell">
-    <span class="stats-label">{{ _('Schnellste Zeit') }}</span>
-    <span class="stats-value">{{ '%.2f'|format(ns.fastest_time|float) }} s ({{ ns.fastest_name }})</span>
-  </div>
-  {% endif %}
-  {% if ld.get('parcours_laenge') and ns.fastest_time and ns.fastest_time > 0 %}
-  <div class="stats-cell">
-    <span class="stats-label">Schnellste Geschwindigkeit</span>
-    <span class="stats-value">{{ '%.2f'|format(ld.parcours_laenge|float / ns.fastest_time) }} m/s</span>
-  </div>
-  {% endif %}
+  <table>
+    <tr>
+      <td>
+        <div class="stats-row"><span class="stats-label">Disqualifiziert:</span>&nbsp;
+          <span class="stats-value">{{ ns.dq_count }} ({{ '%.2f'|format(100 * ns.dq_count / ns.total) }}%)</span></div>
+        <div class="stats-row"><span class="stats-label">Abgebrochen:</span>&nbsp;
+          <span class="stats-value">{{ ns.abr_count }} ({{ '%.2f'|format(100 * ns.abr_count / ns.total) }}%)</span></div>
+        <div class="stats-row"><span class="stats-label">Nicht gestartet:</span>&nbsp;
+          <span class="stats-value">{{ ns.dns_count }} ({{ '%.2f'|format(100 * ns.dns_count / ns.total) }}%)</span></div>
+      </td>
+      <td>
+        {% if ns.fastest_time %}
+        <div class="stats-row"><span class="stats-label">{{ _('Schnellste Zeit') }}:</span>&nbsp;
+          <span class="stats-value">{{ '%.2f'|format(ns.fastest_time|float) }} s ({{ ns.fastest_name }})</span></div>
+        {% endif %}
+        {% if ld.get('parcours_laenge') and ns.fastest_time and ns.fastest_time > 0 %}
+        <div class="stats-row"><span class="stats-label">Schnellste Geschwindigkeit:</span>&nbsp;
+          <span class="stats-value">{{ '%.2f'|format(ld.parcours_laenge|float / ns.fastest_time) }} m/s</span></div>
+        {% endif %}
+      </td>
+    </tr>
+  </table>
 </div>
 {% endif %}
 
 {# ── Fusszeile ──────────────────────────────────────────────────────────── #}
-<div class="footer">
-  <div class="footer-left">
-    {{ event.Bezeichnung }}{% if judge_display %} · {{ _('Richter') }}: {{ judge_display }}{% endif %}
-  </div>
-  <div class="footer-right">
-    {% if is_final %}✓ {{ _('Offizielle Rangliste') }}{% else %}{{ _('Vorläufige Rangliste') }}{% endif %}
-  </div>
-</div>
+<table class="footer">
+  <tr>
+    <td class="footer-left">
+      {{ event.Bezeichnung }}{% if judge_display %} · {{ _('Richter') }}: {{ judge_display }}{% endif %}
+    </td>
+    <td class="footer-right">
+      {{ _('Offizielle Rangliste') if is_final else _('Vorläufige Rangliste') }}
+    </td>
+  </tr>
+</table>
 
 </body>
 </html>

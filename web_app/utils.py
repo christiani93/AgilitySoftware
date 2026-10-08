@@ -99,6 +99,36 @@ except ImportError:
     from web_app.paths import data_path as _data_path
 
 
+def get_event_logo_data_uris(event):
+    """Liefert {'event': data-uri|None, 'club': data-uri|None} für den Druck.
+
+    Logos werden als base64-Data-URI eingebettet, damit sie auch im
+    PDF-/pywebview-Druck ohne separaten HTTP-Request erscheinen (gleiches
+    Muster wie das Live-Ranglisten-PDF)."""
+    import base64
+    result = {'event': None, 'club': None}
+    if not isinstance(event, dict):
+        return result
+    event_id = event.get('id')
+    if not event_id:
+        return result
+    _mimes = {'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
+              'gif': 'image/gif', 'svg': 'image/svg+xml', 'webp': 'image/webp'}
+    for key, attr in (('event', 'event_logo_filename'), ('club', 'club_logo_filename')):
+        fname = event.get(attr)
+        if not fname:
+            continue
+        path = _data_path('logos', event_id, fname)
+        if not os.path.exists(path):
+            continue
+        ext = os.path.splitext(fname)[1].lower().lstrip('.')
+        mime = _mimes.get(ext, 'image/png')
+        with open(path, 'rb') as fh:
+            encoded = base64.b64encode(fh.read()).decode()
+        result[key] = f"data:{mime};base64,{encoded}"
+    return result
+
+
 def _load_data(filename, default_data=[]):
     filepath = _data_path(filename)
     try:
@@ -137,7 +167,8 @@ def _load_settings():
             "Intermediate-3": 2300, "Intermediate-2": 2200, "Intermediate-1": 2100, "Intermediate-Oldie": 2400,
             "Medium-3": 3300, "Medium-2": 3200, "Medium-1": 3100, "Medium-Oldie": 3400,
             "Small-3": 4300, "Small-2": 4200, "Small-1": 4100, "Small-Oldie": 4400
-        }
+        },
+        "download_dir": ""
     }
     settings = _load_data('settings.json', defaults)
     for key, value in defaults.items():

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ _('Sammeldruck') }} - {{ event.Bezeichnung }}</title>
+    <style>
+        body { font-family: sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
+
+        /* Gemeinsamer Druck-Header (aus _print_header.html) */
+        .print-header { position: static !important; display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: none; }
+        .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
+        .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .print-header__logo-img { max-width: 2.5cm; max-height: 2.2cm; object-fit: contain; }
+        .print-header__titles { text-align: center; flex: 1; font-size: 10pt; }
+        .print-header__title { font-size: 1.1em; font-weight: 600; }
+        .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
+
+        /* Bündel-/Ring-Titelseiten */
+        .bundle-cover { page-break-before: always; text-align: center; padding-top: 7cm; }
+        .bundle-cover:first-child { page-break-before: avoid; }
+        .bundle-cover__kicker { font-size: 12pt; letter-spacing: 2px; text-transform: uppercase; color: #777; }
+        .bundle-cover__title { font-size: 30pt; font-weight: 700; margin: 8px 0; }
+        .bundle-cover__event { font-size: 13pt; color: #444; }
+
+        .ring-head { page-break-before: always; background-color: #2f7d32 !important; color: #fff; font-size: 16pt; font-weight: 700; padding: 10px 14px; margin: 0 0 8px 0; }
+
+        .doc-section { page-break-before: always; }
+        .doc-section--first { page-break-before: auto; }
+
+        /* ── Zeitplan (.sec-schedule) ───────────────────────────────── */
+        .sec-schedule h3 { text-align: left; margin: 0.3cm 0 0.2cm 0; font-size: 13pt; }
+        .sec-schedule table { width: 100%; border-collapse: collapse; font-size: 10pt; page-break-inside: auto; }
+        .sec-schedule th, .sec-schedule td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+        .sec-schedule th { background-color: #f2f2f2 !important; }
+        .sec-schedule thead { display: table-header-group; }
+        .sec-schedule tr { page-break-inside: avoid; }
+        .sec-schedule .sub { font-size: 8pt; color: #666; }
+
+        /* ── Startlisten (.sec-startlist) ───────────────────────────── */
+        .sec-startlist .run-title { text-align: center; font-size: 15pt; font-weight: 700; font-style: italic; margin: 0.4cm 0 2px 0; }
+        .sec-startlist .run-count { text-align: center; font-size: 10pt; font-weight: 600; margin: 0 0 10px 0; }
+        .sec-startlist table { width: 100%; border-collapse: collapse; font-size: 10pt; page-break-inside: auto; }
+        .sec-startlist th, .sec-startlist td { border: none; border-bottom: 1px solid #ccc; padding: 4px 6px; text-align: left; }
+        .sec-startlist thead th { border-bottom: 1.5px solid #333; background: transparent; font-weight: 700; display: table-cell; }
+        .sec-startlist thead { display: table-header-group; }
+        .sec-startlist tr { page-break-inside: avoid; }
+        .sec-startlist .print-footer { margin-top: 10px; padding-top: 4px; border-top: 1px solid #999; display: flex; justify-content: space-between; font-size: 8pt; color: #666; }
+        .sec-startlist .startlist-block { page-break-after: always; }
+        .sec-startlist .startlist-block:last-child { page-break-after: auto; }
+
+        /* ── Einweiserliste (.sec-steward) ──────────────────────────── */
+        .sec-steward .group-container { page-break-after: always; }
+        .sec-steward .group-container:last-child { page-break-after: auto; }
+        .sec-steward h4 { background-color: #e9ecef !important; font-size: 13pt; padding: 8px; text-align: left; margin: 0.3cm 0 0 0; }
+        .sec-steward table { width: 100%; border-collapse: collapse; font-size: 8pt; margin-top: 5px; table-layout: fixed; page-break-inside: auto; }
+        .sec-steward th, .sec-steward td { border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sec-steward th.run-header { background-color: #f2f2f2 !important; text-align: center; writing-mode: vertical-lr; transform: rotate(180deg); height: 150px; }
+        .sec-steward thead { display: table-header-group; }
+        .sec-steward tr { page-break-inside: avoid; }
+        .sec-steward .checkbox { width: 18px; height: 18px; border: 1px solid black; display: block; margin: auto; }
+        .sec-steward .run-col { width: 25px; }
+
+        /* ── Ringschreiberliste (.sec-scribe) ───────────────────────── */
+        .sec-scribe .run-container { page-break-after: always; padding-top: 0.4cm; }
+        .sec-scribe .run-container:last-child { page-break-after: auto; }
+        .sec-scribe h4 { text-align: center; font-size: 14pt; margin: 0; }
+        .sec-scribe .run-meta-info { text-align: center; font-size: 10pt; margin-bottom: 10px; padding: 5px; border: 1px solid #ccc; border-radius: 5px; background-color: #f8f9fa !important; }
+        .sec-scribe table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
+        .sec-scribe th, .sec-scribe td { border: 1px solid black !important; padding: 8px; vertical-align: middle; }
+        .sec-scribe thead th { background-color: #e9ecef !important; font-size: 11pt; }
+        .sec-scribe thead { display: table-header-group; }
+        .sec-scribe tr { page-break-inside: avoid; }
+
+        @media print { body { margin: 0; } }
+    </style>
+</head>
+<body>
+
+{# ═══════════════════ MACROS ═══════════════════ #}
+
+{% macro schedule_table(ring, timeline) %}
+<div class="sec-schedule">
+    <h3>{{ _('Zeitplan') }} {{ _('Ring') }} {{ ring }} (Start: {{ (event.start_times_by_ring or {}).get('ring_' + ring, 'N/A') }})</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 15%;">{{ _('Start') }}</th>
+                <th style="width: 15%;">{{ _('Ende') }}</th>
+                <th>{{ _('Lauf') }}</th>
+                <th style="width: 25%;">{{ _('Richter') }}</th>
+                <th style="width: 15%;">{{ _('Starter') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in timeline %}
+            <tr>
+                <td>{{ item.start_time }}</td>
+                <td>{{ item.end_time }}</td>
+                <td>
+                    <strong>{{ item.label }}</strong>
+                    {% if item.block.type == 'run' %}
+                      {% set run_type = (item.block.timing_run_type or '').lower() %}
+                      {% set run_type_label = 'Agility' if run_type == 'agility' else 'Jumping' if run_type == 'jumping' else 'Other' %}
+                      {% set run_prefix = 'Open ' if (item.block.run_format or '').lower() == 'open' else '' %}
+                      {% set class_part = (item.block.classes or [])|join('+') %}
+                      {% set primary = (item.block.sort or {}).get('primary', {}) %}
+                      {% set direction = (primary.get('direction', 'asc') or 'asc') %}
+                      {% set size_order = ['small','medium','intermediate','large'] %}
+                      {% if direction == 'desc' %}{% set size_order = ['large','intermediate','medium','small'] %}{% endif %}
+                      {% set selected_sizes = item.block.size_categories or [] %}
+                      {% if not selected_sizes %}
+                        {% if item.block.size_category and item.block.size_category != 'all' %}
+                          {% set selected_sizes = [item.block.size_category] %}
+                        {% else %}
+                          {% set selected_sizes = size_order %}
+                        {% endif %}
+                      {% endif %}
+                      {% set size_map = {'small':'S','medium':'M','intermediate':'I','large':'L'} %}
+                      {% set ns = namespace(parts=[]) %}
+                      {% for size in size_order %}
+                        {% if size in selected_sizes %}{% set ns.parts = ns.parts + [size_map.get(size, size)] %}{% endif %}
+                      {% endfor %}
+                      {% set short_label = ns.parts|join('/') %}
+                      <div class="sub">{{ run_prefix }}{{ run_type_label }}{% if class_part %} {{ class_part }}{% endif %}{% if short_label %} {{ short_label }}{% endif %}</div>
+                    {% elif item.block.title %}
+                      <div class="sub">{{ item.block.title }}</div>
+                    {% endif %}
+                    {% if item.block.type == 'rank_announcement' %}
+                      {% set applies = item.block.get('applies_to', {}) %}
+                      <div class="sub">{{ _('Kategorien') }}: {{ (applies.get('size_categories') or ['alle'])|join(', ') }}</div>
+                      <div class="sub">{{ _('Klassen') }}: {{ (applies.get('classes') or ['alle'])|join(', ') }}</div>
+                    {% endif %}
+                </td>
+                <td>{% if item.block.judge_id %}{{ judges_map.get(item.block.judge_id, 'N/A') }}{% endif %}</td>
+                <td>{{ item.num_starters if item.num_starters > 0 else '' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">{{ _('Kein Zeitplan vorhanden') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
+{% macro startlist_block(run) %}
+<div class="startlist-block">
+    <div class="run-title">{{ _('Startliste') }} {{ run.name }}</div>
+    <div class="run-count">{{ _('Anzahl Teams') }}: {{ run.entries|length }}</div>
+    {% if run.entries %}
+    <table>
+        <thead>
+            <tr>
+                <th style="width:9%;">{{ _('Start-Nr.') }}</th>
+                <th style="width:25%;">{{ _('Name') }}</th>
+                <th style="width:16%;">{{ _('Hund') }}</th>
+                <th style="width:18%;">{{ _('Rasse') }}</th>
+                <th style="width:32%;">{{ _('Verein') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in run.entries %}
+            <tr>
+                <td><strong>{{ entry.Startnummer }}</strong></td>
+                <td>{{ entry.Hundefuehrer }}</td>
+                <td>{{ entry.Hundename }}</td>
+                <td>{{ entry.Rasse }}</td>
+                <td>{{ entry.Verein }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>{{ _('Keine Startenden für diesen Block.') }}</p>
+    {% endif %}
+    <div class="print-footer">
+        <span>{{ event.Bezeichnung }} — {{ event.Datum | format_date }}</span>
+        <span>{{ _('Gedruckt') }}: {{ now_str }}</span>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro steward_section(section) %}
+<div class="group-container">
+    <h4>{{ _('Ring') }} {{ section.ring }} – {{ section.title }}</h4>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 60px;">{{ _('Start-Nr.') }}</th>
+                <th style="width: 150px;">{{ _('Hundeführer') }}</th>
+                <th style="width: 120px;">{{ _('Hund') }}</th>
+                {% for run in section.runs %}
+                    <th class="run-col run-header"><div>{{ run.name }}</div></th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in section.participants %}
+            <tr>
+                <td><strong>{{ p.Startnummer }}</strong></td>
+                <td>{{ p.Hundefuehrer }}</td>
+                <td>{{ p.Hundename }}</td>
+                {% for run in section.runs %}
+                    <td style="text-align: center;">
+                        {% if section.run_map.get(p.Lizenznummer, {}).get(run.id) %}
+                            <div class="checkbox"></div>
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
+{% macro scribe_section(section) %}
+<div class="run-container">
+    <h4>{{ _('Ring') }} {{ section.ring }} – {{ section.title }}</h4>
+    <p class="run-meta-info">{{ _('Richter') }}: {{ section.judge_name or '—' }}</p>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">{{ _('Start-Nr.') }}</th>
+                <th style="width: 25%;">{{ _('Hundeführer') }} / {{ _('Hund') }}</th>
+                <th style="width: 10%;">{{ _('Zeit') }}</th>
+                <th style="width: 10%;">{{ _('Fehler') }}</th>
+                <th style="width: 10%;">{{ _('Verw.') }}</th>
+                <th style="width: 10%;">DIS/ABR</th>
+                <th style="width: 30%;">{{ _('Notizen') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in section.participants %}
+            <tr>
+                <td>{{ entry.Startnummer }}</td>
+                <td><strong>{{ entry.Hundefuehrer }}</strong><br><small>{{ entry.Hundename }}</small></td>
+                <td></td><td></td><td></td><td></td><td></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
+{# ═══════════════════ INHALT ═══════════════════ #}
+
+{% include 'print/_print_button.html' %}
+
+{# ───── Bündel 1: Teilnehmerinfo (Alle Ringe) ───── #}
+<div class="bundle-cover">
+    <div class="bundle-cover__kicker">{{ _('Drucksachen') }}</div>
+    <div class="bundle-cover__title">{{ _('Teilnehmerinfo') }}<br>({{ _('Alle Ringe') }})</div>
+    <div class="bundle-cover__event">{{ event.Bezeichnung }} — {{ event.Datum | format_date }}</div>
+</div>
+
+<div class="doc-section">
+    {% set title = _('Zeitplan') %}
+    {% include 'print/_print_header.html' %}
+    {% for ring in ring_keys %}
+        <div{% if not loop.first %} style="page-break-before: always;"{% endif %}>
+            {{ schedule_table(ring, timelines_by_ring.get(ring, [])) }}
+        </div>
+    {% endfor %}
+</div>
+
+<div class="doc-section sec-startlist">
+    {% set title = _('Startlisten') %}
+    {% include 'print/_print_header.html' %}
+    {% for run in ordered_runs %}
+        {{ startlist_block(run) }}
+    {% else %}
+        <p style="text-align:center; font-weight:bold; margin-top:2cm;">{{ _('Kein Zeitplan vorhanden') }}</p>
+    {% endfor %}
+</div>
+
+{# ───── Bündel 2: Einweiser (pro Ring) ───── #}
+<div class="bundle-cover">
+    <div class="bundle-cover__kicker">{{ _('Drucksachen') }}</div>
+    <div class="bundle-cover__title">{{ _('Einweiser') }}<br>({{ _('pro Ring') }})</div>
+    <div class="bundle-cover__event">{{ event.Bezeichnung }} — {{ event.Datum | format_date }}</div>
+</div>
+
+{% for ring in ring_keys %}
+<div class="doc-section">
+    <h2 class="ring-head">{{ _('Einweiser') }} – {{ _('Ring') }} {{ ring }}</h2>
+    {{ schedule_table(ring, einweiser_by_ring[ring].timeline) }}
+    <div class="sec-steward">
+        {% for section in einweiser_by_ring[ring].sections %}
+            {{ steward_section(section) }}
+        {% else %}
+            <p style="text-align:center; margin-top:1cm;">{{ _('Kein Zeitplan vorhanden') }}</p>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+
+{# ───── Bündel 3: Ringbüro (pro Ring) ───── #}
+<div class="bundle-cover">
+    <div class="bundle-cover__kicker">{{ _('Drucksachen') }}</div>
+    <div class="bundle-cover__title">{{ _('Ringbüro') }}<br>({{ _('pro Ring') }})</div>
+    <div class="bundle-cover__event">{{ event.Bezeichnung }} — {{ event.Datum | format_date }}</div>
+</div>
+
+{% for ring in ring_keys %}
+<div class="doc-section">
+    <h2 class="ring-head">{{ _('Ringbüro') }} – {{ _('Ring') }} {{ ring }}</h2>
+    {{ schedule_table(ring, ringbuero_by_ring[ring].timeline) }}
+    <div class="sec-scribe">
+        {% for section in ringbuero_by_ring[ring].sections %}
+            {{ scribe_section(section) }}
+        {% else %}
+            <p style="text-align:center; margin-top:1cm;">{{ _('Kein Zeitplan vorhanden') }}</p>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+
+</body>
+</html>

@@ -21,6 +21,7 @@
     </style>
 </head>
 <body>
+    {% include 'print/_print_button.html' %}
     {% set title = _('Rangliste') ~ ': ' ~ run.name %}
     {% set header_judge = judge_display or '—' %}
     {% set header_course = (run.get('laufdaten', {}).get('parcours_laenge', '___') ~ 'm / ' ~ run.get('laufdaten', {}).get('anzahl_hindernisse', '___') ~ ' Geräte') %}

@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% block title %}KO-Cup Ranglisten – {{ event.Bezeichnung }}{% endblock %}
+
+{% macro ranking_table(sub, spots, combined) %}
+<table class="table table-sm align-middle mb-0">
+  <thead>
+    <tr>
+      <th style="width:3rem">#</th>
+      <th>Hund</th>
+      <th>Führer</th>
+      {% if combined %}<th style="width:4rem">Kl.</th>{% endif %}
+      <th class="text-end" style="width:5rem">Fehler</th>
+      <th class="text-end" style="width:5rem">Zeit</th>
+      <th style="width:9rem">Quali</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in sub.rows %}
+    <tr class="{% if r.status == 'quali' %}table-success{% elif r.status == 'dup' %}text-muted{% endif %}">
+      <td>{{ r.rank }}</td>
+      <td class="{% if r.status == 'dup' %}text-decoration-line-through{% endif %}">{{ r.dog_name }}</td>
+      <td>{{ r.handler_name }}</td>
+      {% if combined %}<td>{{ r.from_class or '–' }}</td>{% endif %}
+      <td class="text-end">{{ '%g' % r.fehler_total if r.fehler_total is not none else '–' }}</td>
+      <td class="text-end">{{ '%.2f' % r.zeit_total if r.zeit_total is not none else '–' }}</td>
+      <td>
+        {% if r.status == 'quali' %}<span class="badge bg-success"><i class="fas fa-check me-1"></i>qualifiziert</span>
+        {% elif r.status == 'dup' %}<span class="badge bg-secondary">bereits quali.</span>
+        {% else %}<span class="text-muted small">–</span>{% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="{{ 7 if combined else 6 }}" class="text-muted">Keine platzierten Teams.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">🎃 KO-Cup – Quali-Ranglisten</h1>
+    <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+      <i class="fas fa-print me-1"></i>Drucken
+    </button>
+    <a href="{{ url_for('ko_cup_bp.ko_config', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Zurück zum KO-Cup
+    </a>
+  </div>
+</div>
+
+<div class="alert alert-light border small">
+  Der <strong>Tunnellauf</strong> wird klassenübergreifend als <em>eine</em> Rangliste pro
+  Kategorie gewertet; <strong>Agility</strong>/<strong>Jumping</strong> am Samstag je Klasse
+  getrennt. Grün = qualifiziert für den Final. „bereits quali." = schon über einen früheren
+  Lauf qualifiziert – der Platz rückt an den nächsten weiter (Reglement HCS).
+</div>
+
+{% for block in blocks %}
+<div class="card mb-4 shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">{{ block.label }}</h5>
+    <span class="badge bg-light text-dark">
+      {% if block.split_by_class %}je Klasse{% else %}klassenübergreifend{% endif %}
+      · {{ block.n_runs }} Lauf{{ 'e' if block.n_runs != 1 else '' }}
+    </span>
+  </div>
+  <div class="card-body">
+    {% if not block.tables %}
+      <p class="text-muted mb-0">Keine passenden Läufe erfasst.</p>
+    {% else %}
+      {% for cat in category_order %}
+        {% set tbl = block.tables.get(cat) %}
+        {% if tbl %}
+        <h6 class="mt-2 mb-2">
+          {{ cat }}
+          <span class="text-muted small">({{ tbl.spots }} Platz{{ 'ä' if tbl.spots != 1 else '' }}{{ 'tze' if tbl.spots != 1 else '' }})</span>
+        </h6>
+        {% if tbl.combined %}
+          {{ ranking_table(tbl.subtables[0], tbl.spots, true) }}
+        {% else %}
+          {% for sub in tbl.subtables %}
+          <div class="small fw-semibold text-muted mt-2">Klasse {{ sub.class_label or '–' }}</div>
+          {{ ranking_table(sub, tbl.spots, false) }}
+          {% endfor %}
+        {% endif %}
+        <hr class="my-3">
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<p class="text-muted">Kein Schlüssel/keine Läufe vorhanden.</p>
+{% endfor %}
+{% endblock %}
