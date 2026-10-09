@@ -59,6 +59,7 @@
     /* ── Rangliste-Tabelle ───────────────────────────────────── */
     table.results {
       width: 100%;
+      table-layout: fixed;
       border-collapse: collapse;
       margin-top: 6pt;
       font-size: 7.5pt;
@@ -87,6 +88,7 @@
     table.results td.center { text-align: center; }
     table.results td.right  { text-align: right; }
     table.results td.mono   { font-family: Courier, monospace; text-align: right; }
+    table.results td.nowrap { white-space: nowrap; overflow: hidden; }
 
     /* ── Statistik-Block ─────────────────────────────────────── */
     .stats-title { font-weight: bold; margin-top: 10pt; }
@@ -198,17 +200,17 @@
   <thead>
     <tr>
       <th style="width:5%"  class="center">Rang</th>
-      <th style="width:19%">{{ _('Hundeführer') }}</th>
-      <th style="width:15%">{{ _('Hund') }}</th>
-      <th style="width:14%">Rasse</th>
-      <th style="width:14%">Verein</th>
-      <th style="width:5%"  class="center">Kl.</th>
-      <th style="width:8%"  class="right">Zeit</th>
+      <th style="width:18%">{{ _('Hundeführer') }}</th>
+      <th style="width:14%">{{ _('Hund') }}</th>
+      <th style="width:13%">Rasse</th>
+      <th style="width:13%">Verein</th>
+      <th style="width:4%"  class="center">Kl.</th>
+      <th style="width:7%"  class="right">Zeit</th>
       <th style="width:5%"  class="right">m/s</th>
       <th style="width:4%"  class="center">F</th>
       <th style="width:4%"  class="center">V</th>
-      <th style="width:7%"  class="right">Zeitf.</th>
-      <th style="width:8%"  class="right">Total</th>
+      <th style="width:6%"  class="right">Zeitf.</th>
+      <th style="width:7%"  class="right">Total</th>
     </tr>
   </thead>
   <tbody>
@@ -225,8 +227,8 @@
       </td>
       <td>{{ res.Hundefuehrer }}</td>
       <td>{{ res.Hundename }}</td>
-      <td>{{ res.Rasse }}</td>
-      <td>{{ res.Verein }}</td>
+      <td class="nowrap">{{ (res.Rasse or '')|truncate(16, True, '…', 0) }}</td>
+      <td class="nowrap">{{ (res.Verein or '')|truncate(16, True, '…', 0) }}</td>
       <td class="center">{{ res.Klasse }}</td>
       <td class="mono">
         {% if not disq and res.zeit_total and res.zeit_total < 998 %}{{ '%.2f'|format(res.zeit_total|float) }}{% endif %}
