@@ -3,7 +3,28 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-10-08
+Stand: 2026-10-09
+
+## Offen / User-Notiz 2026-10-09
+
+- [x] **Logo im Ranglisten-Upload-PDF zu gross** (`1580cb5`, committed+gepusht):
+      Das ans Portal hochgeladene Rangliste-PDF (`print_ranking_pdf.html`, gerendert
+      via xhtml2pdf/pisa in `routes_live.py::_render_ranking_pdf_html`) zeigte Logos
+      in nativer Pixelgrösse — **pisa ignoriert CSS `max-width`/`max-height` auf
+      `<img>`**. Fix: Seitenverhältnis via PIL bestimmen, explizite `width`/`height`
+      in cm setzen (Box 2.5cm × 1.8cm). Verifiziert (Template-Render + pisa). ⚠️ Wird
+      erst nach **EXE-Rebuild** (bzw. Source-Neustart) im Upload wirksam, und
+      betroffene Event-9-PDFs müssen danach **neu hochgeladen** werden.
+      NUR dieser pisa-Pfad betroffen; `print_ranking_single.html` ist Browser-Druck
+      (honoriert max-width).
+
+- [ ] **print/all: Startlisten-Bündel druckt pro Lauf einzeln statt 1x gesamt** —
+      User-Feedback: im Sammeldruck (`/print/all/<id>`) soll nur EIN
+      Startlistensatz für den ganzen Tag/Event erscheinen, nicht pro Lauf
+      einzeln wiederholt. Betrifft `app/routes_print.py` + Memory
+      `project_sammeldruck_software` (3-Bündel-Struktur Teilnehmerinfo/
+      Einweiser/Ringbüro). Noch nicht untersucht, welches Bündel die
+      Wiederholung verursacht.
 
 ## ✅ Ring-Reassign-Fix + Event-Liste-Fix + DEV-GUI-Bat (2026-10-08 Abend) — COMMITTED + GEPUSHT + EXE GEBAUT
 
@@ -68,6 +89,13 @@ Alle Fixes in der 2fc5ea7-EXE enthalten. Details in Memory `project_print_fixes_
 - [x] (9) Echter Läufigkeits-Toggle in Software — erledigt (`41dfbad`, s.o.)
 - [ ] (10) „Ist anwesend"-Richterliste am Event (wie Portal `EventJudge`) — neues Datenmodell + UI
 - [ ] (11) Software-Zeitplan/Richter an Portal-Architektur angleichen (gemeinsame Logik, nur JSON vs SQL) — eigenes Refactoring-Projekt
+- [ ] (12) Inline-„Name ändern"-Button pro Starter in `manage_run_participants.html` — Event-Entries speichern
+      `Hundefuehrer`/`Hundename` als eingefrorenen String (Hundefuehrer_ID=null) → Stammdaten-Edit schlägt NICHT
+      ins laufende Event durch. Button soll Entry direkt umbenennen ohne Startnummer-Verlust. Memory
+      `project_handler_name_edit_gap`. (User-Wunsch, Freigabe steht aus.)
+- [ ] (13) Ring-Monitor-Zeitplan-Umschalter (Dashboard-Button schaltet Monitor in Pausen DIREKT auf Zeitplan,
+      kein Extra-Klick) — gebaut + revertiert, zurückgestellt bis (11) erledigt. Technik-Entwurf in Memory
+      `project_ring_monitor_schedule_toggle_deferred`.
 
 ## ✅ ERLEDIGT: EXE-Rebuild für KO-System-Button (2026-10-08)
 
