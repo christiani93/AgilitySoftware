@@ -1142,20 +1142,48 @@ def _render_ranking_pdf_html(event, run, event_id, is_final):
     judge_display = resolve_judge_name(event, run, judges)
 
     import os as _os, base64 as _b64
+    # Logo-Kopfbox: xhtml2pdf (pisa) ignoriert CSS max-width/max-height auf <img>
+    # und rendert sonst in nativer Pixelgrösse -> Logo sprengt die Seite. Darum
+    # hier das Seitenverhältnis bestimmen und EXPLIZITE width/height in cm setzen,
+    # die ins Kopf-Format (max 2.5cm breit, 1.8cm hoch) skaliert sind.
+    _LOGO_MAX_W_CM = 2.5
+    _LOGO_MAX_H_CM = 1.8
+
     def _logo_b64(logo_key):
         fname = event.get(logo_key)
         if not fname:
-            return None
+            return None, ""
         from paths import data_path
         path = data_path("logos", event_id, fname)
         if not _os.path.exists(path):
-            return None
+            return None, ""
         ext = _os.path.splitext(fname)[1].lower().lstrip(".")
         mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
                 "gif": "image/gif", "svg": "image/svg+xml", "webp": "image/webp"}.get(ext, "image/png")
         with open(path, "rb") as _f:
-            data = _b64.b64encode(_f.read()).decode()
-        return f"data:{mime};base64,{data}"
+            raw = _f.read()
+        data = _b64.b64encode(raw).decode()
+        data_uri = f"data:{mime};base64,{data}"
+
+        # Explizite Zielgrösse aus dem Seitenverhältnis des Bildes berechnen.
+        style = f"height:{_LOGO_MAX_H_CM}cm"  # Fallback (proportional) falls Masse unbekannt
+        try:
+            from PIL import Image as _Image
+            import io as _pil_io
+            with _Image.open(_pil_io.BytesIO(raw)) as _im:
+                w_px, h_px = _im.size
+            if w_px > 0 and h_px > 0:
+                nat_w_cm = w_px / 96.0 * 2.54
+                nat_h_cm = h_px / 96.0 * 2.54
+                scale = min(_LOGO_MAX_W_CM / nat_w_cm, _LOGO_MAX_H_CM / nat_h_cm)
+                style = (f"width:{nat_w_cm * scale:.2f}cm;"
+                         f"height:{nat_h_cm * scale:.2f}cm")
+        except Exception:
+            pass  # SVG oder PIL-Fehler -> Fallback-Style (height only)
+        return data_uri, style
+
+    event_logo_data, event_logo_style = _logo_b64("event_logo_filename")
+    club_logo_data,  club_logo_style  = _logo_b64("club_logo_filename")
 
     from flask import render_template as _rt
     return _rt(
@@ -1166,8 +1194,10 @@ def _render_ranking_pdf_html(event, run, event_id, is_final):
         judges=judges,
         judge_display=judge_display,
         is_final=is_final,
-        event_logo_data=_logo_b64("event_logo_filename"),
-        club_logo_data=_logo_b64("club_logo_filename"),
+        event_logo_data=event_logo_data,
+        event_logo_style=event_logo_style,
+        club_logo_data=club_logo_data,
+        club_logo_style=club_logo_style,
     )
 
 

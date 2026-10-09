@@ -28,7 +28,8 @@
       width: 2.5cm;
     }
     .print-header__logo--right { text-align: right; }
-    .print-header__logo img { max-width: 2.5cm; max-height: 2.8cm; }
+    /* Grösse wird pro <img> inline gesetzt (aus Seitenverhältnis berechnet),
+       da xhtml2pdf max-width/max-height ignoriert. */
     .print-header__titles {
       display: table-cell;
       vertical-align: middle;
@@ -154,7 +155,7 @@
 <div class="print-header">
   <div class="print-header__logo">
     {% if club_logo_data %}
-      <img src="{{ club_logo_data }}" alt="Vereins-Logo">
+      <img src="{{ club_logo_data }}" alt="Vereins-Logo" style="{{ club_logo_style }}">
     {% endif %}
   </div>
   <div class="print-header__titles">
@@ -166,7 +167,7 @@
   </div>
   <div class="print-header__logo print-header__logo--right">
     {% if event_logo_data %}
-      <img src="{{ event_logo_data }}" alt="Event-Logo">
+      <img src="{{ event_logo_data }}" alt="Event-Logo" style="{{ event_logo_style }}">
     {% endif %}
   </div>
 </div>
