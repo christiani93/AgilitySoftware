@@ -155,11 +155,11 @@
 </div>
 {% endmacro %}
 
-{% macro startlist_block(run) %}
+{% macro startlist_block(kategorie, klasse, participants) %}
 <div class="startlist-block">
-    <div class="run-title">{{ _('Startliste') }} {{ run.name }}</div>
-    <div class="run-count">{{ _('Anzahl Teams') }}: {{ run.entries|length }}</div>
-    {% if run.entries %}
+    <div class="run-title">{{ _('Startliste') }} – {{ _('Kategorie') }}: {{ kategorie }} / {{ _('Klasse') }}: {{ klasse }}</div>
+    <div class="run-count">{{ _('Anzahl Teams') }}: {{ participants|length }}</div>
+    {% if participants %}
     <table>
         <thead>
             <tr>
@@ -171,7 +171,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for entry in run.entries %}
+            {% for entry in participants %}
             <tr>
                 <td><strong>{{ entry.Startnummer }}</strong></td>
                 <td>{{ entry.Hundefuehrer }}</td>
@@ -292,8 +292,8 @@
         </thead>
         <tbody>
             <tr><td>
-                {% for run in ordered_runs %}
-                    {{ startlist_block(run) }}
+                {% for group in startlist_groups %}
+                    {{ startlist_block(group.kategorie, group.klasse, group.participants) }}
                 {% else %}
                     <p style="text-align:center; font-weight:bold; margin-top:2cm;">{{ _('Kein Zeitplan vorhanden') }}</p>
                 {% endfor %}

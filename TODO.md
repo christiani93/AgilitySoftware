@@ -18,13 +18,19 @@ Stand: 2026-10-09
       NUR dieser pisa-Pfad betroffen; `print_ranking_single.html` ist Browser-Druck
       (honoriert max-width).
 
-- [ ] **print/all: Startlisten-Bündel druckt pro Lauf einzeln statt 1x gesamt** —
-      User-Feedback: im Sammeldruck (`/print/all/<id>`) soll nur EIN
-      Startlistensatz für den ganzen Tag/Event erscheinen, nicht pro Lauf
-      einzeln wiederholt. Betrifft `app/routes_print.py` + Memory
-      `project_sammeldruck_software` (3-Bündel-Struktur Teilnehmerinfo/
-      Einweiser/Ringbüro). Noch nicht untersucht, welches Bündel die
-      Wiederholung verursacht.
+- [x] **print/all: Startlisten-Bündel druckte pro Lauf einzeln statt 1x gesamt** (committed):
+      Ursache war Bündel 1 (Teilnehmerinfo) — `ordered_runs` iterierte über jeden
+      konkreten Lauf einzeln (`get_ordered_runs_for_print`), wodurch dieselben
+      Teilnehmer bei mehreren Läufen derselben Kategorie/Klasse (z.B. Lauf 1+2)
+      mehrfach als separate Startliste gedruckt wurden. Fix: neue Funktion
+      `_build_participant_startlist_groups` gruppiert laufunspezifisch nach
+      Kategorie/Klasse (1 Satz Startlisten) — analog zu `_get_enriched_participants`
+      in `print_master_steward_list`.
+      Zusätzlich Bündel 2 (Einweiser) umgestellt: statt
+      `build_schedule_steward_sections` (1 Tabelle pro Zeitplan-Block) jetzt
+      `_build_master_steward_groups` — dieselbe Kategorie/Klasse-Gruppierung wie
+      `print_master_steward_list`, pro Ring gefiltert über `run.assigned_ring`.
+      Bündel 3 (Ringbüro) unverändert.
 
 ## ✅ Ring-Reassign-Fix + Event-Liste-Fix + DEV-GUI-Bat (2026-10-08 Abend) — COMMITTED + GEPUSHT + EXE GEBAUT
 

@@ -73,11 +73,11 @@ def print_all(event_id):
     timelines_by_ring = _safe_timelines(event)
     ring_keys = sorted(timelines_by_ring.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x))
 
-    # Bündel 1: offizielle Startlisten in Zeitplan-Reihenfolge
-    ordered_runs = _enrich_entries_rasse_verein(get_ordered_runs_for_print(event))
+    # Bündel 1: 1 Satz Startlisten pro Kategorie/Klasse, laufunspezifisch
+    startlist_groups = _build_participant_startlist_groups(event)
 
-    # Bündel 2: Einweiserlisten nach Ringzeitplan, pro Ring gruppiert
-    steward_sections = build_schedule_steward_sections(event)
+    # Bündel 2: Einweiserlisten als Master-Tabelle (1 pro Kategorie/Klasse, alle
+    # zugehörigen Läufe als Spalten), pro Ring gefiltert
     # Bündel 3: Ringschreiberlisten nach Ringzeitplan, pro Ring gruppiert
     scribe_sections = build_schedule_print_sections(event)
     for section in scribe_sections:
@@ -87,7 +87,7 @@ def print_all(event_id):
     einweiser_by_ring = {
         rk: {
             "timeline": timelines_by_ring.get(rk, []),
-            "sections": [s for s in steward_sections if str(s.get("ring")) == str(rk)],
+            "sections": _build_master_steward_groups(event, judges, ring_key=rk),
         }
         for rk in ring_keys
     }
@@ -108,7 +108,7 @@ def print_all(event_id):
         club_logo_data=logos['club'],
         timelines_by_ring=timelines_by_ring,
         ring_keys=ring_keys,
-        ordered_runs=ordered_runs,
+        startlist_groups=startlist_groups,
         einweiser_by_ring=einweiser_by_ring,
         ringbuero_by_ring=ringbuero_by_ring,
         now_str=now_str,
@@ -248,34 +248,103 @@ def print_briefing_groups(event_id=None):
         club_logo_data=logos['club'],
     )
 
+def _enrich_entry_rasse_verein(entry, dogs_map, handlers_map, clubs_map):
+    """Reichert einen einzelnen Entry um Rasse (aus dogs.json) und Vereinsname
+    (handlers.json → clubs.json) an. Fehlende Werte bleiben leer (z.B. Rasse
+    nicht erfasst)."""
+    dog = dogs_map.get(entry.get('Lizenznummer'), {})
+    if not entry.get('Rasse'):
+        entry['Rasse'] = dog.get('Rasse', '')
+    handler = handlers_map.get(dog.get('Hundefuehrer_ID'), {})
+    vn = str(handler.get('Vereinsnummer', '') or '').strip()
+    verein = clubs_map.get(vn, '')
+    if not verein and vn and not vn.isdigit():
+        # Ausland/Gastverein: club_name ist Freitext (keine CH-Vereinsnummer)
+        # → Rohwert anzeigen, analog Portal-club_display_name.
+        verein = vn
+    entry['Verein'] = verein
+    # Ausland-Kennzeichnung: FOREIGN-Lizenz (Format "AAA-12345", nicht rein
+    # numerisch). Nur Daten-Flags setzen; die Beschriftung übernimmt das
+    # Template (Übersetzung gehört nicht in die Datenaufbereitung).
+    lic = str(entry.get('Lizenznummer', '') or '').strip()
+    if lic and not lic.isdigit():
+        entry['is_foreign'] = True
+        entry['foreign_cc'] = lic.split('-', 1)[0] if '-' in lic else ''
+    return entry
+
+
 def _enrich_entries_rasse_verein(ordered_runs):
-    """Reichert die Entries der Läufe um Rasse (aus dogs.json) und Vereinsname
-    (handlers.json → clubs.json) an, damit die Listen der SportyDog-Vorlage
-    entsprechen. Fehlende Werte bleiben leer (z.B. Rasse nicht erfasst)."""
+    """Reichert die Entries der Läufe um Rasse und Vereinsname an, damit die
+    Listen der SportyDog-Vorlage entsprechen."""
     dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
     handlers_map = {h['id']: h for h in _load_data('handlers.json')}
     clubs_map = {str(c.get('nummer')): c.get('name', '') for c in _load_data('clubs.json')}
     for run in ordered_runs:
         for entry in run.get('entries', []):
-            dog = dogs_map.get(entry.get('Lizenznummer'), {})
-            if not entry.get('Rasse'):
-                entry['Rasse'] = dog.get('Rasse', '')
-            handler = handlers_map.get(dog.get('Hundefuehrer_ID'), {})
-            vn = str(handler.get('Vereinsnummer', '') or '').strip()
-            verein = clubs_map.get(vn, '')
-            if not verein and vn and not vn.isdigit():
-                # Ausland/Gastverein: club_name ist Freitext (keine CH-Vereinsnummer)
-                # → Rohwert anzeigen, analog Portal-club_display_name.
-                verein = vn
-            entry['Verein'] = verein
-            # Ausland-Kennzeichnung: FOREIGN-Lizenz (Format "AAA-12345", nicht rein
-            # numerisch). Nur Daten-Flags setzen; die Beschriftung übernimmt das
-            # Template (Übersetzung gehört nicht in die Datenaufbereitung).
-            lic = str(entry.get('Lizenznummer', '') or '').strip()
-            if lic and not lic.isdigit():
-                entry['is_foreign'] = True
-                entry['foreign_cc'] = lic.split('-', 1)[0] if '-' in lic else ''
+            _enrich_entry_rasse_verein(entry, dogs_map, handlers_map, clubs_map)
     return ordered_runs
+
+
+def _build_participant_startlist_groups(event):
+    """Baut 1 Startliste pro Kategorie/Klasse, unabhängig vom einzelnen Lauf
+    (laufunspezifisch) – ein Satz Startlisten statt einer Liste je Lauf."""
+    participants = _get_enriched_participants(event)
+    dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
+    handlers_map = {h['id']: h for h in _load_data('handlers.json')}
+    clubs_map = {str(c.get('nummer')): c.get('name', '') for c in _load_data('clubs.json')}
+    for p in participants:
+        _enrich_entry_rasse_verein(p, dogs_map, handlers_map, clubs_map)
+
+    grouped = {}
+    for p in participants:
+        cat, cls = p.get('Kategorie', 'N/A'), str(p.get('Klasse', 'N/A'))
+        grouped.setdefault(cat, {}).setdefault(cls, []).append(p)
+
+    groups = []
+    for cat in sorted(grouped.keys(), key=get_category_sort_key):
+        for cls in sorted(grouped[cat].keys()):
+            participants_sorted = sorted(grouped[cat][cls], key=lambda p: int(p.get('Startnummer', 9999)))
+            groups.append({'kategorie': cat, 'klasse': cls, 'participants': participants_sorted})
+    return groups
+
+
+def _build_master_steward_groups(event, judges, ring_key=None):
+    """Baut die Einweiser-Gruppen als Master-Tabelle: 1 Tabelle pro Kategorie/
+    Klasse mit allen zugehörigen Läufen als Spalten (wie print_master_steward_list),
+    statt einer separaten Tabelle pro einzelnem Zeitplan-Block/Lauf. Optional auf
+    einen Ring gefiltert (über run.assigned_ring)."""
+    participants = _get_enriched_participants(event)
+    grouped_participants = {}
+    for p in participants:
+        cat, cls = p.get('Kategorie', 'N/A'), str(p.get('Klasse', 'N/A'))
+        grouped_participants.setdefault(cat, {}).setdefault(cls, []).append(p)
+
+    ordered_runs = get_ordered_runs_for_print(event)
+    groups = []
+    for cat in sorted(grouped_participants.keys(), key=get_category_sort_key):
+        for cls in sorted(grouped_participants[cat].keys()):
+            participants_in_group = grouped_participants[cat][cls]
+            runs_for_group = [r for r in ordered_runs if r.get('kategorie') == cat and str(r.get('klasse')) == cls]
+            if ring_key is not None:
+                runs_for_group = [r for r in runs_for_group if str(r.get('assigned_ring')) == f"ring_{ring_key}"]
+                if not runs_for_group:
+                    continue
+            for run in runs_for_group:
+                run['judge_display'] = resolve_judge_name(event, run, judges)
+            participant_run_map = {p['Lizenznummer']: {r['id']: False for r in runs_for_group} for p in participants_in_group}
+            for run in runs_for_group:
+                for entry in run.get('entries', []):
+                    if entry['Lizenznummer'] in participant_run_map:
+                        participant_run_map[entry['Lizenznummer']][run['id']] = True
+            participants_sorted = sorted(participants_in_group, key=lambda p: int(p.get('Startnummer', 9999)))
+            groups.append({
+                'ring': ring_key,
+                'title': f"{_('Kategorie')}: {cat} - {_('Klasse')}: {cls}",
+                'runs': runs_for_group,
+                'participants': participants_sorted,
+                'run_map': participant_run_map,
+            })
+    return groups
 
 
 @print_bp.route('/print/startlists/<event_id>')
