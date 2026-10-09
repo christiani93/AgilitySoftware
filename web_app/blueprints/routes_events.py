@@ -1477,6 +1477,33 @@ def edit_run(event_id, run_id):
         return redirect(url_for('events_bp.manage_runs', event_id=event_id))
     return render_template('run_form.html', event=event, run=run, judges=_load_data(JUDGES_FILE), return_url=request.args.get('return_url'))
 
+def _rename_entry_everywhere(event, license_nr, new_handler=None, new_dog=None):
+    """Benennt einen Teilnehmer in ALLEN Läufen des Events um (per Lizenznummer).
+
+    Event-Entries speichern Hundeführer/Hundename als eingefrorenen String
+    (``Hundefuehrer_ID`` ist ``null``), eine Stammdaten-Änderung schlägt also
+    nicht durch. Dieser Helper korrigiert den Namen direkt am Entry – event-weit
+    wie der Läufig-Schalter, damit der Starter in Agility UND Jumping gleich
+    heisst (Startliste/Rangliste/Ring-Monitor). Startnummern bleiben erhalten.
+    Gibt die Anzahl geänderter Einträge zurück.
+    """
+    lic = str(license_nr or '').strip()
+    if not lic:
+        return 0
+    handler = (new_handler or '').strip()
+    dog = (new_dog or '').strip()
+    changed = 0
+    for run in event.get('runs', []):
+        for p in run.get('entries', []):
+            if str(p.get('Lizenznummer', '')).strip() == lic:
+                if handler:
+                    p['Hundefuehrer'] = handler
+                if dog:
+                    p['Hundename'] = dog
+                changed += 1
+    return changed
+
+
 # NEU: Echte Lauf-spezifische Teilnehmerverwaltung
 @events_bp.route('/manage_run_participants/<event_id>/<run_id>', methods=['GET', 'POST'])
 def manage_run_participants(event_id, run_id):
@@ -1778,6 +1805,21 @@ def manage_all_participants(event_id):
                 flash(f"Teilnehmer zu {added_count} Läufen hinzugefügt.", "success")
             else:
                 flash("Hund nicht gefunden.", "error")
+
+        if request.form.get('action') == 'rename':
+            license_nr = (request.form.get('license_nr') or '').strip()
+            new_handler = (request.form.get('Hundefuehrer') or '').strip()
+            new_dog = (request.form.get('Hundename') or '').strip()
+            if not license_nr or not (new_handler or new_dog):
+                flash("Kein neuer Name angegeben.", "warning")
+                return redirect(url_for('events_bp.manage_all_participants', event_id=event_id))
+            changed = _rename_entry_everywhere(event, license_nr, new_handler=new_handler, new_dog=new_dog)
+            if changed:
+                _save_data(EVENTS_FILE, events)
+                flash(f"Name in {changed} Lauf/Läufen aktualisiert.", "success")
+            else:
+                flash("Teilnehmer nicht gefunden.", "error")
+            return redirect(url_for('events_bp.manage_all_participants', event_id=event_id))
 
         if request.form.get('save_start_last'):
             start_last_licenses = request.form.getlist('start_last')
@@ -2482,6 +2524,33 @@ def api_toggle_in_season(event_id, license_nr):
 
     _save_data(EVENTS_FILE, all_events)
     return jsonify(success=True, is_in_season=new_state)
+
+
+@events_bp.route('/api/rename_participant/<event_id>/<license_nr>', methods=['POST'])
+def api_rename_participant(event_id, license_nr):
+    """Korrigiert Hundeführer-/Hundename eines Teilnehmers im laufenden Event.
+
+    Wirkt event-weit (alle Läufe der Lizenznummer), ohne die Startnummer zu
+    verlieren. Pendant zum Portal-Rename für Fälle, in denen der Name erst am
+    Veranstaltungstag korrigiert wird.
+    """
+    all_events = _load_data(EVENTS_FILE)
+    event = next((e for e in all_events if isinstance(e, dict) and e.get('id') == event_id), None)
+    if not event:
+        return jsonify(success=False, message="Event nicht gefunden"), 404
+
+    payload = request.get_json(silent=True) or {}
+    new_handler = payload.get('Hundefuehrer')
+    new_dog = payload.get('Hundename')
+    if not (str(new_handler or '').strip() or str(new_dog or '').strip()):
+        return jsonify(success=False, message="Kein neuer Name angegeben"), 400
+
+    changed = _rename_entry_everywhere(event, license_nr, new_handler=new_handler, new_dog=new_dog)
+    if not changed:
+        return jsonify(success=False, message="Teilnehmer nicht gefunden"), 404
+
+    _save_data(EVENTS_FILE, all_events)
+    return jsonify(success=True, changed=changed)
 
 
 @events_bp.route('/remove_participant_from_event/<event_id>/<license_nr>', methods=['POST'])

@@ -192,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let selectedItem = null;
   let results = [];
+  let entriesByLic = {};
 
   // ------- Helpers
   function showResults(show) {
@@ -233,6 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(data => {
         if (!data.success) throw new Error(data.message || 'Fehler');
         const entries = (data.data && data.data.entries) || [];
+        entriesByLic = {};
+        entries.forEach(e => { entriesByLic[String(e.Lizenznummer)] = e; });
         if (!entries.length) {
           ui.tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Noch keine Teilnehmer in diesem Lauf.</td></tr>`;
           return;
@@ -252,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>${e.Kategorie || ''}/${e.Klasse || ''}</td>
             <td class="text-end">
               <div class="d-flex gap-1 justify-content-end">
+                <button class="btn btn-sm btn-outline-secondary" data-rename="${e.Lizenznummer}" title="Name korrigieren">✎</button>
                 ${seasonBtn}
                 <button class="btn btn-sm btn-outline-dark" data-remove="${e.Lizenznummer}">Entfernen</button>
               </div>
@@ -343,6 +347,31 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchRunDetails();
       })
       .catch(err => alert('Entfernen fehlgeschlagen: ' + err.message))
+      .finally(() => btn.disabled = false);
+  });
+
+  // ------- Name korrigieren (wirkt event-weit, Startnummer bleibt)
+  ui.tbody.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-rename]');
+    if (!btn) return;
+    const liz = btn.dataset.rename;
+    const cur = entriesByLic[String(liz)] || {};
+    const newHandler = prompt('Hundeführer', cur.Hundefuehrer || '');
+    if (newHandler === null) return;
+    const newDog = prompt('Hundename', cur.Hundename || '');
+    if (newDog === null) return;
+    btn.disabled = true;
+    fetch(`/events/api/rename_participant/${eventId}/${encodeURIComponent(liz)}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ Hundefuehrer: newHandler.trim(), Hundename: newDog.trim() })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.success) throw new Error(data.message || 'Fehlschlag');
+        fetchRunDetails();
+      })
+      .catch(err => alert('Umbenennen fehlgeschlagen: ' + err.message))
       .finally(() => btn.disabled = false);
   });
 

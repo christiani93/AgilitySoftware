@@ -31,20 +31,35 @@
                     </div>
                     <ul class="list-group">
                         {% for p in assigned_participants %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="badge bg-primary rounded-pill me-2">{{ p.Startnummer }}</span>
-                                {{ p.Hundefuehrer }} mit {{ p.Hundename }}
-                                {% if p.is_in_season %}<span class="badge bg-warning text-dark">Läufig</span>{% endif %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-primary rounded-pill me-2">{{ p.Startnummer }}</span>
+                                    {{ p.Hundefuehrer }} mit {{ p.Hundename }}
+                                    {% if p.is_in_season %}<span class="badge bg-warning text-dark">Läufig</span>{% endif %}
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            data-bs-toggle="collapse" data-bs-target="#rename-{{ p.Lizenznummer }}"
+                                            title="Name korrigieren"><i class="fas fa-pen"></i></button>
+                                    <button type="button"
+                                            class="btn btn-sm {{ 'btn-warning' if p.is_in_season else 'btn-outline-secondary' }}"
+                                            data-toggle-season="{{ p.Lizenznummer }}"
+                                            title="{{ 'Läufig-Markierung aufheben' if p.is_in_season else 'Als läufig markieren – startet am Schluss ihres Laufes' }}">Läufig</button>
+                                    <form action="{{ url_for('events_bp.remove_participant_from_event', event_id=event.id, license_nr=p.Lizenznummer) }}" method="POST" onsubmit="return confirm('Teilnehmer wirklich aus allen Läufen entfernen?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </div>
                             </div>
-                            <div class="d-flex gap-1">
-                                <button type="button"
-                                        class="btn btn-sm {{ 'btn-warning' if p.is_in_season else 'btn-outline-secondary' }}"
-                                        data-toggle-season="{{ p.Lizenznummer }}"
-                                        title="{{ 'Läufig-Markierung aufheben' if p.is_in_season else 'Als läufig markieren – startet am Schluss ihres Laufes' }}">Läufig</button>
-                                <form action="{{ url_for('events_bp.remove_participant_from_event', event_id=event.id, license_nr=p.Lizenznummer) }}" method="POST" onsubmit="return confirm('Teilnehmer wirklich aus allen Läufen entfernen?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                            <div class="collapse mt-2" id="rename-{{ p.Lizenznummer }}">
+                                <form action="{{ url_for('events_bp.manage_all_participants', event_id=event.id) }}" method="POST" class="d-flex gap-2 flex-wrap">
+                                    <input type="hidden" name="action" value="rename">
+                                    <input type="hidden" name="license_nr" value="{{ p.Lizenznummer }}">
+                                    <input type="text" class="form-control form-control-sm" name="Hundefuehrer" value="{{ p.Hundefuehrer }}" placeholder="Hundeführer" style="min-width:12rem;">
+                                    <input type="text" class="form-control form-control-sm" name="Hundename" value="{{ p.Hundename }}" placeholder="Hundename" style="min-width:10rem;">
+                                    <button type="submit" class="btn btn-sm btn-primary">Speichern</button>
                                 </form>
+                                <div class="form-text">Korrigiert den Namen in allen Läufen dieses Events (Startnummer bleibt).</div>
                             </div>
                         </li>
                         {% endfor %}
@@ -76,13 +91,28 @@
                         {% for p in unassigned_participants %}
                         <li class="list-group-item">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span>{{ p.Hundefuehrer }} mit {{ p.Hundename }}</span>
+                                <span>
+                                    {{ p.Hundefuehrer }} mit {{ p.Hundename }}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-1"
+                                            data-bs-toggle="collapse" data-bs-target="#rename-u-{{ p.Lizenznummer }}"
+                                            title="Name korrigieren"><i class="fas fa-pen"></i></button>
+                                </span>
                                 <form action="{{ url_for('events_bp.manage_all_participants', event_id=event.id) }}" method="POST" class="d-flex gap-2">
                                     <input type="hidden" name="action" value="assign_number">
                                     <input type="hidden" name="license_nr" value="{{ p.Lizenznummer }}">
                                     <input type="number" class="form-control form-control-sm" name="new_start_number" placeholder="Start-Nr." required>
                                     <button type="submit" class="btn btn-sm btn-primary">Zuweisen</button>
                                 </form>
+                            </div>
+                            <div class="collapse mt-2" id="rename-u-{{ p.Lizenznummer }}">
+                                <form action="{{ url_for('events_bp.manage_all_participants', event_id=event.id) }}" method="POST" class="d-flex gap-2 flex-wrap">
+                                    <input type="hidden" name="action" value="rename">
+                                    <input type="hidden" name="license_nr" value="{{ p.Lizenznummer }}">
+                                    <input type="text" class="form-control form-control-sm" name="Hundefuehrer" value="{{ p.Hundefuehrer }}" placeholder="Hundeführer" style="min-width:12rem;">
+                                    <input type="text" class="form-control form-control-sm" name="Hundename" value="{{ p.Hundename }}" placeholder="Hundename" style="min-width:10rem;">
+                                    <button type="submit" class="btn btn-sm btn-primary">Speichern</button>
+                                </form>
+                                <div class="form-text">Korrigiert den Namen in allen Läufen dieses Events (Startnummer bleibt).</div>
                             </div>
                         </li>
                         {% endfor %}
