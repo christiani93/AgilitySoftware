@@ -229,10 +229,10 @@
       <td>{{ res.Verein }}</td>
       <td class="center">{{ res.Klasse }}</td>
       <td class="mono">
-        {% if res.zeit_total and res.zeit_total < 998 %}{{ '%.2f'|format(res.zeit_total|float) }}{% endif %}
+        {% if not disq and res.zeit_total and res.zeit_total < 998 %}{{ '%.2f'|format(res.zeit_total|float) }}{% endif %}
       </td>
       <td class="mono">
-        {% if res.zeit_total and res.zeit_total < 998 and ld.get('parcours_laenge') and res.zeit_total > 0 %}{{ '%.2f'|format(ld.parcours_laenge|float / res.zeit_total) }}{% endif %}
+        {% if not disq and res.zeit_total and res.zeit_total < 998 and ld.get('parcours_laenge') and res.zeit_total > 0 %}{{ '%.2f'|format(ld.parcours_laenge|float / res.zeit_total) }}{% endif %}
       </td>
       <td class="center">
         {{ res.fehler_parcours_anzahl|int if res.fehler_parcours_anzahl is defined else '—' }}
