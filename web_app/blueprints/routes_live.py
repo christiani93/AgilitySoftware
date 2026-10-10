@@ -638,7 +638,6 @@ def display_ring_monitor(ring_number):
     view_model = build_ring_view_model(event, ring_number)
     return render_template('ring_monitor.html', event=event, ring_name=f"Ring {ring_number}", view_model=view_model, kiosk_mode=True)
 
-@live_bp.route('/ring_pc_dashboard/<int:ring_number>')
 def _resolve_runs_for_ring(event, ring_number):
     """Liefert die Läufe eines Rings in Anzeige-Reihenfolge (gleiche Quelle wie
     das "Lauf auswählen"-Dropdown im Ring-PC-Dashboard) + Debug-Infos.
@@ -664,12 +663,14 @@ def _resolve_runs_for_ring(event, ring_number):
     return runs_for_ring, debug
 
 
+@live_bp.route('/ring_pc_dashboard/<int:ring_number>')
 def ring_pc_dashboard(ring_number):
     event = _get_active_event()
     if not event: return "Kein aktives Event."
     ring_name = f"Ring {ring_number}"
+    schedule = event.get("schedule") or {}
     runs_for_ring, debug = _resolve_runs_for_ring(event, ring_number)
-    if event.get("schedule", {}).get("rings"):
+    if schedule.get("rings"):
         ring_key = str(ring_number)
         judges = _load_data('judges.json')
         for run in runs_for_ring:
