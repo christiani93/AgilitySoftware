@@ -51,10 +51,12 @@ Stand: 2026-10-10
       toter "Schnell speichern"-Button + `quickSaveCurrent()` entfernt. Muster/Doku
       siehe Memory `reference_fullscreen_fit_css_flexbox`. OFFEN: ins SW-Build-Paket
       (EXE) + Live-Abnahme DIS-Timer mit Hardware.
-- [ ] **Zweiter toter Button `reset-run-btn`** ("Aktuellen Lauf zurücksetzen"):
-      `ui.resetBtn` wird definiert aber NIE mit Click-Handler verdrahtet (der
-      `reset_current_run`-Emit passiert nur in anderen Flows). User-ENTSCHEIDUNG
-      offen: verdrahten ODER entfernen (evtl. durch Ring-Server auch überflüssig).
+- [x] **Button `reset-run-btn` verdrahtet (Fehlstart-Reset)** (COMMITTED `fe333a4`,
+      in EXE 21:52): User-Entscheidung = verdrahten. Neue Aktion `resetCurrentRun`
+      emittiert `reset_current_run` an den Ring-Server (`handle_reset`→`reset_state`:
+      run_status=idle, current_starter=None, Zeit/F/V=0) — gedacht für Fehlstart,
+      wenn TIMY/Alge zu früh ausgelöst hat. Verbindungscheck + Confirm, speichert
+      KEIN Resultat. Ring-Server-Logik existierte schon → AgilityRing.exe NICHT neu.
 - [x] **Ring-Monitor Layout-Umbau** (COMMITTED `8a30aa4`): Kiosk-Monitor zeigt
       alles OHNE Scrollen. Namen einzeilig im Ringschreiber-Format
       (`format_ring_name_html`/`_parts` in utils.py, Hundeführer fett + Hundename
