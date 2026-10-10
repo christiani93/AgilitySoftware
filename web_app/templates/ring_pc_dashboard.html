@@ -404,6 +404,7 @@
       }
       const entries = [...state.allEntries].sort(byStartnummer);
       const assignedLicense = state.currentEntryToEdit ? state.currentEntryToEdit.Lizenznummer : null;
+      let prevNr = null;
       ui.starterList.innerHTML = entries.map(entry => {
         const hasResult = entry.result && (entry.result.zeit || entry.result.disqualifikation);
         const isAssigned = !hasResult && entry.Lizenznummer === assignedLicense;
@@ -413,7 +414,22 @@
         const disabled = hasResult ? "disabled" : "";
         const rowBg = hasResult ? 'bg-green-100' : isAssigned ? 'bg-yellow-100' : 'bg-gray-50';
         const assignedBadge = isAssigned ? `<span class="text-xs font-semibold text-yellow-800 bg-yellow-200 px-2 py-0.5 rounded mr-1">▶ Aktuell</span>` : '';
-        return `
+
+        // Markierung: springt die Startnummer hier nicht mehr aufsteigend
+        // weiter (z.B. Beginn der "läufig/am Schluss"-Gruppe oder manuelle
+        // Umreihung), bekommt die Zeile davor eine deutliche Trennlinie.
+        const nr = parseInt(entry.Startnummer, 10);
+        const outOfOrder = prevNr !== null && !isNaN(nr) && nr <= prevNr;
+        if (!isNaN(nr)) prevNr = nr;
+        const orderMarker = outOfOrder
+          ? `<div class="flex items-center gap-2 my-1 text-amber-700" title="Startnummer-Reihenfolge nicht aufsteigend">
+               <span class="flex-1 border-t-2 border-dashed border-amber-400"></span>
+               <span class="text-xs font-semibold whitespace-nowrap">⚠ Reihenfolge unterbrochen</span>
+               <span class="flex-1 border-t-2 border-dashed border-amber-400"></span>
+             </div>`
+          : '';
+
+        return orderMarker + `
           <div id="starter-${entry.Lizenznummer}" class="starter-row p-3 rounded-lg flex justify-between items-center ${rowBg}">
             <div class="flex items-center gap-2">
               <span class="font-bold text-lg w-12 inline-block text-center">${entry.Startnummer}</span>
