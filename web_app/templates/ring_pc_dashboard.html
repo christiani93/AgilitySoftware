@@ -437,14 +437,18 @@
 
         // Markierung: springt die Startnummer hier nicht mehr aufsteigend
         // weiter (z.B. Beginn der "läufig/am Schluss"-Gruppe oder manuelle
-        // Umreihung), bekommt die Zeile davor eine deutliche Trennlinie.
+        // Umreihung) ODER lässt eine/mehrere Nummern aus (z.B. Rückzug nach
+        // Startlisten-Druck), bekommt die Zeile davor eine deutliche Trennlinie.
         const nr = parseInt(entry.Startnummer, 10);
-        const outOfOrder = prevNr !== null && !isNaN(nr) && nr <= prevNr;
+        const notAscending = prevNr !== null && !isNaN(nr) && nr <= prevNr;
+        const hasGap = prevNr !== null && !isNaN(nr) && nr > prevNr + 1;
+        const outOfOrder = notAscending || hasGap;
         if (!isNaN(nr)) prevNr = nr;
+        const orderLabel = notAscending ? '⚠ Reihenfolge unterbrochen' : '⚠ Nummernlücke';
         const orderMarker = outOfOrder
-          ? `<div class="flex items-center gap-2 my-1 text-amber-700" title="Startnummer-Reihenfolge nicht aufsteigend">
+          ? `<div class="flex items-center gap-2 my-1 text-amber-700" title="Startnummer-Reihenfolge nicht aufsteigend bzw. Nummernlücke">
                <span class="flex-1 border-t-2 border-dashed border-amber-400"></span>
-               <span class="text-xs font-semibold whitespace-nowrap">⚠ Reihenfolge unterbrochen</span>
+               <span class="text-xs font-semibold whitespace-nowrap">${orderLabel}</span>
                <span class="flex-1 border-t-2 border-dashed border-amber-400"></span>
              </div>`
           : '';
@@ -594,6 +598,14 @@
           // (z.B. manuelles Speichern) etwas gespeichert wird.
           state.pendingStartTimeTod = null;
           state.localSocket.emit("set_starter_ready", { run_id: state.currentRunId, starter: starter });
+          // Hauptserver informieren -> Ring-Monitor/Sprecher zeigen denselben
+          // Starter, auch wenn er nicht der sequenziell erwartete war (z.B.
+          // Reihenfolge durchbrochen, Läufig-Umstellung).
+          fetch(`/live/api/reassign_current_starter`, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ event_id: eventId, run_id: state.currentRunId, license_number: licenseNr })
+          }).catch(()=>{});
         }
       },
       setParticipantStatus: function(licenseNr, status){
