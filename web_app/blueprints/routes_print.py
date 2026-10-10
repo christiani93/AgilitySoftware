@@ -298,6 +298,18 @@ def _enrich_sections_rasse_verein(sections):
     return sections
 
 
+def _enrich_participants_rasse_verein(participants):
+    """Reichert eine flache Teilnehmerliste um Rasse/Verein und die Ausland-Flags
+    (is_foreign/foreign_cc) an – für Einweiserlisten, die auf
+    _get_enriched_participants statt auf Lauf-Entries basieren."""
+    dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
+    handlers_map = {h['id']: h for h in _load_data('handlers.json')}
+    clubs_map = {str(c.get('nummer')): c.get('name', '') for c in _load_data('clubs.json')}
+    for p in participants:
+        _enrich_entry_rasse_verein(p, dogs_map, handlers_map, clubs_map)
+    return participants
+
+
 def _build_participant_startlist_groups(event):
     """Baut 1 Startliste pro Kategorie/Klasse, unabhängig vom einzelnen Lauf
     (laufunspezifisch) – ein Satz Startlisten statt einer Liste je Lauf."""
@@ -326,7 +338,7 @@ def _build_master_steward_groups(event, judges, ring_key=None):
     Klasse mit allen zugehörigen Läufen als Spalten (wie print_master_steward_list),
     statt einer separaten Tabelle pro einzelnem Zeitplan-Block/Lauf. Optional auf
     einen Ring gefiltert (über run.assigned_ring)."""
-    participants = _get_enriched_participants(event)
+    participants = _enrich_participants_rasse_verein(_get_enriched_participants(event))
     grouped_participants = {}
     for p in participants:
         cat, cls = p.get('Kategorie', 'N/A'), str(p.get('Klasse', 'N/A'))
@@ -424,7 +436,7 @@ def print_master_steward_list(event_id):
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     judges = _load_data('judges.json')
-    participants, grouped_participants = _get_enriched_participants(event), {}
+    participants, grouped_participants = _enrich_participants_rasse_verein(_get_enriched_participants(event)), {}
     for p in participants:
         cat, cls = p.get('Kategorie', 'N/A'), str(p.get('Klasse', 'N/A'))
         if cat not in grouped_participants: grouped_participants[cat] = {}
@@ -455,7 +467,7 @@ def print_master_steward_list_by_schedule(event_id):
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event:
         abort(404)
-    sections = build_schedule_steward_sections(event)
+    sections = _enrich_sections_rasse_verein(build_schedule_steward_sections(event))
     logos = get_event_logo_data_uris(event)
     return render_template('print/master_steward_list_by_schedule.html', event=event, sections=sections,
                            event_logo_data=logos['event'], club_logo_data=logos['club'])

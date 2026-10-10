@@ -77,7 +77,7 @@
                             {% for p in group_data.participants %}
                             <tr>
                                 <td><strong>{{ p.Startnummer }}</strong></td>
-                                <td>{{ p.Hundefuehrer }}</td>
+                                <td>{{ p.Hundefuehrer }}{% if p.is_foreign %} ({{ p.foreign_cc or _('Ausland') }}){% endif %}</td>
                                 <td>{{ p.Hundename }}</td>
                                 {% for run in group_data.runs %}
                                     <td style="text-align: center;">
