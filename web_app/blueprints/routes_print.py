@@ -626,7 +626,7 @@ def tkamo_export(event_id):
             writer.writerow(row)
             
     return Response(
-        output.getvalue().encode('utf-8-sig'),
+        output.getvalue().encode('utf-8'),
         mimetype="text/csv",
         headers={"Content-Disposition": f"attachment;filename=tkamo_export_{event_id}.csv"},
     )
