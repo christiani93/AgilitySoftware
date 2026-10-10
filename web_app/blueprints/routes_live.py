@@ -639,17 +639,38 @@ def display_ring_monitor(ring_number):
     return render_template('ring_monitor.html', event=event, ring_name=f"Ring {ring_number}", view_model=view_model, kiosk_mode=True)
 
 @live_bp.route('/ring_pc_dashboard/<int:ring_number>')
-def ring_pc_dashboard(ring_number):
-    event = _get_active_event()
-    if not event: return "Kein aktives Event."
-    ring_name = f"Ring {ring_number}"
+def _resolve_runs_for_ring(event, ring_number):
+    """Liefert die Läufe eines Rings in Anzeige-Reihenfolge (gleiche Quelle wie
+    das "Lauf auswählen"-Dropdown im Ring-PC-Dashboard) + Debug-Infos.
+
+    Bewusst unabhängig von der (aktuell fehlerhaften) Zeitplan-Zeitberechnung:
+    nutzt nur die Block-/Reihenfolge-Zuordnung, keine berechneten Uhrzeiten.
+    Wird auch für die "Laufvorgaben gültig bis Lauf X"-Reichweitenauswahl
+    verwendet, damit diese unabhängig vom Zeitplan-Fix funktioniert.
+    """
     target = _norm_ring_strict(ring_number)
     runs_for_ring = []
+    debug = []
     schedule = event.get("schedule") or {}
     schedule_rings = schedule.get("rings") or {}
     if schedule_rings:
         ring_key = str(ring_number)
         runs_for_ring, debug = _schedule_runs_for_ring(event, ring_key)
+    else:
+        for r in event.get('runs', []):
+            assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
+            if assigned and _norm_ring_strict(assigned) == target:
+                runs_for_ring.append(r)
+    return runs_for_ring, debug
+
+
+def ring_pc_dashboard(ring_number):
+    event = _get_active_event()
+    if not event: return "Kein aktives Event."
+    ring_name = f"Ring {ring_number}"
+    runs_for_ring, debug = _resolve_runs_for_ring(event, ring_number)
+    if event.get("schedule", {}).get("rings"):
+        ring_key = str(ring_number)
         judges = _load_data('judges.json')
         for run in runs_for_ring:
             run_block, _ = _find_run_block_for_run(event, run, ring_key)
@@ -659,11 +680,6 @@ def ring_pc_dashboard(ring_number):
                 _("Zeitplan gefunden, aber keine Lauf-Blöcke für %(ring)s: %(debug)s", ring=ring_name, debug=', '.join(debug)),
                 "warning",
             )
-    else:
-        for r in event.get('runs', []):
-            assigned = r.get('assigned_ring') or r.get('ring') or r.get('ring_id') or r.get('ringName')
-            if assigned and _norm_ring_strict(assigned) == target:
-                runs_for_ring.append(r)
     selected_run_id = request.args.get("run_id")
     if not selected_run_id:
         current_runs = event.get("current_runs_by_ring") or event.get("current_run_per_ring") or {}
@@ -958,17 +974,8 @@ def render_ring_monitor_content(ring_number: int):
     return Response(''.join(parts), mimetype='text/html')
 
 
-@live_bp.route('/live/api/update_run_laufdaten/<event_id>/<run_id>', methods=['POST'])
-def api_update_run_laufdaten(event_id, run_id):
-    """Aktualisiert Laufdaten (Parcours, Richter, SCT) direkt vom Ring-PC-Dashboard."""
-    run_id = str(run_id)
-    data = request.get_json(force=True, silent=True) or {}
-    events = _load_data('events.json')
-    event = next((e for e in events if e.get('id') == event_id), None)
-    run = next((r for r in (event.get('runs', []) if event else []) if r.get('id') == run_id), None)
-    if not event or not run:
-        return jsonify({'success': False, 'message': 'Event oder Lauf nicht gefunden.'}), 404
-
+def _apply_laufdaten_to_run(run, data, settings):
+    """Übernimmt Richter/Parcours/SCT-Formulardaten in einen einzelnen Lauf."""
     laufdaten = run.get('laufdaten', {})
 
     raw_laenge = data.get('parcours_laenge')
@@ -994,8 +1001,45 @@ def api_update_run_laufdaten(event_id, run_id):
     run['laufdaten'] = laufdaten
 
     # SCT/MCT neu berechnen
-    settings = _load_settings()
     _calculate_run_results(run, settings)
+
+
+@live_bp.route('/live/api/update_run_laufdaten/<event_id>/<run_id>', methods=['POST'])
+def api_update_run_laufdaten(event_id, run_id):
+    """Aktualisiert Laufdaten (Parcours, Richter, SCT) direkt vom Ring-PC-Dashboard.
+
+    Optionales `until_run_id`: wendet dieselben Laufdaten auf alle Läufe dieses
+    Rings zwischen run_id und until_run_id an (inklusive, in Dashboard-
+    Reihenfolge) — z.B. wenn eine Hindernis-Konfiguration für mehrere Klassen
+    bis zum nächsten Umbau/Briefing unverändert bleibt. Die Reichweite nutzt
+    bewusst dieselbe Lauf-Reihenfolge wie das "Lauf auswählen"-Dropdown, nicht
+    die (aktuell fehlerhafte) Zeitplan-Zeitberechnung.
+    """
+    run_id = str(run_id)
+    data = request.get_json(force=True, silent=True) or {}
+    events = _load_data('events.json')
+    event = next((e for e in events if e.get('id') == event_id), None)
+    run = next((r for r in (event.get('runs', []) if event else []) if r.get('id') == run_id), None)
+    if not event or not run:
+        return jsonify({'success': False, 'message': 'Event oder Lauf nicht gefunden.'}), 404
+
+    target_runs = [run]
+    until_run_id = data.get('until_run_id') or None
+    if until_run_id and str(until_run_id) != run_id:
+        ring_number = re.sub(r"[^0-9]", "", str(run.get('assigned_ring') or "")) or "1"
+        runs_for_ring, _debug = _resolve_runs_for_ring(event, ring_number)
+        ids_in_order = [r.get('id') for r in runs_for_ring]
+        try:
+            start_idx = ids_in_order.index(run_id)
+            end_idx = ids_in_order.index(str(until_run_id))
+        except ValueError:
+            start_idx = end_idx = None
+        if start_idx is not None and end_idx is not None and end_idx >= start_idx:
+            target_runs = runs_for_ring[start_idx:end_idx + 1]
+
+    settings = _load_settings()
+    for target_run in target_runs:
+        _apply_laufdaten_to_run(target_run, data, settings)
 
     _save_data('events.json', events)
 
@@ -1012,6 +1056,7 @@ def api_update_run_laufdaten(event_id, run_id):
     updated_laufdaten = run.get('laufdaten', {})
     return jsonify({
         'success': True,
+        'applied_to_runs': len(target_runs),
         'sct': updated_laufdaten.get('standardzeit_sct_gerundet') or updated_laufdaten.get('standardzeit_sct_berechnet'),
         'mct': updated_laufdaten.get('maximalzeit_mct_gerundet') or updated_laufdaten.get('maximalzeit_mct_berechnet'),
     })
@@ -1233,19 +1278,43 @@ def preview_ranking_pdf(event_id, run_id):
                     headers={"Content-Disposition": "inline; filename=rangliste_vorschau.pdf"})
 
 
+def _save_ranking_pdf_to_downloads(run, pdf_bytes, is_final, settings):
+    """Speichert die Rangliste-PDF zusätzlich lokal, in einem Unterordner pro
+    Tag (Datum der Erzeugung). Nutzt den in den Einstellungen konfigurierten
+    `download_dir` (Zielordner für Exporte), sonst den System-Downloads-Ordner."""
+    import os
+    from datetime import date
+    from werkzeug.utils import secure_filename
+
+    base = (settings.get("download_dir") or "").strip()
+    if not base or not os.path.isdir(base):
+        base = os.path.join(os.path.expanduser("~"), "Downloads")
+
+    day_folder = date.today().isoformat()
+    base_dir = os.path.join(base, "AgilitySoftware_Ranglisten", day_folder)
+    os.makedirs(base_dir, exist_ok=True)
+
+    run_name = run.get("name") or run.get("id")
+    suffix = "offiziell" if is_final else "zwischenstand"
+    filename = secure_filename(f"Rangliste_{run_name}_{suffix}.pdf")
+    full_path = os.path.join(base_dir, filename)
+    with open(full_path, "wb") as f:
+        f.write(pdf_bytes)
+    return full_path
+
+
 @live_bp.route('/live/upload_ranking_pdf/<event_id>/<run_id>', methods=['POST'])
 def upload_ranking_pdf(event_id, run_id):
     """
-    Rendert die Rangliste eines Laufs als PDF (WeasyPrint) und lädt sie ans Portal hoch.
-    Form-Parameter: is_final (true/false)
+    Rendert die Rangliste eines Laufs als PDF und liefert sie an Portal
+    und/oder lokalen Download-Ordner aus (je nach Checkbox-Auswahl im UI).
+    Form-Parameter: is_final (true/false), to_portal (true/false), to_download (true/false)
     """
     try:
         from xhtml2pdf import pisa
         import io as _io
     except ImportError:
         return jsonify({"error": "xhtml2pdf nicht installiert. Bitte 'pip install xhtml2pdf' ausführen."}), 500
-
-    import requests as _req
 
     settings = _load_settings()
     events   = _load_data('events.json')
@@ -1257,16 +1326,12 @@ def upload_ranking_pdf(event_id, run_id):
     if not run:
         return jsonify({"error": "Lauf nicht gefunden"}), 404
 
-    is_final = request.form.get('is_final', 'false').lower() == 'true'
+    is_final    = request.form.get('is_final', 'false').lower() == 'true'
+    to_portal   = request.form.get('to_portal', 'true').lower() == 'true'
+    to_download = request.form.get('to_download', 'false').lower() == 'true'
 
-    portal_url     = (settings.get("portal_url") or "").rstrip("/")
-    api_key        = settings.get("portal_results_api_key") or ""
-    external_id    = event.get("external_id") or ""
-
-    if not portal_url or not api_key:
-        return jsonify({"error": "Portal nicht konfiguriert (URL oder API-Key fehlt)"}), 400
-    if not external_id:
-        return jsonify({"error": "Event hat keine external_id – bitte Turnier neu vom Portal importieren"}), 400
+    if not to_portal and not to_download:
+        return jsonify({"error": "Weder Portal noch Download ausgewählt"}), 400
 
     html_str = _render_ranking_pdf_html(event, run, event_id, is_final)
 
@@ -1280,39 +1345,67 @@ def upload_ranking_pdf(event_id, run_id):
     except Exception as exc:
         return jsonify({"error": f"PDF-Generierung fehlgeschlagen: {exc}"}), 500
 
-    # Metadaten aus dem Lauf auslesen — Ring auf "Ring N"-Format normalisieren
-    _raw_ring = run.get("assigned_ring") or ""
-    import re as _re
-    _ring_num = _re.search(r'\d+', str(_raw_ring))
-    ring          = f"Ring {_ring_num.group()}" if _ring_num else (_raw_ring or "Ring 1")
-    discipline    = (run.get("laufart") or "").lower()
-    category_code = run.get("kategorie") or ""
-    class_level   = str(run.get("klasse") or 0)
+    result = {"is_final": is_final}
+    ok = True
 
-    # Hochladen
-    try:
-        resp = _req.post(
-            f"{portal_url}/api/resultpdf",
-            headers={"X-Api-Key": api_key},
-            files={"file": (f"rangliste_{run_id}.pdf", pdf_bytes, "application/pdf")},
-            data={
-                "event_external_id": external_id,
-                "run_name":          run.get("name") or "",
-                "ring":              ring,
-                "discipline":        discipline,
-                "category_code":     category_code,
-                "class_level":       class_level,
-                "is_final":          "true" if is_final else "false",
-            },
-            timeout=30,
-        )
-    except Exception as exc:
-        return jsonify({"error": f"Netzwerkfehler: {exc}"}), 502
+    if to_download:
+        try:
+            saved_path = _save_ranking_pdf_to_downloads(run, pdf_bytes, is_final, settings)
+            result["download"] = "ok"
+            result["download_path"] = saved_path
+        except Exception as exc:
+            result["download"] = f"error: {exc}"
+            ok = False
 
-    if resp.ok:
-        return jsonify({"status": "ok", "is_final": is_final})
-    else:
-        return jsonify({"error": resp.text, "http_status": resp.status_code}), 502
+    if to_portal:
+        import requests as _req
+
+        portal_url     = (settings.get("portal_url") or "").rstrip("/")
+        api_key        = settings.get("portal_results_api_key") or ""
+        external_id    = event.get("external_id") or ""
+
+        if not portal_url or not api_key:
+            result["portal"] = "error: Portal nicht konfiguriert (URL oder API-Key fehlt)"
+            ok = False
+        elif not external_id:
+            result["portal"] = "error: Event hat keine external_id – bitte Turnier neu vom Portal importieren"
+            ok = False
+        else:
+            # Metadaten aus dem Lauf auslesen — Ring auf "Ring N"-Format normalisieren
+            _raw_ring = run.get("assigned_ring") or ""
+            _ring_num = re.search(r'\d+', str(_raw_ring))
+            ring          = f"Ring {_ring_num.group()}" if _ring_num else (_raw_ring or "Ring 1")
+            discipline    = (run.get("laufart") or "").lower()
+            category_code = run.get("kategorie") or ""
+            class_level   = str(run.get("klasse") or 0)
+
+            try:
+                resp = _req.post(
+                    f"{portal_url}/api/resultpdf",
+                    headers={"X-Api-Key": api_key},
+                    files={"file": (f"rangliste_{run_id}.pdf", pdf_bytes, "application/pdf")},
+                    data={
+                        "event_external_id": external_id,
+                        "run_name":          run.get("name") or "",
+                        "ring":              ring,
+                        "discipline":        discipline,
+                        "category_code":     category_code,
+                        "class_level":       class_level,
+                        "is_final":          "true" if is_final else "false",
+                    },
+                    timeout=30,
+                )
+                if resp.ok:
+                    result["portal"] = "ok"
+                else:
+                    result["portal"] = f"error: {resp.text}"
+                    ok = False
+            except Exception as exc:
+                result["portal"] = f"error: Netzwerkfehler: {exc}"
+                ok = False
+
+    result["status"] = "ok" if ok else "error"
+    return jsonify(result), (200 if ok else 502)
 
 
 # ──────────────────────────────────────────────────────────────────────

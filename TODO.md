@@ -3,7 +3,27 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-10-09
+Stand: 2026-10-10
+
+## Session 2026-10-10 — Rangliste Portal/Download-Wahl + Laufvorgaben-Reichweite
+
+- [x] **Rangliste-PDF: Portal/Download wählbar** (committed, 5 neue Tests +
+      volle Suite grün): Checkboxen "Portal"/"Download" über den PDF-Buttons im
+      Ring-PC-Dashboard (`ring_pc_dashboard.html`). Route
+      `/live/upload_ranking_pdf/<event_id>/<run_id>` (`routes_live.py`) nimmt
+      `to_portal`/`to_download` entgegen, liefert kombiniertes Status-JSON.
+      Download nutzt die bestehende Einstellung `download_dir` (Zielordner für
+      Exporte, Settings-Seite), sonst System-Downloads — Unterordner pro Tag
+      (`AgilitySoftware_Ranglisten/<YYYY-MM-DD>/`).
+- [x] **Laufvorgaben "gültig bis Lauf X"** (committed, 3 neue Tests): im
+      Laufdaten-Modal (Ring-PC-Dashboard) neues Dropdown "Gültig bis Lauf" —
+      übernimmt Richter/Parcours/Hindernisse/SCT für alle Läufe dieses Rings
+      zwischen aktuellem und gewähltem Lauf (z.B. bis zum nächsten
+      Umbau/Briefing). Nutzt bewusst die bestehende Lauf-Reihenfolge des
+      "Lauf auswählen"-Dropdowns (`_resolve_runs_for_ring`, neu extrahiert aus
+      `ring_pc_dashboard`), NICHT die Zeitplan-Zeitberechnung — funktioniert
+      also schon vor der geplanten Zeitplan-Modul-Anpassung.
+      **Noch offen:** EXE-Build + Verteilung.
 
 ## Offen / User-Notiz 2026-10-09
 
@@ -204,8 +224,11 @@ Portal nur read-only Live-Anzeige. Finalisten-Transfer an `eventexport.v1` inkl.
 - [ ] Phase 4+: Print/Export Siegerehrung/Rangliste
 - [ ] Generalprobe ~25./26.10.2026
 - [ ] Branch `feature/ko-cup` nach `main` mergen (aktuell 3 Commits voraus, ungemerged)
-- [ ] 1/100-Bug weiterbeobachten: Recorder zeigt `delta_vs_timy=0` (TIMY-Zeit korrekt),
-      Fehlerquelle vermutlich im Software-Pfad danach — am HCS-Wochenende (1 Ring, EXE) weiter aufzeichnen
+- [ ] 1/100-Bug weiterbeobachten: am Jump-Into-Fall-Wochenende (Ring 1, EXE) NICHT mehr
+      reproduzierbar — Diag-Recorder `delta_vs_timy=0` über 193 Läufe, UND der echte
+      Software-Pfad (`result.zeit` in events.json vs. TIMY-RT, über `start_time_tod`
+      verknüpft) stimmt in 72/72 Läufen mit Zeit exakt überein. Bisher nur 1 Event/1 Ring —
+      an weiteren Ringen/Geräten (HCS) weiter aufzeichnen.
 
 ## Team-Challenge (Edelweiss, 2er-Teams)
 
@@ -221,6 +244,13 @@ Reglement bestätigt (DIS-Team hinter Nicht-DIS via Sentinel 999, Zeitfehler nor
       keine Regression; neue Kategorie-Umbaupause
 - [x] Standalone TIMY-Recorder gebaut (`tools/timy_recorder`, log+csv, replay/simulate getestet)
 - [ ] Schritt 2+3: Intervall-Auswertung, Portal `run_time_config` pro Disziplin×Klasse (nach HCS)
+- [ ] Erste Event-Daten ausgewertet (Jump Into Fall, Ring 1): Start-Intervalle aus
+      `start_time_tod` sind stark verrauscht (Agility Kl3 median 76s/mean 171s/max 415s vs.
+      Default 65s) — durch Begehung/Kategorie-Umbau/Pausen/fehlende Messpunkte. Design:
+      robuste Ausreißer-Behandlung (nur zusammenhängende Startsequenzen, Kappung > ~3× Median),
+      flache Defaults als Fallback, mit 1 Event NICHT überschreiben (erst sammeln + Vorschlag).
+      2 offene Fragen an Chris: (1) jetzt bauen oder nach HCS; (2) Kategorie-Umbaupause fix
+      pro Event (z.B. 3 min) oder gemessen.
 
 ## EXE-Build
 
