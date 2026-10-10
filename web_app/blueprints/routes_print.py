@@ -487,6 +487,42 @@ def print_participant_list(event_id):
     sorted_participants = sorted(participants_with_data, key=lambda x: (x.get('Hundefuehrer_Nachname', 'z').lower(), x.get('Hundefuehrer_Vorname', 'z').lower()))
     return render_template('print/participant_list.html', event=event, participants=sorted_participants)
 
+@print_bp.route('/print/fr_formulaire/<event_id>')
+def print_fr_formulaire_list(event_id):
+    """Liste aller ausländischen Teilnehmer (Lizenz-Präfix, z.B. FRA) mit
+    Download-Link fürs ausgefüllte CNEAC-Ergebnisformular."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+    dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
+    seen = {}
+    for run in event.get('runs', []):
+        for entry in run.get('entries', []):
+            lic = str(entry.get('Lizenznummer') or '')
+            prefix = lic.split('-', 1)[0] if '-' in lic else ''
+            if not prefix or prefix.isdigit() or lic in seen:
+                continue
+            seen[lic] = {
+                'lizenznummer': lic,
+                'foreign_cc': prefix,
+                'hundename': entry.get('Hundename') or dogs_map.get(lic, {}).get('Hundename', ''),
+                'hundefuehrer': entry.get('Hundefuehrer', ''),
+                'startnummer': entry.get('Startnummer'),
+            }
+    foreign_participants = sorted(seen.values(), key=lambda p: (p['foreign_cc'], p['hundefuehrer'] or ''))
+    return render_template('print/fr_formulaire_list.html', event=event, participants=foreign_participants)
+
+@print_bp.route('/print/fr_formulaire/<event_id>/<lizenznummer>')
+def print_fr_formulaire(event_id, lizenznummer):
+    """Füllt das offizielle CNEAC-Ergebnisformular für diesen Teilnehmer aus
+    (Overlay auf der Originalvorlage) und liefert es als PDF."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+    from forms_fr import generate_fr_result_pdf
+    pdf_bytes = generate_fr_result_pdf(event, lizenznummer)
+    filename = f"formulaire_resultats_{lizenznummer}.pdf"
+    return Response(pdf_bytes, mimetype='application/pdf',
+                    headers={'Content-Disposition': f'inline; filename="{filename}"'})
+
 @print_bp.route('/print/ranking_single/<event_id>/<run_id>')
 def print_ranking_single(event_id, run_id):
     """Archiv-Rangliste."""

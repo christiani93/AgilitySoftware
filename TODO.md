@@ -5,6 +5,61 @@
 
 Stand: 2026-10-10
 
+## Session 2026-10-10 (nachmittags) — Hotfix + neue Wünsche
+
+- [x] **CNEAC-Ergebnisformular (FR) auto-ausfüllen** (GEBAUT, UNCOMMITTED): für
+      Teilnehmer mit franz. Lizenz das offizielle Centrale-Canine-Formular per
+      PDF-Overlay auf der Originalvorlage ausfüllen. NEU: `web_app/forms_fr.py`,
+      `web_app/static/forms/formulaire_resultats_fr.pdf` (Vorlage),
+      `templates/print/fr_formulaire_list.html`; Routen
+      `/print/fr_formulaire/<eid>` (Liste) + `/<eid>/<lic>` (PDF) in
+      `routes_print.py`; Button in `manage_runs.html` neben TKAMO-Export.
+      Zeilen = Klasse 1/2/3 (CH-Kategorien=FR, kein Mapping). Leer: FAPAC/
+      Territoriale/Régionale/Sexe (haben wir nicht). DIS blendet Sentinel-999
+      aus, Ausland-Platzhalter-Verein wird gefiltert. Tests
+      `tests_pure/test_fr_formulaire.py` (4) + 160 tests_pure grün.
+      OFFEN: committen/pushen/EXE bauen. Evtl. Mehrtage-Aggregation (User fragen).
+- [ ] **Ring-PC "Bereit"-Button → Monitor nachziehen** (GEBAUT, UNCOMMITTED):
+      `setStarterReady()` in `ring_pc_dashboard.html` ruft jetzt zusätzlich
+      `POST /live/api/reassign_current_starter` (wie `reassignStarter`), damit
+      Ring-Monitor/Sprecher den bereiten Starter zeigen auch wenn er aus der
+      Reihe tanzt. + Trennlinien-Markierung jetzt auch bei Startnummern-LÜCKE
+      ("⚠ Nummernlücke" vs "⚠ Reihenfolge unterbrochen"). OFFEN: committen+EXE.
+- [x] **HOTFIX Ring-PC-Dashboard 500** (`89ef6a2`, gepusht origin/main): der
+      Laufvorgaben-Refactor `aff8a74` hatte den `@live_bp.route('/ring_pc_dashboard/..')`-
+      Decorator versehentlich auf den neuen Helper `_resolve_runs_for_ring`
+      gesetzt (statt auf die View `ring_pc_dashboard`) UND die `schedule`-Variable
+      in der View verloren → HTTP 500 (`TypeError: missing 'event'`), Dateneingabe
+      mitten im Turnier blockiert. Fix: Decorator + `schedule`-Zeile zurück. EXE
+      neu gebaut 09:44 (`dist\AgilitySoftware.exe` 65'845'814 B, RPC1 HTTP200).
+      **Lehre:** vor EXE-Auslieferung bei Live-Code immer die ECHTEN View-Routen
+      smoke-testen (GET /ring_pc_dashboard/1 + eine Ranglisten-Route), nicht nur
+      /health.
+- [ ] **DIS-Timer-Reset** (gemeldet, offen): wird der Timer per DIS über das
+      Dashboard resettet, muss die Dashboard-Anzeige wieder **0** zeigen statt
+      weiterzulaufen. Recherche (Timer-JS-Quelle, ring_server-Reset-Event,
+      set_participant_status-Pfad) noch offen — IM VORDERGRUND machen.
+- [ ] **Dashboard-Scroll/Sortierung** (nice-to-have): Steuerung immer sichtbar
+      halten — entweder nur Lauf-Liste (Spalte 2) scrollen ODER beendete Läufe
+      ans Listenende sortieren.
+- [ ] **Ring-Monitor Namen unterscheidbar** (Wunsch): Präfix "HF Vorname
+      Nachname" (Hundeführer) + "H Hundename" (Hund). `format_ring_name`
+      (`utils.py:718`) ist geteilter Formatierer (9 Call-Sites); zeigt aktuell
+      nur Vorname → Nachnamen-Extraktor nötig. OFFEN beim User: SCOPE (nur
+      Starter/Bereit vs. überall inkl. Ranglisten) + FORMAT (2 Zeilen vs.
+      einzeilig mit Trenner). Echter Render-Pfad: `render_ring_monitor_content`
+      + JS in `ring_monitor.html` (NICHT `_ring_monitor_content.html` = tot).
+- [ ] **Export-Pfade vereinheitlichen + FTP-Uploader** (geplant): Ziel-Layout
+      `/Agility-Software/<DATUM>/<Typ>/` (Ranglisten/Startlisten/CSV).
+      ACHTUNG 2 getrennte Mechanismen: Ranglisten-PDF schreibt direkt
+      (`routes_live.py:1282`, heute `AgilitySoftware_Ranglisten/<Datum>/`),
+      CSV+Startlisten laufen über Browser-Download-Override
+      (`app.py:282 _install_download_dir_override`, flach, kennt Typ nicht).
+      `download_dir` ist schon in Settings konfigurierbar. KEIN FTP-Code
+      vorhanden → VAR-Upload heute manuell. FTP integriert empfohlen (Settings-
+      Felder + ftplib, analog Portal/Download-Checkbox). Offen: alten Pfad
+      ersetzen/parallel? Ordnernamen? VAR-Ziel-Layout?
+
 ## Session 2026-10-10 — Rangliste Portal/Download-Wahl + Laufvorgaben-Reichweite
 
 - [x] **Rangliste-PDF: Portal/Download wählbar** (committed, 5 neue Tests +
