@@ -723,6 +723,33 @@ def format_ring_name(entry: dict):
     return first or dog or "—"
 
 
+def format_ring_name_parts(entry: dict):
+    """Liefert (Hundeführer-Vollname, Hundename) wie auf der Ringschreiberliste
+    (voller Name statt nur Vorname)."""
+    entry = entry or {}
+    handler = ""
+    for key in ("Hundeführer", "Hundefuehrer", "Hundefuehrer_Name", "Hundeführer_Name"):
+        if entry.get(key):
+            handler = entry.get(key)
+            break
+    if not handler:
+        handler = _extract_first_name(entry)
+    dog = _extract_dog_name(entry)
+    return handler, dog
+
+
+def format_ring_name_html(entry: dict, dog_class="small text-muted fw-normal"):
+    """HTML-Fragment einzeilig: Hundeführer-Vollname fett, Hundename klein
+    direkt dahinter (damit auf dem Ring-Monitor mehr Einträge ohne Scrollen
+    sichtbar sind)."""
+    handler, dog = format_ring_name_parts(entry)
+    if not handler and not dog:
+        return "—"
+    if handler and dog:
+        return f"<strong>{handler}</strong> <span class='{dog_class}'>{dog}</span>"
+    return f"<strong>{handler}</strong>" if handler else f"<span class='{dog_class}'>{dog}</span>"
+
+
 def _format_time(value):
     try:
         return f"{float(value):.2f}"

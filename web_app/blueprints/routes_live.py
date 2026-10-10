@@ -13,6 +13,7 @@ from utils import (_load_data, _save_data, _get_active_event,
                    _calculate_run_results, _load_settings, _get_active_event_id,
                    _calculate_timelines, resolve_judge_name, resolve_judge_id, _to_int,
                    build_ring_view_model, collect_ring_numbers, format_ring_name,
+                   format_ring_name_html, format_ring_name_parts,
                    _format_time, _format_total_errors, get_ring_state,
                    sort_entries_for_startlist)
 import planner.schedule_planner as schedule_planner
@@ -864,31 +865,33 @@ def render_ring_monitor_content(ring_number: int):
     meta_line = " | ".join(meta_bits) if meta_bits else "—"
 
     current_starter = view.get("current_starter") or {}
-    current_label = format_ring_name(current_starter)
+    current_handler, current_dog = format_ring_name_parts(current_starter)
     current_startno = current_starter.get("Startnummer")
     current_startno_display = f"#{current_startno}" if current_startno else ""
 
     parts = [
         "<div class='ring-monitor'>",
-        "<div class='mb-3'>",
+        "<div class='mb-2'>",
         f"<h2 class='h3 mb-1'>{ring_label} – {current_run.get('title','')}</h2>",
         f"<div class='text-muted mb-2'><strong>{_('Richter')}:</strong> {current_run.get('judge_name','—')}</div>",
-        "<div class='card shadow-sm mb-3'>",
-        "<div class='card-body py-2'>",
-        "<div class='row text-center'>",
+        "</div>",
+        # Laufvorgaben – gleiche Hoehe wie Letzte Ergebnisse + Aktueller Starter (.ring-band)
+        "<div class='card shadow-sm mb-3 ring-band'>",
+        "<div class='card-body py-2 d-flex flex-column justify-content-center'>",
+        "<div class='row text-center g-2'>",
         f"<div class='col-6 col-md'><div class='small text-muted'>{_('Parcourslänge')}</div><div class='fw-semibold'>{current_run.get('parcours_laenge','—')} m</div></div>",
         f"<div class='col-6 col-md'><div class='small text-muted'>{_('Geräte')}</div><div class='fw-semibold'>{current_run.get('hindernisse','—')}</div></div>",
         f"<div class='col-6 col-md'><div class='small text-muted'>SCT</div><div class='fw-semibold'>{current_run.get('sct','—')} s</div></div>",
         f"<div class='col-6 col-md'><div class='small text-muted'>MCT</div><div class='fw-semibold'>{current_run.get('mct','—')} s</div></div>",
         "</div>",
-        f"<div class='mt-2 small text-muted'>{meta_line}</div>",
-        "</div></div>",
+        f"<div class='mt-2 small text-muted text-center'>{meta_line}</div>",
+        "</div>",
         "</div>",
         "<div class='row g-3'>",
         "<div class='col-12 col-lg-6'>",
         "<div class='card shadow-sm h-100'>",
         f"<div class='card-header bg-light fw-semibold'>{_('Aktuelle Startliste')}</div>",
-        "<ul class='list-group list-group-flush'>",
+        "<ul class='list-group list-group-flush ring-startlist'>",
     ]
 
     start_entries = view.get("startlist") or []
@@ -898,7 +901,7 @@ def render_ring_monitor_content(ring_number: int):
             startno_display = f"#{startno}" if startno else ""
             parts.append(
                 "<li class='list-group-item d-flex justify-content-between align-items-center'>"
-                f"<span class='fw-semibold'>{format_ring_name(entry)}</span>"
+                f"<span>{format_ring_name_html(entry)}</span>"
                 f"<span class='small text-muted'>{startno_display}</span>"
                 "</li>"
             )
@@ -924,7 +927,7 @@ def render_ring_monitor_content(ring_number: int):
             parts.append(
                 "<tr>"
                 f"<td>{res.get('platz')}</td>"
-                f"<td>{format_ring_name(res)}</td>"
+                f"<td>{format_ring_name_html(res)}</td>"
                 f"<td>{_format_total_errors(res)}</td>"
                 f"<td>{_format_time(res.get('zeit_total'))}</td>"
                 "</tr>"
@@ -939,9 +942,11 @@ def render_ring_monitor_content(ring_number: int):
         "</div>",
         "</div>",
         "</div>",
-        "<div class='card shadow-sm mt-3'>",
-        f"<div class='card-header bg-light fw-semibold'>{_('Letzte 3 Ergebnisse')}</div>",
-        "<div class='card-body py-2'>",
+        # Letzte Ergebnisse (ohne Titel) – gleiche Hoehe wie Laufvorgaben +
+        # Aktueller Starter (.ring-band).
+        "<div class='card shadow-sm mt-3 ring-band'>",
+        "<div class='card-body py-2 d-flex flex-column justify-content-center'>",
+        f"<div class='fw-semibold mb-2'>{_('Letzte 3 Ergebnisse')}</div>",
     ])
 
     last_results = view.get("last_results") or []
@@ -949,9 +954,12 @@ def render_ring_monitor_content(ring_number: int):
         parts.append("<div class='d-flex flex-column gap-2'>")
         for res in last_results:
             platz = res.get("platz") or "—"
+            handler, dog = format_ring_name_parts(res)
+            name_html = f"<strong>{platz} – {handler}</strong>" if handler else f"<strong>{platz}</strong>"
+            name_html += f" <span class='small text-muted fw-normal'>{dog}</span>" if dog else ""
             parts.append(
-                "<div class='d-flex justify-content-between align-items-center'>"
-                f"<span class='fw-semibold'>{platz} – {format_ring_name(res)}</span>"
+                "<div class='d-flex justify-content-between align-items-start'>"
+                f"<span>{name_html}</span>"
                 f"<span class='text-muted small'>{_('Fehler')} {_format_total_errors(res)} · {_('Zeit')} {_format_time(res.get('zeit_total') or res.get('zeit'))} s</span>"
                 "</div>"
             )
@@ -960,16 +968,18 @@ def render_ring_monitor_content(ring_number: int):
         parts.append(f"<div class='text-muted'>{_('Noch keine Ergebnisse.')}</div>")
 
     parts.extend([
-        "</div>",
-        "</div>",
-        "<div class='card bg-dark text-white mt-3'>",
-        "<div class='card-body text-center'>",
-        f"<div class='text-uppercase small text-muted'>{_('Aktueller Starter')}</div>",
-        f"<div class='display-6 fw-semibold'>{current_label}</div>",
-        f"<div class='text-muted'>{current_startno_display}</div>",
-        "</div>",
-        "</div>",
-        "</div>",
+        "</div>",   # card-body
+        "</div>",   # card
+        # Aktueller Starter – gleiche Hoehe via .ring-band
+        "<div class='card bg-dark text-white mt-3 ring-band'>",
+        "<div class='card-body text-center py-2 d-flex flex-column justify-content-center'>",
+        f"<div class='text-uppercase small text-white-50'>{_('Aktueller Starter')}</div>",
+        f"<div class='h3 fw-semibold mb-0'>{current_handler or '—'}</div>",
+    ] + ([f"<div class='text-white-50'>{current_dog}</div>"] if current_dog else []) + [
+        f"<div class='small text-white-50'>{current_startno_display}</div>",
+        "</div>",   # card-body
+        "</div>",   # card
+        "</div>",   # .ring-monitor
     ])
 
     return Response(''.join(parts), mimetype='text/html')

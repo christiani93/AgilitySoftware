@@ -6,14 +6,32 @@
   body { overflow: hidden; }
   .monitor-fullpage { height: calc(100vh - 56px); display: flex; flex-direction: column; }
   .monitor-fullpage .card { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .monitor-fullpage .card-body { flex: 1; overflow-y: auto; }
+  /* Kein Scrollen: der Inhalt wird per JS (fitMonitor) auf die Hoehe skaliert. */
+  .monitor-fullpage > .card > .card-body { flex: 1; overflow: hidden; padding: .75rem; }
+  #monitor-scale { transform-origin: top left; }
+  /* Beide Listen (Startliste list-group + Rangliste table) auf gleiche
+     Zeilenhoehe bringen, damit die Spalten sauber auf einer Linie liegen. */
+  #monitor-scale .list-group-item,
+  #monitor-scale table.table > thead > tr > th,
+  #monitor-scale table.table > tbody > tr > td {
+      padding-top: .35rem; padding-bottom: .35rem;
+      line-height: 1.25; vertical-align: middle;
+  }
+  /* Laufvorgaben, Letzte Ergebnisse und Aktueller Starter gleich hoch. */
+  #monitor-scale .ring-band { min-height: 6rem; }
+  /* Startliste fuellt ihre Spalte: Zeilen strecken sich auf Kartenhoehe
+     (gleicht die fehlende Tabellen-Kopfzeile der Rangliste aus). */
+  #monitor-scale .ring-startlist { flex: 1 1 auto; display: flex; flex-direction: column; }
+  #monitor-scale .ring-startlist > .list-group-item { flex: 1 1 0; }
 </style>
 <div class="container-fluid py-2 monitor-fullpage">
     <div class="card shadow-sm">
         <div class="card-header bg-dark text-white">
             <h4 class="mb-0">{{ _('Ring Monitor') }} – {{ ring_name }}</h4>
         </div>
-        <div class="card-body" id="monitor-container">
+        <div class="card-body">
+          <div id="monitor-scale">
+            <div id="monitor-container">
             <div id="monitor-run-meta" class="mb-3"></div>
             <div class="row g-3">
                 <div class="col-12 col-lg-6">
@@ -40,6 +58,8 @@
                 <div class="card-header bg-light fw-semibold">{{ _('Letzte 3 Ergebnisse') }}</div>
                 <div class="card-body py-2" id="monitor-last-results"></div>
             </div>
+            </div>
+          </div>
         </div>
     </div>
 </div>
@@ -154,15 +174,36 @@ document.addEventListener('DOMContentLoaded', function () {
         return okMeta && okStart && okRank && okLast;
     }
 
+    // Skaliert den gesamten Inhalt so, dass er ohne Scrollen auf den Monitor
+    // passt (Kiosk). Wird nach jedem Render + bei Fenstergroesse-Aenderung
+    // aufgerufen. Nie hochskalieren (max. 1.0), nur verkleinern wenn noetig.
+    function fitMonitor() {
+        const body = document.querySelector('.monitor-fullpage > .card > .card-body');
+        const scale = document.getElementById('monitor-scale');
+        if (!body || !scale) return;
+        scale.style.transform = 'none';
+        scale.style.width = '100%';
+        const avail = body.clientHeight;
+        const needed = scale.scrollHeight;
+        if (needed > 0 && needed > avail) {
+            const f = Math.max(0.3, avail / needed);
+            scale.style.transform = 'scale(' + f + ')';
+            scale.style.width = (100 / f) + '%';
+        }
+    }
+
     function refreshMonitor() {
         fetch(`/api/render_ring_monitor_content/${ringNumber}`, {cache: 'no-store'})
             .then(r => r.text())
             .then(html => {
                 const c = document.getElementById('monitor-container');
                 if (c) c.innerHTML = html;
+                requestAnimationFrame(fitMonitor);
             })
             .catch(() => window.location.reload());
     }
+
+    window.addEventListener('resize', fitMonitor);
 
     socket.on('connect', function() {
         socket.emit('join_room', {room: `event:${eventId}:ring:${ringNumber}`});
@@ -181,6 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setInterval(refreshMonitor, 20000);
 
     applyViewModel({{ view_model|tojson }});
+    requestAnimationFrame(fitMonitor);
 });
 </script>
 {% endblock %}
