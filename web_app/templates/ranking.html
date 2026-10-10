@@ -44,10 +44,10 @@
                         <td>{{ entry.Startnummer }}</td>
                         <td><strong>{{ entry.Hundename }}</strong><br><small>{{ entry.Hundefuehrer }}</small></td>
                         <td>{{ "%.2f"|format(entry.zeit_total|float) if entry.zeit_total and not entry.disqualifikation else '-' }}</td>
-                        <td>{{ entry.fehler_parcours|int if entry.fehler_parcours is defined else '-' }}</td>
-                        <td>{{ entry.verweigerung_parcours|int if entry.verweigerung_parcours is defined else '-' }}</td>
-                        <td>{{ "%.2f"|format(entry.fehler_zeit|float) if entry.fehler_zeit is defined else '-' }}</td>
-                        <td><strong>{{ "%.2f"|format(entry.fehler_total|float) if entry.fehler_total < 998 else '-' }}</strong></td>
+                        <td>{{ entry.fehler_parcours|int if entry.fehler_parcours is defined and not entry.disqualifikation else '-' }}</td>
+                        <td>{{ entry.verweigerung_parcours|int if entry.verweigerung_parcours is defined and not entry.disqualifikation else '-' }}</td>
+                        <td>{{ "%.2f"|format(entry.fehler_zeit|float) if entry.fehler_zeit is defined and not entry.disqualifikation else '-' }}</td>
+                        <td><strong>{{ "%.2f"|format(entry.fehler_total|float) if entry.fehler_total < 998 and not entry.disqualifikation else '-' }}</strong></td>
                     </tr>
                     {% else %}
                     <tr><td colspan="8" class="text-center p-4">{{ _('Noch keine Resultate für die Rangliste erfasst.') }}</td></tr>

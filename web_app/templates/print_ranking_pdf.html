@@ -16,23 +16,24 @@
       margin: 0;
     }
 
-    /* ── Logo-Kopfzeile (wie print/_print_header.html, xhtml2pdf-kompatibel
-       über display:table statt flex) ─────────────────────────────────── */
+    /* ── Logo-Kopfzeile ───────────────────────────────────────────────
+       Echtes <table> + valign="top"-Attribut statt display:table-cell +
+       CSS vertical-align: xhtml2pdf ignoriert vertical-align auf
+       display:table-cell komplett und platziert die LETZTE Zelle unten
+       (Event-Logo hing unter dem Titelblock). Mit echtem <table> und dem
+       HTML-Attribut valign sitzen beide Logos oben auf Titelhöhe. */
     .print-header {
-      display: table;
       width: 100%;
+      border-collapse: collapse;
     }
-    .print-header__logo {
-      display: table-cell;
-      vertical-align: middle;
-      width: 2.5cm;
-    }
+    .print-header td { border: none; padding: 0; }
+    .print-header__logo { width: 2.5cm; }
     .print-header__logo--right { text-align: right; }
     /* Grösse wird pro <img> inline gesetzt (aus Seitenverhältnis berechnet),
-       da xhtml2pdf max-width/max-height ignoriert. */
+       da xhtml2pdf max-width/max-height ignoriert. Logo ist auf
+       ~Titelblock-Höhe verkleinert (routes_live _LOGO_MAX_*_CM) und sitzt
+       oben (valign="top") auf Höhe der Titelzeile. */
     .print-header__titles {
-      display: table-cell;
-      vertical-align: middle;
       text-align: center;
       font-size: 10pt;
     }
@@ -154,25 +155,27 @@
 {% set ns_gestartet = ns.total - ns.dns_count %}
 
 {# ── Logo-Kopfzeile (wie print/_print_header.html) ──────────────────────── #}
-<div class="print-header">
-  <div class="print-header__logo">
-    {% if club_logo_data %}
-      <img src="{{ club_logo_data }}" alt="Vereins-Logo" style="{{ club_logo_style }}">
-    {% endif %}
-  </div>
-  <div class="print-header__titles">
-    <p class="print-header__title">{{ _('Rangliste') }} {{ run.name }}</p>
-    {% if judge_display %}<p class="print-header__judge">{{ _('Richter') }}: {{ judge_display }}</p>{% endif %}
-    <p class="print-header__subtitle">
-      {{ event.Bezeichnung }}{% if event.Datum %} · {{ event.Datum | format_date }}{% endif %}{% if event.Ort %} · {{ event.Ort }}{% endif %}
-    </p>
-  </div>
-  <div class="print-header__logo print-header__logo--right">
-    {% if event_logo_data %}
-      <img src="{{ event_logo_data }}" alt="Event-Logo" style="{{ event_logo_style }}">
-    {% endif %}
-  </div>
-</div>
+<table class="print-header">
+  <tr>
+    <td class="print-header__logo" valign="top">
+      {% if club_logo_data %}
+        <img src="{{ club_logo_data }}" alt="Vereins-Logo" style="{{ club_logo_style }}">
+      {% endif %}
+    </td>
+    <td class="print-header__titles" valign="top">
+      <p class="print-header__title">{{ _('Rangliste') }} {{ run.name }}</p>
+      {% if judge_display %}<p class="print-header__judge">{{ _('Richter') }}: {{ judge_display }}</p>{% endif %}
+      <p class="print-header__subtitle">
+        {{ event.Bezeichnung }}{% if event.Datum %} · {{ event.Datum | format_date }}{% endif %}{% if event.Ort %} · {{ event.Ort }}{% endif %}
+      </p>
+    </td>
+    <td class="print-header__logo print-header__logo--right" valign="top">
+      {% if event_logo_data %}
+        <img src="{{ event_logo_data }}" alt="Event-Logo" style="{{ event_logo_style }}">
+      {% endif %}
+    </td>
+  </tr>
+</table>
 
 {# ── Laufvorgaben: 2 Zeilen x 3 Spalten (Länge/Kategorie/SCT, Geschw./Hindernisse/MCT) #}
 {% set kategorie_label = (run.kategorie ~ ' ' ~ run.klasse) if run.kategorie else '' %}
@@ -237,10 +240,10 @@
         {% if not disq and res.zeit_total and res.zeit_total < 998 and ld.get('parcours_laenge') and res.zeit_total > 0 %}{{ '%.2f'|format(ld.parcours_laenge|float / res.zeit_total) }}{% endif %}
       </td>
       <td class="center">
-        {{ res.fehler_parcours_anzahl|int if res.fehler_parcours_anzahl is defined else '—' }}
+        {% if not disq %}{{ res.fehler_parcours_anzahl|int if res.fehler_parcours_anzahl is defined else '—' }}{% endif %}
       </td>
       <td class="center">
-        {{ res.verweigerung_parcours_anzahl|int if res.verweigerung_parcours_anzahl is defined else '—' }}
+        {% if not disq %}{{ res.verweigerung_parcours_anzahl|int if res.verweigerung_parcours_anzahl is defined else '—' }}{% endif %}
       </td>
       <td class="mono">
         {% if not disq and res.fehler_zeit is defined and res.fehler_zeit %}{{ '%.2f'|format(res.fehler_zeit|float) }}{% endif %}

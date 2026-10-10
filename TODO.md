@@ -7,16 +7,87 @@ Stand: 2026-10-09
 
 ## Offen / User-Notiz 2026-10-09
 
-- [x] **Logo im Ranglisten-Upload-PDF zu gross** (`1580cb5`, committed+gepusht):
-      Das ans Portal hochgeladene Rangliste-PDF (`print_ranking_pdf.html`, gerendert
-      via xhtml2pdf/pisa in `routes_live.py::_render_ranking_pdf_html`) zeigte Logos
-      in nativer Pixelgrösse — **pisa ignoriert CSS `max-width`/`max-height` auf
-      `<img>`**. Fix: Seitenverhältnis via PIL bestimmen, explizite `width`/`height`
-      in cm setzen (Box 2.5cm × 1.8cm). Verifiziert (Template-Render + pisa). ⚠️ Wird
-      erst nach **EXE-Rebuild** (bzw. Source-Neustart) im Upload wirksam, und
-      betroffene Event-9-PDFs müssen danach **neu hochgeladen** werden.
-      NUR dieser pisa-Pfad betroffen; `print_ranking_single.html` ist Browser-Druck
-      (honoriert max-width).
+- [~] **EXE nach `dist\` kopieren (ERLEDIGT) + verteilen (offen)**: EXE aus HEAD
+      `7221c7d` wurde 2026-10-09 18:51 nach `dist\AgilitySoftware.exe` kopiert
+      (65'830'720 Bytes, SHA256 `9918D699…`, Hash = Build-Cache identisch; keine
+      EXE-Prozesse mehr aktiv). **Noch offen:** auf Ring-/Turnier-PCs verteilen.
+      ⚠️ ABER: evtl. lieber auf das NÄCHSTE Build-Paket warten (3 weitere Fixes
+      unten), damit nicht zweimal verteilt werden muss.
+
+- [x] **Event-9-Ranglisten neu hochladen** — ERLEDIGT (2026-10-09 abends verifiziert):
+      alle 16 Event-9-PDFs in Prod-DB ~1.68 MB, `%PDF`…`%%EOF` valide, keine
+      65535-B-Truncation mehr. (Noch mit altem Logo-Layout, da aus laufender
+      7221c7d-EXE — Logo-/Monitor-Fixes greifen erst mit nächster EXE.) QUIRK:
+      Portal `created_at` = UTC, Anzeige lokal = UTC+2 ("19:21/19:31" = frisch).
+
+- [x] **Rasse/Verein auf Rangliste-PDF einzeilig** (`7221c7d`, committed+gepusht):
+      Lange Vereinsnamen wrappten mehrzeilig → `truncate(16,'…')` + `white-space:nowrap`
+      + `table-layout:fixed` in `print_ranking_pdf.html` (Spaltenbreiten summierten
+      sich zuvor auf 108% statt 100%). Lokal mit echten Event-9-Daten verifiziert.
+
+- [x] **DIS-Laufzeit auf Ranglisten ausblenden** (`0f35449`, committed+gepusht):
+      `zeit_total` behält bei DIS/ABR/DNS intern die echte Zeit; "Zeit"(+m/s im PDF)
+      wurde ungeprüft angezeigt → `not disq`-Guard in `print_ranking_pdf.html`,
+      `print_ranking_single.html`, `ranking.html` ergänzt.
+
+## ✅ Build 2026-10-09 ~20:55 Uhr — nach dist\ kopiert (65'833'336 Bytes)
+
+- [x] **EXE neu gebaut + kopiert**: enthält Ring-Monitor-Drift-Fix,
+      Logo-Kopf-Table-Fix, Logo-Grösse 2.5×1.8, **+ Ringschreiberliste-Landeskürzel**
+      (Ausland-Kürzel jetzt auch auf allen 3 Ringschreiber-Pfaden, nicht nur
+      Startliste — `_enrich_sections_rasse_verein` in `routes_print.py`).
+      Memory `project_scribe_list_landeskuerzel_and_exe_state_20261009`.
+      **Noch offen:** auf Ring-/Turnier-PCs verteilen; alles uncommitted.
+
+## ⚠️ NÄCHSTES BUILD-PAKET (noch NICHT gebaut — NACH obigem Build entstanden)
+
+- [ ] **DIS-Guard erweitert auf Fehler/Verweigerungen/Zeitfehler/Total** (uncommitted,
+      NACH dem Build oben entstanden → NICHT in der aktuellen `dist\`-EXE):
+      bisher wurde bei DIS/ABR/DNS nur die Zeit ausgeblendet, nicht F/V/Zeitfehler/
+      Total. Jetzt in `print_ranking_pdf.html` (F/V ergänzt), `print_ranking_single.html`
+      und `ranking.html` (alle 4 Spalten ergänzt) komplett ausgeblendet bei DIS.
+      Jinja-Parse-Check grün, kein Testclient-Test. Memory
+      `project_print_all_and_ranking_fixes_20261009`.
+
+- [~] **Ring-Monitor zeigt falschen "Am Start"** (Drift) — FIX GEBAUT (uncommitted):
+      `utils.build_ring_view_model` setzt `current_starter`/`next_starter` jetzt aus
+      `run['current_starter']`/`['next_starter']` (= Dashboard-Quelle, drift-frei),
+      Fallback erster/zweiter offener Starter. Der alte `ring_entry_state`-Zeiger
+      wird nur hand-weitergeschoben (apply_result_saved rückt nur bei exaktem
+      current-Match) → desync bei Nachträgen/Umreihung (#1207 läufig ans Ende),
+      sprang live #1208→#1212. Verifiziert gegen Live-`dist/data` (Monitor==Dashboard
+      #1211/#1212) + 156 tests_pure grün. Memory `reference_ring_state_dual_mechanism`.
+
+- [~] **Logo-Kopf im Ranglisten-PDF** — FIX GEBAUT + verifiziert (uncommitted):
+      WAHRE Ursache war NICHT Logo-Grösse: pisa ignoriert `vertical-align` auf
+      `display:table-cell` und pinnt die LETZTE Zelle unten → Eventlogo rechts
+      hing tief bei der Laufvorgaben-Box. (Frühere "zu gross/verkleinern"-These
+      war Fehldiagnose; `top`/`middle` beide wirkungslos.) **Fix:**
+      `print_ranking_pdf.html` Kopf von `display:table`/`-cell` auf **echtes
+      `<table>` + `valign="top"`-Attribut** je `<td>` umgestellt (+ `border-collapse`,
+      `td{border:none;padding:0}`). `routes_live.py` `_LOGO_MAX_W_CM`/`_H_CM`
+      env-überschreibbar, Default **zurück auf 2.5×1.8cm** (=per pymupdf gemessene
+      Titelblock-Höhe 1.8cm); `.print-header__logo` width **2.5cm**. Verifiziert
+      an `Rangliste_Agility_Large2_neu.pdf` auf Desktop (Logo-bbox exakt 1.8cm,
+      beide Logos oben auf Titelhöhe). Nur pisa-Upload-Pfad; Browser-Druck n/a.
+      Memory `reference_pisa_logo_sizing`.
+
+- [ ] **Ring-Monitor über externe LAN-IP zeigt keine Teilnehmer** — Ursache JETZT
+      BESTÄTIGT (echte Browser-Konsole des Monitor-PCs, 2026-10-09): Fehlercodes
+      `SCRIPT1028`/`SCRIPT1002`/`HTML1300` = alte IE11/EdgeHTML-Engine. Sogar das
+      unveränderte `bootstrap.bundle.min.js` selbst bricht beim Parsen ab, nicht
+      nur unsere `?.`/`??`-Stellen in `ring_monitor.html` → ein reiner JS-Fix an
+      unserem Code reicht NICHT aus, solange Bootstrap auf dieser Engine nicht
+      lädt. **Praktikable Dauerlösung:** Monitor-PC auf modernen Browser (Chrome/
+      aktueller Edge) umstellen statt IE11-Kompatibilität nachzurüsten. Live-
+      Workaround weiterhin: Chrome/Edge + Strg+F5. Memory
+      `reference_ring_monitor_external_blank`.
+
+- [ ] **DIS-Timer läuft im ring_pc_dashboard links weiter** trotz ring_server-Stopp
+      (niedrige Prio). Noch nicht untersucht; Startpunkte `ring_pc_dashboard.html`
+      (lokaler Timer) + `ring_server.py` (sendet DIS/Stop an linke Anzeige?).
+
+## ✅ Erledigt 2026-10-09 (committed+gepusht, HEAD 7221c7d)
 
 - [x] **print/all: Startlisten-Bündel druckte pro Lauf einzeln statt 1x gesamt** (committed):
       Ursache war Bündel 1 (Teilnehmerinfo) — `ordered_runs` iterierte über jeden
