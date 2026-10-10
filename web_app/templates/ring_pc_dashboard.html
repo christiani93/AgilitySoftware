@@ -647,6 +647,25 @@
           }
         })
         .catch(() => alert('Netzwerkfehler.'));
+      },
+      resetCurrentRun: function(){
+        // "Aktuellen Lauf zurücksetzen" = Fehlstart-Reset: setzt den Ring-Server
+        // (Timer-Status UND aktiven Läufer) komplett auf idle zurück. Nötig wenn
+        // das TIMY/Alge-Board fälschlich ausgelöst hat (Fehlstart), bevor der Hund
+        // korrekt gestartet ist. reset_current_run -> handle_reset -> reset_state()
+        // auf dem Ring-Server: run_status=idle, current_starter=None, Zeit/F/V=0.
+        // Es wird KEIN Resultat gespeichert.
+        if (!state.localSocket || !state.localSocket.connected){
+          alert("Keine Verbindung zum Ring-Server!");
+          return;
+        }
+        if (!confirm("Aktuellen Lauf wirklich zurücksetzen? Timer und aktiver Starter werden auf Idle gesetzt (z.B. nach einem Fehlstart). Es wird KEIN Resultat gespeichert.")) return;
+        state.localSocket.emit('reset_current_run', {});
+        // Lokalen Dashboard-Zustand mitziehen, damit kein alter Starter / keine
+        // alte Startzeit hängen bleibt (das state_update des Ring-Servers setzt
+        // Timer-Anzeige + Zeilen-Highlight zurück, da run_status -> idle).
+        state.currentEntryToEdit = null;
+        state.pendingStartTimeTod = null;
       }
     };
 
@@ -697,6 +716,10 @@
           e.preventDefault();
         }
       });
+    }
+
+    if (ui.resetBtn){
+      ui.resetBtn.addEventListener("click", window.appActions.resetCurrentRun);
     }
 
     function initSelectedRunFromUrlOrSelect(){
