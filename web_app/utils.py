@@ -928,8 +928,17 @@ def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_r
     view["ranking_top"] = view_state.get("ranking_top") or []
     view["last_results"] = view_state.get("last_results") or []
 
-    view["current_starter"] = view.get("current") or {}
-    view["next_starter"] = view.get("ready") or {}
+    # Drift-sicher: Ring-Monitor + Sprecher-Display zeigen denselben
+    # "aktuellen/naechsten Starter" wie das Ring-PC-Dashboard, naemlich den
+    # ersten/zweiten OFFENEN Starter (run['current_starter']/next_starter,
+    # von save_result/reassign stets neu berechnet). Der frueher hier genutzte
+    # ring_entry_state-Zeiger (view['current']/['ready']) wird nur hand-
+    # weitergeschoben und driftet bei Nachtraegen/Umreihung aus dem Tritt
+    # (ueberspringt Starter) -> Monitor zeigte einen falschen "Am Start".
+    run_cs = run.get("current_starter") if isinstance(run.get("current_starter"), dict) else None
+    run_ns = run.get("next_starter") if isinstance(run.get("next_starter"), dict) else None
+    view["current_starter"] = run_cs or (unfinished_entries[0] if unfinished_entries else {}) or view.get("current") or {}
+    view["next_starter"] = run_ns or (unfinished_entries[1] if len(unfinished_entries) > 1 else {}) or view.get("ready") or {}
 
     return view
 

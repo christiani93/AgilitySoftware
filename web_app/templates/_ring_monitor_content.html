@@ -9,9 +9,12 @@
                 <p class="monitor-current" style="font-size: 7vw; font-weight: bold; line-height: 1;">
                     #{{ ring_data.current_starter.Startnummer }}
                 </p>
-                <p style="font-size: 4vw;">
-                    {{ ring_data.current_starter.Hundename }}<br>
-                    <small>{{ ring_data.current_starter.Hundefuehrer }}</small>
+                <p style="font-size: 4vw; font-weight: bold; line-height: 1.1; margin-bottom: 0.1em;">
+                    {{ ring_data.current_starter.Hundename }}
+                </p>
+                <p style="font-size: 2vw; color: #555; margin-top: 0;">
+                    <span style="text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.7em;">Hundeführer</span><br>
+                    {{ ring_data.current_starter.Hundefuehrer }}
                 </p>
             {% else %}
                 <p class="text-muted" style="font-size: 7vw; font-weight: bold; line-height: 1;">LAUF BEENDET</p>
@@ -23,9 +26,12 @@
                 <p class="monitor-current" style="font-size: 7vw; font-weight: bold; line-height: 1;">
                     #{{ ring_data.next_starter.Startnummer }}
                 </p>
-                <p style="font-size: 4vw;">
-                    {{ ring_data.next_starter.Hundename }}<br>
-                    <small>{{ ring_data.next_starter.Hundefuehrer }}</small>
+                <p style="font-size: 4vw; font-weight: bold; line-height: 1.1; margin-bottom: 0.1em;">
+                    {{ ring_data.next_starter.Hundename }}
+                </p>
+                <p style="font-size: 2vw; color: #555; margin-top: 0;">
+                    <span style="text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.7em;">Hundeführer</span><br>
+                    {{ ring_data.next_starter.Hundefuehrer }}
                 </p>
             {% else %}
                 <p class="text-muted" style="font-size: 7vw; font-weight: bold; line-height: 1;">-</p>

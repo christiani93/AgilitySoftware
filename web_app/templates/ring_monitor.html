@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Ring Monitor: {{ ring_name }}{% endblock %}
+{% block title %}{{ _('Ring Monitor') }}: {{ ring_name }}{% endblock %}
 
 {% block content %}
 <style>
@@ -11,24 +11,24 @@
 <div class="container-fluid py-2 monitor-fullpage">
     <div class="card shadow-sm">
         <div class="card-header bg-dark text-white">
-            <h4 class="mb-0">Ring Monitor – {{ ring_name }}</h4>
+            <h4 class="mb-0">{{ _('Ring Monitor') }} – {{ ring_name }}</h4>
         </div>
         <div class="card-body" id="monitor-container">
             <div id="monitor-run-meta" class="mb-3"></div>
             <div class="row g-3">
                 <div class="col-12 col-lg-6">
                     <div class="card shadow-sm h-100">
-                        <div class="card-header bg-light fw-semibold">Aktuelle Startliste</div>
+                        <div class="card-header bg-light fw-semibold">{{ _('Aktuelle Startliste') }}</div>
                         <ul class="list-group list-group-flush" id="monitor-startlist"></ul>
                     </div>
                 </div>
                 <div class="col-12 col-lg-6">
                     <div class="card shadow-sm h-100">
-                        <div class="card-header bg-light fw-semibold">Aktuelle Rangliste</div>
+                        <div class="card-header bg-light fw-semibold">{{ _('Aktuelle Rangliste') }}</div>
                         <div class="table-responsive">
                             <table class="table table-sm mb-0">
                                 <thead>
-                                    <tr><th>Platz</th><th>Name</th><th>Gesamtfehler</th><th>Zeit</th></tr>
+                                    <tr><th>{{ _('Platz') }}</th><th>{{ _('Name') }}</th><th>{{ _('Gesamtfehler') }}</th><th>{{ _('Zeit') }}</th></tr>
                                 </thead>
                                 <tbody id="monitor-ranking"></tbody>
                             </table>
@@ -37,7 +37,7 @@
                 </div>
             </div>
             <div class="card shadow-sm mt-3">
-                <div class="card-header bg-light fw-semibold">Letzte 3 Ergebnisse</div>
+                <div class="card-header bg-light fw-semibold">{{ _('Letzte 3 Ergebnisse') }}</div>
                 <div class="card-body py-2" id="monitor-last-results"></div>
             </div>
         </div>
@@ -60,34 +60,34 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!runMetaEl) return false;
         if (!meta || !meta.title) {
             runMetaEl.innerHTML = `<div class="text-center text-muted py-4">
-                <p>Kein Lauf wurde für diesen Ring aktiviert.</p>
-                <a href="/print/schedule/${eventId}" target="_blank" class="btn btn-outline-primary">📅 Zeitplan anzeigen</a>
+                <p>{{ _('Kein Lauf wurde für diesen Ring aktiviert.') }}</p>
+                <a href="/print/schedule/${eventId}" target="_blank" class="btn btn-outline-primary">📅 {{ _('Zeitplan anzeigen') }}</a>
             </div>`;
             return true;
         }
         const metaBits = [];
-        if (meta.klasse) metaBits.push(`Klasse: ${meta.klasse}`);
-        if (meta.kategorie) metaBits.push(`Kategorie: ${meta.kategorie}`);
-        if (meta.laufart) metaBits.push(`Laufart: ${meta.laufart}`);
+        if (meta.klasse) metaBits.push(`{{ _('Klasse') }}: ${meta.klasse}`);
+        if (meta.kategorie) metaBits.push(`{{ _('Kategorie') }}: ${meta.kategorie}`);
+        if (meta.laufart) metaBits.push(`{{ _('Laufart') }}: ${meta.laufart}`);
         const metaLine = metaBits.length ? metaBits.join(" | ") : "—";
         runMetaEl.innerHTML = `
             <div class="mb-3">
                 <h2 class="h3 mb-1">Ring ${ringNumber} – ${meta.title || ""}</h2>
-                <div class="text-muted mb-2"><strong>Richter:</strong> ${meta.judge_name || "—"}</div>
+                <div class="text-muted mb-2"><strong>{{ _('Richter') }}:</strong> ${meta.judge_name || "—"}</div>
                 <div class="card shadow-sm mb-3">
                     <div class="card-body py-2">
                         <div class="row text-center">
-                            <div class="col-6 col-md"><div class="small text-muted">Parcourslänge</div><div class="fw-semibold">${meta.parcours_laenge || "—"} m</div></div>
-                            <div class="col-6 col-md"><div class="small text-muted">Geräte</div><div class="fw-semibold">${meta.hindernisse || "—"}</div></div>
+                            <div class="col-6 col-md"><div class="small text-muted">{{ _('Parcourslänge') }}</div><div class="fw-semibold">${meta.parcours_laenge || "—"} m</div></div>
+                            <div class="col-6 col-md"><div class="small text-muted">{{ _('Geräte') }}</div><div class="fw-semibold">${meta.hindernisse || "—"}</div></div>
                             <div class="col-6 col-md"><div class="small text-muted">SCT</div><div class="fw-semibold">${meta.sct || "—"} s</div></div>
                             <div class="col-6 col-md"><div class="small text-muted">MCT</div><div class="fw-semibold">${meta.mct || "—"} s</div></div>
                         </div>
                         <div class="mt-2 small text-muted">${metaLine}</div>
                     </div>
                 </div>
-                <div class="text-uppercase small text-muted">Aktueller Starter</div>
+                <div class="text-uppercase small text-muted">{{ _('Aktueller Starter') }}</div>
                 <div class="h4 fw-semibold mb-1">${current?.name || "—"}</div>
-                <div class="small text-muted mb-2">Bereit: ${ready?.name || "—"}</div>
+                <div class="small text-muted mb-2">{{ _('Bereit') }}: ${ready?.name || "—"}</div>
             </div>`;
         return true;
     }
@@ -95,11 +95,11 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderStartlist(list) {
         if (!startlistEl) return false;
         if (!list || !list.length) {
-            startlistEl.innerHTML = `<li class="list-group-item text-muted">Keine Startliste verfügbar.</li>`;
+            startlistEl.innerHTML = `<li class="list-group-item text-muted">{{ _('Keine Startliste verfügbar.') }}</li>`;
             return true;
         }
         startlistEl.innerHTML = list.map(entry => {
-            const badge = entry.current ? "Aktuell" : entry.ready ? "Bereit" : "";
+            const badge = entry.current ? "{{ _('Aktuell') }}" : entry.ready ? "{{ _('Bereit') }}" : "";
             return `
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <span class="fw-semibold">${entry.name || "—"}</span>
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderRanking(list) {
         if (!rankingEl) return false;
         if (!list || !list.length) {
-            rankingEl.innerHTML = `<tr><td colspan="4" class="text-muted">Noch keine Rangliste verfügbar.</td></tr>`;
+            rankingEl.innerHTML = `<tr><td colspan="4" class="text-muted">{{ _('Noch keine Rangliste verfügbar.') }}</td></tr>`;
             return true;
         }
         rankingEl.innerHTML = list.map(res => `
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderLastResults(list) {
         if (!lastResultsEl) return false;
         if (!list || !list.length) {
-            lastResultsEl.innerHTML = `<div class="text-muted">Noch keine Ergebnisse.</div>`;
+            lastResultsEl.innerHTML = `<div class="text-muted">{{ _('Noch keine Ergebnisse.') }}</div>`;
             return true;
         }
         lastResultsEl.innerHTML = `
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ${list.map(res => `
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-semibold">${res.platz || "—"} – ${res.name || ""}</span>
-                        <span class="text-muted small">Fehler ${res.fehler_total ?? res.fehler_total_gerundet ?? "—"} · Zeit ${res.zeit_total ?? res.zeit ?? "—"} s</span>
+                        <span class="text-muted small">{{ _('Fehler') }} ${res.fehler_total ?? res.fehler_total_gerundet ?? "—"} · {{ _('Zeit') }} ${res.zeit_total ?? res.zeit ?? "—"} s</span>
                     </div>
                 `).join("")}
             </div>`;

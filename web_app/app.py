@@ -30,14 +30,17 @@ def _select_locale():
     """Für Druck-Routen: Sprache aus den Einstellungen lesen. Sonst immer 'de'.
 
     Neben /print/* zählen dazu die Rangliste-PDF-Routen unter /live/ (dort
-    wird das für den Portal-Upload bzw. die Vorschau gerenderte PDF erzeugt)
-    sowie die KO-Cup-Druckseiten unter /ko-cup/ (Endrangliste, Ring-Listen)."""
+    wird das für den Portal-Upload bzw. die Vorschau gerenderte PDF erzeugt),
+    die KO-Cup-Druckseiten unter /ko-cup/ (Endrangliste, Ring-Listen) sowie
+    der Ring-Monitor (externe Anzeige, gleiche Sprache wie die Drucksachen)."""
     path = request.path
     is_print_route = (
         path.startswith('/print/')
         or path.startswith('/live/preview_ranking_pdf/')
         or path.startswith('/live/upload_ranking_pdf/')
         or path.startswith('/ko-cup/rings_print/')
+        or path.startswith('/live/ring_monitor/')
+        or path.startswith('/api/render_ring_monitor_content/')
         or path.endswith('/print')
     )
     if is_print_route:

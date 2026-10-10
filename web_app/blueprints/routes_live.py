@@ -826,24 +826,24 @@ def render_ring_monitor_content(ring_number: int):
     ring_label = _ring_label_for_display(ring_number=ring_number)
     event = _get_active_event()
     if not event:
-        return Response("<div class='ring-monitor'><p>Kein aktives Event.</p></div>", mimetype='text/html')
+        return Response(f"<div class='ring-monitor'><p>{_('Kein aktives Event.')}</p></div>", mimetype='text/html')
     view = build_ring_view_model(event, ring_number)
     current_run = view.get("current_run")
     if not current_run:
         html = (
             f"<div class='ring-monitor'><h2>{ring_label}</h2>"
-            "<p>Kein Lauf wurde für diesen Ring aktiviert.</p>"
+            f"<p>{_('Kein Lauf wurde für diesen Ring aktiviert.')}</p>"
             f"<a href='/print/schedule/{event.get('id')}' target='_blank' "
-            "class='btn btn-outline-primary'>📅 Zeitplan anzeigen</a></div>"
+            f"class='btn btn-outline-primary'>📅 {_('Zeitplan anzeigen')}</a></div>"
         )
         return Response(html, mimetype='text/html')
     meta_bits = []
     if current_run.get("klasse"):
-        meta_bits.append(f"Klasse: {current_run.get('klasse')}")
+        meta_bits.append(f"{_('Klasse')}: {current_run.get('klasse')}")
     if current_run.get("kategorie"):
-        meta_bits.append(f"Kategorie: {current_run.get('kategorie')}")
+        meta_bits.append(f"{_('Kategorie')}: {current_run.get('kategorie')}")
     if current_run.get("laufart"):
-        meta_bits.append(f"Laufart: {current_run.get('laufart')}")
+        meta_bits.append(f"{_('Laufart')}: {current_run.get('laufart')}")
     meta_line = " | ".join(meta_bits) if meta_bits else "—"
 
     current_starter = view.get("current_starter") or {}
@@ -855,12 +855,12 @@ def render_ring_monitor_content(ring_number: int):
         "<div class='ring-monitor'>",
         "<div class='mb-3'>",
         f"<h2 class='h3 mb-1'>{ring_label} – {current_run.get('title','')}</h2>",
-        f"<div class='text-muted mb-2'><strong>Richter:</strong> {current_run.get('judge_name','—')}</div>",
+        f"<div class='text-muted mb-2'><strong>{_('Richter')}:</strong> {current_run.get('judge_name','—')}</div>",
         "<div class='card shadow-sm mb-3'>",
         "<div class='card-body py-2'>",
         "<div class='row text-center'>",
-        f"<div class='col-6 col-md'><div class='small text-muted'>Parcourslänge</div><div class='fw-semibold'>{current_run.get('parcours_laenge','—')} m</div></div>",
-        f"<div class='col-6 col-md'><div class='small text-muted'>Geräte</div><div class='fw-semibold'>{current_run.get('hindernisse','—')}</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>{_('Parcourslänge')}</div><div class='fw-semibold'>{current_run.get('parcours_laenge','—')} m</div></div>",
+        f"<div class='col-6 col-md'><div class='small text-muted'>{_('Geräte')}</div><div class='fw-semibold'>{current_run.get('hindernisse','—')}</div></div>",
         f"<div class='col-6 col-md'><div class='small text-muted'>SCT</div><div class='fw-semibold'>{current_run.get('sct','—')} s</div></div>",
         f"<div class='col-6 col-md'><div class='small text-muted'>MCT</div><div class='fw-semibold'>{current_run.get('mct','—')} s</div></div>",
         "</div>",
@@ -870,7 +870,7 @@ def render_ring_monitor_content(ring_number: int):
         "<div class='row g-3'>",
         "<div class='col-12 col-lg-6'>",
         "<div class='card shadow-sm h-100'>",
-        "<div class='card-header bg-light fw-semibold'>Aktuelle Startliste</div>",
+        f"<div class='card-header bg-light fw-semibold'>{_('Aktuelle Startliste')}</div>",
         "<ul class='list-group list-group-flush'>",
     ]
 
@@ -886,7 +886,7 @@ def render_ring_monitor_content(ring_number: int):
                 "</li>"
             )
     else:
-        parts.append("<li class='list-group-item text-muted'>Keine Startliste verfügbar.</li>")
+        parts.append(f"<li class='list-group-item text-muted'>{_('Keine Startliste verfügbar.')}</li>")
 
     parts.extend([
         "</ul>",
@@ -894,10 +894,10 @@ def render_ring_monitor_content(ring_number: int):
         "</div>",
         "<div class='col-12 col-lg-6'>",
         "<div class='card shadow-sm h-100'>",
-        "<div class='card-header bg-light fw-semibold'>Aktuelle Rangliste</div>",
+        f"<div class='card-header bg-light fw-semibold'>{_('Aktuelle Rangliste')}</div>",
         "<div class='table-responsive'>",
         "<table class='table table-sm mb-0'>",
-        "<thead><tr><th>Platz</th><th>Name</th><th>Gesamtfehler</th><th>Zeit</th></tr></thead>",
+        f"<thead><tr><th>{_('Platz')}</th><th>{_('Name')}</th><th>{_('Gesamtfehler')}</th><th>{_('Zeit')}</th></tr></thead>",
         "<tbody>",
     ])
 
@@ -913,7 +913,7 @@ def render_ring_monitor_content(ring_number: int):
                 "</tr>"
             )
     else:
-        parts.append("<tr><td colspan='4' class='text-muted'>Noch keine Rangliste verfügbar.</td></tr>")
+        parts.append(f"<tr><td colspan='4' class='text-muted'>{_('Noch keine Rangliste verfügbar.')}</td></tr>")
 
     parts.extend([
         "</tbody>",
@@ -923,7 +923,7 @@ def render_ring_monitor_content(ring_number: int):
         "</div>",
         "</div>",
         "<div class='card shadow-sm mt-3'>",
-        "<div class='card-header bg-light fw-semibold'>Letzte 3 Ergebnisse</div>",
+        f"<div class='card-header bg-light fw-semibold'>{_('Letzte 3 Ergebnisse')}</div>",
         "<div class='card-body py-2'>",
     ])
 
@@ -935,19 +935,19 @@ def render_ring_monitor_content(ring_number: int):
             parts.append(
                 "<div class='d-flex justify-content-between align-items-center'>"
                 f"<span class='fw-semibold'>{platz} – {format_ring_name(res)}</span>"
-                f"<span class='text-muted small'>Fehler {_format_total_errors(res)} · Zeit {_format_time(res.get('zeit_total') or res.get('zeit'))} s</span>"
+                f"<span class='text-muted small'>{_('Fehler')} {_format_total_errors(res)} · {_('Zeit')} {_format_time(res.get('zeit_total') or res.get('zeit'))} s</span>"
                 "</div>"
             )
         parts.append("</div>")
     else:
-        parts.append("<div class='text-muted'>Noch keine Ergebnisse.</div>")
+        parts.append(f"<div class='text-muted'>{_('Noch keine Ergebnisse.')}</div>")
 
     parts.extend([
         "</div>",
         "</div>",
         "<div class='card bg-dark text-white mt-3'>",
         "<div class='card-body text-center'>",
-        "<div class='text-uppercase small text-muted'>Aktueller Starter</div>",
+        f"<div class='text-uppercase small text-muted'>{_('Aktueller Starter')}</div>",
         f"<div class='display-6 fw-semibold'>{current_label}</div>",
         f"<div class='text-muted'>{current_startno_display}</div>",
         "</div>",
@@ -1144,10 +1144,12 @@ def _render_ranking_pdf_html(event, run, event_id, is_final):
     import os as _os, base64 as _b64
     # Logo-Kopfbox: xhtml2pdf (pisa) ignoriert CSS max-width/max-height auf <img>
     # und rendert sonst in nativer Pixelgrösse -> Logo sprengt die Seite. Darum
-    # hier das Seitenverhältnis bestimmen und EXPLIZITE width/height in cm setzen,
-    # die ins Kopf-Format (max 2.5cm breit, 1.8cm hoch) skaliert sind.
-    _LOGO_MAX_W_CM = 2.5
-    _LOGO_MAX_H_CM = 1.8
+    # hier das Seitenverhältnis bestimmen und EXPLIZITE width/height in cm setzen.
+    # Zielgrösse = gemessene Höhe des 3-zeiligen Titelblocks (Titel/Richter/
+    # Subtitle) im gerenderten PDF = 1.8cm, damit Logo und Text optisch gleich
+    # hoch wirken (per pymupdf-Textbbox verifiziert, nicht nur geschätzt).
+    _LOGO_MAX_W_CM = float(_os.environ.get("AGILITY_LOGO_MAX_W_CM", "2.5"))
+    _LOGO_MAX_H_CM = float(_os.environ.get("AGILITY_LOGO_MAX_H_CM", "1.8"))
 
     def _logo_b64(logo_key):
         fname = event.get(logo_key)
