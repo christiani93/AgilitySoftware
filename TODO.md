@@ -7,8 +7,8 @@ Stand: 2026-10-10
 
 ## Session 2026-10-10 (nachmittags) — Hotfix + neue Wünsche
 
-- [x] **CNEAC-Ergebnisformular (FR) auto-ausfüllen** (GEBAUT, UNCOMMITTED): für
-      Teilnehmer mit franz. Lizenz das offizielle Centrale-Canine-Formular per
+- [x] **CNEAC-Ergebnisformular (FR) auto-ausfüllen** (COMMITTED+GEPUSHT `ae389b6`):
+      für Teilnehmer mit franz. Lizenz das offizielle Centrale-Canine-Formular per
       PDF-Overlay auf der Originalvorlage ausfüllen. NEU: `web_app/forms_fr.py`,
       `web_app/static/forms/formulaire_resultats_fr.pdf` (Vorlage),
       `templates/print/fr_formulaire_list.html`; Routen
@@ -16,15 +16,21 @@ Stand: 2026-10-10
       `routes_print.py`; Button in `manage_runs.html` neben TKAMO-Export.
       Zeilen = Klasse 1/2/3 (CH-Kategorien=FR, kein Mapping). Leer: FAPAC/
       Territoriale/Régionale/Sexe (haben wir nicht). DIS blendet Sentinel-999
-      aus, Ausland-Platzhalter-Verein wird gefiltert. Tests
-      `tests_pure/test_fr_formulaire.py` (4) + 160 tests_pure grün.
-      OFFEN: committen/pushen/EXE bauen. Evtl. Mehrtage-Aggregation (User fragen).
-- [ ] **Ring-PC "Bereit"-Button → Monitor nachziehen** (GEBAUT, UNCOMMITTED):
+      aus, Ausland-Platzhalter-Verein wird gefiltert. In EXE 17:21 enthalten.
+- [ ] **CNEAC-Formular UNTERE HÄLFTE prüfen** (NEU gemeldet 2026-10-10, OFFEN):
+      User: in der unteren A5-Hälfte sind noch die Feld-Texte/Labels der
+      Originalvorlage sichtbar (Overlay-Koordinaten der zweiten Hälfte sitzen
+      nicht sauber bzw. werden nicht alle Felder dort befüllt). `forms_fr.py`
+      zeichnet beide Hälften per `Y_OFFSET_BOTTOM_HALF=401.3`; Koordinaten der
+      unteren Hälfte gegenchecken. NOCH NICHT angefasst.
+- [ ] **CNEAC Mehrtages-Formular** (2× A5 auf A4) noch bauen — Frage offen:
+      Tages-Unterscheidung pro Lauf (Vorschlag: Gruppierung nach `entry['timestamp']`).
+- [x] **Ring-PC "Bereit"-Button → Monitor nachziehen** (COMMITTED+GEPUSHT `aaf59c8`):
       `setStarterReady()` in `ring_pc_dashboard.html` ruft jetzt zusätzlich
       `POST /live/api/reassign_current_starter` (wie `reassignStarter`), damit
       Ring-Monitor/Sprecher den bereiten Starter zeigen auch wenn er aus der
       Reihe tanzt. + Trennlinien-Markierung jetzt auch bei Startnummern-LÜCKE
-      ("⚠ Nummernlücke" vs "⚠ Reihenfolge unterbrochen"). OFFEN: committen+EXE.
+      ("⚠ Nummernlücke" vs "⚠ Reihenfolge unterbrochen"). In EXE 17:21 enthalten.
 - [x] **HOTFIX Ring-PC-Dashboard 500** (`89ef6a2`, gepusht origin/main): der
       Laufvorgaben-Refactor `aff8a74` hatte den `@live_bp.route('/ring_pc_dashboard/..')`-
       Decorator versehentlich auf den neuen Helper `_resolve_runs_for_ring`
@@ -35,20 +41,28 @@ Stand: 2026-10-10
       **Lehre:** vor EXE-Auslieferung bei Live-Code immer die ECHTEN View-Routen
       smoke-testen (GET /ring_pc_dashboard/1 + eine Ranglisten-Route), nicht nur
       /health.
-- [ ] **DIS-Timer-Reset** (gemeldet, offen): wird der Timer per DIS über das
-      Dashboard resettet, muss die Dashboard-Anzeige wieder **0** zeigen statt
-      weiterzulaufen. Recherche (Timer-JS-Quelle, ring_server-Reset-Event,
-      set_participant_status-Pfad) noch offen — IM VORDERGRUND machen.
-- [ ] **Dashboard-Scroll/Sortierung** (nice-to-have): Steuerung immer sichtbar
-      halten — entweder nur Lauf-Liste (Spalte 2) scrollen ODER beendete Läufe
-      ans Listenende sortieren.
-- [ ] **Ring-Monitor Namen unterscheidbar** (Wunsch): Präfix "HF Vorname
-      Nachname" (Hundeführer) + "H Hundename" (Hund). `format_ring_name`
-      (`utils.py:718`) ist geteilter Formatierer (9 Call-Sites); zeigt aktuell
-      nur Vorname → Nachnamen-Extraktor nötig. OFFEN beim User: SCOPE (nur
-      Starter/Bereit vs. überall inkl. Ranglisten) + FORMAT (2 Zeilen vs.
-      einzeilig mit Trenner). Echter Render-Pfad: `render_ring_monitor_content`
-      + JS in `ring_monitor.html` (NICHT `_ring_monitor_content.html` = tot).
+- [x] **Ring-PC-Dashboard: DIS-Timer + Vollbild-Scroll + Modal-Labels**
+      (COMMITTED `ba768cf`): DIS-Timer im `state_update`-Handler an `run_status`
+      gekoppelt (idle/ready → `clearInterval` + Anzeige `"0.00"`); Vollbild-Scroll
+      komplett auf reine CSS-Flexbox-Höhenkette umgestellt (JS-Mess-Varianten
+      `fitStarterListHeight`/ResizeObserver raus — im F11-Vollbild unzuverlässig),
+      nur `#starter-list-container` scrollt + Auto-Scroll zum aktuellen Starter
+      (`scrollToActiveStarter`, NICHT umsortieren); Resultat-Modal-Labels sichtbar;
+      toter "Schnell speichern"-Button + `quickSaveCurrent()` entfernt. Muster/Doku
+      siehe Memory `reference_fullscreen_fit_css_flexbox`. OFFEN: ins SW-Build-Paket
+      (EXE) + Live-Abnahme DIS-Timer mit Hardware.
+- [ ] **Zweiter toter Button `reset-run-btn`** ("Aktuellen Lauf zurücksetzen"):
+      `ui.resetBtn` wird definiert aber NIE mit Click-Handler verdrahtet (der
+      `reset_current_run`-Emit passiert nur in anderen Flows). User-ENTSCHEIDUNG
+      offen: verdrahten ODER entfernen (evtl. durch Ring-Server auch überflüssig).
+- [x] **Ring-Monitor Layout-Umbau** (COMMITTED `8a30aa4`): Kiosk-Monitor zeigt
+      alles OHNE Scrollen. Namen einzeilig im Ringschreiber-Format
+      (`format_ring_name_html`/`_parts` in utils.py, Hundeführer fett + Hundename
+      klein); Auto-Fit via `#monitor-scale` + `fitMonitor()` (transform:scale auf
+      Viewport-Höhe); Laufvorgaben/Letzte Ergebnisse/Aktueller Starter gleich hoch
+      (`.ring-band{min-height:6rem}`, gestapelt); Startliste flex-fill
+      (`.ring-startlist`). Sprecher-Display bewusst unverändert. OFFEN: ins
+      SW-Build-Paket (EXE).
 - [ ] **Export-Pfade vereinheitlichen + FTP-Uploader** (geplant): Ziel-Layout
       `/Agility-Software/<DATUM>/<Typ>/` (Ranglisten/Startlisten/CSV).
       ACHTUNG 2 getrennte Mechanismen: Ranglisten-PDF schreibt direkt
