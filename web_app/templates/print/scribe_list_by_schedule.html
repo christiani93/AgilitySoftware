@@ -82,7 +82,7 @@
                         {% for entry in section.participants %}
                         <tr>
                             <td>{{ entry.Startnummer }}</td>
-                            <td><strong>{{ entry.Hundefuehrer }}</strong><br><small>{{ entry.Hundename }}</small></td>
+                            <td><strong>{{ entry.Hundefuehrer }}</strong>{% if entry.is_foreign %} <strong>({{ entry.foreign_cc or _('Ausland') }})</strong>{% endif %}<br><small>{{ entry.Hundename }}</small></td>
                             <td></td>
                             <td></td>
                             <td></td>

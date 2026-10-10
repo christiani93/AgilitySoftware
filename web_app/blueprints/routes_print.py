@@ -79,7 +79,7 @@ def print_all(event_id):
     # Bündel 2: Einweiserlisten als Master-Tabelle (1 pro Kategorie/Klasse, alle
     # zugehörigen Läufe als Spalten), pro Ring gefiltert
     # Bündel 3: Ringschreiberlisten nach Ringzeitplan, pro Ring gruppiert
-    scribe_sections = build_schedule_print_sections(event)
+    scribe_sections = _enrich_sections_rasse_verein(build_schedule_print_sections(event))
     for section in scribe_sections:
         first_run = (section.get("runs") or [{}])[0]
         section["judge_name"] = resolve_judge_name(event, first_run, judges, section.get("block"))
@@ -285,6 +285,19 @@ def _enrich_entries_rasse_verein(ordered_runs):
     return ordered_runs
 
 
+def _enrich_sections_rasse_verein(sections):
+    """Reichert die Teilnehmer der Zeitplan-Sektionen um Rasse/Verein und die
+    Ausland-Flags (is_foreign/foreign_cc) an – analog _enrich_entries_rasse_verein
+    für Lauf-Entries."""
+    dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
+    handlers_map = {h['id']: h for h in _load_data('handlers.json')}
+    clubs_map = {str(c.get('nummer')): c.get('name', '') for c in _load_data('clubs.json')}
+    for section in sections:
+        for entry in section.get('participants', []):
+            _enrich_entry_rasse_verein(entry, dogs_map, handlers_map, clubs_map)
+    return sections
+
+
 def _build_participant_startlist_groups(event):
     """Baut 1 Startliste pro Kategorie/Klasse, unabhängig vom einzelnen Lauf
     (laufunspezifisch) – ein Satz Startlisten statt einer Liste je Lauf."""
@@ -375,7 +388,7 @@ def print_stewardlists(event_id):
     """Ringschreiber-Listen in Zeitplan-Reihenfolge."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    ordered_runs = get_ordered_runs_for_print(event)
+    ordered_runs = _enrich_entries_rasse_verein(get_ordered_runs_for_print(event))
     judges = _load_data('judges.json')
     for run in ordered_runs:
         run["judge_display"] = resolve_judge_name(event, run, judges)
@@ -391,7 +404,7 @@ def print_stewardlists_by_schedule_view(event_id):
     if not event:
         abort(404)
     judges = _load_data('judges.json')
-    sections = build_schedule_print_sections(event)
+    sections = _enrich_sections_rasse_verein(build_schedule_print_sections(event))
     for section in sections:
         section["judge_name"] = resolve_judge_name(event, section.get("runs", [{}])[0], judges, section.get("block"))
     logos = get_event_logo_data_uris(event)
@@ -550,7 +563,25 @@ def tkamo_export(event_id):
             
             # Disqualifikation-Feld gemäss Reglement (leer oder Kürzel)
             disq_value = res.get('qualifikation', '') if res.get('qualifikation') in ['DIS', 'ABR'] else ''
-            
+
+            # Bei DIS/ABR sind Zeit/Fehler-Werte nur interne Sortier-Sentinels
+            # (z.B. zeit_total=999.99, Fehler/Verweigerung aus dem Teillauf) –
+            # im TKAMO-Export müssen diese Spalten gemäss Reglement leer/0 sein.
+            if disq_value:
+                laufzeit_col = "0,00"
+                geschwindigkeit_col = "0,00"
+                fehler_col = 0
+                verweigerung_col = 0
+                zeitfehler_col = "0,00"
+                gesamtfehler_col = "0,00"
+            else:
+                laufzeit_col = f"{res.get('zeit_total', 0):.2f}".replace('.',',')
+                geschwindigkeit_col = f"{(float(run['laufdaten'].get('parcours_laenge', 1)) / res.get('zeit_total', 1)):.2f}".replace('.',',') if res.get('zeit_total') else ''
+                fehler_col = res.get('fehler_parcours_anzahl', 0) * 5
+                verweigerung_col = res.get('verweigerung_parcours_anzahl', 0) * 5
+                zeitfehler_col = f"{res.get('fehler_zeit', 0):.2f}".replace('.',',')
+                gesamtfehler_col = f"{res.get('fehler_total', 0):.2f}".replace('.',',')
+
             row = [
                 event.get('Turniernummer', ''),
                 res.get('Lizenznummer', ''),
@@ -560,12 +591,12 @@ def tkamo_export(event_id):
                 run.get('kategorie', ''),
                 run.get('klasse', ''),
                 res.get('platz', ''),
-                f"{res.get('zeit_total', 0):.2f}".replace('.',','),
-                f"{(float(run['laufdaten'].get('parcours_laenge', 1)) / res.get('zeit_total', 1)):.2f}".replace('.',',') if res.get('zeit_total') else '',
-                res.get('fehler_parcours_anzahl', 0) * 5,
-                res.get('verweigerung_parcours_anzahl', 0) * 5,
-                f"{res.get('fehler_zeit', 0):.2f}".replace('.',','),
-                f"{res.get('fehler_total', 0):.2f}".replace('.',','),
+                laufzeit_col,
+                geschwindigkeit_col,
+                fehler_col,
+                verweigerung_col,
+                zeitfehler_col,
+                gesamtfehler_col,
                 disq_value,
                 run.get('laufart', ''),
                 resolve_judge_id(event, run),
@@ -582,8 +613,11 @@ def tkamo_export(event_id):
             ]
             writer.writerow(row)
             
-    output.seek(0)
-    return Response(output, mimetype="text/csv", headers={"Content-Disposition": f"attachment;filename=tkamo_export_{event_id}.csv"})
+    return Response(
+        output.getvalue().encode('utf-8-sig'),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment;filename=tkamo_export_{event_id}.csv"},
+    )
 
 
 # ── Lizenzcheck (TKAMO-Workflow) ──────────────────────────────────────────────
