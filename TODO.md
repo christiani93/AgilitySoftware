@@ -98,8 +98,9 @@ Stand: 2026-10-11
       nur `#starter-list-container` scrollt + Auto-Scroll zum aktuellen Starter
       (`scrollToActiveStarter`, NICHT umsortieren); Resultat-Modal-Labels sichtbar;
       toter "Schnell speichern"-Button + `quickSaveCurrent()` entfernt. Muster/Doku
-      siehe Memory `reference_fullscreen_fit_css_flexbox`. OFFEN: ins SW-Build-Paket
-      (EXE) + Live-Abnahme DIS-Timer mit Hardware.
+      siehe Memory `reference_fullscreen_fit_css_flexbox`. DIS-Timer-Live-Abnahme mit
+      Hardware ERLEDIGT (2026-10-11, funktionierte am Event). OFFEN nur noch: ins
+      SW-Build-Paket (EXE).
 - [x] **Button `reset-run-btn` verdrahtet (Fehlstart-Reset)** (COMMITTED `fe333a4`,
       in EXE 21:52): User-Entscheidung = verdrahten. Neue Aktion `resetCurrentRun`
       emittiert `reset_current_run` an den Ring-Server (`handle_reset`→`reset_state`:
