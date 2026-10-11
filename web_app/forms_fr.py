@@ -19,7 +19,32 @@ from utils import _load_data, _load_settings, recalc_and_store, resolve_judge_na
 
 TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "static", "forms", "formulaire_resultats_fr.pdf")
 
-Y_OFFSET_BOTTOM_HALF = 401.3
+# Die untere A5-Kopie ist in der Originalvorlage KEIN reiner Y-Versatz der oberen
+# Kopie, sondern zusätzlich leicht nach RECHTS verschoben (an der Vorlage
+# vermessen, siehe Memory project_fr_cneac_result_form.md) - und der Y-Versatz der
+# Kopfzeilen ist nicht konstant, sondern steigt zeilenweise (399.0 -> 401.0pt).
+# Wird bisher (nur dy=401.3, kein dx) NICHT berücksichtigt -> Text überlappt im
+# unteren Formular die Feldlabels. Fix: separate dx/dy für Kopf (pro Zeile) und
+# Tabelle (konstanter Versatz reicht dort, Tabellenzeilen streuen nur 401-402pt).
+X_OFFSET_BOTTOM_HALF_HEADER = 7.3
+X_OFFSET_BOTTOM_HALF_TABLE = 8.0
+Y_OFFSET_BOTTOM_HALF_HEADER = {
+    "club_organisateur": 399.0,
+    "territorial_pays":  399.0,
+    "date":              399.0,
+    "chien":             399.0,
+    "fapac":             399.0,
+    "race":              399.0,
+    "sexe":              399.0,
+    "conducteur":        400.0,
+    "club":              400.0,
+    "regionale":         400.0,
+    "n_licence":         401.0,
+    "n_dossard":         401.0,
+    "categorie":         401.0,
+    "classe":            401.0,
+}
+Y_OFFSET_BOTTOM_HALF_TABLE = 401.3
 
 # Tabellen-Spalten (x0, x1), gemessen an den Rahmenlinien der Vorlage.
 COLS = {
@@ -42,14 +67,19 @@ COLS = {
 ROWS_AGILITY = {1: (179.3, 202.1), 2: (202.1, 224.9), 3: (224.9, 247.7)}
 ROWS_JUMPING = {1: (247.7, 270.4), 2: (270.4, 293.2), 3: (293.2, 316.0)}
 
-# Kopf-Felder: (x_value_start, y_baseline, x_max)
+# Kopf-Felder: (x_value_start, y_baseline, x_max) - gegen die Originalvorlage
+# vermessen (Label-Doppelpunkt-Ende + ~5pt Abstand).
 HEADER_FIELDS = {
     "club_organisateur": (98, 86.3, 240),
+    "territorial_pays":  (309, 86.3, 429),
     "date":              (462, 86.3, 565),
     "chien":             (60, 101.2, 200),
+    "fapac":             (235, 101.2, 314),
     "race":              (349, 101.2, 480),
+    "sexe":              (510, 101.2, 565),
     "conducteur":        (79, 116.2, 238),
     "club":              (266, 116.2, 389),
+    "regionale":         (434, 116.2, 565),
     "n_licence":         (73, 131.2, 167),
     "n_dossard":         (216, 131.2, 301),
     "categorie":         (345, 131.2, 424),
@@ -68,15 +98,15 @@ def _fit_fontsize(text, max_width, start_size):
     return size
 
 
-def _draw_left(page, x, y_baseline, text, max_width, fontsize=HEADER_FONTSIZE, dy=0):
+def _draw_left(page, x, y_baseline, text, max_width, fontsize=HEADER_FONTSIZE, dx=0, dy=0):
     text = str(text or "").strip()
     if not text:
         return
     size = _fit_fontsize(text, max_width, fontsize)
-    page.insert_text((x, y_baseline + dy), text, fontname=FONT, fontsize=size, color=(0, 0, 0))
+    page.insert_text((x + dx, y_baseline + dy), text, fontname=FONT, fontsize=size, color=(0, 0, 0))
 
 
-def _draw_centered(page, x0, x1, y_baseline, text, fontsize=TABLE_FONTSIZE, dy=0):
+def _draw_centered(page, x0, x1, y_baseline, text, fontsize=TABLE_FONTSIZE, dx=0, dy=0):
     text = str(text or "").strip()
     if not text:
         return
@@ -84,7 +114,7 @@ def _draw_centered(page, x0, x1, y_baseline, text, fontsize=TABLE_FONTSIZE, dy=0
     size = _fit_fontsize(text, width, fontsize)
     text_width = pymupdf.get_text_length(text, fontname=FONT, fontsize=size)
     x = x0 + (x1 - x0 - text_width) / 2
-    page.insert_text((x, y_baseline + dy), text, fontname=FONT, fontsize=size, color=(0, 0, 0))
+    page.insert_text((x + dx, y_baseline + dy), text, fontname=FONT, fontsize=size, color=(0, 0, 0))
 
 
 def _fmt_num(value, decimals=None):
@@ -212,6 +242,7 @@ def generate_fr_result_pdf(event, lizenznummer):
     header["date"] = event.get("Datum") or ""
     header["categorie"] = ""
     header["classe"] = ""
+    header["territorial_pays"] = "Suisse"  # Land des Veranstalters, bei uns immer CH
 
     rows_agility, rows_jumping = {}, {}
     for klasse in (1, 2, 3):
@@ -229,20 +260,29 @@ def generate_fr_result_pdf(event, lizenznummer):
     doc = pymupdf.open(TEMPLATE_PATH)
     page = doc[0]
 
-    for y_offset in (0, Y_OFFSET_BOTTOM_HALF):
+    def _draw_copy(dx_header, dy_header_map, dx_table, dy_table):
         for field, (x, y, max_w) in HEADER_FIELDS.items():
-            _draw_left(page, x, y, header.get(field, ""), max_w - x, dy=y_offset)
+            dy = dy_header_map.get(field, 0) if dy_header_map else 0
+            _draw_left(page, x, y, header.get(field, ""), max_w - x, dx=dx_header, dy=dy)
 
         for klasse, row in rows_agility.items():
             y0, y1 = ROWS_AGILITY[klasse]
             baseline = y1 - 5
             for col, (x0, x1) in COLS.items():
-                _draw_centered(page, x0, x1, baseline, row.get(col, ""), dy=y_offset)
+                _draw_centered(page, x0, x1, baseline, row.get(col, ""), dx=dx_table, dy=dy_table)
 
         for klasse, row in rows_jumping.items():
             y0, y1 = ROWS_JUMPING[klasse]
             baseline = y1 - 5
             for col, (x0, x1) in COLS.items():
-                _draw_centered(page, x0, x1, baseline, row.get(col, ""), dy=y_offset)
+                _draw_centered(page, x0, x1, baseline, row.get(col, ""), dx=dx_table, dy=dy_table)
+
+    # Obere Kopie: keine Korrektur nötig.
+    _draw_copy(dx_header=0, dy_header_map=None, dx_table=0, dy_table=0)
+    # Untere Kopie: X- + zeilenabhängiger Y-Versatz (siehe Konstanten oben).
+    _draw_copy(
+        dx_header=X_OFFSET_BOTTOM_HALF_HEADER, dy_header_map=Y_OFFSET_BOTTOM_HALF_HEADER,
+        dx_table=X_OFFSET_BOTTOM_HALF_TABLE, dy_table=Y_OFFSET_BOTTOM_HALF_TABLE,
+    )
 
     return doc.tobytes()
