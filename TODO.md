@@ -5,24 +5,40 @@
 
 Stand: 2026-10-11
 
-## Session 2026-10-11 — KRITISCH: Event verschwindet mitten im Betrieb (GEFIXT, Deploy offen)
+## Session 2026-10-11 — KRITISCH: Event verschwindet mitten im Betrieb (GEFIXT + EXE gebaut)
 
-- [x] **Root Cause gefunden + gefixt (UNCOMMITTED):** Event verschwand während
+- [x] **Root Cause gefunden + gefixt (COMMITTED `631004a`):** Event verschwand während
       der Nutzung komplett aus der Übersicht + verlor aktive-Markierung, wiederholt.
       Ursache: `events.json` wurde in `web_app/utils.py` `_save_data` nicht-atomar
       geschrieben (`open(...,'w')` trunkiert sofort) UND ohne Lock. Viele parallele
-      Live-Writer (Resultat-Eingabe, Ring-PC-POSTs, Stream-Deck-API, SocketIO) →
-      Reader erwischt trunkierte Datei → `_load_data` fing `JSONDecodeError` und gab
-      still `[]` → nächster `_save_data` schrieb die leere Liste fest = Event weg;
-      danach leert `/live_dashboard` (routes_live.py:247-249) active_event.json.
-      Fix in utils.py: `_DATA_LOCK` (threading.RLock) serialisiert alle load/save;
-      `_save_data` schreibt atomar (temp + `os.replace`); `_load_data` behandelt eine
-      existierende/nicht-leere/unlesbare Datei NIE mehr still als `[]` (3× Retry,
-      dann `raise RuntimeError`). Test: `tests_pure/test_data_store_atomic.py` (neu).
-      Bestehende Suite 189 grün.
-- [ ] **OFFEN: committen + pushen** (AgilitySoftware-Repo).
-- [ ] **OFFEN: EXE neu bauen** (Fix greift erst nach Rebuild!) + auf Ring-/Turnier-PCs
-      verteilen. Wegen Live-Kritikalität Priorität.
+      Live-Writer (Resultat-Eingabe, Ring-PC-POSTs, Stream-Deck-API, SocketIO) +
+      gevent + zeitweiser Doppelstart des Hauptservers → Reader erwischt trunkierte
+      Datei → `_load_data` gab still `[]` → nächster `_save_data` schrieb Verlust fest.
+      Fix in utils.py: `_DATA_LOCK` (threading.RLock); `_save_data` atomar (temp +
+      `os.replace`); `_load_data` nie mehr still `[]` (3× Retry, dann `RuntimeError`).
+- [x] **Tests erweitert (COMMITTED `24b00da`):** `tests_pure/test_data_store_atomic.py`
+      jetzt 7 Fälle — neu: gültiges JSON + Müll-Schwanz → RuntimeError; große Datei
+      mit kleinerer überschreiben → kein Alt-Schwanz. Alle grün.
+- [x] **EXE neu gebaut** aus `631004a` (v4.4, ~85 MB) → `dist/AgilitySoftware.exe`,
+      Vor-Build-Backup `dist/AgilitySoftware_prebuild_20261011_084016.exe.bak`.
+      Smoke-Test grün (`/`, `/events`, `/ring_pc_dashboard/1`, `/health`). User
+      arbeitet wieder mit dieser EXE (dist/data, 33 Resultate vollständig).
+- [x] **5-Min-Backup (extern) GELIEFERT (`1e015be` + `60196fd`):** `tools/backup_events.py`
+      (stdlib, liest nur, rotierend, dedupt per Hash, validiert JSON, atomar) +
+      Doppelklick-Starter `tools/Start_Backup.bat` (zeigt auf `dist\data` →
+      `C:\Users\chris\AgilityBackups\auto`, alle 5 Min, keep 24).
+- [x] **Event-Import: `(Importiert)`-Suffix entfernt (`51fd27e`):** beide Pfade
+      (ZIP-EventExport `routes_events.py:2340` + JSON-Paket) + Fallback-Titel +
+      Template-Hilfetext + Test. Importierte Events behalten Original-/Portal-Namen.
+- [ ] **OFFEN: pushen** — lokal: `631004a`, `24b00da`, `51fd27e`, `1e015be`, `60196fd`.
+- [ ] **OFFEN: 5-Min-Backup in die Software integrieren** (In-Process-Timer-Thread,
+      nutzt `_DATA_LOCK`, kommt mit in die EXE) — Design in Memory
+      `project_sw_events_json_5min_backup`. Externes Skript ist bis dahin das Netz.
+      **Zeitrahmen (Chris 2026-10-11): bis HCS (30.10.–01.11.2026) ansetzen** —
+      soll zur HCS-EXE fertig sein, da Live-Resultate dort kritisch sind.
+- [ ] **OFFEN: Import-Suffix-Entfernung ist noch NICHT in der EXE** (nach dem Build
+      committet) — unkritisch, Import passiert vor dem Event; beim nächsten Rebuild dabei.
+- [ ] Regel: **nie zwei Hauptserver gleichzeitig** auf dasselbe data-Dir.
 
 ## Session 2026-10-10 (nachmittags) — Hotfix + neue Wünsche
 
@@ -36,14 +52,28 @@ Stand: 2026-10-11
       Zeilen = Klasse 1/2/3 (CH-Kategorien=FR, kein Mapping). Leer: FAPAC/
       Territoriale/Régionale/Sexe (haben wir nicht). DIS blendet Sentinel-999
       aus, Ausland-Platzhalter-Verein wird gefiltert. In EXE 17:21 enthalten.
-- [ ] **CNEAC-Formular UNTERE HÄLFTE prüfen** (NEU gemeldet 2026-10-10, OFFEN):
-      User: in der unteren A5-Hälfte sind noch die Feld-Texte/Labels der
-      Originalvorlage sichtbar (Overlay-Koordinaten der zweiten Hälfte sitzen
-      nicht sauber bzw. werden nicht alle Felder dort befüllt). `forms_fr.py`
-      zeichnet beide Hälften per `Y_OFFSET_BOTTOM_HALF=401.3`; Koordinaten der
-      unteren Hälfte gegenchecken. NOCH NICHT angefasst.
-- [ ] **CNEAC Mehrtages-Formular** (2× A5 auf A4) noch bauen — Frage offen:
-      Tages-Unterscheidung pro Lauf (Vorschlag: Gruppierung nach `entry['timestamp']`).
+- [x] **CNEAC-Formular UNTERE HÄLFTE GEFIXT** (2026-10-11, UNCOMMITTED): Ursache war
+      ein FEHLENDER X-Versatz — die untere A5-Kopie ist in der Originalvorlage nicht nur
+      nach unten, sondern ~7–8pt nach RECHTS verschoben, und der Y-Versatz der Kopfzeilen
+      ist nicht konstant (399/400/401pt statt pauschal 401.3). Alter Code nutzte nur
+      `dy=401.3` ohne dx → Text überlappte die Labels. `forms_fr.py`: `_draw_left/_draw_centered`
+      um `dx` erweitert, neue Konstanten `X_OFFSET_BOTTOM_HALF_HEADER/TABLE` +
+      `Y_OFFSET_BOTTOM_HALF_HEADER`-Dict, Render-Loop in `_draw_copy()` gekapselt. Bonus:
+      `Territorial/Pays` = "Suisse" fix befüllt. Visuell verifiziert + 168/168 tests_pure grün.
+- [ ] **CNEAC: Zusatzfelder für FR-Lizenzen ERFASSEN** (NEU 2026-10-11, OFFEN): FAPAC
+      (franz. Lizenz des HUNDES), Sexe (Hundegeschlecht M/F — haben wir NICHT, nur
+      `is_in_season`), Club + Régionale + N° licence (Läufer/Verein FR) via eigene
+      Eingabe-UI nur für FR-Lizenzen. Koordinaten dafür sind in `HEADER_FIELDS` schon
+      hinterlegt. VORHER KLÄREN: ist unsere gespeicherte `FRA-xxxxx` die Hunde- oder die
+      Läufer-Lizenz? (FAPAC=Hund, N° licence=Läufer wären 2 verschiedene Nummern). Details
+      Memory `project_fr_cneac_result_form`.
+- [ ] **CNEAC Mehrtages-/Mehrhunde-Formular** (Idee Chris 2026-10-11): die 2 identischen
+      A5-Kopien stattdessen für Tag1/Tag2 bzw. Hund1/Hund2 nutzen statt Duplikat. Offene
+      Fragen: Auswahl-UI 2. Event/Hund, Verhalten bei nur 1 Tag/Hund, Routensignatur
+      (aktuell 1 Event + 1 Lizenz/Aufruf). NUR Idee, nicht spezifiziert.
+      **Zeitrahmen (Chris 2026-10-11): bis HCS (30.10.–01.11.2026) ansetzen** — kein
+      Blocker für HCS selbst (CNEAC betrifft FR-Gäste, nicht HCS-Spezifika), aber bis
+      dahin als Zielfenster für Spezifikation + Umsetzung.
 - [x] **Ring-PC "Bereit"-Button → Monitor nachziehen** (COMMITTED+GEPUSHT `aaf59c8`):
       `setStarterReady()` in `ring_pc_dashboard.html` ruft jetzt zusätzlich
       `POST /live/api/reassign_current_starter` (wie `reassignStarter`), damit
