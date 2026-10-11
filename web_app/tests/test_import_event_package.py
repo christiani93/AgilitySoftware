@@ -40,7 +40,7 @@ def test_import_zip_with_logo_does_not_crash(client, tmp_path, monkeypatch):
 
     events = json.loads((tmp_path / "events.json").read_text(encoding="utf-8"))
     assert len(events) == 1
-    assert events[0]["Bezeichnung"] == "Testevent (Importiert)"
+    assert events[0]["Bezeichnung"] == "Testevent"
     assert events[0].get("event_logo_filename") == "event_logo.png"
 
 

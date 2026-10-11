@@ -2324,7 +2324,7 @@ def import_event_package():
                     event_title = _get_first_value(
                         event_block or {},
                         ("Bezeichnung", "name", "title", "event_name"),
-                        "Event (Importiert)"
+                        "Event"
                     )
                     event_date = _get_first_value(
                         event_block or {},
@@ -2337,7 +2337,7 @@ def import_event_package():
                     event = {
                         "id": str(uuid.uuid4()),
                         "external_id": _get_first_value(event_block or {}, ("external_id", "id"), None),
-                        "Bezeichnung": f"{event_title} (Importiert)",
+                        "Bezeichnung": event_title,  # kein "(Importiert)"-Suffix (User-Wunsch 2026-10-11)
                         "Datum": event_date,
                         "VeranstalterClubNr": _get_first_value(event_block or {}, ("VeranstalterClubNr", "club_number", "club"), ""),
                         "Turniernummer": _get_first_value(event_block or {}, ("Turniernummer", "event_number"), ""),
@@ -2416,7 +2416,8 @@ def import_event_package():
                 return redirect(request.url)
             all_events = _load_data(EVENTS_FILE)
             imported_event['id'] = str(uuid.uuid4())
-            imported_event['Bezeichnung'] = f"{imported_event['Bezeichnung']} (Importiert)"
+            # Bezeichnung unveraendert uebernehmen (kein "(Importiert)"-Suffix mehr,
+            # User-Wunsch 2026-10-11) — der Name soll exakt dem Portal-Export entsprechen.
             all_events.append(imported_event)
             _save_data(EVENTS_FILE, all_events)
             flash(f"Event '{imported_event['Bezeichnung']}' erfolgreich importiert.", 'success')
