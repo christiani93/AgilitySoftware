@@ -9,6 +9,8 @@ import math
 import uuid
 import random
 import re
+import time
+import threading
 
 # Ensure project root is on the path so sibling packages (e.g., planner) resolve
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
@@ -129,19 +131,67 @@ def get_event_logo_data_uris(event):
     return result
 
 
+# Serialisiert ALLE Lese-/Schreibzugriffe auf die JSON-Nutzdaten. Während eines
+# Live-Events schreiben viele nebenläufige Requests (Resultat-Eingabe, Ring-PC-
+# POSTs, Stream-Deck, SocketIO-Handler) in dieselbe events.json. Ohne diese
+# Serialisierung + atomare Writes konnte ein Reader eine halb geschriebene Datei
+# erwischen, _load_data fing den JSONDecodeError ab und lieferte still [] zurück,
+# und der nächste _save_data schrieb diese leere Liste fest = das ganze Event
+# verschwand mitten im Betrieb aus der Übersicht.
+_DATA_LOCK = threading.RLock()
+
+
 def _load_data(filename, default_data=None):
     filepath = _data_path(filename)
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return default_data if default_data is not None else []
+    default = default_data if default_data is not None else []
+    with _DATA_LOCK:
+        if not os.path.exists(filepath):
+            return default
+        last_err = None
+        for _attempt in range(3):
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                if content.strip() == '':
+                    # Frisch initialisierte, noch leere Datei → wie fehlend.
+                    return default
+                return json.loads(content)
+            except FileNotFoundError:
+                return default
+            except json.JSONDecodeError as e:
+                # Kann nur bei echter Korruption auftreten (atomare Writes
+                # verhindern halb geschriebene Dateien). Kurz erneut versuchen,
+                # falls doch ein alt-nicht-atomarer Schreibvorgang mitläuft.
+                last_err = e
+                time.sleep(0.05)
+        # Eine EXISTIERENDE, nicht leere, aber unlesbare Datei NIEMALS still als
+        # leer behandeln — sonst würde der nächste _save_data den Datenverlust
+        # festschreiben. Lieber laut scheitern (Crashguard fängt es, Daten
+        # bleiben auf der Platte erhalten und sind wiederherstellbar).
+        raise RuntimeError(
+            f"{filename} konnte nicht als JSON gelesen werden (korrupt?): {last_err}"
+        )
+
 
 def _save_data(filename, data):
     filepath = _data_path(filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+    with _DATA_LOCK:
+        # Atomar schreiben: erst in eine temporäre Datei im selben Verzeichnis,
+        # dann per os.replace() atomar an ihren Platz verschieben. Dadurch sieht
+        # ein paralleler Reader immer entweder die alte ODER die neue
+        # vollständige Datei — nie eine abgeschnittene Zwischenversion.
+        tmp = f"{filepath}.tmp.{uuid.uuid4().hex}"
+        try:
+            with open(tmp, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+            os.replace(tmp, filepath)
+        finally:
+            if os.path.exists(tmp):
+                try:
+                    os.remove(tmp)
+                except OSError:
+                    pass
 
 
 def debug_tools_enabled() -> bool:

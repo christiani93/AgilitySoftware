@@ -3,7 +3,26 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-10-10
+Stand: 2026-10-11
+
+## Session 2026-10-11 — KRITISCH: Event verschwindet mitten im Betrieb (GEFIXT, Deploy offen)
+
+- [x] **Root Cause gefunden + gefixt (UNCOMMITTED):** Event verschwand während
+      der Nutzung komplett aus der Übersicht + verlor aktive-Markierung, wiederholt.
+      Ursache: `events.json` wurde in `web_app/utils.py` `_save_data` nicht-atomar
+      geschrieben (`open(...,'w')` trunkiert sofort) UND ohne Lock. Viele parallele
+      Live-Writer (Resultat-Eingabe, Ring-PC-POSTs, Stream-Deck-API, SocketIO) →
+      Reader erwischt trunkierte Datei → `_load_data` fing `JSONDecodeError` und gab
+      still `[]` → nächster `_save_data` schrieb die leere Liste fest = Event weg;
+      danach leert `/live_dashboard` (routes_live.py:247-249) active_event.json.
+      Fix in utils.py: `_DATA_LOCK` (threading.RLock) serialisiert alle load/save;
+      `_save_data` schreibt atomar (temp + `os.replace`); `_load_data` behandelt eine
+      existierende/nicht-leere/unlesbare Datei NIE mehr still als `[]` (3× Retry,
+      dann `raise RuntimeError`). Test: `tests_pure/test_data_store_atomic.py` (neu).
+      Bestehende Suite 189 grün.
+- [ ] **OFFEN: committen + pushen** (AgilitySoftware-Repo).
+- [ ] **OFFEN: EXE neu bauen** (Fix greift erst nach Rebuild!) + auf Ring-/Turnier-PCs
+      verteilen. Wegen Live-Kritikalität Priorität.
 
 ## Session 2026-10-10 (nachmittags) — Hotfix + neue Wünsche
 
