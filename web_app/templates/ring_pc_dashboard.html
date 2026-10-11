@@ -81,6 +81,10 @@
                 <div>Fehler (F): <span id="info-faults" class="font-mono">0</span> | Verw. (V): <span id="info-refusals" class="font-mono">0</span></div>
             </div>
             <button id="reset-run-btn" class="mt-2 w-full bg-red-200 text-black p-2 rounded hover:bg-red-300">{{ _('Aktuellen Lauf zurücksetzen') }}</button>
+            <label class="flex items-center gap-2 mt-2 text-sm text-gray-700">
+                <input type="checkbox" id="auto-ready-next-checkbox">
+                {{ _('Nächsten Starter automatisch bereit setzen') }}
+            </label>
 
             {# ── PDF ans Portal / lokaler Download ───────────────────────── #}
             <div class="mt-4 border-t pt-3">
@@ -238,6 +242,7 @@
       activateBtn : document.getElementById("activate-display-btn"),
       editRunBtn  : document.getElementById("btn-edit-run"),
       resetBtn    : document.getElementById("reset-run-btn"),
+      autoReadyCheckbox : document.getElementById("auto-ready-next-checkbox"),
       modal       : document.getElementById("result-modal"),
       info: {
         status   : document.getElementById("info-status"),
@@ -264,7 +269,12 @@
       mainSocket: null,
       // Echte TIMY-Startzeit (Tageszeit) des zuletzt vom Ring-Server gemeldeten
       // Laufs – fuer die Zeitplan-Optimierung (Schritt 1) mit ins Result.
-      pendingStartTimeTod: null
+      pendingStartTimeTod: null,
+      // Checkbox "Nächsten Starter automatisch bereit setzen": wenn aktiv, wird
+      // nach jedem gespeicherten Resultat/Status (DNS/DIS) automatisch der
+      // naechste noch offene Starter gemaess Startreihenfolge auf "Bereit"
+      // gesetzt (ruft dieselbe Aktion wie der manuelle "Bereit"-Button auf).
+      autoReadyNext: false
     };
     if (ui.runSelect) {
       state.currentRunId = ui.runSelect.value || null;
@@ -410,7 +420,13 @@
     }
 
     // ---- Run-Details laden & rendern ----
-    function fetchRunDetails(){
+    // autoReadyAnchor = Lizenznummer des gerade abgeschlossenen Starters, nur
+    // nach einer Aktion setzen, die einen Starter abschliesst (Resultat
+    // gespeichert, DNS/DIS). Der Anker steuert, ab wo der naechste offene
+    // Starter gesucht wird (immer VORWAERTS, s. maybeAutoReadyNext). Ohne Anker
+    // (z.B. result_update-Socket-Broadcast desselben Vorgangs) wird NICHT
+    // automatisch bereit gesetzt, sonst doppeltes Setzen.
+    function fetchRunDetails(autoReadyAnchor){
       if (!state.currentRunId) return;
       const url = `/events/api/get_run_details/${eventId}/${state.currentRunId}`;
       fetch(url, {cache:"no-store"})
@@ -419,6 +435,7 @@
           if (data.success){
             state.allEntries = data.data.entries || [];
             renderStarterList();
+            if (autoReadyAnchor) maybeAutoReadyNext(autoReadyAnchor);
           } else {
             ui.starterList.innerHTML = `<p class="text-red-500 font-bold">Fehler: ${data.message}</p>`;
           }
@@ -426,6 +443,26 @@
         .catch(() => {
           ui.starterList.innerHTML = `<p class="text-red-500 font-bold">Netzwerkfehler.</p>`;
         });
+    }
+
+    // Setzt bei aktiver Checkbox den naechsten offenen Starter automatisch auf
+    // "Bereit". WICHTIG: der naechste ist der erste offene Starter, der in der
+    // Startreihenfolge (byStartnummer, inkl. laeufig/"ans Ende") NACH dem gerade
+    // abgeschlossenen (anchorLicense) kommt - NICHT der frueheste offene. So
+    // werden uebersprungene/verspaetete Starter (z.B. Nr. 4 bei Reihenfolge
+    // 4,6(fertig),8,3-am-Schluss -> naechster ist 8) nicht wieder zurueckgeholt;
+    // die muessen bei Erscheinen manuell per "Bereit"-Button gestartet werden.
+    function maybeAutoReadyNext(anchorLicense){
+      if (!state.autoReadyNext) return;
+      if (!state.localSocket || !state.localSocket.connected) return;
+      const sorted = [...state.allEntries].sort(byStartnummer);
+      const isOpen = e => !(e.result && (e.result.zeit || e.result.disqualifikation));
+      let startIdx = 0;
+      const anchorIdx = sorted.findIndex(e => e.Lizenznummer === anchorLicense);
+      if (anchorIdx >= 0) startIdx = anchorIdx + 1;
+      const next = sorted.slice(startIdx).find(isOpen);
+      if (!next) return;
+      window.appActions.setStarterReady(next.Lizenznummer);
     }
 
     // Spiegelt utils.py _starts_at_end: läufige Hündinnen bzw. manuell auf
@@ -557,8 +594,9 @@
       },
       saveResult: function(){
         if (!state.currentEntryToEdit || !state.currentRunId) return;
+        const finishedLic = state.currentEntryToEdit.Lizenznummer;
         const payload = {
-          license_number: state.currentEntryToEdit.Lizenznummer,
+          license_number: finishedLic,
           zeit: document.getElementById("modal-zeit").value,
           fehler: document.getElementById("modal-fehler").value,
           verweigerungen: document.getElementById("modal-verweigerung").value,
@@ -574,7 +612,7 @@
         .then(data => {
           if (data.success){
             ui.modal.classList.add("hidden");
-            fetchRunDetails();
+            fetchRunDetails(finishedLic);
             if (state.localSocket && state.localSocket.connected){
               state.localSocket.emit('reset_current_run', {});
             }
@@ -636,7 +674,7 @@
         .then(r => r.ok ? r.json() : Promise.reject(r.status))
         .then(data => {
           if (data.success) {
-            fetchRunDetails();
+            fetchRunDetails(licenseNr);
             // DIS unterbricht den laufenden Lauf: TIMY-Timer-Status auf dem Ring-Server zurücksetzen,
             // damit der nächste Starter sauber auf "Bereit" gesetzt werden kann.
             if (status === 'DIS' && state.localSocket && state.localSocket.connected) {
@@ -720,6 +758,12 @@
 
     if (ui.resetBtn){
       ui.resetBtn.addEventListener("click", window.appActions.resetCurrentRun);
+    }
+
+    if (ui.autoReadyCheckbox){
+      ui.autoReadyCheckbox.addEventListener("change", () => {
+        state.autoReadyNext = ui.autoReadyCheckbox.checked;
+      });
     }
 
     function initSelectedRunFromUrlOrSelect(){
