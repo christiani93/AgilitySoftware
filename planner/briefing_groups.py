@@ -7,16 +7,20 @@ from __future__ import annotations
 from typing import Dict, Iterable, List, Tuple
 
 from planner import schedule_planner
+from web_app.utils import _starts_at_end
 
 NON_RUN_LAUFARTS = {"Pause", "Umbau", "Briefing", "Vorbereitung", "Grossring"}
 
 
-def _startnummer_key(entry: Dict) -> int:
+def _startnummer_key(entry: Dict) -> tuple:
+    """Sortierschluessel Startnummer, laeufig/"ans Ende"-Eintraege ans Ende
+    (wie sort_entries_for_startlist fuer Ring-Dashboard/Startliste)."""
     value = entry.get("Startnummer")
     try:
-        return int(value)
+        nr = int(value)
     except (TypeError, ValueError):
-        return 9999
+        nr = 9999
+    return (_starts_at_end(entry), nr)
 
 
 def _category_label(category: str) -> str:

@@ -6,7 +6,7 @@ import csv
 import io
 from utils import (_load_data, _save_data, _calculate_run_results, _load_settings,
                    _calculate_timelines, get_category_sort_key, resolve_judge_id, resolve_judge_name,
-                   get_event_logo_data_uris)
+                   get_event_logo_data_uris, _starts_at_end)
 from planner.print_order import get_ordered_runs_for_print
 from planner.print_schedule_order import (
     build_schedule_print_sections,
@@ -328,7 +328,7 @@ def _build_participant_startlist_groups(event):
     groups = []
     for cat in sorted(grouped.keys(), key=get_category_sort_key):
         for cls in sorted(grouped[cat].keys()):
-            participants_sorted = sorted(grouped[cat][cls], key=lambda p: int(p.get('Startnummer', 9999)))
+            participants_sorted = sorted(grouped[cat][cls], key=lambda p: (_starts_at_end(p), int(p.get('Startnummer', 9999))))
             groups.append({'kategorie': cat, 'klasse': cls, 'participants': participants_sorted})
     return groups
 
@@ -361,7 +361,7 @@ def _build_master_steward_groups(event, judges, ring_key=None):
                 for entry in run.get('entries', []):
                     if entry['Lizenznummer'] in participant_run_map:
                         participant_run_map[entry['Lizenznummer']][run['id']] = True
-            participants_sorted = sorted(participants_in_group, key=lambda p: int(p.get('Startnummer', 9999)))
+            participants_sorted = sorted(participants_in_group, key=lambda p: (_starts_at_end(p), int(p.get('Startnummer', 9999))))
             groups.append({
                 'ring': ring_key,
                 'title': f"{_('Kategorie')}: {cat} - {_('Klasse')}: {cls}",
@@ -454,7 +454,7 @@ def print_master_steward_list(event_id):
                 for entry in run.get('entries', []):
                     if entry['Lizenznummer'] in participant_run_map:
                         participant_run_map[entry['Lizenznummer']][run['id']] = True
-            participants_in_group.sort(key=lambda p: int(p.get('Startnummer', 9999)))
+            participants_in_group.sort(key=lambda p: (_starts_at_end(p), int(p.get('Startnummer', 9999))))
             final_grouped_data[cat][cls] = {'participants': participants_in_group, 'runs': runs_for_group, 'run_map': participant_run_map}
     logos = get_event_logo_data_uris(event)
     return render_template('print/master_steward_list.html', event=event, final_grouped_data=final_grouped_data,

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Dict, Iterable, List
 
-from web_app.utils import _get_concrete_run_list, get_category_sort_key
+from web_app.utils import _get_concrete_run_list, get_category_sort_key, _starts_at_end
 
 NON_RUN_TYPES = {
     "Pause",
@@ -17,12 +17,15 @@ NON_RUN_TYPES = {
 }
 
 
-def _startnummer_key(entry: Dict) -> int:
+def _startnummer_key(entry: Dict) -> tuple:
+    """Sortierschluessel Startnummer, laeufig/"ans Ende"-Eintraege ans Ende
+    (wie sort_entries_for_startlist fuer Ring-Dashboard/Startliste)."""
     value = entry.get("Startnummer")
     try:
-        return int(value)
+        nr = int(value)
     except (TypeError, ValueError):
-        return 9999
+        nr = 9999
+    return (_starts_at_end(entry), nr)
 
 
 def _copy_run_with_sorted_entries(run: Dict) -> Dict:

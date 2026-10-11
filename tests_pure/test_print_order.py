@@ -78,6 +78,24 @@ def test_briefing_sessions_split_by_briefing_blocks():
     assert second_groups[0]["start_nr_bis"] == "7"
 
 
+def test_print_order_moves_laeufig_entries_to_end_of_run():
+    # Bug: gedruckte Startliste/Ringbuero-Liste zeigte laeufige Huendinnen an
+    # ihrem Start-Platz statt am Ende des Laufs (wie Ring-Dashboard/sort_entries_for_startlist).
+    run = {
+        "id": "ag1", "laufart": "Agility", "kategorie": "Large", "klasse": "1",
+        "entries": [
+            _entry(1, "L1", "A"),
+            {**_entry(2, "L2", "B"), "is_in_season": True},
+            _entry(3, "L3", "C"),
+        ],
+    }
+    event = {"runs": [run], "run_order": []}
+
+    ordered = get_ordered_runs_for_print(event)
+
+    assert [e["Startnummer"] for e in ordered[0]["entries"]] == ["1", "3", "2"]
+
+
 def test_briefing_sessions_respect_filters_all_vs_specific():
     event = {
         "runs": [
