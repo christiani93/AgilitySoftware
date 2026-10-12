@@ -94,6 +94,7 @@ def calculate_bccs_sm_qualification(event: dict) -> dict:
     config = event.get("bccs_sm_config") or {}
     quali_order = _resolve_quali_order(config.get("quali_run_order"))
     defenders = config.get("defending_champions") or []
+    sm_filter = _build_sm_predicate(event)
 
     divisions: dict[str, dict] = {}
     all_finalists: list[dict] = []
@@ -120,7 +121,7 @@ def calculate_bccs_sm_qualification(event: dict) -> dict:
             quota: dict[str, int] = {}
             open_spots = 0
             for cls in div_def["classes"]:
-                res = _compute_class(_collect_class(event, category, cls), quali_order, qualified)
+                res = _compute_class(_collect_class(event, category, cls, sm_filter), quali_order, qualified)
                 div_finalists.extend(res["finalists"])
                 for la, q in res["quota"].items():
                     quota[la] = quota.get(la, 0) + q
@@ -145,10 +146,11 @@ def rank_final_bccs(event: dict) -> dict:
 
     Returns: dict  "Category/division" → Liste von Result-Dicts mit `final_rang`.
     """
+    sm_filter = _build_sm_predicate(event)
     out: dict[str, list[dict]] = {}
     for category in CATEGORIES:
         for div_key, div_def in DIVISIONS.items():
-            _quali_pools, final_pools = _collect_division(event, category, div_def["classes"])
+            _quali_pools, final_pools = _collect_division(event, category, div_def["classes"], sm_filter)
             out[f"{category}/{div_key}"] = _rank_division_final(final_pools)
     return out
 
@@ -164,6 +166,58 @@ def _resolve_quali_order(order) -> list[str]:
     return list(QUALI_RUN_TYPES)
 
 
+def _build_sm_predicate(event: dict):
+    """
+    Baut das SM-Hund-Filterprädikat (Reglement P.2): Das BCCS-SM läuft als normales
+    offenes Turnier; nur **SM-Hunde** (Border Collie, die an der SM teilnehmen) zählen
+    für die 15 %-Quote und können sich qualifizieren — NICHT alle I/L-Starter (Malinois,
+    Groenendael, „Working"-Border ohne SHSB usw. laufen mit, qualifizieren sich aber nicht).
+
+    Zwei Quellen, in dieser Priorität (analog dem `is_in_season`-Muster der Software):
+      1. **Per-Entry-Flag** `entry["bccs_sm"]` — gesetzt per Teilnehmer-Checkbox bzw.
+         AOA-Import (Portal→eventexport→Entry). Sobald das Feld bei IRGENDEINEM Eintrag
+         vorkommt, gilt der Per-Entry-Modus: ein Eintrag zählt genau dann, wenn
+         `entry["bccs_sm"]` truthy ist (nicht markierte Hunde fallen raus).
+      2. **Lizenz-Liste** `bccs_sm_config["sm_licenses"]` — Fallback, wenn keine
+         Per-Entry-Flags vorhanden sind (z.B. schneller manueller Lizenz-Import am Event).
+
+    Returns:
+      - Prädikat `fn(entry) -> bool`, wenn ein Filter aktiv ist.
+      - `None`, wenn keine der beiden Quellen etwas liefert → KEIN Filter (alle zählen).
+        Abwärtskompatibel für reine Border-Events / Altdaten (kein `bccs_sm`-Feld).
+    """
+    if _event_has_sm_flags(event):
+        return lambda e: bool(e.get("bccs_sm"))
+
+    config = event.get("bccs_sm_config") or {}
+    raw = config.get("sm_licenses")
+    if raw:
+        licenses = {str(l).strip() for l in raw if str(l).strip()}
+        if licenses:
+            return lambda e: (e.get("Lizenznummer") or "").strip() in licenses
+
+    return None
+
+
+def _event_has_sm_flags(event: dict) -> bool:
+    """True, wenn in irgendeinem BCCS-relevanten Lauf ein Eintrag das Feld `bccs_sm` trägt
+    (Key present ⇒ Per-Entry-Modus, unabhängig von True/False)."""
+    for run in event.get("runs", []):
+        if run.get("kategorie") not in CATEGORIES:
+            continue
+        if run.get("laufart") not in QUALI_RUN_TYPES:
+            continue
+        for e in run.get("entries", []):
+            if "bccs_sm" in e:
+                return True
+    return False
+
+
+def _is_sm_participant(entry: dict, sm_pred) -> bool:
+    """True, wenn der Eintrag als SM-Hund zählt (kein Filter aktiv ⇒ immer True)."""
+    return True if sm_pred is None else bool(sm_pred(entry))
+
+
 def _find_defender(defenders: list[dict], category: str, div_key: str):
     """Sucht den Titelverteidiger für eine bestimmte Division."""
     for d in defenders:
@@ -173,13 +227,13 @@ def _find_defender(defenders: list[dict], category: str, div_key: str):
     return None
 
 
-def _collect_division(event: dict, category: str, division_classes: list[str]):
+def _collect_division(event: dict, category: str, division_classes: list[str], sm_filter=None):
     """
     Sammelt Quali- und Final-Einträge einer Division (Kategorie + Klassen-Gruppe).
 
     Returns: (quali_pools, final_pools), je dict laufart → Liste normalisierter Einträge.
     Für Nachwuchs (Klassen 1+2) werden die Einträge je Laufart über die Klassen
-    hinweg zu EINEM Pool zusammengefasst.
+    hinweg zu EINEM Pool zusammengefasst. `sm_filter` (optional) beschränkt auf SM-Hunde.
     """
     quali = {"Agility": [], "Jumping": []}
     final = {"Agility": [], "Jumping": []}
@@ -195,7 +249,10 @@ def _collect_division(event: dict, category: str, division_classes: list[str]):
             continue
         bucket = final if run.get("is_final") else quali
         for e in run.get("entries", []):
-            if not (e.get("Lizenznummer") or "").strip():
+            lic = (e.get("Lizenznummer") or "").strip()
+            if not lic:
+                continue
+            if not _is_sm_participant(e, sm_filter):
                 continue
             ne = _normalise_entry(e)
             ne["from_class"] = int(cls) if cls.isdigit() else None
@@ -204,8 +261,9 @@ def _collect_division(event: dict, category: str, division_classes: list[str]):
     return quali, final
 
 
-def _collect_class(event: dict, category: str, cls: str) -> dict:
-    """Quali-Einträge EINER (Kategorie × Klasse) je Laufart (Kl.1/Kl.2 getrennt werten)."""
+def _collect_class(event: dict, category: str, cls: str, sm_filter=None) -> dict:
+    """Quali-Einträge EINER (Kategorie × Klasse) je Laufart (Kl.1/Kl.2 getrennt werten).
+    `sm_filter` (optional) beschränkt auf SM-Hunde (Reglement P.2)."""
     quali = {"Agility": [], "Jumping": []}
     for run in event.get("runs", []):
         if run.get("kategorie") != category or run.get("is_final"):
@@ -216,7 +274,10 @@ def _collect_class(event: dict, category: str, cls: str) -> dict:
         if laufart not in QUALI_RUN_TYPES:
             continue
         for e in run.get("entries", []):
-            if not (e.get("Lizenznummer") or "").strip():
+            lic = (e.get("Lizenznummer") or "").strip()
+            if not lic:
+                continue
+            if not _is_sm_participant(e, sm_filter):
                 continue
             ne = _normalise_entry(e)
             ne["from_class"] = int(cls) if cls.isdigit() else None

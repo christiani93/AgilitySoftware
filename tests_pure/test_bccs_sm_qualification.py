@@ -295,3 +295,74 @@ def test_final_nur_ein_lauf_kein_rang():
     rang = {d["license"]: d["final_rang"] for d in final}
     assert rang["P"] == 1
     assert rang["ONLYJUMP"] is None
+
+
+# ---------------------------------------------------------------------------
+# SM-Hund-Filter (Reglement P.2): offenes Turnier, nur markierte Border zählen
+# ---------------------------------------------------------------------------
+
+def _sm(e):
+    """Markiert ein Entry als SM-Teilnehmer (Checkbox/AOA-Flag)."""
+    e["bccs_sm"] = True
+    return e
+
+
+def test_per_entry_flag_nur_sm_hunde_zaehlen():
+    """Gemischtes offenes Feld: 10 Nicht-SM (BESTE Leistung, unmarkiert) + 10 SM-Hunde.
+    Quote muss auf den 10 SM-Startern basieren (nicht 20); nur SM-Hunde werden Finalisten."""
+    non_sm = [_entry(f"X{i}", fehler_total=i) for i in range(10)]           # beste Zeiten, KEIN Flag
+    sm     = [_sm(_entry(f"S{i}", fehler_total=10 + i)) for i in range(10)]
+    pool = non_sm + sm
+    event = {"runs": [
+        _run("Large", "3", "Agility", [dict(e) for e in pool]),
+        _run("Large", "3", "Jumping", [dict(e) for e in pool]),
+    ]}
+    large = calculate_bccs_sm_qualification(event)["divisions"]["Large/sm"]
+    assert large["quota"] == {"Agility": 2, "Jumping": 2}     # 15 % von 10, nicht von 20
+    licenses = set(_licenses(large))
+    assert licenses == {"S0", "S1", "S2", "S3"}               # Doppelquali → Nachrücken
+    assert all(l.startswith("S") for l in licenses)           # kein Nicht-SM-Hund dabei
+
+
+def test_lizenzliste_fallback_ohne_per_entry_flag():
+    """Ohne Per-Entry-Flag greift bccs_sm_config.sm_licenses als Filterquelle."""
+    non_sm = [_entry(f"X{i}", fehler_total=i) for i in range(10)]
+    sm     = [_entry(f"S{i}", fehler_total=10 + i) for i in range(10)]      # KEIN Flag
+    pool = non_sm + sm
+    event = {
+        "bccs_sm_config": {"sm_licenses": [f"S{i}" for i in range(10)]},
+        "runs": [
+            _run("Large", "3", "Agility", [dict(e) for e in pool]),
+            _run("Large", "3", "Jumping", [dict(e) for e in pool]),
+        ],
+    }
+    large = calculate_bccs_sm_qualification(event)["divisions"]["Large/sm"]
+    assert large["quota"] == {"Agility": 2, "Jumping": 2}
+    assert set(_licenses(large)) == {"S0", "S1", "S2", "S3"}
+
+
+def test_ohne_markierung_zaehlen_alle_abwaertskompatibel():
+    """Kein bccs_sm-Feld + keine sm_licenses → kein Filter (alle 20 zählen → Quote 3)."""
+    pool = [_entry(f"A{i}", fehler_total=i) for i in range(20)]
+    event = {"runs": [
+        _run("Large", "3", "Agility", [dict(e) for e in pool]),
+        _run("Large", "3", "Jumping", [dict(e) for e in pool]),
+    ]}
+    large = calculate_bccs_sm_qualification(event)["divisions"]["Large/sm"]
+    assert large["quota"] == {"Agility": 3, "Jumping": 3}
+
+
+def test_final_filtert_nicht_sm_hunde():
+    """Auch die Final-Rangierung zählt nur markierte SM-Hunde — der schnellere Nicht-SM fällt raus."""
+    agi = [_sm(_entry("S", fehler_total=0, zeit_total=30.0)),
+           _entry("X", fehler_total=0, zeit_total=20.0)]                    # schneller, aber nicht SM
+    jmp = [_sm(_entry("S", fehler_total=0, zeit_total=30.0)),
+           _entry("X", fehler_total=0, zeit_total=20.0)]
+    event = {"runs": [
+        _run("Large", "3", "Jumping", [dict(e) for e in jmp], is_final=True),
+        _run("Large", "3", "Agility", [dict(e) for e in agi], is_final=True),
+    ]}
+    final = rank_final_bccs(event)["Large/sm"]
+    licenses = {d["license"] for d in final}
+    assert "X" not in licenses
+    assert any(d["license"] == "S" and d["final_rang"] == 1 for d in final)

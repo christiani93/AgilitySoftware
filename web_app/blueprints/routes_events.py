@@ -607,6 +607,12 @@ def _apply_eventexport_registrations(event: dict, registrations: list, entities:
         }
         if reg_id:
             entry["registration_external_id"] = reg_id
+        # BCCS-SM-Teilnahme (Reglement P.2): nur gesetzt, wenn das Portal das Feld liefert.
+        # Fehlt es (Alt-Exporte), bleibt der Key weg → der Rechenkern filtert NICHT auf
+        # Per-Entry-Flags (sonst wäre bei einem BCCS-Event plötzlich "niemand SM").
+        _sm_keys = ("bccs_sm", "sm_angemeldet", "sm", "laeuft_sm")
+        if any(k in reg for k in _sm_keys):
+            entry["bccs_sm"] = bool(_get_first_value(reg, _sm_keys, False))
         if license_no and not any(p.get("Lizenznummer") == license_no for p in run.get("entries", [])):
             run.setdefault("entries", []).append(entry)
             entries_added += 1
@@ -2525,6 +2531,40 @@ def api_toggle_in_season(event_id, license_nr):
 
     _save_data(EVENTS_FILE, all_events)
     return jsonify(success=True, is_in_season=new_state)
+
+
+@events_bp.route('/api/toggle_bccs_sm/<event_id>/<license_nr>', methods=['POST'])
+def api_toggle_bccs_sm(event_id, license_nr):
+    """Markiert ein Team als BCCS-SM-Teilnehmer (SM-Hund) – oder hebt es auf.
+
+    Wirkt bewusst auf ALLE Läufe des Events (ein Team läuft Agility + Jumping,
+    Quali + Final), damit die BCCS-Auswertung (``bccs_sm_qualification.py``) das
+    Team durchgängig als SM-Hund zählt. Das Flag ``bccs_sm`` wird vom Rechenkern
+    für die 15 %-Quote und die Qualifikation honoriert – genau wie der aus dem
+    Portal (AOA-Spalte „SM Angemeldet") importierte Wert. Dieser Toggle ist das
+    Software-Pendant für Fälle, in denen die SM-Teilnahme erst am Veranstaltungstag
+    bzw. offline gesetzt/korrigiert wird. Siehe Reglement BCCS P.2 (offenes Turnier,
+    nur SM-Hunde qualifizieren).
+    """
+    all_events = _load_data(EVENTS_FILE)
+    event = next((e for e in all_events if isinstance(e, dict) and e.get('id') == event_id), None)
+    if not event:
+        return jsonify(success=False, message="Event nicht gefunden"), 404
+
+    lic = str(license_nr or '').strip()
+    new_state = None
+    for r in event.get('runs', []):
+        for p in r.get('entries', []):
+            if str(p.get('Lizenznummer', '')).strip() == lic:
+                if new_state is None:
+                    new_state = not bool(p.get('bccs_sm'))
+                p['bccs_sm'] = new_state
+
+    if new_state is None:
+        return jsonify(success=False, message="Teilnehmer nicht gefunden"), 404
+
+    _save_data(EVENTS_FILE, all_events)
+    return jsonify(success=True, bccs_sm=new_state)
 
 
 @events_bp.route('/api/rename_participant/<event_id>/<license_nr>', methods=['POST'])
