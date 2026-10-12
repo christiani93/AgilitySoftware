@@ -31,11 +31,15 @@ Stand: 2026-10-11
       (ZIP-EventExport `routes_events.py:2340` + JSON-Paket) + Fallback-Titel +
       Template-Hilfetext + Test. Importierte Events behalten Original-/Portal-Namen.
 - [ ] **OFFEN: pushen** — lokal: `631004a`, `24b00da`, `51fd27e`, `1e015be`, `60196fd`.
-- [ ] **OFFEN: 5-Min-Backup in die Software integrieren** (In-Process-Timer-Thread,
-      nutzt `_DATA_LOCK`, kommt mit in die EXE) — Design in Memory
-      `project_sw_events_json_5min_backup`. Externes Skript ist bis dahin das Netz.
-      **Zeitrahmen (Chris 2026-10-11): bis HCS (30.10.–01.11.2026) ansetzen** —
-      soll zur HCS-EXE fertig sein, da Live-Resultate dort kritisch sind.
+- [x] **5-Min-Backup in die Software integriert (COMMITTED `f4a0ff2`, 2026-10-12):**
+      neues `web_app/data_backup.py` (Daemon-Thread), sichert events.json/
+      active_event.json alle 300s rotierend (keep 24) nach `<app_dir>/backups`.
+      Liest unter `utils._DATA_LOCK` (sonst scheitert auf Windows der os.replace
+      eines parallelen Writes an unserem offenen Lese-Handle). Start in app.py
+      `__main__` nach `initialize_files()`, idempotent. Env `AGILITY_BACKUP_INTERVAL/
+      _KEEP/_DIR`. `data_backup` als hiddenimport in die Spec. 8 neue Tests, gesamt
+      176 grün. Externes Skript bleibt als Sofort-Netz. **OFFEN: EXE-Rebuild** (damit
+      es in der ausgelieferten EXE läuft) — zusammen mit den übrigen Commits, Ziel HCS.
 - [ ] **OFFEN: Import-Suffix-Entfernung ist noch NICHT in der EXE** (nach dem Build
       committet) — unkritisch, Import passiert vor dem Event; beim nächsten Rebuild dabei.
 - [ ] Regel: **nie zwei Hauptserver gleichzeitig** auf dasselbe data-Dir.
