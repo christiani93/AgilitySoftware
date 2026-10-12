@@ -95,6 +95,27 @@ _CAT_ALIASES = {
 # Public API
 # ---------------------------------------------------------------------------
 
+# Klassen, die der Schlüssel-Editor pro split-Lauf (Agility/Jumping) anbietet.
+CONFIG_CLASSES = ["1", "2", "3"]
+
+
+def spots_for(spots_cfg: dict, cat: str, cls) -> int:
+    """Finalplätze für (Kategorie, Klasse).
+
+    ``spots_cfg[cat]`` darf
+      - ein int sein   → gilt für ALLE Klassen (kombiniert oder alt-konfiguriert),
+      - ein Dict sein  → {klasse: int}, pro Klasse (Agility/Jumping split_by_class).
+    ``cls=None`` (kombinierter Lauf) nimmt den int-Wert; ist dort versehentlich
+    ein Dict hinterlegt, wird der grösste Wert als pragmatischer Fallback genommen.
+    """
+    v = spots_cfg.get(cat, 0)
+    if isinstance(v, dict):
+        if cls is None:
+            return max((_to_int(x, 0) for x in v.values()), default=0)
+        return _to_int(v.get(str(cls), 0))
+    return _to_int(v)
+
+
 def get_schluessel(event: dict) -> dict:
     """Schlüssel des Events oder (Kopie des) Default-Schlüssel."""
     ko = event.get("ko_cup") or {}
@@ -105,7 +126,27 @@ def get_schluessel(event: dict) -> dict:
     return copy.deepcopy(DEFAULT_SCHLUESSEL)
 
 
-def calculate_ko_qualification(event: dict, schluessel: dict | None = None) -> dict:
+def _runs_source(event: dict, cfg: dict, source_lookup: dict | None) -> list:
+    """Läufe, aus denen dieser Schlüssel-Lauf seine Rangliste zieht.
+
+    Mehrtages-Events (HCS Fr+Sa+So, künftig weitere Rulesets) werden online als
+    GETRENNTE Events importiert — z.B. der Freitag-Tunnellauf als eigenes Event.
+    Trägt ein Schlüssel-Lauf eine ``source_event_id``, werden seine Läufe aus
+    jenem Quell-Event gelesen statt aus dem aktuellen. Fehlt sie (Default) oder
+    ist das Quell-Event lokal nicht vorhanden, gelten die Läufe DIESES Events
+    (reiner Offline-Fall: alles in einem Event)."""
+    sid = cfg.get("source_event_id")
+    if isinstance(sid, str):
+        sid = sid.strip() or None
+    if sid and source_lookup:
+        src = source_lookup.get(sid)
+        if src is not None:
+            return src.get("runs", [])
+    return event.get("runs", [])
+
+
+def calculate_ko_qualification(event: dict, schluessel: dict | None = None,
+                               source_lookup: dict | None = None) -> dict:
     """
     Berechnet die lauf-basierten Finalisten pro Kategorie (ohne das Event zu
     verändern — reine Berechnung).
@@ -141,7 +182,7 @@ def calculate_ko_qualification(event: dict, schluessel: dict | None = None) -> d
     derived_by_cat: dict[str, list[dict]] = {cat: [] for cat in CATEGORIES}
 
     for cfg in schluessel.get("runs", []):
-        _process_config_run(event, cfg, settings, qualified, derived_by_cat)
+        _process_config_run(event, cfg, settings, qualified, derived_by_cat, source_lookup)
 
     counts = {
         cat: {
@@ -154,7 +195,8 @@ def calculate_ko_qualification(event: dict, schluessel: dict | None = None) -> d
     return {"derived": derived_by_cat, "manual": manual_by_cat, "counts": counts}
 
 
-def apply_ko_qualification(event: dict, schluessel: dict | None = None) -> dict:
+def apply_ko_qualification(event: dict, schluessel: dict | None = None,
+                           source_lookup: dict | None = None) -> dict:
     """
     Berechnet die Finalisten und schreibt sie in ``event["ko_cup"]["finals"]``:
       - erzeugt fehlende Finals pro Kategorie (mit abgeleiteten Finalisten),
@@ -165,7 +207,7 @@ def apply_ko_qualification(event: dict, schluessel: dict | None = None) -> dict:
     Mutiert das Event. Returns das Ergebnis von calculate_ko_qualification plus
     "finals_touched": [cat, ...].
     """
-    result = calculate_ko_qualification(event, schluessel)
+    result = calculate_ko_qualification(event, schluessel, source_lookup)
     derived_by_cat = result["derived"]
 
     ko = event.setdefault("ko_cup", {})
@@ -209,7 +251,119 @@ def apply_ko_qualification(event: dict, schluessel: dict | None = None) -> dict:
     return result
 
 
-def ranking_tables(event: dict, schluessel: dict | None = None) -> list[dict]:
+def apply_single_run_qualification(event: dict, run_index: int,
+                                   schluessel: dict | None = None,
+                                   source_lookup: dict | None = None,
+                                   class_filter=None) -> dict:
+    """Leitet die Finalisten für GENAU EINEN Schlüssel-Lauf ab und **hängt** sie
+    an die bestehenden Finals an — für den schrittweisen Event-Ablauf: nach jedem
+    Lauf nur dessen Finalisten ableiten.
+
+    Unterschied zu ``apply_ko_qualification`` (verarbeitet ALLE Läufe und ersetzt
+    sämtliche source="run"-Teilnehmer): hier bleiben bereits abgeleitete Finalisten
+    anderer Läufe UND ihre bereits vergebenen Losnummern unangetastet.
+
+    - ``class_filter`` (nur bei split_by_class-Läufen wie Agility/Jumping wirksam):
+      leitet NUR die angegebene Leistungsklasse ("1"/"2"/"3") ab — am Event laufen
+      die Klassen nacheinander, so kann jede Klasse sofort nach ihrem Lauf
+      abgeleitet werden, ohne auf die anderen zu warten. Beim kombinierten
+      Tunnellauf wird ``class_filter`` ignoriert (ganzer Lauf auf einmal).
+    - **Idempotent**: zuerst werden die früher aus genau diesem Lauf (gleiches
+      ``quali_label`` — bei ``class_filter`` zusätzlich gleiche ``from_class``)
+      abgeleiteten Finalisten entfernt, dann neu abgeleitet — ein erneuter Klick
+      fügt also nichts via Nachrücken doppelt hinzu.
+    - **Dedup/Nachrücken**: alle übrigen vorhandenen Finalisten (manuell + aus
+      anderen Läufen) gelten als qualifiziert → Doppelqualifikanten verbrauchen
+      keinen Platz, der nächste rückt nach (Reglement HCS).
+    - Bracket der betroffenen Finals wird zurückgesetzt (Teilnehmer geändert).
+
+    Mutiert das Event. Returns {derived, counts, finals_touched, run_label,
+    class_label}. Wirft ``IndexError`` bei ungültigem ``run_index``.
+    """
+    schluessel = schluessel or get_schluessel(event)
+    runs_cfg = schluessel.get("runs", [])
+    if not (0 <= run_index < len(runs_cfg)):
+        raise IndexError(run_index)
+    cfg = runs_cfg[run_index]
+    label = cfg.get("label")
+    settings = _load_settings()
+
+    # class_filter nur bei split-Läufen anwenden (Tunnellauf = ganzer Lauf).
+    split = bool(cfg.get("split_by_class"))
+    scoped_class = str(class_filter).strip() if (class_filter not in (None, "") and split) else None
+
+    ko = event.setdefault("ko_cup", {})
+    ko.setdefault("enabled", True)
+    ko.setdefault("finals", [])
+
+    # (1) Früher aus DIESEM Lauf abgeleitete Finalisten entfernen (Idempotenz).
+    #     Andere Läufe + manuelle Einträge (inkl. Losnummern) bleiben erhalten.
+    #     Mit scoped_class nur die Finalisten genau dieser Klasse (from_class).
+    def _is_this_runs_finalist(p: dict) -> bool:
+        if (p.get("source") or "run") not in RUN_SOURCES:
+            return False
+        if p.get("quali_label") != label:
+            return False
+        if scoped_class is not None and str(p.get("from_class")) != scoped_class:
+            return False
+        return True
+
+    for final in ko["finals"]:
+        final["participants"] = [
+            p for p in final.get("participants", [])
+            if not _is_this_runs_finalist(p)
+        ]
+
+    # (2) qualified aus ALLEN jetzt noch vorhandenen Finalisten seeden.
+    qualified: dict[str, set[str]] = {cat: set() for cat in CATEGORIES}
+    for final in ko["finals"]:
+        cat = _norm_cat(final.get("category_code"))
+        if cat not in CATEGORIES:
+            continue
+        for p in final.get("participants", []):
+            key = _participant_key(p)
+            if key:
+                qualified[cat].add(key)
+
+    # (3) Nur diesen einen Schlüssel-Lauf verarbeiten (ggf. nur eine Klasse).
+    derived_by_cat: dict[str, list[dict]] = {cat: [] for cat in CATEGORIES}
+    _process_config_run(event, cfg, settings, qualified, derived_by_cat,
+                        source_lookup, class_filter=scoped_class)
+
+    # (4) Neue Finalisten an die passenden Finals anhängen (fehlende anlegen).
+    finals_by_cat = {_norm_cat(f.get("category_code")): f for f in ko["finals"]}
+    touched: list[str] = []
+    for cat in CATEGORIES:
+        derived = derived_by_cat.get(cat, [])
+        if not derived:
+            continue
+        final = finals_by_cat.get(cat)
+        if final is None:
+            final = {
+                "id": ko_cup._gen_id("final"),
+                "group_label": cat,
+                "category_code": cat,
+                "class_level": None,
+                "participants": [],
+                "matchups": [],
+                "results": [],
+                "is_published": False,
+            }
+            ko["finals"].append(final)
+            finals_by_cat[cat] = final
+        final.setdefault("participants", []).extend(derived)
+        final["matchups"] = []   # Bracket invalidieren – Teilnehmer geändert
+        final["results"] = []
+        touched.append(cat)
+
+    counts = {cat: {"derived": len(derived_by_cat[cat])} for cat in CATEGORIES}
+    return {"derived": derived_by_cat, "counts": counts,
+            "finals_touched": touched, "run_label": label,
+            "class_label": scoped_class}
+
+
+def ranking_tables(event: dict, schluessel: dict | None = None,
+                   source_lookup: dict | None = None) -> list[dict]:
     """
     Anzeige-/Erfassungs-Sicht: liefert pro Schlüssel-Lauf die vollständigen
     Ranglisten je Kategorie — beim Tunnellauf **klassenübergreifend kombiniert**
@@ -256,17 +410,17 @@ def ranking_tables(event: dict, schluessel: dict | None = None) -> list[dict]:
 
     blocks: list[dict] = []
     for cfg in schluessel.get("runs", []):
-        blocks.append(_run_table(event, cfg, settings, qualified))
+        blocks.append(_run_table(event, cfg, settings, qualified, source_lookup))
     return blocks
 
 
-def _run_table(event, cfg, settings, qualified) -> dict:
+def _run_table(event, cfg, settings, qualified, source_lookup=None) -> dict:
     match = cfg.get("match") or {}
     split = bool(cfg.get("split_by_class"))
     spots_cfg = cfg.get("spots") or {}
     label = cfg.get("label") or ""
 
-    runs = [r for r in event.get("runs", []) if _run_matches(r, match)]
+    runs = [r for r in _runs_source(event, cfg, source_lookup) if _run_matches(r, match)]
 
     # key = (kategorie, klasse|None) — None heisst kombiniert (Tunnellauf)
     groups: dict[tuple, list[dict]] = defaultdict(list)
@@ -281,14 +435,16 @@ def _run_table(event, cfg, settings, qualified) -> dict:
 
     tables: dict[str, dict] = {}
     for cat in CATEGORIES:
-        spots = _to_int(spots_cfg.get(cat, 0))
         cat_groups = {cls: entries for (c, cls), entries in groups.items() if c == cat}
         if not cat_groups:
             continue
         # kombiniert: ein Eintrag (cls=None); split: nach Klassenname sortiert
         cls_keys = sorted(cat_groups.keys(), key=lambda x: (x is None, str(x)))
         subtables = []
+        total_spots = 0
         for cls in cls_keys:
+            spots = spots_for(spots_cfg, cat, cls)   # bei split: pro Klasse
+            total_spots += spots
             ranked = _rank_combined(cat_groups[cls])
             rows = []
             given = 0
@@ -312,8 +468,8 @@ def _run_table(event, cfg, settings, qualified) -> dict:
                     "zeit_total": e.get("zeit_total"),
                     "status": status,
                 })
-            subtables.append({"class_label": cls, "rows": rows})
-        tables[cat] = {"spots": spots, "combined": not split, "subtables": subtables}
+            subtables.append({"class_label": cls, "spots": spots, "rows": rows})
+        tables[cat] = {"spots": total_spots, "combined": not split, "subtables": subtables}
 
     return {"label": label, "split_by_class": split, "n_runs": len(runs), "tables": tables}
 
@@ -322,13 +478,14 @@ def _run_table(event, cfg, settings, qualified) -> dict:
 # Verarbeitung eines Schlüssel-Laufs
 # ---------------------------------------------------------------------------
 
-def _process_config_run(event, cfg, settings, qualified, derived_by_cat) -> None:
+def _process_config_run(event, cfg, settings, qualified, derived_by_cat,
+                        source_lookup=None, class_filter=None) -> None:
     match = cfg.get("match") or {}
     split = bool(cfg.get("split_by_class"))
     spots_cfg = cfg.get("spots") or {}
     label = cfg.get("label") or ""
 
-    runs = [r for r in event.get("runs", []) if _run_matches(r, match)]
+    runs = [r for r in _runs_source(event, cfg, source_lookup) if _run_matches(r, match)]
     if not runs:
         return
 
@@ -344,7 +501,10 @@ def _process_config_run(event, cfg, settings, qualified, derived_by_cat) -> None
             groups[(cat, cls)].append(c)
 
     for (cat, cls), entries in groups.items():
-        spots = _to_int(spots_cfg.get(cat, 0))
+        # Nur eine Klasse ableiten (schrittweise, split-Läufe): andere überspringen.
+        if class_filter is not None and split and str(cls) != str(class_filter):
+            continue
+        spots = spots_for(spots_cfg, cat, cls)
         if spots <= 0:
             continue
         ranked = _rank_combined(entries)

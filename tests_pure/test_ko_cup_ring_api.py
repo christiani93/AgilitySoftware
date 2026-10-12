@@ -138,6 +138,50 @@ def test_save_run_rejects_bad_side(ctx):
     assert r.status_code == 400
 
 
+def test_display_page_renders(ctx):
+    """Zuschauer-/Kiosk-Anzeige rendert und zieht ihren Stand aus der
+    bestehenden JSON-State-Route (read-only, selbst-aktualisierend)."""
+    client, _ = ctx
+    r = client.get(f"/ko-cup/display/{EVENT_ID}")
+    assert r.status_code == 200
+    html = r.get_data(as_text=True)
+    assert "KO" in html and "Halloween Cup" in html
+    # Lädt den Stand aus der vorhandenen State-API und reagiert auf ko_update.
+    assert "/ko-cup/api/state/" in html
+    assert "ko_update" in html
+
+
+def test_display_page_category_filter(ctx):
+    """?cat=L wird als Grössenklassen-Filter in die Seite durchgereicht."""
+    client, _ = ctx
+    r = client.get(f"/ko-cup/display/{EVENT_ID}?cat=L")
+    assert r.status_code == 200
+    assert 'ONLY_CAT   = "L"' in r.get_data(as_text=True)
+
+
+def test_ko_display_control_forwards_to_event_room(monkeypatch):
+    """Der Handler reicht ein Fernsteuerungs-Kommando vom Ring-PC 1:1 an alle
+    Displays im selben Event-Room weiter (Raum `event:<id>`, dasselbe Muster
+    wie announcer_update/ring_monitor)."""
+    emitted = []
+    monkeypatch.setattr(kc.socketio, "emit", lambda event, *a, **kw: emitted.append((event, a, kw)))
+
+    kc._on_ko_display_control({"event_id": EVENT_ID, "action": "show_category", "category_code": "Large"})
+
+    assert len(emitted) == 1
+    event, args, kwargs = emitted[0]
+    assert event == "ko_display_control"
+    assert args[0]["category_code"] == "Large"
+    assert kwargs["room"] == f"event:{EVENT_ID}"
+
+
+def test_ko_display_control_ignores_missing_event_id(monkeypatch):
+    emitted = []
+    monkeypatch.setattr(kc.socketio, "emit", lambda event, *a, **kw: emitted.append((event, a, kw)))
+    kc._on_ko_display_control({"action": "rotate", "enabled": True})
+    assert emitted == []
+
+
 def test_ring_page_renders(ctx):
     client, _ = ctx
     r = client.get(f"/ko-cup/ring/{EVENT_ID}?ring=2")
@@ -150,3 +194,27 @@ def test_ring_page_renders(ctx):
     # Zählung läuft über den Ring-Server (Bereit-Button + F/V-Zähler).
     assert 'id="readyBtn"' in html
     assert "increment_counter" in html
+    # DIS: wird GEZÄHLT (+/- Buttons, Taste D), 5 Sek pro DIS, mehrere pro Lauf --
+    # statt Lauf-Abbruch wie am normalen Ring-PC-Dashboard; unterbricht den
+    # TIMY-Lauf nicht.
+    assert 'id="disPlus"' in html
+    assert 'id="disMinus"' in html
+    assert "count_dis" in html
+    assert 'k === "d"' in html
+    # Fernsteuerung des Zuschauer-Monitors (ko_cup_display.html) über denselben
+    # Haupt-Server-Socket -- Kategorie-Buttons + Rotations-Toggle.
+    assert 'id="monitorTabs"' in html
+    assert 'id="monitorRotateBtn"' in html
+    assert "ko_display_control" in html
+
+
+def test_display_page_joins_room_and_listens_for_remote_control(ctx):
+    """Die Kiosk-Anzeige tritt dem Event-Room bei (wie Ring-Monitor/Sprecher)
+    und reagiert auf Fernsteuerungs-Kommandos vom Ring-PC."""
+    client, _ = ctx
+    r = client.get(f"/ko-cup/display/{EVENT_ID}")
+    html = r.get_data(as_text=True)
+    assert "join_room" in html
+    assert f"event:${{EVENT_ID}}" in html.replace(" ", "")  # Template-Literal `event:${EVENT_ID}`
+    assert "ko_display_control" in html
+    assert "show_category" in html

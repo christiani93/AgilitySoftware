@@ -2,14 +2,32 @@
 {% block title %}KO-Cup – {{ event.Bezeichnung }}{% endblock %}
 
 {% block content %}
+{# Quell-Event-Dropdown pro Schlüssel-Lauf: leer = dieses Event (Offline-Fall);
+   sonst wird die Rangliste dieses Laufs aus einem getrennt importierten
+   Mehrtages-Teil-Event gezogen (z.B. Fr-Tunnellauf). #}
+{% macro source_select(run, source_events) %}
+  <select name="source_{{ run.index }}" class="form-select form-select-sm mt-2"
+          title="Aus welchem Event die Läufe dieses Schlüssel-Laufs gelesen werden">
+    <option value="">↳ dieses Event</option>
+    {% for ev in source_events if not ev.is_current %}
+    <option value="{{ ev.id }}" {{ 'selected' if run.source_event_id == ev.id }}>↳ {{ ev.label }}</option>
+    {% endfor %}
+  </select>
+{% endmacro %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
     <h1 class="mb-0">🎃 KO-Cup (American)</h1>
     <p class="text-muted fs-5 mb-0">{{ event.Bezeichnung }}</p>
   </div>
-  <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary">
-    <i class="fas fa-arrow-left me-1"></i>Zurück zu den Läufen
-  </a>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('ko_cup_bp.ko_display', event_id=event.id) }}" class="btn btn-outline-dark" target="_blank"
+       title="Vollbild-Bracket für den Publikums-Monitor (read-only, aktualisiert sich selbst)">
+      <i class="fas fa-tv me-1"></i>Zuschauer-Anzeige
+    </a>
+    <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Zurück zu den Läufen
+    </a>
+  </div>
 </div>
 
 <div class="alert alert-light border small">
@@ -56,11 +74,51 @@
       Beste Verkleidung, Wildcard) bleiben erhalten. Bestehende Brackets werden
       zurückgesetzt, weil sich die Teilnehmer ändern.
     </p>
+
+    {# Schrittweise: nach JEDEM Lauf/Klasse nur dessen Finalisten ableiten. #}
+    <div class="border rounded p-3 mb-3 bg-white">
+      <div class="fw-semibold mb-1"><i class="fas fa-shoe-prints me-1"></i>Schrittweise – pro Lauf/Klasse ableiten</div>
+      <p class="small text-muted mb-2">
+        Empfohlen am Event-Tag: sobald ein Lauf (bei Agility/Jumping eine einzelne
+        <strong>Klasse</strong>) fertig ist, nur diesen ableiten. Der
+        <strong>Tunnellauf</strong> ist klassenübergreifend und wird als Ganzes
+        abgeleitet. Die Finalisten werden <strong>an die bestehenden angehängt</strong>;
+        bereits abgeleitete Läufe und ihre <strong>Losnummern bleiben erhalten</strong>.
+        Danach im jeweiligen Finale die Losnummern der neuen Finalisten vergeben.
+        Erneutes Ableiten ersetzt nur dessen eigene Finalisten.
+      </p>
+      {% for run in schluessel_view %}
+      <div class="d-flex gap-2 flex-wrap align-items-center mb-2">
+        <span class="small text-muted" style="min-width:7rem"><strong>{{ run.label }}</strong></span>
+        {% if run.split %}
+          {% for cls in ko_classes %}
+          <form method="post" class="d-inline">
+            <input type="hidden" name="action" value="derive_run">
+            <input type="hidden" name="run_index" value="{{ run.index }}">
+            <input type="hidden" name="class" value="{{ cls }}">
+            <button type="submit" class="btn btn-outline-warning btn-sm">
+              <i class="fas fa-angles-right me-1"></i>Kl.&nbsp;{{ cls }} ableiten
+            </button>
+          </form>
+          {% endfor %}
+        {% else %}
+          <form method="post" class="d-inline">
+            <input type="hidden" name="action" value="derive_run">
+            <input type="hidden" name="run_index" value="{{ run.index }}">
+            <button type="submit" class="btn btn-outline-warning btn-sm">
+              <i class="fas fa-angles-right me-1"></i>{{ run.label }} ableiten
+            </button>
+          </form>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
     <div class="d-flex gap-2 flex-wrap">
-      <form method="post" onsubmit="return confirm('Finalisten aus den Läufen neu ableiten? Bestehende abgeleitete Teilnehmer und Brackets werden ersetzt.');">
+      <form method="post" onsubmit="return confirm('ALLE Läufe auf einmal neu ableiten? Bestehende abgeleitete Teilnehmer und Brackets werden ersetzt (auch bereits vergebene Losnummern abgeleiteter Finalisten).');">
         <input type="hidden" name="action" value="derive_finalists">
         <button type="submit" class="btn btn-warning">
-          <i class="fas fa-wand-magic-sparkles me-1"></i>Jetzt ableiten
+          <i class="fas fa-wand-magic-sparkles me-1"></i>Alle Läufe auf einmal ableiten
         </button>
       </form>
       <a href="{{ url_for('ko_cup_bp.ko_rankings', event_id=event.id) }}" class="btn btn-outline-secondary">
@@ -70,6 +128,158 @@
         <i class="fas fa-print me-1"></i>Ring-Startlisten drucken
       </a>
     </div>
+  </div>
+</div>
+
+{# ── Losnummern kategorieübergreifend eintragen (nach dem Ableiten) ──────── #}
+{% if n_finalists %}
+<div class="card mb-4 shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0"><i class="fas fa-dice me-1"></i>Losnummern eintragen</h5>
+    {% if n_unglost %}
+    <span class="badge bg-warning text-dark">{{ n_unglost }} noch ohne Losnummer</span>
+    {% else %}
+    <span class="badge bg-success">alle vergeben</span>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <p class="small text-muted mb-3">
+      Alle Finalisten über <strong>alle Kategorien</strong> auf einem Screen –
+      nach dem Ableiten die an der Rangverkündigung gezogene Losnummer direkt
+      dahinter eintragen und speichern. Die Losnummern laufen <strong>je
+      Kategorie</strong> von 1 aufwärts. Noch unglost = <span class="badge bg-warning text-dark">gelb</span>.
+    </p>
+    <form method="post">
+      <input type="hidden" name="action" value="save_draws_all">
+      {% for v in finals_view %}
+      <div class="mb-3">
+        <div class="fw-semibold mb-1">
+          {{ v.final.group_label or v.final.category_code }}
+          <span class="text-muted small">({{ v.n_with_draw }}/{{ v.n_participants }} gelost)</span>
+        </div>
+        {% if v.participants %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th style="width:7rem">Losnummer</th>
+                <th>Hund</th>
+                <th>Hundeführer</th>
+                <th>Qualifikation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in v.participants %}
+              <tr {% if p.draw_number is none %}class="table-warning"{% endif %}>
+                <td>
+                  <input type="number" min="1" step="1"
+                         class="form-control form-control-sm"
+                         name="draw_{{ p.id }}"
+                         value="{{ p.draw_number if p.draw_number is not none else '' }}">
+                </td>
+                <td><strong>{{ p.dog_name }}</strong></td>
+                <td>{{ p.handler_name or '' }}</td>
+                <td class="small text-muted">
+                  {% if p.quali_label %}<span class="badge bg-light text-dark border">{{ p.quali_label }}{% if p.from_class %} · Kl.&nbsp;{{ p.from_class }}{% endif %}</span>
+                  {% else %}{{ source_labels.get(p.source, p.source or '') }}{% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="small text-muted mb-0">Noch keine Finalisten.</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save me-1"></i>Losnummern speichern
+      </button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{# ── Schlüssel: Finalplätze pro Lauf einstellen ──────────────────────────── #}
+<div class="card mb-4 shadow-sm">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fas fa-sliders me-1"></i>Schlüssel – Finalplätze pro Lauf</h5>
+  </div>
+  <div class="card-body">
+    <p class="small text-muted mb-3">
+      Wie viele Teilnehmer sich <strong>je Lauf und Grössenkategorie</strong> für den
+      Final qualifizieren. <strong>0</strong> = dieser Lauf zählt für diese Kategorie nicht.
+      <span class="d-block mt-1">
+        <i class="fas fa-circle-info me-1"></i>Beim <em>Tunnellauf</em> (kombiniert) gilt
+        die Zahl für eine gemeinsame Rangliste über alle Klassen; bei <em>Agility</em>/<em>Jumping</em>
+        (pro Klasse) gilt sie <strong>je Klasse</strong>. Mehrfachqualifikationen rücken nach.
+      </span>
+      <span class="d-block mt-1">
+        <i class="fas fa-calendar-day me-1"></i><strong>Quell-Event</strong> je Lauf:
+        normalerweise <em>dieses Event</em>. Bei einem Mehrtages-Turnier, das online
+        als getrennte Events vorliegt (z.&nbsp;B. Freitag-Tunnellauf separat), hier das
+        importierte Teil-Event wählen — die Läufe werden dann von dort gelesen.
+      </span>
+    </p>
+    <form method="post">
+      <input type="hidden" name="action" value="save_schluessel">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Lauf</th>
+              <th>Klasse</th>
+              {% for kat in categories %}<th class="text-center">{{ kat }}</th>{% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for run in schluessel_view %}
+              {% if run.split %}
+                {% for cls in ko_classes %}
+                <tr>
+                  {% if loop.first %}
+                  <td rowspan="{{ ko_classes | length }}">
+                    <strong>{{ run.label }}</strong>
+                    <span class="badge bg-light text-muted border ms-1">pro Klasse</span>
+                    {{ source_select(run, source_events) }}
+                  </td>
+                  {% endif %}
+                  <td class="text-nowrap">Kl.&nbsp;{{ cls }}</td>
+                  {% for kat in categories %}
+                  <td class="text-center" style="max-width:6rem">
+                    <input type="number" min="0" step="1" class="form-control form-control-sm text-center"
+                           name="spots_{{ run.index }}_{{ kat }}_{{ cls }}"
+                           value="{{ run.cells[kat][cls] }}">
+                  </td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td>
+                    <strong>{{ run.label }}</strong>
+                    <span class="badge bg-light text-muted border ms-1">kombiniert</span>
+                    {{ source_select(run, source_events) }}
+                  </td>
+                  <td class="text-muted small">alle</td>
+                  {% for kat in categories %}
+                  <td class="text-center" style="max-width:6rem">
+                    <input type="number" min="0" step="1" class="form-control form-control-sm text-center"
+                           name="spots_{{ run.index }}_{{ kat }}"
+                           value="{{ run.cells[kat] }}">
+                  </td>
+                  {% endfor %}
+                </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save me-1"></i>Schlüssel speichern
+      </button>
+    </form>
   </div>
 </div>
 

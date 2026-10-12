@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KO-Bracket – {{ event.Bezeichnung }}</title>
+  <script src="{{ url_for('static', filename='vendor/socket.io.min.js') }}"></script>
+  <style>
+    :root { --bg:#111318; --panel:#1b1e26; --panel2:#232733; --line:#333a49;
+            --txt:#eef1f6; --muted:#9aa4b6; --win:#2f8f46; --winbg:#163021;
+            --accent:#f5a623; --live:#e8503a; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+           background: var(--bg); color: var(--txt);
+           display: flex; flex-direction: column; overflow: hidden; }
+
+    header { flex: 0 0 auto; display: flex; align-items: center; gap: 18px;
+             padding: 12px 22px; background: var(--panel); border-bottom: 1px solid var(--line); }
+    header .ev { font-size: 1.05rem; color: var(--muted); }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    header h1 .cat { color: var(--accent); }
+    .spacer { flex: 1 1 auto; }
+    .pill { padding: 3px 11px; border-radius: 999px; font-size: 0.8rem; white-space: nowrap; }
+    .pill.ok { background: var(--winbg); color: #b9f2c6; }
+    .pill.bad { background: #4a1f1f; color: #ffcccc; }
+
+    /* Champion-Banner */
+    .champion { flex: 0 0 auto; margin: 10px 22px 0; padding: 12px 18px;
+                background: linear-gradient(90deg, var(--winbg), var(--panel2));
+                border: 1px solid var(--win); border-radius: 12px;
+                display: none; align-items: center; gap: 14px; }
+    .champion.show { display: flex; }
+    .champion .crown { font-size: 1.8rem; }
+    .champion .who { font-size: 1.4rem; font-weight: 700; }
+    .champion .lbl { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: .08em; }
+
+    /* Bracket-Fläche
+       Fit-Modus (Kiosk): der Baum wird per transform:scale auf BEIDE Achsen des
+       Bildschirms skaliert (nie scrollen, overflow:hidden). Die Skalierung sitzt
+       auf #bracket (transform), #fitOuter trägt die SKALIERTE Grösse, damit die
+       Fläche exakt der sichtbaren Grösse entspricht. */
+    .stage { flex: 1 1 auto; min-height: 0; overflow: hidden;
+             padding: 18px 22px 26px; }
+    .fit-outer { }
+    .bracket { display: flex; gap: 34px; align-items: stretch; min-width: min-content;
+               transform-origin: top left; }
+    .round { display: flex; flex-direction: column; gap: 16px; min-width: 540px; }
+    .round > .rhead { color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
+                      font-size: 0.82rem; font-weight: 700; border-bottom: 1px solid var(--line);
+                      padding-bottom: 5px; }
+    /* Duelle in 2 Spalten (statt 1) — halbiert die Höhe pro Runde, Reihenfolge
+       bleibt nach matchup_no (Zeile für Zeile links→rechts). Vertikal über die
+       Runden-Höhe verteilt, damit es weiter wie ein Baum wirkt. */
+    .round .mlist { display: grid; grid-template-columns: repeat(2, 1fr);
+                    column-gap: 16px; row-gap: 16px; align-content: space-around;
+                    flex: 1 1 auto; }
+
+    .match { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+             overflow: hidden; }
+    .match.live { border-color: var(--live); box-shadow: 0 0 0 1px var(--live); }
+    .match .mtop { display: flex; justify-content: space-between; align-items: center;
+                   padding: 4px 10px; font-size: 0.72rem; color: var(--muted);
+                   background: var(--panel2); border-bottom: 1px solid var(--line); }
+    .match .mtop .live-badge { color: #fff; background: var(--live); padding: 1px 8px;
+                   border-radius: 999px; font-weight: 700; animation: pulse 1.3s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+
+    .team { display: flex; align-items: center; gap: 10px; padding: 9px 11px; }
+    .team + .team { border-top: 1px solid var(--line); }
+    .team.win { background: var(--winbg); }
+    .team.win .name { font-weight: 700; }
+    .team.lose { opacity: 0.55; }
+    .team .sn { flex: 0 0 auto; min-width: 26px; height: 26px; border-radius: 6px;
+                background: var(--panel2); border: 1px solid var(--line);
+                display: inline-flex; align-items: center; justify-content: center;
+                font-size: 0.78rem; color: var(--muted); padding: 0 5px; }
+    .team .name { flex: 1 1 auto; line-height: 1.2; }
+    .team .name .dog { font-size: 1.02rem; }
+    .team .name .handler { display: block; font-size: 0.78rem; color: var(--muted); }
+    .team .total { flex: 0 0 auto; font-variant-numeric: tabular-nums; font-weight: 700;
+                   font-size: 1.0rem; }
+    .team .total small { color: var(--muted); font-weight: 400; }
+    .team.win .total { color: #b9f2c6; }
+    .team.empty { color: var(--muted); font-style: italic; }
+    .team .tag { flex: 0 0 auto; font-size: 0.7rem; color: var(--accent); }
+
+    .mnote { padding: 5px 11px; font-size: 0.75rem; }
+    .mnote.tie { background: #4a3a12; color: #ffe09a; }
+
+    .empty-state { color: var(--muted); font-size: 1.1rem; padding: 40px; text-align: center; }
+    .updated { font-size: 0.72rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Finale <span class="ev">{{ event.Bezeichnung }}</span> <span class="cat" id="catLabel"></span></h1>
+    <span class="spacer"></span>
+    <span class="updated" id="updated"></span>
+    <span id="conn" class="pill bad">verbinde …</span>
+  </header>
+
+  <div class="champion" id="champion">
+    <span class="crown">🏆</span>
+    <div><div class="lbl">Sieger</div><div class="who" id="championWho"></div></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="fit-outer" id="fitOuter">
+      <div class="bracket" id="bracket"></div>
+    </div>
+    <div class="empty-state" id="emptyState" style="display:none"></div>
+  </div>
+
+<script>
+(function(){
+  const EVENT_ID   = "{{ event.id }}";
+  const ONLY_CAT   = "{{ only_category or '' }}";   // '', 'S','M','I','L' oder voller Name
+  const ROTATE_SEC = {{ rotate_seconds or 0 }};
+
+  const $ = id => document.getElementById(id);
+  const state = { finals: [], activeId: null, rotateTimer: null, eventName: "",
+                  follow: true, followTimer: null };
+
+  function conn(ok){ const c = $("conn");
+    c.textContent = ok ? "live" : "getrennt"; c.className = "pill " + (ok ? "ok" : "bad"); }
+
+  // Grössenklassen-Filter: ONLY_CAT (z.B. "L") matcht category_code "Large".
+  function matchesOnlyCat(f){
+    if(!ONLY_CAT) return true;
+    const code = (f.category_code || f.group_label || "").toUpperCase();
+    const want = ONLY_CAT.toUpperCase();
+    return code === want || code.startsWith(want);
+  }
+
+  async function loadState(){
+    try{
+      const r = await fetch(`/ko-cup/api/state/${EVENT_ID}`, {cache:"no-store"});
+      const j = await r.json();
+      conn(!!j.success);
+      if(!j.success) return;
+      state.eventName = j.event_name || "";
+      state.finals = (j.finals || []).filter(matchesOnlyCat);
+      if(!state.finals.some(f => f.id === state.activeId))
+        state.activeId = state.finals.length ? state.finals[0].id : null;
+      render();
+      $("updated").textContent = "aktualisiert " + new Date().toLocaleTimeString();
+    }catch(e){ conn(false); }
+  }
+
+  function activeFinal(){ return state.finals.find(f => f.id === state.activeId) || null; }
+
+  // ---- Rendering ----
+  function render(){
+    const f = activeFinal();
+    $("catLabel").textContent = f ? (f.group_label || f.category_code || "") : "";
+    renderChampion(f);
+    renderBracket(f);
+  }
+
+  function championId(f){
+    if(!f || f.status !== "done" || !f.matchups.length) return null;
+    const maxRound = Math.max(...f.matchups.map(m => m.round_no));
+    const fin = f.matchups.find(m => m.round_no === maxRound && m.matchup_type === "winner");
+    return fin ? fin.winner_id : null;
+  }
+
+  function renderChampion(f){
+    const banner = $("champion");
+    const wid = championId(f);
+    if(!wid){ banner.classList.remove("show"); return; }
+    // Teilnehmer-Brief über die Matchups finden (a/b tragen die Namen).
+    let who = null;
+    for(const m of f.matchups){
+      if(m.a && m.a.id === wid) who = m.a;
+      if(m.b && m.b.id === wid) who = m.b;
+      if(who) break;
+    }
+    if(!who){ banner.classList.remove("show"); return; }
+    $("championWho").textContent = teamText(who);
+    banner.classList.add("show");
+  }
+
+  function teamText(p){
+    if(!p) return "";
+    const h = p.handler_name ? p.handler_name + " · " : "";
+    return h + (p.dog_name || "");
+  }
+
+  function fmt(t){ return (t === null || t === undefined) ? null : Number(t).toFixed(2); }
+
+  function renderBracket(f){
+    const box = $("bracket"); const empty = $("emptyState");
+    box.innerHTML = "";
+    if(!f){ empty.style.display = "block";
+      empty.textContent = "Kein Finale für diese Ansicht vorhanden."; resetFit(); return; }
+    if(!f.matchups.length){ box.style.display = "none"; empty.style.display = "block";
+      empty.textContent = "Bracket noch nicht generiert."; resetFit(); return; }
+    box.style.display = "flex"; empty.style.display = "none";
+
+    // Nach Runde gruppieren (aufsteigend = frühe Runde links).
+    const allRounds = [...new Set(f.matchups.map(m => m.round_no))].sort((a,b) => a-b);
+    const lastRoundNo = allRounds[allRounds.length - 1];
+    // Nur AKTUELLE + NÄCHSTE Runde zeigen (nicht den ganzen Baum) — gibt in der
+    // Breite deutlich mehr Platz pro Duell. "Aktuell" = dieselbe Runde, auf die
+    // auch "Live folgen" zielt (focusMatchup: läuft > nächstes offenes > Final).
+    const activeM = focusMatchup(f);
+    const curRoundNo = activeM ? activeM.round_no : allRounds[0];
+    const curIdx = allRounds.indexOf(curRoundNo);
+    const rounds = allRounds.slice(curIdx, curIdx + 2);
+    rounds.forEach(rno => {
+      const ms = f.matchups.filter(m => m.round_no === rno)
+        // Kleines Finale (Platz 3) zuerst, dann das grosse Finale/die regulären
+        // Duelle; innerhalb nach Duell-Nr.
+        .sort((a,b) => (a.matchup_type === "winner") - (b.matchup_type === "winner")
+                       || a.matchup_no - b.matchup_no);
+      const col = document.createElement("div");
+      col.className = "round";
+      const head = document.createElement("div");
+      head.className = "rhead";
+      const winLabel = (ms.find(m => m.matchup_type === "winner") || ms[0]).label;
+      head.textContent = winLabel;
+      col.appendChild(head);
+      const list = document.createElement("div");
+      list.className = "mlist";
+      const isFinalRound = rno === lastRoundNo;
+      ms.forEach(m => list.appendChild(renderMatch(m, isFinalRound)));
+      col.appendChild(list);
+      box.appendChild(col);
+    });
+    // Erst skalieren (Höhe auf den Bildschirm fitten), dann auf das laufende
+    // Duell zentrieren. In einem Frame, damit die Layout-Masse stimmen.
+    requestAnimationFrame(fitAndFocus);
+  }
+
+  // ---- Fit: Baum in BEIDEN Achsen auf den Bildschirm skalieren --------------
+  // transform:scale skaliert Breite und Höhe gleichermassen — darum den Faktor
+  // aus dem ENGEREN der beiden Verhältnisse nehmen (wie object-fit:contain),
+  // nicht nur aus der Höhe. Seit die Duelle in 2 Spalten laufen, ist die Breite
+  // oft der limitierende Faktor (5 Runden × 2 Spalten), vorher war es nur die
+  // Höhe. Ziel: IMMER alles ohne Scroll sichtbar (`.stage` ist overflow:hidden).
+  function resetFit(){
+    const inner = $("bracket"), outer = $("fitOuter");
+    inner.style.transform = ""; outer.style.width = ""; outer.style.height = "";
+  }
+  function fitAndFocus(){
+    const inner = $("bracket"), outer = $("fitOuter"), stage = $("stage");
+    if(inner.style.display === "none" || !inner.children.length){ resetFit(); return; }
+    // Unskaliert messen
+    inner.style.transform = "none";
+    outer.style.width = ""; outer.style.height = "";
+    const natW = inner.scrollWidth, natH = inner.scrollHeight;
+    const cs = getComputedStyle(stage);
+    const padH = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    const availW = stage.clientWidth - padH;
+    const availH = stage.clientHeight - padV;
+    const kW = (availW > 0 && natW > 0) ? availW / natW : 1;
+    const kH = (availH > 0 && natH > 0) ? availH / natH : 1;
+    const k = Math.min(1, kW, kH);
+    inner.style.transform = "scale(" + k + ")";
+    outer.style.width = (natW * k) + "px";
+    outer.style.height = (natH * k) + "px";
+    if(state.follow) focusLive();
+  }
+
+  // ---- Follow (Proposal 2): horizontal auf das laufende Duell zentrieren ----
+  // "läuft" ist jetzt sauber definiert (hasAnyRun && nicht entschieden), also
+  // gibt es i.d.R. genau ein laufendes Duell. Mehrere laufende → das in der
+  // spätesten Runde (am interessantesten). Keins → das nächste offene Duell
+  // (früheste Runde) = "als nächstes dran". Alles entschieden → der Final.
+  function focusMatchup(f){
+    const live = f.matchups.filter(m => m.a && m.b && !m.winner_id && hasAnyRun(m));
+    if(live.length) return live.sort((a,b) => b.round_no - a.round_no
+                                              || a.matchup_no - b.matchup_no)[0];
+    const pending = f.matchups.filter(m => m.a && m.b && !m.winner_id);
+    if(pending.length) return pending.sort((a,b) => a.round_no - b.round_no
+                                                    || a.matchup_no - b.matchup_no)[0];
+    const maxR = Math.max(...f.matchups.map(m => m.round_no));
+    return f.matchups.find(m => m.round_no === maxR && m.matchup_type === "winner") || null;
+  }
+  function focusLive(){
+    const f = activeFinal(); if(!f) return;
+    const m = focusMatchup(f); if(!m) return;
+    const el = document.querySelector('.match[data-mid="' + m.id + '"]');
+    const stage = $("stage"); if(!el) return;
+    const er = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+    const center = (er.left - sr.left) + stage.scrollLeft + er.width / 2;
+    stage.scrollTo({ left: center - stage.clientWidth / 2, behavior: "smooth" });
+  }
+
+  // "läuft" nur, wenn für dieses Duell schon mindestens eine Laufzeit erfasst
+  // wurde (TIMY/Hand) und es noch nicht entschieden ist. Ein frisch generiertes
+  // Bracket ist komplett besetzt aber noch ohne Ergebnisse — dort darf NICHTS
+  // "läuft" anzeigen (sonst leuchtet die ganze 1. Runde, siehe 32er-Demo).
+  function hasAnyRun(m){
+    for(const runs of [m.a_runs, m.b_runs]){
+      if(!runs) continue;
+      for(const k of ["run1", "run2"]){
+        const t = (runs[k] || {}).time;
+        if(t !== null && t !== undefined) return true;
+      }
+    }
+    return false;
+  }
+
+  function renderMatch(m, isFinalRound){
+    const bothPresent = m.a && m.b;
+    const decided = !!m.winner_id;
+    const live = bothPresent && !decided && hasAnyRun(m);   // erfasst + offen → läuft
+    const div = document.createElement("div");
+    div.className = "match" + (live ? " live" : "");
+    div.dataset.mid = m.id;
+
+    const top = document.createElement("div");
+    top.className = "mtop";
+    const left = document.createElement("span");
+    // Das eigentliche Final-Duell heisst "Finale" statt generisch "Duell 1".
+    left.textContent = (isFinalRound && m.matchup_type === "winner") ? "Finale"
+      : (m.matchup_type === "third_place" ? m.label + " · " : "") + "Duell " + m.matchup_no;
+    top.appendChild(left);
+    if(live){ const b = document.createElement("span");
+      b.className = "live-badge"; b.textContent = "läuft"; top.appendChild(b); }
+    div.appendChild(top);
+
+    div.appendChild(renderTeam(m, "a", decided));
+    div.appendChild(renderTeam(m, "b", decided));
+
+    if(m.is_tie){ const n = document.createElement("div");
+      n.className = "mnote tie"; n.textContent = "Gleichstand – Sieger wird manuell entschieden.";
+      div.appendChild(n); }
+    return div;
+  }
+
+  function renderTeam(m, side, decided){
+    const p = m[side];
+    const row = document.createElement("div");
+    if(!p){ row.className = "team empty";
+      row.innerHTML = '<span class="name">— wartet / Freilos</span>'; return row; }
+
+    const isWin = decided && m.winner_id === p.id;
+    const isLose = decided && m.winner_id && m.winner_id !== p.id;
+    row.className = "team" + (isWin ? " win" : "") + (isLose ? " lose" : "");
+
+    const sn = document.createElement("span");
+    sn.className = "sn";
+    sn.textContent = (p.start_number === null || p.start_number === undefined) ? "–" : p.start_number;
+    row.appendChild(sn);
+
+    const name = document.createElement("span");
+    name.className = "name";
+    name.innerHTML = `<span class="dog">${esc(p.dog_name || "")}</span>`
+      + (p.handler_name ? `<span class="handler">${esc(p.handler_name)}</span>` : "");
+    row.appendChild(name);
+
+    const total = m[side + "_total"];
+    const forfeit = m.forfeit_id === p.id;
+    const tail = document.createElement("span");
+    if(forfeit){ tail.className = "tag"; tail.textContent = "Aufgabe"; }
+    else { tail.className = "total";
+      tail.innerHTML = fmt(total) !== null ? `${fmt(total)}<small> s</small>` : "";
+      if(isWin && fmt(total) === null) tail.innerHTML = '<small>weiter</small>';
+    }
+    row.appendChild(tail);
+    return row;
+  }
+
+  function esc(s){ const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+  // ---- Auto-Rotation über mehrere Finals (unbeaufsichtigter Kiosk) ----
+  // ?rotate=N startet lokal; die Fernsteuerung (ko_display_control, Action
+  // "rotate") kann das jederzeit mit eigenem Intervall an-/ausschalten.
+  function startRotate(seconds){
+    const sec = seconds || ROTATE_SEC;
+    if(sec <= 0) return;
+    stopRotate();
+    state.rotateTimer = setInterval(() => {
+      if(state.finals.length <= 1) return;
+      const i = state.finals.findIndex(f => f.id === state.activeId);
+      state.activeId = state.finals[(i + 1) % state.finals.length].id;
+      render();
+    }, sec * 1000);
+  }
+  function stopRotate(){ if(state.rotateTimer){ clearInterval(state.rotateTimer); state.rotateTimer = null; } }
+
+  // ---- Fernsteuerung vom Ring-PC (ko_cup_ring.html) -----------------------
+  // Läuft über den Haupt-Server-Socket (nicht den lokalen TIMY-Ring-Server!)
+  // und denselben Room `event:<id>`, den auch Ring-Monitor/Sprecher nutzen
+  // (join_room-Handler in app.py). So kann jemand am Ring-PC steuern, was
+  // dieser Monitor zeigt, ohne physisch davor zu stehen.
+  function applyControl(cmd){
+    if(!cmd) return;
+    if(cmd.action === "show_category"){
+      const f = state.finals.find(x => x.category_code === cmd.category_code);
+      // Kein Treffer? Dann ist dieser Monitor per ?cat= fest auf eine andere
+      // Kategorie gesperrt -- die Fernsteuerung kann diese Sperre bewusst
+      // nicht übersteuern (sonst wäre die Sperre sinnlos).
+      if(!f) return;
+      state.activeId = f.id;
+      stopRotate();
+      render();
+      flashRemoteHint();
+    } else if(cmd.action === "rotate"){
+      if(cmd.enabled) startRotate(cmd.seconds || 10);
+      else stopRotate();
+      flashRemoteHint();
+    }
+  }
+
+  // Kurzer visueller Hinweis, dass gerade ein Fernbefehl griff (für jemanden,
+  // der zufällig vor dem Monitor steht).
+  function flashRemoteHint(){
+    const el = $("conn");
+    const prevText = el.textContent, prevClass = el.className;
+    el.textContent = "📡 Fernsteuerung"; el.className = "pill ok";
+    setTimeout(() => { el.textContent = prevText; el.className = prevClass; }, 2000);
+  }
+
+  // ---- Live-Aktualisierung: Socket + Poll-Fallback ----
+  function connect(){
+    if(typeof io === "function"){
+      const s = io();
+      s.on("connect", () => { conn(true); s.emit("join_room", {room: `event:${EVENT_ID}`}); });
+      s.on("ko_update", d => { if(d && d.event_id === EVENT_ID) loadState(); });
+      s.on("ko_display_control", d => { if(d && d.event_id === EVENT_ID) applyControl(d); });
+    }
+    setInterval(loadState, 5000);   // Fallback, falls kein Socket
+  }
+
+  // Bei Fenster-/Monitorgrössen-Änderung neu einpassen.
+  window.addEventListener("resize", () => requestAnimationFrame(fitAndFocus));
+
+  // Follow pausiert kurz, wenn jemand doch von Hand scrollt (dann nicht sofort
+  // zurückreissen) — danach übernimmt der Kiosk-Modus wieder automatisch.
+  function suspendFollow(){
+    state.follow = false;
+    clearTimeout(state.followTimer);
+    state.followTimer = setTimeout(() => { state.follow = true; fitAndFocus(); }, 20000);
+  }
+  $("stage").addEventListener("wheel", suspendFollow, {passive: true});
+  $("stage").addEventListener("touchstart", suspendFollow, {passive: true});
+
+  connect();
+  loadState().then(startRotate);
+})();
+</script>
+</body>
+</html>

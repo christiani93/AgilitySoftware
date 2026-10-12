@@ -154,6 +154,15 @@ def test_score_side_penalties():
     assert score_side(side) == 29.0  # 10+2 + 10+2+5
 
 
+def test_score_side_dis_is_counted():
+    """DIS wird gezaehlt: jeder DIS = 5 Strafsekunden, mehrere pro Lauf moeglich."""
+    side = {
+        "run1": {"time": 10.0, "faults": 0, "refusals": 0, "dis": 2},   # +10
+        "run2": {"time": 10.0, "faults": 0, "refusals": 0, "dis": 3},   # +15
+    }
+    assert score_side(side) == 45.0  # 10+10 + 10+15
+
+
 def test_score_side_incomplete():
     side = {"run1": {"time": 10.0}, "run2": {"time": None}}
     assert score_side(side) is None

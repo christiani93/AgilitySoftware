@@ -256,6 +256,156 @@ def test_apply_legt_fehlendes_final_an():
 
 
 # ---------------------------------------------------------------------------
+# apply_single_run_qualification: schrittweise, pro Lauf anhängen
+# ---------------------------------------------------------------------------
+
+def _two_run_event():
+    """Event mit Tunnellauf (kombiniert, Large 2 Plätze) + Agility (split, Kl1
+    1 Platz). Alpha ist Doppelqualifikant (Tunnel + Agility Kl1)."""
+    tunnel = _run("Tunnellauf", "Large", "1-3", [
+        _entry("L1", "Alpha", "Large", 1, 20.0),   # schnellster -> Tunnel-Quali
+        _entry("L2", "Bravo", "Large", 2, 21.0),   # 2. -> Tunnel-Quali
+        _entry("L3", "Charlie", "Large", 3, 22.0),
+    ])
+    agility = _run("Agility", "Large", 1, [
+        _entry("L1", "Alpha", "Large", 1, 19.0),   # schon via Tunnel -> rückt nach
+        _entry("L4", "Delta", "Large", 1, 25.0),   # nächster -> Agility-Quali
+    ])
+    schluessel = {"runs": [
+        {"label": "Tunnellauf", "match": {"laufart": "Tunnellauf"},
+         "split_by_class": False, "spots": {"Large": 2}},
+        {"label": "Agility", "match": {"laufart": "Agility"},
+         "split_by_class": True, "spots": {"Large": 1}},
+    ]}
+    event = {"runs": [tunnel, agility]}
+    return event, schluessel
+
+
+def test_single_run_haengt_an_und_erhaelt_losnummern():
+    event, schluessel = _two_run_event()
+
+    # Lauf 0 (Tunnellauf) ableiten -> Alpha, Bravo
+    r0 = koq.apply_single_run_qualification(event, 0, schluessel)
+    assert r0["run_label"] == "Tunnellauf"
+    large = next(f for f in event["ko_cup"]["finals"] if f["category_code"] == "Large")
+    assert set(_names(large["participants"])) == {"Alpha", "Bravo"}
+
+    # Losnummern simulieren (an der Rangverkündigung vergeben)
+    for p, n in zip(large["participants"], (1, 2)):
+        p["draw_number"] = n
+
+    # Lauf 1 (Agility) ableiten -> Alpha schon quali -> Delta rückt nach, ANGEHÄNGT
+    r1 = koq.apply_single_run_qualification(event, 1, schluessel)
+    assert r1["counts"]["Large"]["derived"] == 1
+    large = next(f for f in event["ko_cup"]["finals"] if f["category_code"] == "Large")
+    assert set(_names(large["participants"])) == {"Alpha", "Bravo", "Delta"}
+    # bestehende Losnummern unverändert, Delta noch ohne
+    by_name = {p["dog_name"]: p for p in large["participants"]}
+    assert by_name["Alpha"]["draw_number"] == 1
+    assert by_name["Bravo"]["draw_number"] == 2
+    assert by_name["Delta"]["draw_number"] is None
+    # Bracket invalidiert
+    assert large["matchups"] == [] and large["results"] == []
+
+
+def test_single_run_ist_idempotent():
+    event, schluessel = _two_run_event()
+    koq.apply_single_run_qualification(event, 0, schluessel)
+    koq.apply_single_run_qualification(event, 1, schluessel)
+    large = next(f for f in event["ko_cup"]["finals"] if f["category_code"] == "Large")
+    before = sorted(_names(large["participants"]))
+
+    # Tunnellauf ERNEUT ableiten -> darf NICHT via Nachrücken Charlie hinzufügen
+    koq.apply_single_run_qualification(event, 0, schluessel)
+    large = next(f for f in event["ko_cup"]["finals"] if f["category_code"] == "Large")
+    assert sorted(_names(large["participants"])) == before
+    tun = [p for p in large["participants"] if p.get("quali_label") == "Tunnellauf"]
+    assert set(_names(tun)) == {"Alpha", "Bravo"}
+
+
+def test_single_run_erhaelt_manuelle_und_andere_laeufe():
+    event, schluessel = _two_run_event()
+    # manueller Titelverteidiger vorweg
+    event["ko_cup"] = {"enabled": True, "finals": [{
+        "id": "fL", "category_code": "Large", "group_label": "Large",
+        "participants": [{"id": "pc", "dog_name": "Champ", "license_no": "CH",
+                          "source": "title_defender", "draw_number": 1}],
+        "matchups": [], "results": [], "is_published": False,
+    }]}
+    koq.apply_single_run_qualification(event, 0, schluessel)
+    large = next(f for f in event["ko_cup"]["finals"] if f["category_code"] == "Large")
+    # Champ (manuell, mit Losnr) bleibt, Tunnel-Finalisten dazu
+    by_name = {p["dog_name"]: p for p in large["participants"]}
+    assert "Champ" in by_name and by_name["Champ"]["draw_number"] == 1
+    assert "Alpha" in by_name and "Bravo" in by_name
+
+
+def test_single_run_ungueltiger_index():
+    event, schluessel = _two_run_event()
+    try:
+        koq.apply_single_run_qualification(event, 9, schluessel)
+    except IndexError:
+        pass
+    else:
+        raise AssertionError("IndexError erwartet")
+
+
+def _split_class_event():
+    """Agility (split_by_class, Large 1 Platz/Klasse) mit Kl1 + Kl2."""
+    agility_k1 = _run("Agility", "Large", 1, [
+        _entry("L1", "Uno", "Large", 1, 20.0),
+        _entry("L2", "Dos", "Large", 1, 21.0),
+    ])
+    agility_k2 = _run("Agility", "Large", 2, [
+        _entry("L3", "Tres", "Large", 2, 20.0),
+        _entry("L4", "Quatro", "Large", 2, 21.0),
+    ])
+    schluessel = {"runs": [
+        {"label": "Agility", "match": {"laufart": "Agility"},
+         "split_by_class": True, "spots": {"Large": 1}},
+    ]}
+    event = {"runs": [agility_k1, agility_k2]}
+    return event, schluessel
+
+
+def test_single_run_pro_klasse_leitet_nur_eine_klasse_ab():
+    event, schluessel = _split_class_event()
+
+    # Nur Kl.1 ableiten -> nur Uno (Kl1-Sieger), KEIN Kl2-Finalist.
+    r1 = koq.apply_single_run_qualification(event, 0, schluessel, class_filter="1")
+    assert r1["class_label"] == "1"
+    large = next(f for f in event["ko_cup"]["finals"] if f["category_code"] == "Large")
+    assert _names(large["participants"]) == ["Uno"]
+    assert large["participants"][0]["from_class"] == 1
+    large["participants"][0]["draw_number"] = 5   # Losnummer vergeben
+
+    # Jetzt Kl.2 ableiten -> Tres ANGEHÄNGT, Uno + Losnummer bleiben.
+    r2 = koq.apply_single_run_qualification(event, 0, schluessel, class_filter="2")
+    assert r2["class_label"] == "2"
+    large = next(f for f in event["ko_cup"]["finals"] if f["category_code"] == "Large")
+    by_name = {p["dog_name"]: p for p in large["participants"]}
+    assert set(by_name) == {"Uno", "Tres"}
+    assert by_name["Uno"]["draw_number"] == 5
+    assert by_name["Tres"]["from_class"] == 2
+
+
+def test_single_run_pro_klasse_idempotent_laesst_andere_klasse_in_ruhe():
+    event, schluessel = _split_class_event()
+    koq.apply_single_run_qualification(event, 0, schluessel, class_filter="1")
+    koq.apply_single_run_qualification(event, 0, schluessel, class_filter="2")
+    large = next(f for f in event["ko_cup"]["finals"] if f["category_code"] == "Large")
+    for p in large["participants"]:
+        p["draw_number"] = {"Uno": 1, "Tres": 2}[p["dog_name"]]
+
+    # Kl.1 ERNEUT ableiten -> Uno unverändert, Tres (Kl2) + dessen Losnummer bleiben.
+    koq.apply_single_run_qualification(event, 0, schluessel, class_filter="1")
+    large = next(f for f in event["ko_cup"]["finals"] if f["category_code"] == "Large")
+    by_name = {p["dog_name"]: p for p in large["participants"]}
+    assert set(by_name) == {"Uno", "Tres"}
+    assert by_name["Tres"]["draw_number"] == 2
+
+
+# ---------------------------------------------------------------------------
 # ranking_tables: Anzeige-Sicht (kombinierte Rangliste / Status-Markierung)
 # ---------------------------------------------------------------------------
 
@@ -341,3 +491,60 @@ def test_ranking_tables_doppelquali_status_dup():
     # die drei anderen rücken nach (3 Spots)
     quali = [r["dog_name"] for r in rows if r["status"] == "quali"]
     assert quali == ["Second", "Third", "Fourth"]
+
+
+# ---------------------------------------------------------------------------
+# Quell-Event pro Schlüssel-Lauf (Mehrtages-Event online getrennt importiert)
+# ---------------------------------------------------------------------------
+
+def test_source_event_id_zieht_laeufe_aus_fremdem_event():
+    # Der Freitag-Tunnellauf liegt als EIGENES Event vor (online getrennt),
+    # das Sa-Event hat selbst keinen Tunnellauf. Mit source_event_id soll die
+    # Ableitung die Tunnellauf-Finalisten trotzdem aus dem Fr-Event ziehen.
+    friday = {
+        "id": "ev_friday",
+        "runs": [_run("Tunnellauf", "Large", "1-3", [
+            _entry("L1", "Alpha", "Large", 1, 30.0),
+            _entry("L2", "Bravo", "Large", 2, 28.0),
+            _entry("L3", "Charlie", "Large", 3, 26.0),
+        ])],
+    }
+    saturday = {"id": "ev_saturday", "runs": []}   # eigener Tunnellauf fehlt
+    schluessel = {"runs": [{
+        "label": "Tunnellauf", "match": {"laufart": "Tunnellauf"},
+        "split_by_class": False,
+        "spots": {"Large": 3, "Intermediate": 0, "Medium": 0, "Small": 0},
+        "source_event_id": "ev_friday",
+    }]}
+    source_lookup = {"ev_friday": friday, "ev_saturday": saturday}
+
+    # Ohne source_lookup: nichts (Sa-Event hat keine Läufe)
+    res_bare = koq.calculate_ko_qualification(saturday, schluessel)
+    assert res_bare["derived"]["Large"] == []
+
+    # Mit source_lookup: die 3 schnellsten aus dem Fr-Event
+    res = koq.calculate_ko_qualification(saturday, schluessel, source_lookup=source_lookup)
+    assert _names(res["derived"]["Large"]) == ["Charlie", "Bravo", "Alpha"]
+
+
+def test_source_event_id_leer_nimmt_eigenes_event():
+    # Leeres/fehlendes source_event_id → Läufe DIESES Events (Offline-Fall).
+    own = {
+        "id": "ev_own",
+        "runs": [_run("Tunnellauf", "Large", "1-3", [
+            _entry("X1", "Own1", "Large", 1, 20.0),
+            _entry("X2", "Own2", "Large", 2, 21.0),
+        ])],
+    }
+    other = {"id": "ev_other", "runs": [_run("Tunnellauf", "Large", "1-3", [
+        _entry("Y1", "Other1", "Large", 1, 10.0),
+    ])]}
+    schluessel = {"runs": [{
+        "label": "Tunnellauf", "match": {"laufart": "Tunnellauf"},
+        "split_by_class": False,
+        "spots": {"Large": 2, "Intermediate": 0, "Medium": 0, "Small": 0},
+        "source_event_id": None,
+    }]}
+    res = koq.calculate_ko_qualification(
+        own, schluessel, source_lookup={"ev_own": own, "ev_other": other})
+    assert _names(res["derived"]["Large"]) == ["Own1", "Own2"]

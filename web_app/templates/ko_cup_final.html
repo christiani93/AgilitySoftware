@@ -9,10 +9,8 @@
            name="{{ side }}_{{ run_key }}_faults" value="{{ run.faults or 0 }}" title="Fehler">
     <input type="number" min="0" class="form-control form-control-sm" style="width:3.5rem"
            name="{{ side }}_{{ run_key }}_refusals" value="{{ run.refusals or 0 }}" title="Verweigerungen">
-    <div class="form-check ms-1">
-      <input class="form-check-input" type="checkbox" name="{{ side }}_{{ run_key }}_dis" {{ 'checked' if run.dis else '' }}>
-      <label class="form-check-label small">DIS</label>
-    </div>
+    <input type="number" min="0" class="form-control form-control-sm" style="width:3.5rem"
+           name="{{ side }}_{{ run_key }}_dis" value="{{ (run.dis or 0)|int }}" title="DIS (Anzahl, ×5s)">
   </div>
 {% endmacro %}
 
@@ -33,6 +31,10 @@
         <i class="fas fa-stopwatch me-1"></i>Ring 2
       </a>
     </div>
+    <a href="{{ url_for('ko_cup_bp.ko_display', event_id=event.id) }}?cat={{ final.category_code }}"
+       class="btn btn-outline-info" target="_blank" title="Vollbild-Bracket für den Publikums-Monitor">
+      <i class="fas fa-tv me-1"></i>Zuschauer-Anzeige
+    </a>
     <a href="{{ url_for('ko_cup_bp.ko_final_print', event_id=event.id, final_id=final.id) }}"
        class="btn btn-outline-dark" target="_blank">
       <i class="fas fa-print me-1"></i>Drucken
@@ -79,15 +81,17 @@
       </tr></thead>
       <tbody>
         {% for p in final.participants %}
-        <tr>
-          <td>{{ p.dog_name }}</td>
+        <tr class="{% if p.draw_number is none %}table-warning{% endif %}">
+          <td>{{ p.dog_name }}
+            {% if p.quali_label %}<span class="badge bg-light text-muted border ms-1">{{ p.quali_label }}</span>{% endif %}</td>
           <td>{{ p.handler_name or '—' }}</td>
           <td>{{ p.license_no or '—' }}</td>
           <td>{{ p.start_number if p.start_number is not none else '—' }}</td>
           <td><span class="badge bg-light text-dark">{{ source_labels.get(p.source, p.source) }}</span></td>
           <td>
             <input type="number" min="1" form="setdraws" name="draw_{{ p.id }}" class="form-control form-control-sm"
-                   value="{{ p.draw_number if p.draw_number is not none else '' }}">
+                   value="{{ p.draw_number if p.draw_number is not none else '' }}"
+                   placeholder="—">
           </td>
           <td class="text-end">
             <form method="post" class="d-inline" onsubmit="return confirm('Finalist entfernen? Das Bracket wird zurückgesetzt.');">
@@ -103,12 +107,24 @@
     <div class="d-flex flex-wrap gap-2">
       <button type="submit" form="setdraws" class="btn btn-sm btn-outline-primary">
         <i class="fas fa-save me-1"></i>Losnummern speichern</button>
-      <form method="post" class="d-inline"><input type="hidden" name="action" value="random_draws">
-        <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="fas fa-dice me-1"></i>Zufällig (Test)</button></form>
+      <form method="post" class="d-inline">
+        <input type="hidden" name="action" value="draw_remaining">
+        <button type="submit" class="btn btn-sm btn-primary"
+                title="Nur die noch unglosten (gelb markierten) Finalisten losen – bestehende Losnummern bleiben">
+          <i class="fas fa-dice me-1"></i>Restliche losen</button></form>
+      <form method="post" class="d-inline" onsubmit="return confirm('ALLE Losnummern neu würfeln? Bereits vergebene werden überschrieben.');">
+        <input type="hidden" name="action" value="random_draws">
+        <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="fas fa-dice me-1"></i>Alle neu losen (Test)</button></form>
       <form method="post" class="d-inline" onsubmit="return confirm('Bracket (neu) generieren? Bereits erfasste Ergebnisse gehen verloren.');">
         <input type="hidden" name="action" value="generate_bracket">
         <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-sitemap me-1"></i>Bracket generieren</button></form>
     </div>
+    <p class="small text-muted mt-2 mb-0">
+      <i class="fas fa-circle-info me-1"></i>Gelb markierte Finalisten haben noch
+      keine Losnummer. „Restliche losen“ vergibt nur diesen die nächsten freien
+      Nummern (fortlaufend), damit nach jedem abgeleiteten Lauf die neuen
+      Finalisten gelost werden können, ohne die bestehenden zu verändern.
+    </p>
     {% else %}
     <p class="text-muted mb-0">Noch keine Finalisten erfasst.</p>
     {% endif %}

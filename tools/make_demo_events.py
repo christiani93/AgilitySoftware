@@ -255,6 +255,233 @@ def build_hcs_quali_demo():
 
 
 # ---------------------------------------------------------------------------
+# KO-Cup KOMPLETT-Demo: ganzes Event inkl. Freitag, Large mit 32 Finalisten
+# ---------------------------------------------------------------------------
+# Zweck: die GANZE Route einmal durchspielen — Fr Tunnellauf + Sa Agility/Jumping
+# als echte Quali-Läufe, daraus 32 Large-Finalisten (voller 5-Runden-Baum) + 8
+# Medium-Finalisten. Finals sind bereits abgeleitet, gelost und das Bracket ist
+# generiert (ungespielt) → sofort auf Ring/Zuschauer-Anzeige testbar; die Läufe
+# liegen bei, also lassen sich "Finalisten ableiten"/Ranglisten ebenfalls üben.
+#
+# Alle Quali-Läufe laufen in Klasse 1 mit grosszügiger manueller SCT (60 s) →
+# keine Zeitfehler, Rangfolge rein über die Zeit → deterministisch genau die
+# gewünschte Anzahl pro Lauf qualifiziert.
+
+_DEMO_DOGS = [
+    "Spooky", "Pumpkin", "Grim", "Zombie", "Witch", "Ghost", "Casper", "Bones",
+    "Specter", "Wraith", "Phantom", "Nightmare", "Reaper", "Banshee", "Shadow",
+    "Gremlin", "Mortis", "Hex", "Goblin", "Raven", "Fang", "Cobweb", "Lantern",
+    "Hollow", "Mummy", "Vampire", "Skull", "Crypt", "Dusk", "Howl", "Boo",
+    "Spider", "Nocturne", "Onyx", "Ember", "Cinder", "Ash", "Smoke", "Frost", "Thorn",
+]
+_DEMO_HANDLERS = [
+    "Anna Keller", "Beat Müller", "Clara Rossi", "Dario Weber", "Eva Steiner",
+    "Finn Brun", "Gina Hofer", "Hans Graf", "Ida Meier", "Jonas Vogt", "Kim Lang",
+    "Lea Frei", "Mia Studer", "Nico Frei", "Ole Bianchi", "Pia Lehmann",
+    "Rolf Senn", "Sina Kunz", "Tim Roth", "Urs Baumann",
+]
+
+
+def _next_name(counter):
+    i = counter["i"]
+    counter["i"] += 1
+    dog = _DEMO_DOGS[i % len(_DEMO_DOGS)]
+    if i >= len(_DEMO_DOGS):                      # Namen eindeutig halten
+        dog = f"{dog}-{i // len(_DEMO_DOGS) + 1}"
+    return dog, _DEMO_HANDLERS[i % len(_DEMO_HANDLERS)]
+
+
+def _full_source(laufart, cat, n_quali, n_extra, base_time, lic_tag, counter):
+    """Ein Quali-Lauf (Klasse 1) + die Liste der Hunde, die sich daraus
+    qualifizieren (die schnellsten ``n_quali``). ``n_extra`` klar langsamere
+    Hunde landen ausserhalb der Plätze (zeigt die Cut-Linie in den Ranglisten)."""
+    entries, quali = [], []
+    for i in range(n_quali):
+        dog, handler = _next_name(counter)
+        lic = f"{lic_tag}{i + 1:02d}"
+        entries.append(_entry(lic, dog, handler, f"{base_time + i * 0.20:.2f}"))
+        quali.append((lic, dog, handler))
+    for i in range(n_extra):
+        dog, handler = _next_name(counter)
+        lic = f"{lic_tag}X{i + 1:02d}"
+        entries.append(_entry(lic, dog, handler, f"{base_time + 25.0 + i * 0.5:.2f}"))
+    return _q_run(laufart, cat, 1, entries, sct="60"), quali
+
+
+def _full_final(cat, blocks):
+    """Finale aus den qualifizierten Hunden bauen, Los-/Startnummern 1..N
+    vergeben und das Bracket generieren (ungespielt). ``blocks`` = Liste von
+    (quali_list, quali_label)."""
+    participants, n = [], 0
+    for quali, label in blocks:
+        for lic, dog, handler in quali:
+            n += 1
+            participants.append({
+                "id": ko_cup._gen_id("p"),
+                "dog_name": dog,
+                "handler_name": handler,
+                "license_no": lic,
+                "start_number": n,
+                "seeding_rank": n,
+                "draw_number": n,
+                "source": "run",
+                "from_class": 1,
+                "quali_label": label,
+            })
+    final = {
+        "id": ko_cup._gen_id("final"),
+        "group_label": cat,
+        "category_code": cat,
+        "class_level": None,
+        "participants": participants,
+        "matchups": [],
+        "results": [],
+        "is_published": False,
+    }
+    final["matchups"] = ko_cup.build_bracket(participants)
+    ko_cup.recompute(final)
+    return final
+
+
+def build_hcs_full_demo():
+    counter = {"i": 0}
+
+    # ── Large: 16 (Tunnel) + 8 (Agility) + 8 (Jumping) = 32 Finalisten ──────
+    r_tun_l, q_tun_l = _full_source("Tunnellauf", "Large", 16, 2, 20.0, "FL-T", counter)
+    r_agi_l, q_agi_l = _full_source("Agility",    "Large",  8, 2, 20.0, "FL-A", counter)
+    r_jmp_l, q_jmp_l = _full_source("Jumping",    "Large",  8, 2, 20.0, "FL-J", counter)
+    # ── Medium: 4 + 2 + 2 = 8 Finalisten (zweite Kategorie für Fernsteuerung) ─
+    r_tun_m, q_tun_m = _full_source("Tunnellauf", "Medium", 4, 2, 30.0, "FM-T", counter)
+    r_agi_m, q_agi_m = _full_source("Agility",    "Medium", 2, 1, 30.0, "FM-A", counter)
+    r_jmp_m, q_jmp_m = _full_source("Jumping",    "Medium", 2, 1, 30.0, "FM-J", counter)
+
+    runs = [r_tun_l, r_tun_m, r_agi_l, r_agi_m, r_jmp_l, r_jmp_m]
+
+    large_final = _full_final("Large", [
+        (q_tun_l, "Tunnellauf"), (q_agi_l, "Agility"), (q_jmp_l, "Jumping")])
+    medium_final = _full_final("Medium", [
+        (q_tun_m, "Tunnellauf"), (q_agi_m, "Agility"), (q_jmp_m, "Jumping")])
+
+    # Schlüssel passend zu den Läufen, damit ein erneutes "Ableiten" exakt
+    # dieselben Zahlen (Large 32, Medium 8) reproduziert.
+    qualification = {
+        "runs": [
+            {"label": "Tunnellauf", "match": {"laufart": "Tunnellauf"},
+             "split_by_class": False,
+             "spots": {"Large": 16, "Intermediate": 0, "Medium": 4, "Small": 0}},
+            {"label": "Agility", "match": {"laufart": "Agility"},
+             "split_by_class": True,
+             "spots": {"Large": 8, "Intermediate": 0, "Medium": 2, "Small": 0}},
+            {"label": "Jumping", "match": {"laufart": "Jumping"},
+             "split_by_class": True,
+             "spots": {"Large": 8, "Intermediate": 0, "Medium": 2, "Small": 0}},
+        ],
+    }
+
+    event = {
+        "id": "DEMO_HCS_FULL",
+        "external_id": None,
+        "Bezeichnung": "DEMO Halloween Cup – komplett (Fr+Sa, Large 32)",
+        "Datum": "2026-10-30",           # Freitag = Event-Start (Fr–So)
+        "VeranstalterClubNr": "9999",
+        "Turniernummer": "DEMO-HCS-FULL",
+        "num_rings": 2,
+        "runs": runs,
+        "run_order": [],
+        "start_number_schema": {},
+        "start_times_by_ring": {"ring_1": "09:00", "ring_2": "09:00"},
+        "Veranstaltungsart": "",
+        "ko_cup": {
+            "enabled": True,
+            "qualification": qualification,
+            "finals": [large_final, medium_final],
+        },
+    }
+    return event
+
+
+# ---------------------------------------------------------------------------
+# KO-Cup SPLIT-Demo: Freitag als EIGENES Event + Samstag-Final zieht daraus
+# ---------------------------------------------------------------------------
+# Zweck: die eventübergreifende Finalisten-Ableitung (source_event_id) üben.
+# Anders als DEMO_HCS_FULL (alles in EINEM Event) liegt der Freitag-Tunnellauf
+# hier als SEPARATES Event vor; der Samstag trägt nur Agility/Jumping + die
+# KO-Config, deren Tunnellauf-Schlüssel per source_event_id auf das Fr-Event
+# zeigt. Die Finals sind bewusst NOCH NICHT abgeleitet (leer) → "Finalisten
+# ableiten" rechnet live über beide Events (Tunnel aus Fr, Agi/Jump aus Sa):
+#   Large = 16 (Fr-Tunnel) + 8 (Sa-Agi) + 8 (Sa-Jump) = 32
+#   Medium =  4 (Fr-Tunnel) + 2 (Sa-Agi) + 2 (Sa-Jump) =  8
+# Alle Läufe Klasse 1, SCT 60 → keine Zeitfehler, deterministisch.
+
+def build_hcs_split_demo():
+    counter = {"i": 0}
+
+    # ── Freitag-Event: NUR Tunnellauf (kombiniert über Klassen) je Kategorie ──
+    r_tun_l, _ = _full_source("Tunnellauf", "Large",  16, 2, 20.0, "SPL-T", counter)
+    r_tun_m, _ = _full_source("Tunnellauf", "Medium",  4, 2, 30.0, "SPM-T", counter)
+
+    friday = {
+        "id": "DEMO_HCS_FR",
+        "external_id": None,
+        "Bezeichnung": "DEMO Halloween Cup – Freitag (Tunnellauf, separat)",
+        "Datum": "2026-10-30",
+        "VeranstalterClubNr": "9999",
+        "Turniernummer": "DEMO-HCS-FR",
+        "num_rings": 1,
+        "runs": [r_tun_l, r_tun_m],
+        "run_order": [],
+        "start_number_schema": {},
+        "start_times_by_ring": {"ring_1": "17:00"},
+        "Veranstaltungsart": "",
+        # Reines Quali-Quell-Event: kein eigenes ko_cup.
+    }
+
+    # ── Samstag-Event: Agility + Jumping, Finals NOCH NICHT abgeleitet ────────
+    r_agi_l, _ = _full_source("Agility", "Large",  8, 2, 20.0, "SPL-A", counter)
+    r_jmp_l, _ = _full_source("Jumping", "Large",  8, 2, 20.0, "SPL-J", counter)
+    r_agi_m, _ = _full_source("Agility", "Medium", 2, 1, 30.0, "SPM-A", counter)
+    r_jmp_m, _ = _full_source("Jumping", "Medium", 2, 1, 30.0, "SPM-J", counter)
+
+    qualification = {
+        "runs": [
+            {"label": "Tunnellauf", "match": {"laufart": "Tunnellauf"},
+             "split_by_class": False,
+             # ← der Clou: Tunnellauf-Finalisten kommen aus dem Fr-Event
+             "source_event_id": "DEMO_HCS_FR",
+             "spots": {"Large": 16, "Intermediate": 0, "Medium": 4, "Small": 0}},
+            {"label": "Agility", "match": {"laufart": "Agility"},
+             "split_by_class": True,
+             "spots": {"Large": 8, "Intermediate": 0, "Medium": 2, "Small": 0}},
+            {"label": "Jumping", "match": {"laufart": "Jumping"},
+             "split_by_class": True,
+             "spots": {"Large": 8, "Intermediate": 0, "Medium": 2, "Small": 0}},
+        ],
+    }
+
+    saturday = {
+        "id": "DEMO_HCS_SPLIT",
+        "external_id": None,
+        "Bezeichnung": "DEMO Halloween Cup – Samstag (Final, Fr separat → ableiten)",
+        "Datum": "2026-10-31",
+        "VeranstalterClubNr": "9999",
+        "Turniernummer": "DEMO-HCS-SPLIT",
+        "num_rings": 2,
+        "runs": [r_agi_l, r_agi_m, r_jmp_l, r_jmp_m],
+        "run_order": [],
+        "start_number_schema": {},
+        "start_times_by_ring": {"ring_1": "09:00", "ring_2": "09:00"},
+        "Veranstaltungsart": "",
+        "ko_cup": {
+            "enabled": True,
+            "qualification": qualification,
+            "finals": [],   # bewusst leer → "Finalisten ableiten" ist der Test
+        },
+    }
+
+    return [friday, saturday]
+
+
+# ---------------------------------------------------------------------------
 # Team-Challenge (Edelweiss) Demo
 # ---------------------------------------------------------------------------
 
@@ -382,19 +609,27 @@ def main():
     else:
         events = []
 
-    demo_ids = {"DEMO_HCS", "DEMO_HCS_QUALI", "DEMO_EDELWEISS"}
+    demo_ids = {"DEMO_HCS", "DEMO_HCS_QUALI", "DEMO_HCS_FULL",
+                "DEMO_HCS_FR", "DEMO_HCS_SPLIT", "DEMO_EDELWEISS"}
     events = [e for e in events if e.get("id") not in demo_ids]
 
     events.append(build_hcs_demo())
     events.append(build_hcs_quali_demo())
+    events.append(build_hcs_full_demo())
+    events.extend(build_hcs_split_demo())   # Fr-Event + Sa-Final (source_event_id)
     events.append(build_edelweiss_demo())
 
     with open(EVENTS_PATH, "w", encoding="utf-8") as fh:
         json.dump(events, fh, ensure_ascii=False, indent=2)
 
-    print(f"OK: {len(events)} Events in {EVENTS_PATH}")
+    def _safe(s):
+        # Windows-Konsole (cp1252) kann z.B. "→" nicht → nicht an der Ausgabe crashen.
+        return str(s).encode(sys.stdout.encoding or "utf-8", "replace").decode(
+            sys.stdout.encoding or "utf-8", "replace")
+
+    print(_safe(f"OK: {len(events)} Events in {EVENTS_PATH}"))
     for e in events:
-        print(f"  - {e.get('id')}: {e.get('Bezeichnung', e.get('name'))}")
+        print(_safe(f"  - {e.get('id')}: {e.get('Bezeichnung', e.get('name'))}"))
 
 
 if __name__ == "__main__":

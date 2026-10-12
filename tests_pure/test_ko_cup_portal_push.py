@@ -93,3 +93,25 @@ def test_matchup_result_triggers_portal_push(ctx):
     assert resp.status_code in (302, 200)
     assert len(pushes) == 1
     assert pushes[0][1]["finals"][0]["matchups"][0]["forfeit_id"] == "p1"
+
+
+def test_state_enthaelt_startliste_in_losnummern_reihenfolge(ctx):
+    client, _ = ctx
+    state = client.get(f"/ko-cup/api/state/{EVENT_ID}").get_json()
+    parts = state["finals"][0]["participants"]
+    # Startliste nach Losnummer (draw_number 1,2) mit Anzeigefeldern.
+    assert [p["dog_name"] for p in parts] == ["Hund1", "Hund2"]
+    assert [p["draw_number"] for p in parts] == [1, 2]
+    assert parts[0]["start_number"] == 10
+
+
+def test_save_draws_all_triggers_portal_push(ctx):
+    client, pushes = ctx
+    resp = client.post(f"/ko-cup/config/{EVENT_ID}", data={
+        "action": "save_draws_all", "draw_p1": "2", "draw_p2": "1",
+    })
+    assert resp.status_code == 302
+    assert len(pushes) == 1
+    f = pushes[0][1]["finals"][0]
+    by_name = {p["dog_name"]: p["draw_number"] for p in f["participants"]}
+    assert by_name == {"Hund1": 2, "Hund2": 1}

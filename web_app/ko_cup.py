@@ -231,8 +231,9 @@ def score_side(side: dict | None) -> float | None:
         total += float(t)
         total += (run.get("faults") or 0) * PEN_FAULT
         total += (run.get("refusals") or 0) * PEN_REFUSAL
-        if run.get("dis"):
-            total += PEN_DIS
+        # DIS wird GEZÄHLT, nicht gesetzt: jeder DIS = 5 Strafsekunden, mehrere
+        # pro Lauf möglich. int() verträgt auch Alt-Daten mit bool (True → 1).
+        total += int(run.get("dis") or 0) * PEN_DIS
     return round(total, 3)
 
 

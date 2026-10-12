@@ -41,6 +41,25 @@ def _emit(event, payload, **kw):
 ko_cup_bp = Blueprint('ko_cup_bp', __name__, template_folder='../templates',
                       url_prefix='/ko-cup')
 
+# ── Fernsteuerung Zuschauer-Anzeige vom Ring-PC aus ───────────────────────────
+#
+# Wunsch: vom Ring-PC 1 (ko_cup_ring.html) aus die Kiosk-Anzeige (ko_cup_display.
+# html, z.B. auf einem Fernseher an einem anderen Ort) umschalten -- OHNE dass
+# jemand physisch an den Monitor geht. Läuft komplett über den MAIN-Server-Socket
+# (nicht den lokalen TIMY-Ring-Server!), deshalb unabhängig davon, ob/welcher
+# Ring-Server lokal läuft. Nutzt dasselbe Room-Muster wie announcer_update/
+# ring_monitor (routes_live.py, join_room via app.py): die Anzeige tritt beim
+# Verbinden dem Room `event:<id>` bei, der Ring-PC schickt das Kommando an den
+# Server, der Server reicht es an alle Displays in diesem Room weiter.
+if socketio is not None:
+    @socketio.on('ko_display_control')
+    def _on_ko_display_control(data):
+        data = data or {}
+        event_id = data.get('event_id')
+        if not event_id:
+            return
+        socketio.emit('ko_display_control', data, room=f"event:{event_id}")
+
 EVENTS_FILE = 'events.json'
 
 CATEGORY_ORDER = ko_cup.CATEGORY_ORDER
@@ -97,7 +116,7 @@ def _parse_run_form(side: str, run_key: str) -> dict:
         "time": _to_float(request.form.get(f"{prefix}_time")),
         "faults": _to_int(request.form.get(f"{prefix}_faults"), 0),
         "refusals": _to_int(request.form.get(f"{prefix}_refusals"), 0),
-        "dis": bool(request.form.get(f"{prefix}_dis")),
+        "dis": _to_int(request.form.get(f"{prefix}_dis"), 0),   # Anzahl DIS (×5s)
     }
 
 
@@ -113,21 +132,63 @@ def ko_config(event_id):
 
     finals_view = []
     for f in ko['finals']:
+        # Teilnehmer für die (kategorieübergreifende) Losnummern-Liste: unglost
+        # zuerst (= noch einzutragen, gelb), danach nach Losnummer.
+        parts_sorted = sorted(
+            f.get('participants', []),
+            key=lambda p: (p.get('draw_number') is not None, p.get('draw_number') or 0),
+        )
         finals_view.append({
             "final": f,
             "n_participants": len(f.get('participants', [])),
             "n_with_draw": sum(1 for p in f.get('participants', []) if p.get('draw_number') is not None),
             "status": ko_cup.bracket_status(f),
+            "participants": parts_sorted,
         })
     # feste Reihenfolge Large→Small
     order = {c: i for i, c in enumerate(CATEGORY_ORDER)}
     finals_view.sort(key=lambda v: order.get(v['final'].get('category_code'), 99))
+    n_finalists = sum(v['n_participants'] for v in finals_view)
+    n_unglost = sum(v['n_participants'] - v['n_with_draw'] for v in finals_view)
+
+    # Schlüssel-Editor-Viewmodel: pro Lauf die Finalplätze je Kategorie — bei
+    # split_by_class-Läufen (Agility/Jumping) zusätzlich je Klasse aufgeschlüsselt.
+    schluessel = ko_qualification.get_schluessel(event)
+    schluessel_view = []
+    for i, run in enumerate(schluessel.get('runs', [])):
+        split = bool(run.get('split_by_class'))
+        spots_cfg = run.get('spots') or {}
+        if split:
+            cells = {cat: {cls: ko_qualification.spots_for(spots_cfg, cat, cls)
+                           for cls in ko_qualification.CONFIG_CLASSES}
+                     for cat in CATEGORY_ORDER}
+        else:
+            cells = {cat: ko_qualification.spots_for(spots_cfg, cat, None)
+                     for cat in CATEGORY_ORDER}
+        schluessel_view.append({"index": i, "label": run.get('label'),
+                                "split": split, "cells": cells,
+                                "source_event_id": run.get('source_event_id') or ""})
+
+    # Auswahl für die "Quell-Event"-Dropdowns: alle lokalen Events. Mehrtages-
+    # Events liegen online getrennt vor (z.B. Fr-Tunnellauf als eigenes Event) —
+    # pro Schlüssel-Lauf lässt sich so festlegen, aus welchem importierten Event
+    # die Läufe gelesen werden. Leer = dieses Event (Offline-Fall).
+    source_events = [{"id": e.get('id'),
+                      "label": e.get('Bezeichnung') or e.get('id'),
+                      "is_current": e.get('id') == event_id}
+                     for e in events]
 
     return render_template(
         'ko_cup_config.html',
         event=event,
         finals_view=finals_view,
         categories=CATEGORY_ORDER,
+        schluessel_view=schluessel_view,
+        ko_classes=ko_qualification.CONFIG_CLASSES,
+        source_events=source_events,
+        source_labels=SOURCE_LABELS,
+        n_finalists=n_finalists,
+        n_unglost=n_unglost,
     )
 
 
@@ -164,7 +225,8 @@ def ko_config_post(event_id):
         flash("Finale entfernt.", "info")
 
     elif action == 'derive_finalists':
-        result = ko_qualification.apply_ko_qualification(event)
+        source_lookup = {e.get('id'): e for e in events}
+        result = ko_qualification.apply_ko_qualification(event, source_lookup=source_lookup)
         touched = result.get('finals_touched') or []
         if not touched:
             flash("Keine lauf-basierten Finalisten gefunden – passen Laufart/Schlüssel "
@@ -179,7 +241,94 @@ def ko_config_post(event_id):
                   "Bestehende Brackets wurden zurückgesetzt; manuelle Einträge blieben erhalten.",
                   "success")
 
+    elif action == 'derive_run':
+        # Schrittweise Ableitung: nur EINEN Schlüssel-Lauf ableiten und an die
+        # bestehenden Finalisten anhängen (nach jedem Lauf am Event-Tag). Bereits
+        # abgeleitete Finalisten anderer Läufe + ihre Losnummern bleiben erhalten.
+        idx = _to_int(request.form.get('run_index'), None)
+        cls = (request.form.get('class') or '').strip() or None
+        if idx is None:
+            flash("Kein Lauf angegeben.", "error")
+        else:
+            source_lookup = {e.get('id'): e for e in events}
+            try:
+                result = ko_qualification.apply_single_run_qualification(
+                    event, idx, source_lookup=source_lookup, class_filter=cls)
+            except IndexError:
+                result = None
+                flash("Ungültiger Lauf.", "error")
+            if result is not None:
+                label = result.get('run_label') or 'Lauf'
+                if result.get('class_label'):
+                    label = f"{label} Kl. {result['class_label']}"
+                touched = result.get('finals_touched') or []
+                if not touched:
+                    flash(f"Lauf „{label}“: keine neuen Finalisten gefunden – schon "
+                          "erfasst/abgeleitet, oder Laufart/Schlüssel passen nicht zu "
+                          "den Läufen?", "warning")
+                else:
+                    parts = [f"{cat}: +{result['counts'][cat]['derived']}" for cat in touched]
+                    flash(f"Lauf „{label}“ abgeleitet (" + "; ".join(parts) + "). "
+                          "An die bestehenden Finalisten angehängt – vergib jetzt die "
+                          "Losnummern der neuen Finalisten im jeweiligen Finale. "
+                          "Bracket der betroffenen Finals wurde zurückgesetzt.", "success")
+
+    elif action == 'save_draws_all':
+        # Kategorieübergreifend: Losnummern aller Finalisten auf einem Screen
+        # eintragen. Feld je Finalist = draw_<participant_id> (IDs global eindeutig).
+        # Losnummern laufen pro Finale (Kategorie) 1..N. Teilnehmer bleiben gleich
+        # → Brackets werden NICHT invalidiert (nur Losnummern geändert).
+        n = 0
+        for final in ko['finals']:
+            for p in final.get('participants', []):
+                raw = request.form.get(f"draw_{p['id']}")
+                if raw is None:
+                    continue
+                p['draw_number'] = _to_int(raw, None) if raw.strip() else None
+                n += 1
+        # Bracket jedes noch nicht gespielten Finales direkt aus den neuen
+        # Losnummern aktualisieren → Portal zeigt nach dem Auslosen sofort den
+        # Baum (nicht nur die Startliste).
+        for final in ko['finals']:
+            _autobuild_bracket(final)
+        flash(f"Losnummern gespeichert ({n} Finalist(en) über alle Kategorien).",
+              "success")
+
+    elif action == 'save_schluessel':
+        # Finalplätze pro Lauf aus dem Formular übernehmen. Struktur des
+        # Schlüssels (welche Läufe, split_by_class) bleibt wie gehabt; nur die
+        # spots werden editiert. Split-Läufe (Agility/Jumping) tragen die Plätze
+        # je Klasse (spots[cat] = {klasse: int}), kombinierte (Tunnellauf) je
+        # Kategorie (spots[cat] = int).
+        base = ko_qualification.get_schluessel(event)
+        runs_cfg = []
+        for i, run_cfg in enumerate(base.get('runs', [])):
+            split = bool(run_cfg.get("split_by_class"))
+            if split:
+                spots = {cat: {cls: _to_int(request.form.get(f'spots_{i}_{cat}_{cls}'), 0)
+                               for cls in ko_qualification.CONFIG_CLASSES}
+                         for cat in CATEGORY_ORDER}
+            else:
+                spots = {cat: _to_int(request.form.get(f'spots_{i}_{cat}'), 0)
+                         for cat in CATEGORY_ORDER}
+            # Quell-Event pro Lauf (leer = dieses Event). Mehrtages-Events liegen
+            # online getrennt vor; so weiss die Ableitung, woher die Läufe kommen.
+            source_event_id = (request.form.get(f'source_{i}') or '').strip() or None
+            runs_cfg.append({
+                "label": run_cfg.get("label"),
+                "match": run_cfg.get("match"),
+                "split_by_class": split,
+                "spots": spots,
+                "source_event_id": source_event_id,
+            })
+        ko['qualification'] = {"runs": runs_cfg}
+        flash("Schlüssel gespeichert. Beim nächsten Ableiten gelten die neuen "
+              "Finalplätze pro Lauf.", "success")
+
     _save_data(EVENTS_FILE, events)
+    # Finalisten/Losnummern haben sich geändert → Startliste ans Portal spiegeln.
+    if action in ('derive_finalists', 'derive_run', 'save_draws_all'):
+        _push_ko(event)
     return redirect(url_for('ko_cup_bp.ko_config', event_id=event_id))
 
 
@@ -193,7 +342,8 @@ def ko_rankings(event_id):
     events, event = _get_event(event_id)
     if not event:
         abort(404)
-    blocks = ko_qualification.ranking_tables(event)
+    source_lookup = {e.get('id'): e for e in events}
+    blocks = ko_qualification.ranking_tables(event, source_lookup=source_lookup)
     return render_template(
         'ko_cup_rankings.html',
         event=event,
@@ -420,6 +570,28 @@ def ko_final_post(event_id, final_id):
             p['draw_number'] = n
         flash("Losnummern zufällig vergeben (Test).", "success")
 
+    elif action == 'draw_remaining':
+        # Nur die noch unglosten Finalisten losen (schrittweiser Ablauf: nach
+        # jedem abgeleiteten Lauf). Bereits vergebene Losnummern bleiben; die
+        # neuen bekommen die nächsten freien Nummern (fortlaufend) in zufälliger
+        # Reihenfolge.
+        parts = final.get('participants', [])
+        used = {p['draw_number'] for p in parts if p.get('draw_number') is not None}
+        todo = [p for p in parts if p.get('draw_number') is None]
+        if not todo:
+            flash("Alle Finalisten haben bereits eine Losnummer.", "info")
+        else:
+            free, candidate = [], 1
+            while len(free) < len(todo):
+                if candidate not in used:
+                    free.append(candidate)
+                candidate += 1
+            random.shuffle(free)
+            for p, n in zip(todo, free):
+                p['draw_number'] = n
+            flash(f"{len(todo)} neue Losnummer(n) vergeben; bestehende blieben erhalten.",
+                  "success")
+
     elif action == 'generate_bracket':
         parts = [p for p in final.get('participants', []) if p.get('draw_number') is not None]
         if len(parts) < 2:
@@ -428,6 +600,11 @@ def ko_final_post(event_id, final_id):
             final['matchups'] = ko_cup.build_bracket(final['participants'])
             ko_cup.recompute(final)
             flash(f"Bracket mit {len(parts)} Finalisten generiert.", "success")
+
+    # Nach jeder Losziehung das Bracket direkt aktualisieren (solange ungespielt)
+    # → Portal zeigt sofort den aktuellen Baum.
+    if action in ('set_draws', 'random_draws', 'draw_remaining'):
+        _autobuild_bracket(final)
 
     _save_data(EVENTS_FILE, events)
     _push_ko(event)
@@ -518,6 +695,53 @@ def _matchup_json(final: dict, m: dict, label: str) -> dict:
     }
 
 
+def _startlist_json(final: dict) -> list[dict]:
+    """Finalisten-Startliste (Losnummern-Reihenfolge, unglost ans Ende) für die
+    Portal-Live-Anzeige — zeigt die Teilnehmer schon VOR dem Auslosen/Bracket."""
+    parts = sorted(
+        final.get("participants", []),
+        key=lambda p: (p.get("draw_number") is None, p.get("draw_number") or 0),
+    )
+    return [{
+        "id": p.get("id"),
+        "dog_name": p.get("dog_name"),
+        "handler_name": p.get("handler_name"),
+        "draw_number": p.get("draw_number"),
+        "start_number": p.get("start_number"),
+        "from_class": p.get("from_class"),
+        "quali_label": p.get("quali_label"),
+        "source": p.get("source"),
+    } for p in parts]
+
+
+def _final_has_entries(final: dict) -> bool:
+    """True, sobald in einem Duell echte Ergebnisdaten stehen (erfasste Laufzeit,
+    Aufgabe oder manueller Sieger). Dann darf das Bracket NICHT automatisch neu
+    gebaut werden, sonst gingen bereits erfasste Live-Resultate verloren."""
+    for m in final.get('matchups', []):
+        if m.get('forfeit_id') or m.get('manual_winner_id'):
+            return True
+        for side in ('a', 'b'):
+            for key in ('run1', 'run2'):
+                run = (m.get(side) or {}).get(key) or {}
+                if (run.get('time') is not None or run.get('faults')
+                        or run.get('refusals') or run.get('dis')):
+                    return True
+    return False
+
+
+def _autobuild_bracket(final: dict) -> bool:
+    """Baut das Bracket aus den aktuellen Losnummern neu – aber nur, solange noch
+    keine Ergebnisse erfasst sind. So steht nach JEDER Losziehung ein aktuelles
+    Bracket (auch auf dem Portal), ohne laufende Live-Daten zu gefährden."""
+    parts = [p for p in final.get('participants', []) if p.get('draw_number') is not None]
+    if len(parts) < 2 or _final_has_entries(final):
+        return False
+    final['matchups'] = ko_cup.build_bracket(final['participants'])
+    ko_cup.recompute(final)
+    return True
+
+
 def _final_json(final: dict) -> dict:
     rounds = ko_cup.matchups_by_round(final)
     matchups = []
@@ -529,6 +753,7 @@ def _final_json(final: dict) -> dict:
         "group_label": final.get("group_label"),
         "category_code": final.get("category_code"),
         "status": ko_cup.bracket_status(final),
+        "participants": _startlist_json(final),
         "matchups": matchups,
     }
 
@@ -572,7 +797,7 @@ def ko_api_save_run(event_id, final_id, matchup_id):
     speichern und Live-Update senden.
 
     Body (JSON): {side:'a'|'b', run:'run1'|'run2',
-                  time: float|None, faults:int, refusals:int, dis:bool}
+                  time: float|None, faults:int, refusals:int, dis:int}
     """
     events, event = _get_event(event_id)
     if not event:
@@ -596,7 +821,7 @@ def ko_api_save_run(event_id, final_id, matchup_id):
         "time": _to_float(data.get('time')),
         "faults": _to_int(data.get('faults'), 0),
         "refusals": _to_int(data.get('refusals'), 0),
-        "dis": bool(data.get('dis')),
+        "dis": _to_int(data.get('dis'), 0),   # Anzahl DIS (×5s), mehrere möglich
     }
     ko_cup.recompute(final)
     _save_data(EVENTS_FILE, events)
@@ -611,20 +836,50 @@ def ko_api_save_run(event_id, final_id, matchup_id):
     })
 
 
+@ko_cup_bp.get('/display/<event_id>')
+def ko_display(event_id):
+    """Zuschauer-/Kiosk-Anzeige (read-only): zeigt das/die Bracket(s) eines
+    Events im Vollbild und aktualisiert sich selbst (Socket `ko_update` +
+    Poll-Fallback). Gedacht für den Publikums-Monitor am Ring – anders als der
+    normale Ring-Monitor (`ring_monitor.html`) kennt diese Seite das KO-Bracket.
+
+    ?cat=L|I|M|S  blendet nur die Grössenklasse ein (sonst Umschalter/Tabs).
+    ?rotate=12    rotiert bei mehreren Finals automatisch alle N Sekunden."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+    _ensure_ko_cup(event)
+    _save_data(EVENTS_FILE, events)
+    return render_template(
+        'ko_cup_display.html',
+        event=event,
+        only_category=(request.args.get('cat') or '').strip().upper() or None,
+        rotate_seconds=_to_int(request.args.get('rotate'), 0),
+    )
+
+
 @ko_cup_bp.get('/ring/<event_id>')
 def ko_ring(event_id):
-    """Bedienseite für EINEN Ring-PC: nimmt TIMY-Zeiten vom lokalen Ring-Server
-    entgegen und schreibt sie ins korrekte Duell auf dem Hauptserver.
-    ?ring=N (Default 1). ?ring_url= überschreibt die Ring-Server-Adresse."""
+    """Bedienseite für EINEN Ring-PC: nimmt TIMY-Zeiten vom Ring-Server (lokal
+    ODER fern) entgegen und schreibt sie ins korrekte Duell auf dem Hauptserver.
+
+    ?ring=N      aktiver Ring (Default 1).
+    ?rings=M     Gesamtzahl Ringe für den Umschalter (Default 2 — KO nutzt 2 Ringe).
+    ?ring_url=   überschreibt die Ring-Server-Adresse des aktiven Rings einmalig
+                 (wird clientseitig pro Ring gemerkt → Fernbedienung ohne erneutes
+                 Eintippen). So lässt sich von einem Gerät aus auch der zweite Ring
+                 bedienen, während der lokale Ring-PC unabhängig weiterläuft."""
     events, event = _get_event(event_id)
     if not event:
         abort(404)
     _ensure_ko_cup(event)
     _save_data(EVENTS_FILE, events)
     ring_no = _to_int(request.args.get('ring'), 1) or 1
+    rings_total = _to_int(request.args.get('rings'), 2) or 2
     return render_template(
         'ko_cup_ring.html',
         event=event,
         ring_no=ring_no,
+        rings_total=max(rings_total, ring_no),
         ring_url_override=request.args.get('ring_url', ''),
     )

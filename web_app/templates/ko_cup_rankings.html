@@ -83,8 +83,10 @@
           {{ ranking_table(tbl.subtables[0], tbl.spots, true) }}
         {% else %}
           {% for sub in tbl.subtables %}
-          <div class="small fw-semibold text-muted mt-2">Klasse {{ sub.class_label or '–' }}</div>
-          {{ ranking_table(sub, tbl.spots, false) }}
+          <div class="small fw-semibold text-muted mt-2">Klasse {{ sub.class_label or '–' }}
+            <span class="text-muted">({{ sub.spots }} Platz{{ 'ä' if sub.spots != 1 else '' }}{{ 'tze' if sub.spots != 1 else '' }})</span>
+          </div>
+          {{ ranking_table(sub, sub.spots, false) }}
           {% endfor %}
         {% endif %}
         <hr class="my-3">

@@ -68,7 +68,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 state = {
     "ring_id": None, "run_status": "idle", "active_run_id": None,
     "current_starter": None, "start_time_tod": None,
-    "faults": 0, "refusals": 0,
+    "faults": 0, "refusals": 0, "dis": 0,
     "final_time": None,
     # Hauptserver-Verbindungsstatus, wird vom Heartbeat-Thread aktualisiert
     "server_reachable": False,
@@ -77,7 +77,7 @@ state = {
 
 def reset_state():
     state.update(run_status="idle", active_run_id=None, current_starter=None,
-                 start_time_tod=None, faults=0, refusals=0, final_time=None)
+                 start_time_tod=None, faults=0, refusals=0, dis=0, final_time=None)
     socketio.emit('state_update', state)
     print(f"[{state['ring_id']}] Zustand zurückgesetzt.")
 
@@ -252,6 +252,7 @@ class TimyEvents:
                         'final_time': f"{final_time:.2f}",
                         'faults': state['faults'],
                         'refusals': state['refusals'],
+                        'dis': state['dis'],
                         'start_time_tod': state['start_time_tod']
                     }
                     socketio.emit('run_finished_timing', result_package)
@@ -293,6 +294,19 @@ def handle_increment(data):
         state[data['type']] += data.get('value', 1)
         socketio.emit('state_update', state)
         print(f"[{state['ring_id']}] {data['type']} erhöht auf: {state[data['type']]}")
+
+@socketio.on('count_dis')
+def handle_count_dis(data=None):
+    # DIS wird GEZÄHLT, nicht gesetzt: jeder DIS = 5 Strafsekunden, mehrere pro
+    # Lauf möglich (value=+1 zählt hoch, -1 korrigiert). Bewusst OHNE Timer-/
+    # Status-Reset -- anders als der DIS-Button am normalen Ring-PC-Dashboard
+    # (der den Lauf sofort abschliesst) läuft der TIMY-Lauf hier unverändert
+    # weiter. Korrigierbar solange der Lauf nicht 'idle' ist; nie unter 0.
+    data = data or {}
+    if state['run_status'] in ('ready', 'running', 'finished_timing'):
+        state['dis'] = max(0, int(state['dis'] or 0) + int(data.get('value', 1)))
+        socketio.emit('state_update', state)
+        print(f"[{state['ring_id']}] DIS-Zähler: {state['dis']}")
 
 @socketio.on('reset_current_run')
 def handle_reset(data=None):

@@ -3,7 +3,103 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-10-11
+Stand: 2026-10-12
+
+## Session 2026-10-12 (c) — KO: schrittweise Ableitung PRO LAUF + Losnummern-Liste + Split-Demo (UNCOMMITTED)
+
+- [x] **Ableitung pro Lauf statt alles auf einmal** (User-Wunsch: nach jedem Lauf
+      einzeln ableiten + Losnummer vergeben). Engine
+      `ko_qualification.apply_single_run_qualification(event, run_index, schluessel=None,
+      source_lookup=None)`: leitet NUR den einen Schlüssel-Lauf ab und **hängt** die
+      Finalisten an (vs. globales `apply_ko_qualification` = alle Läufe, ersetzt alle
+      source=run). **Idempotent** (entfernt zuerst frühere Finalisten mit gleichem
+      `quali_label`, dann neu → Doppelklick fügt nichts via Nachrücken doppelt an).
+      Dedup/Nachrücken seedet `qualified` aus ALLEN noch vorhandenen Finalisten. Bracket
+      der berührten Finals invalidiert. IndexError bei ungültigem Index.
+- [x] **Config-Route** `derive_run` (`routes_ko_cup.py` POST, `run_index`), baut
+      `source_lookup` aus allen Events (eventübergreifend). Template `ko_cup_config.html`:
+      Karte „Schrittweise – pro Lauf ableiten" mit je 1 Button pro Schlüssel-Lauf; globaler
+      Button bleibt als „Alle Läufe auf einmal ableiten".
+- [x] **Losnummern-Liste** (User: „Liste der Qualifizierten, Losnummer direkt dahinter"):
+      ist die bestehende Finalisten-Tabelle in `ko_cup_final.html` — inline `draw_<pid>`-Input
+      + „Losnummern speichern" (`set_draws`). NEU: unglost = gelb (`table-warning`),
+      `quali_label`-Badge pro Zeile, Action **`draw_remaining`** („Restliche losen") vergibt
+      nur den unglosten die nächsten FREIEN Nummern fortlaufend; `random_draws` umbenannt zu
+      „Alle neu losen (Test)".
+- [x] **Split-Demo** `build_hcs_split_demo()` in `tools/make_demo_events.py`: ZWEI getrennte
+      Events — `DEMO_HCS_FR` (nur Fr-Tunnellauf, kein ko_cup) + `DEMO_HCS_SPLIT` (Sa Agi/Jump,
+      ko_cup-Config mit `source_event_id:"DEMO_HCS_FR"` am Tunnellauf, **finals:[]**). Zum
+      Testen der eventübergreifenden Ableitung. make_demo_events print cp1252-robust gemacht.
+- [x] **62 KO-Tests grün** (neu: +4 in `test_ko_qualification.py` + neue
+      `tests_pure/test_ko_cup_stepwise_routes.py`). E2E verifiziert: Tunnel→+16 (Lose 1-16),
+      Agi→+8 angehängt (alte Lose intakt, 17-24), Jump→+8 (25-32), Doppel-Ableiten idempotent.
+- [ ] **OFFEN: committen** (KO-Session a+b+c zusammen) + EXE-Rebuild (ring_server.py-Änderungen
+      greifen erst in neuer AgilityRing.exe) + TIMY-Generalprobe (nächstes WE).
+- [ ] **OFFEN (Frage an User gestellt):** Losnummern-Liste liegt pro Kategorie auf der
+      jeweiligen Finale-Seite. Evtl. zusätzlich kombinierte Liste über alle Kategorien auf der
+      Config-Seite gewünscht? (noch keine Antwort)
+
+## Session 2026-10-12 (b) — KO: DIS-Korrektur + Komplett-Demo + Schlüssel-UI + Tabs-Entfernung + Quell-Event + Display-Fit/Follow (UNCOMMITTED)
+
+- [x] **DIS KORRIGIERT — gezählt statt gesetzt:** im KO-System ist DIS ein Zähler
+      (**5 Strafsek pro DIS, mehrere pro Lauf möglich**), kein Toggle/Flag; Ausscheiden
+      nur via Forfait. `score_side` (ko_cup.py) = `int(dis)*PEN_DIS`. `ring_server.py`:
+      `state["dis"]` int, Handler **`count_dis`** (`{value:+1/-1}`, geclamped ≥0, OHNE
+      Timer-Reset) ersetzt `toggle_dis`. `ko_cup_ring.html`: sichtbarer −/＋-Zähler + Taste
+      **D** (=+1). Manuelles Feld in `ko_cup_final.html`: Checkbox→Zahl. `save_run`/
+      `_parse_run_form` via `_to_int`. Alt-bool `dis:true` zählt als 1 (abwärtskompatibel).
+- [x] **Kategorie-Tabs auf der Zuschauer-Anzeige entfernt** (`ko_cup_display.html`): aktive
+      Kategorie nur noch im Header-Label; Wechsel ausschliesslich via Fernsteuerung / `?cat`/`?rotate`.
+- [x] **Komplett-Demo `DEMO_HCS_FULL`** (`tools/make_demo_events.py` → `build_hcs_full_demo`):
+      ganzes Event inkl. Freitag (Datum 2026-10-30), 6 Quali-Läufe (Fr Tunnellauf + Sa Agility/
+      Jumping, je Large+Medium, Kl.1/SCT60 → deterministisch). **Large = 32 Finalisten** (voller
+      5-Runden-Baum, 32 matchups), Medium = 8; Finals abgeleitet+gelost+Bracket generiert
+      (ungespielt). Re-Ableiten reproduziert 32/8 (verifiziert).
+- [x] **Schlüssel-Editor-UI** (`ko_cup_config.html` + `routes_ko_cup.py` `save_schluessel`):
+      Finalplätze pro Lauf editierbar; **Agility/Jumping pro Klasse×Kategorie**, Tunnellauf
+      kombiniert. Modell `spots[cat]` = int (alle Klassen) ODER dict `{klasse:int}`; Helper
+      `ko_qualification.spots_for`. `CONFIG_CLASSES=["1","2","3"]`.
+- [x] **59 KO-Tests grün**; live gegen Dev-Instanz verifiziert (Config/Display/Ring/Rankings/Final 200).
+- [x] **Ableitung über getrennte Online-Events — ENTSCHEIDUNG: separate Events** (User: „mehr
+      Rulesets mit Mehrtages-Overlay kommen" → generisch, kein Fr-Import). Gebaut: optionales
+      `source_event_id` pro Schlüssel-Lauf (leer = dieses Event); Engine
+      `ko_qualification._runs_source` + Param `source_lookup` durch `calculate_/apply_ko_qualification`
+      + `ranking_tables` + `_process_config_run`/`_run_table`; Blueprint baut `source_lookup` aus allen
+      Events, `save_schluessel` liest `source_<i>`; Dropdown (Macro `source_select`) in
+      `ko_cup_config.html`. 2 neue Unit-Tests + POST-/Config-Smoke 200 (Sa-Event zieht Finalisten aus Fr-Event).
+- [x] **Fernsteuerbares Scrollen 32er-Bracket — ENTSCHEIDUNG: 1+2 (ohne 3)** (`ko_cup_display.html`).
+      Vorher „läuft"-Bug analysiert/gefixt: war `bothPresent && !decided` → frisches Bracket ließ die
+      ganze 1. Runde „läuft" leuchten; jetzt zusätzlich `hasAnyRun(m)` (mind. eine erfasste Zeit).
+      (1) Auto-Fit Höhe (`fitAndFocus` misst + `transform:scale`, `#fitOuter` trägt skalierte Grösse,
+      stage overflow-y:hidden); (2) Live-Follow (`focusMatchup`→laufendes Duell / nächstes offenes /
+      Final, `focusLive` zentriert horizontal, pausiert 20 s bei manuellem Scroll). Punkt 3
+      (Runden-Navigation per Fernsteuerung) bewusst NICHT gebaut. Display-Smoke 200.
+- [x] **58 KO-Tests grün** (56 + 2 source-event); Display/Config/Derive end-to-end Smoke 200.
+- [ ] **OFFEN: committen** (ganze KO-Session a+b) + EXE-Rebuild (ring_server.py greift erst in neuer AgilityRing.exe).
+
+## Session 2026-10-12 (a) — KO: Kiosk-Anzeige + DIS-Toggle + Monitor-Fernsteuerung (UNCOMMITTED)
+
+> Hinweis: Der DIS-Toggle aus (a) wurde in (b) durch den DIS-**Zähler** ersetzt (siehe oben).
+
+- [x] **Zuschauer-/Kiosk-Bracket-Anzeige gebaut:** `ko_cup_display.html` + Route
+      `GET /ko-cup/display/<event_id>` (`routes_ko_cup.py`). Dark Vollbild, read-only,
+      Datenquelle nur die vorhandene `/ko-cup/api/state`-JSON (keine Backend-Daten-Änderung).
+      Bracket-Baum, Sieger grün, laufendes Duell "läuft"-Badge, 🏆 Sieger-Banner. Tabs je
+      Grössenklasse; `?cat=L|I|M|S` sperrt eine Klasse, `?rotate=N` Auto-Rotation. Verlinkt in
+      ko_cup_config.html + ko_cup_final.html.
+- [x] **DIS am KO-Ring als zählbarer Toggle:** `ring_server.py` `state["dis"]` + Handler
+      `toggle_dis` — bewusst OHNE Timer-/Status-Reset (TIMY-Lauf läuft weiter), in
+      `run_finished_timing`-Paket. `ko_cup_ring.html`: DIS-Button + **Hotkey D**, live gesynct,
+      korrigierbar bis zum Speichern. `disInput` jetzt versteckter State-Halter (Desync-Fix).
+- [x] **Zuschauer-Monitor vom Ring-PC fernsteuern:** Panel "📡 Zuschauer-Monitor fernsteuern"
+      in ko_cup_ring.html → Handler `ko_display_control` (routes_ko_cup.py) reicht per Room
+      `event:<id>` an alle Displays weiter (Haupt-Server-Socket, nicht Ring-Server). Actions
+      `show_category` + `rotate`. `?cat=`-gesperrter Monitor ignoriert Kategorie-Wechsel.
+- [x] **57 KO-Tests grün** (neu: `tests_pure/test_ko_ring_server_dis.py` + Erweiterungen in
+      `test_ko_cup_ring_api.py`). Live gegen laufende Dev-Instanz verifiziert.
+- [ ] **OFFEN: committen** (getrennt DIS / Fernsteuerung / Kiosk oder zusammen) + später
+      EXE-Rebuild (ring_server.py-Änderung greift erst in neuer AgilityRing.exe).
+- [ ] Demo-Event `ko-demo-event` liegt in `web_app/data/events.json` (is_test) zum Durchklicken.
 
 ## Session 2026-10-11 — KRITISCH: Event verschwindet mitten im Betrieb (GEFIXT + EXE gebaut)
 
