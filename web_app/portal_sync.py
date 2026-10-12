@@ -355,6 +355,37 @@ def push_run_changed(settings: dict, event: dict, run: dict) -> None:
     t.start()
 
 
+def push_ko_bracket(settings: dict, event: dict, ko_state: dict) -> None:
+    """Schickt den aktuellen KO-Bracket-Stand (alle Finals eines Events) asynchron
+    ans Portal. Das Portal spiegelt den Snapshot nur (read-only Live-Anzeige) – es
+    rechnet keine Runden. `ko_state` ist das Dict aus routes_ko_cup._ko_state()."""
+    portal_url = (settings.get("portal_url") or "").rstrip("/")
+    api_key    = settings.get("portal_live_api_key") or ""
+    device_id  = settings.get("portal_device_id") or "agility-software"
+
+    if not portal_url or not api_key:
+        return
+
+    payload = {
+        "schema":            "agility.exchange.liveupdate.v1",
+        "event_external_id": event.get("external_id") or event.get("id") or "",
+        "source": {
+            "system":  "agility-software",
+            "version": "4.4",
+            "device":  device_id,
+        },
+        "sequence_no": _next_seq(),
+        "sent_at":     _utc_now_iso(),
+        "update_type": "ko_bracket",
+        "event_name":  ko_state.get("event_name"),
+        "finals":      ko_state.get("finals") or [],
+    }
+
+    endpoint = f"{portal_url}/api/liveupdate"
+    t = Thread(target=_do_push_live_update, args=(endpoint, api_key, payload), daemon=True)
+    t.start()
+
+
 # ----------------------------------------------------------------------------
 # Result-Export ZIP
 # ----------------------------------------------------------------------------

@@ -19,7 +19,7 @@ import random
 from flask import (Blueprint, render_template, request, redirect,
                    url_for, flash, abort, jsonify)
 
-from utils import _load_data, _save_data, get_event_logo_data_uris
+from utils import _load_data, _save_data, get_event_logo_data_uris, _load_settings
 import ko_cup
 import ko_qualification
 
@@ -430,6 +430,7 @@ def ko_final_post(event_id, final_id):
             flash(f"Bracket mit {len(parts)} Finalisten generiert.", "success")
 
     _save_data(EVENTS_FILE, events)
+    _push_ko(event)
     return redirect(url_for('ko_cup_bp.ko_final_detail', event_id=event_id, final_id=final_id))
 
 
@@ -468,6 +469,7 @@ def ko_matchup_result(event_id, final_id, matchup_id):
 
     ko_cup.recompute(final)
     _save_data(EVENTS_FILE, events)
+    _push_ko(event)
     flash("Ergebnis gespeichert.", "success")
     return redirect(url_for('ko_cup_bp.ko_final_detail', event_id=event_id, final_id=final_id))
 
@@ -531,6 +533,28 @@ def _final_json(final: dict) -> dict:
     }
 
 
+def _ko_state(event: dict, event_id: str | None = None) -> dict:
+    """Vollständiger KO-Stand als reines Dict (alle Finals, kategoriegeordnet)."""
+    ko = _ensure_ko_cup(event)
+    order = {c: i for i, c in enumerate(CATEGORY_ORDER)}
+    finals = sorted(ko['finals'], key=lambda f: order.get(f.get('category_code'), 99))
+    return {
+        "event_id": event_id or event.get("id"),
+        "event_name": event.get("Bezeichnung"),
+        "finals": [_final_json(f) for f in finals],
+    }
+
+
+def _push_ko(event: dict) -> None:
+    """Spiegelt den aktuellen Bracket-Stand ans Portal (read-only Live-Anzeige).
+    Fehler dürfen den lokalen Betrieb nie stören – Portal-Sync ist optional."""
+    try:
+        import portal_sync
+        portal_sync.push_ko_bracket(_load_settings(), event, _ko_state(event))
+    except Exception:
+        pass
+
+
 @ko_cup_bp.get('/api/state/<event_id>')
 def ko_api_state(event_id):
     """Vollständiger KO-Stand als JSON – vom Ring-PC (und der Live-Anzeige)
@@ -538,15 +562,7 @@ def ko_api_state(event_id):
     events, event = _get_event(event_id)
     if not event:
         return jsonify({"success": False, "message": "Event nicht gefunden"}), 404
-    ko = _ensure_ko_cup(event)
-    order = {c: i for i, c in enumerate(CATEGORY_ORDER)}
-    finals = sorted(ko['finals'], key=lambda f: order.get(f.get('category_code'), 99))
-    return jsonify({
-        "success": True,
-        "event_id": event_id,
-        "event_name": event.get("Bezeichnung"),
-        "finals": [_final_json(f) for f in finals],
-    })
+    return jsonify({"success": True, **_ko_state(event, event_id)})
 
 
 @ko_cup_bp.post('/api/save_run/<event_id>/<final_id>/<matchup_id>')
@@ -587,6 +603,7 @@ def ko_api_save_run(event_id, final_id, matchup_id):
 
     _emit('ko_update', {"event_id": event_id, "final_id": final_id,
                         "matchup_id": matchup_id})
+    _push_ko(event)
     return jsonify({
         "success": True,
         "matchup": _matchup_json(final, matchup, ""),
