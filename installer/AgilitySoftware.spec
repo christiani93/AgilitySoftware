@@ -39,6 +39,7 @@ hiddenimports = [
     "live.live_state",
     "live.ring_state",
     "planner.schedule_planner",
+    "data_backup",
     "webview",
     "webview.platforms.edgechromium",
     "clr_loader",

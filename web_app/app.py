@@ -370,6 +370,11 @@ def _open_app_window(port=5000):
 if __name__ == '__main__':
     try:
         initialize_files()
+        try:
+            from data_backup import start_backup_thread
+            start_backup_thread()
+        except Exception:
+            pass  # Backup ist eine Absicherung, darf den Start nie blockieren
         _print_startup_banner(port=5000)
         try:
             from updater import check_and_print
