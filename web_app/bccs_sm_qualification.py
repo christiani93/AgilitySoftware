@@ -55,6 +55,7 @@ Datenformat-Erwartungen am `event`-Dict (identisch zu skbs_sm_qualification.py):
 """
 from __future__ import annotations
 
+import copy
 import math
 
 
@@ -73,10 +74,20 @@ DIS_SENTINEL_ZEIT = 999.99
 # Public API
 # ---------------------------------------------------------------------------
 
-def calculate_bccs_sm_qualification(event: dict) -> dict:
+def calculate_bccs_sm_qualification(event: dict, recalc_fn=None) -> dict:
     """
     Berechnet die BCCS-SM-Qualifikation für ein Event über alle 4 Divisionen
     (Intermediate/Large × SM/Nachwuchs).
+
+    `recalc_fn` (optional): Callable `fn(run_dict) -> Any`, das die Ergebnisfelder
+    (fehler_total/zeit_total/fehler_parcours/platz/…) der Entries eines Laufs
+    IN PLACE neu berechnet — über genau das Feld, das in `run_dict["entries"]`
+    steckt. Wird gebraucht, weil die SCT in Kl.2/3 dynamisch aus der schnellsten
+    berücksichtigten Zeit abgeleitet wird: Die BCCS-only-Rangliste muss ihre
+    Zeitfehler aus dem SM-Feld neu rechnen, sonst stammen sie aus der offenen
+    (Gesamtfeld-)Berechnung und sind falsch. Ohne `recalc_fn` (bzw. ohne SM-Filter
+    oder ohne Rohdaten) gilt der abwärtskompatible Fallback auf die gespeicherten
+    Werte. Siehe `_sm_entries_for_run`.
 
     Returns: dict mit Struktur:
       {
@@ -121,7 +132,7 @@ def calculate_bccs_sm_qualification(event: dict) -> dict:
             quota: dict[str, int] = {}
             open_spots = 0
             for cls in div_def["classes"]:
-                res = _compute_class(_collect_class(event, category, cls, sm_filter), quali_order, qualified)
+                res = _compute_class(_collect_class(event, category, cls, sm_filter, recalc_fn), quali_order, qualified)
                 div_finalists.extend(res["finalists"])
                 for la, q in res["quota"].items():
                     quota[la] = quota.get(la, 0) + q
@@ -139,10 +150,12 @@ def calculate_bccs_sm_qualification(event: dict) -> dict:
     return {"divisions": divisions, "finalists": all_finalists}
 
 
-def rank_final_bccs(event: dict) -> dict:
+def rank_final_bccs(event: dict, recalc_fn=None) -> dict:
     """
     Berechnet die Final-Rangierung je Division aus den 2 Finalläufen (Jumping + Agility),
     summiert mit 3-stufigem Tiebreaker + ex aequo.
+
+    `recalc_fn`: s. calculate_bccs_sm_qualification (SCT-Neuberechnung über SM-Feld).
 
     Returns: dict  "Category/division" → Liste von Result-Dicts mit `final_rang`.
     """
@@ -150,7 +163,7 @@ def rank_final_bccs(event: dict) -> dict:
     out: dict[str, list[dict]] = {}
     for category in CATEGORIES:
         for div_key, div_def in DIVISIONS.items():
-            _quali_pools, final_pools = _collect_division(event, category, div_def["classes"], sm_filter)
+            _quali_pools, final_pools = _collect_division(event, category, div_def["classes"], sm_filter, recalc_fn)
             out[f"{category}/{div_key}"] = _rank_division_final(final_pools)
     return out
 
@@ -218,6 +231,49 @@ def _is_sm_participant(entry: dict, sm_pred) -> bool:
     return True if sm_pred is None else bool(sm_pred(entry))
 
 
+def _has_raw_result(entries: list[dict]) -> bool:
+    """True, wenn mind. ein Eintrag Roh-Ergebnisdaten trägt, die eine Neuberechnung
+    erlauben: ein `result`-Dict oder ein top-level `zeit` (so liest sie
+    utils._calculate_run_results). Fehlen die Rohdaten (z.B. Unit-Test-Fixtures mit
+    nur vorberechneten Feldern), ist kein sinnvoller Recompute möglich → Fallback."""
+    for e in entries:
+        if "result" in e or "zeit" in e:
+            return True
+    return False
+
+
+def _sm_entries_for_run(run: dict, sm_pred, recalc_fn) -> list[dict]:
+    """Liefert die für die BCCS-Wertung zählenden Entries EINES Laufs.
+
+    Reglement P.2: nur SM-Hunde zählen. Weil die SCT in Kl.2/3 dynamisch aus der
+    schnellsten *berücksichtigten* Zeit abgeleitet wird (utils._calculate_run_results),
+    muss die SM-only-Rangliste ihre Zeitfehler/fehler_total NEU über das SM-Feld
+    rechnen — sonst stammen sie aus der offenen (Gesamtfeld-)Berechnung und sind falsch.
+
+    - `sm_pred is None`            → kein Filter aktiv (reine Border-Events/Altdaten):
+                                      ganzes Feld = SM-Feld, gespeicherte Werte gelten.
+    - `recalc_fn is None` ODER keine Rohdaten → Fallback: SM-gefilterte Entries mit
+                                      gespeicherten Werten (bisheriges Verhalten, kompatibel).
+    - sonst                        → Temp-Lauf (Kopie) NUR mit SM-Entries durch
+                                      `recalc_fn` neu rechnen; das Original-Event bleibt
+                                      unberührt (die offene Rangliste darf sich nicht ändern).
+    """
+    entries = run.get("entries", []) or []
+    if sm_pred is None:
+        return entries
+    sm_entries = [e for e in entries if _is_sm_participant(e, sm_pred)]
+    if recalc_fn is None or not _has_raw_result(sm_entries):
+        return sm_entries
+    temp_run = {
+        "klasse":    run.get("klasse"),
+        "laufart":   run.get("laufart"),
+        "laufdaten": copy.deepcopy(run.get("laufdaten", {}) or {}),
+        "entries":   copy.deepcopy(sm_entries),
+    }
+    recalc_fn(temp_run)
+    return temp_run["entries"]
+
+
 def _find_defender(defenders: list[dict], category: str, div_key: str):
     """Sucht den Titelverteidiger für eine bestimmte Division."""
     for d in defenders:
@@ -227,13 +283,14 @@ def _find_defender(defenders: list[dict], category: str, div_key: str):
     return None
 
 
-def _collect_division(event: dict, category: str, division_classes: list[str], sm_filter=None):
+def _collect_division(event: dict, category: str, division_classes: list[str], sm_filter=None, recalc_fn=None):
     """
     Sammelt Quali- und Final-Einträge einer Division (Kategorie + Klassen-Gruppe).
 
     Returns: (quali_pools, final_pools), je dict laufart → Liste normalisierter Einträge.
     Für Nachwuchs (Klassen 1+2) werden die Einträge je Laufart über die Klassen
-    hinweg zu EINEM Pool zusammengefasst. `sm_filter` (optional) beschränkt auf SM-Hunde.
+    hinweg zu EINEM Pool zusammengefasst. `sm_filter` (optional) beschränkt auf SM-Hunde;
+    `recalc_fn` (optional) rechnet die SM-only-Werte neu (SCT aus SM-Feld, s. `_sm_entries_for_run`).
     """
     quali = {"Agility": [], "Jumping": []}
     final = {"Agility": [], "Jumping": []}
@@ -248,11 +305,9 @@ def _collect_division(event: dict, category: str, division_classes: list[str], s
         if laufart not in QUALI_RUN_TYPES:
             continue
         bucket = final if run.get("is_final") else quali
-        for e in run.get("entries", []):
+        for e in _sm_entries_for_run(run, sm_filter, recalc_fn):
             lic = (e.get("Lizenznummer") or "").strip()
             if not lic:
-                continue
-            if not _is_sm_participant(e, sm_filter):
                 continue
             ne = _normalise_entry(e)
             ne["from_class"] = int(cls) if cls.isdigit() else None
@@ -261,9 +316,10 @@ def _collect_division(event: dict, category: str, division_classes: list[str], s
     return quali, final
 
 
-def _collect_class(event: dict, category: str, cls: str, sm_filter=None) -> dict:
+def _collect_class(event: dict, category: str, cls: str, sm_filter=None, recalc_fn=None) -> dict:
     """Quali-Einträge EINER (Kategorie × Klasse) je Laufart (Kl.1/Kl.2 getrennt werten).
-    `sm_filter` (optional) beschränkt auf SM-Hunde (Reglement P.2)."""
+    `sm_filter` (optional) beschränkt auf SM-Hunde (Reglement P.2); `recalc_fn` (optional)
+    rechnet die SM-only-Werte neu (SCT aus SM-Feld, s. `_sm_entries_for_run`)."""
     quali = {"Agility": [], "Jumping": []}
     for run in event.get("runs", []):
         if run.get("kategorie") != category or run.get("is_final"):
@@ -273,11 +329,9 @@ def _collect_class(event: dict, category: str, cls: str, sm_filter=None) -> dict
         laufart = run.get("laufart") or ""
         if laufart not in QUALI_RUN_TYPES:
             continue
-        for e in run.get("entries", []):
+        for e in _sm_entries_for_run(run, sm_filter, recalc_fn):
             lic = (e.get("Lizenznummer") or "").strip()
             if not lic:
-                continue
-            if not _is_sm_participant(e, sm_filter):
                 continue
             ne = _normalise_entry(e)
             ne["from_class"] = int(cls) if cls.isdigit() else None

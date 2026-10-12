@@ -14,6 +14,7 @@ from __future__ import annotations
 import io
 import json
 import zipfile
+from functools import partial
 from datetime import datetime, timezone
 from threading import Thread
 from typing import Optional
@@ -598,8 +599,10 @@ def build_result_export_zip(event: dict, final: bool = False) -> bytes:
     try:
         from utils import recalc_and_store, _load_settings
         settings = _load_settings()
+        _recalc_fn = partial(recalc_and_store, settings=settings)
     except Exception:
         settings = {}
+        _recalc_fn = None
 
     event_external_id = event.get("external_id") or event.get("id") or ""
 
@@ -658,7 +661,7 @@ def build_result_export_zip(event: dict, final: bool = False) -> bytes:
     manifest = {"schema": "agility.exchange.resultexport.v1", "generated_at": _utc_now_iso()}
 
     # Schema v1.6: optionaler Finalisten-Block für SKBS-SM (siehe project_offline_architektur)
-    finalists_payload = _build_finalists_payload(event)
+    finalists_payload = _build_finalists_payload(event, recalc_fn=_recalc_fn)
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -669,7 +672,7 @@ def build_result_export_zip(event: dict, final: bool = False) -> bytes:
     return buf.getvalue()
 
 
-def _build_finalists_payload(event: dict) -> dict | None:
+def _build_finalists_payload(event: dict, recalc_fn=None) -> dict | None:
     """
     Berechnet Finalisten-Liste für SKBS-SM-Events und liefert sie als ZIP-Payload.
 
@@ -710,7 +713,7 @@ def _build_finalists_payload(event: dict) -> dict | None:
         # BCCS: Finalisten je Division (I/L × SM/Nachwuchs), flach mit category+division.
         try:
             from bccs_sm_qualification import calculate_bccs_sm_qualification
-            result = calculate_bccs_sm_qualification(event)
+            result = calculate_bccs_sm_qualification(event, recalc_fn=recalc_fn)
         except Exception:
             return None
         finalists = result.get("finalists") or []

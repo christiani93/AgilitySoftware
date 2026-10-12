@@ -10,6 +10,7 @@ Siehe bccs_sm_qualification.py und Reglement BCCS 2023.
 """
 import csv
 import io
+from functools import partial
 
 from flask import (Blueprint, render_template, request, redirect,
                    url_for, flash, abort, Response)
@@ -66,8 +67,9 @@ def bccs_sm_dashboard(event_id):
     _recalc(event, settings)
     _save_data(EVENTS_FILE, events)
 
-    bccs_data = calculate_bccs_sm_qualification(event)
-    final_ranking = rank_final_bccs(event)
+    recalc_fn = partial(recalc_and_store, settings=settings)
+    bccs_data = calculate_bccs_sm_qualification(event, recalc_fn=recalc_fn)
+    final_ranking = rank_final_bccs(event, recalc_fn=recalc_fn)
 
     return render_template(
         'bccs_sm_dashboard.html',
@@ -130,8 +132,9 @@ def bccs_sm_export_csv(event_id):
 
     settings = _load_settings()
     _recalc(event, settings)
-    bccs_data = calculate_bccs_sm_qualification(event)
-    final_ranking = rank_final_bccs(event)
+    recalc_fn = partial(recalc_and_store, settings=settings)
+    bccs_data = calculate_bccs_sm_qualification(event, recalc_fn=recalc_fn)
+    final_ranking = rank_final_bccs(event, recalc_fn=recalc_fn)
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';')

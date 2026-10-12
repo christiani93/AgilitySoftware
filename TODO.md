@@ -5,6 +5,41 @@
 
 Stand: 2026-10-12
 
+## Session 2026-10-12 (d) — BCCS-SM: SM-Hund-Filter (offenes Turnier) — COMMITTED `bb5dae1`, ABER SCT offen
+
+Kontext: BCCS-SM (21./22.11) läuft als **normales offenes Turnier**; nur **SM-Hunde**
+(als „SM Angemeldet" markierte Border) zählen für die 15%-Quote und qualifizieren sich —
+nicht alle I/L-Starter (Feld ist gemischtrassig: Malinois/Groenendael/„Working"-Border ohne SHSB).
+AOA-Spalte = `SM Angemeldet`. SHSB = nur reinrassig, NICHT = Border → kein Rasse-/SHSB-Filter.
+
+- [x] **Rechenkern-Filter** `bccs_sm_qualification.py`: Per-Entry-Flag `entry["bccs_sm"]`
+      (Auto-Erkennung via `_build_sm_predicate`) + Fallback `bccs_sm_config.sm_licenses`;
+      ohne beides kein Filter (abwärtskompatibel). Titelverteidiger ungefiltert. 16 Tests grün.
+- [x] **Import** (`routes_events._apply_eventexport_registrations`): `bccs_sm` nur in Entry,
+      wenn Portal-Reg das Feld liefert (Aliasse bccs_sm/sm_angemeldet/sm/laeuft_sm).
+- [x] **Toggle-API** `/events/api/toggle_bccs_sm/<eid>/<liz>` + **UI-Checkbox** „SM" in
+      `manage_run_participants.html` (nur bei Veranstaltungsart „BCCS-SM" sichtbar). Smoke grün.
+- [x] ⚠️ **KRITISCH: SCT + Zeitfehler in gefilterter SM-Rangliste NEU berechnen** — ERLEDIGT.
+      SCT für Kl.2/3 ist dynamisch aus der schnellsten Starter-Zeit (`utils._calculate_run_results`:
+      base_time × Faktor Kl.3=1.3/Kl.2=1.4/FCI=1.15, ceil). Filtern auf SM-Hunde ändert die
+      schnellste Zeit → SCT → Zeitfehler → fehler_total → Quali/Rang. Umsetzung: optionale
+      `recalc_fn`-Injektion in `calculate_bccs_sm_qualification`/`rank_final_bccs`; pro Lauf baut
+      `_sm_entries_for_run` einen Temp-Lauf NUR mit SM-Entries (+ `laufdaten`-Kopie) und rechnet
+      ihn durch `recalc_and_store` neu — Original-Event bleibt unberührt (offene Rangliste ändert
+      sich nicht). Guard: nur wenn SM-Filter aktiv UND Rohdaten (`result`/`zeit`) da, sonst
+      Fallback auf gespeicherte Werte (pure Tests bleiben grün). Aufrufer `routes_bccs_sm.py`
+      (Dashboard + CSV) und `portal_sync._build_finalists_payload` verdrahtet. Regressionstest
+      `web_app/tests/test_bccs_sm_sct_recompute.py` (schneller Nicht-SM-Hund drückt offene SCT →
+      ohne Fix falscher Finalist A, mit Fix regelkonform B). Betrifft SM (Kl.3) + Nachwuchs-Kl.2,
+      NICHT Nachwuchs-Kl.1 (fixe SCT).
+- [ ] **End-to-End-Test** mit echtem AOA-Export (User liefert nach) gegen die 2024/25-Final-/
+      Quali-Ranglisten unter `C:\Users\chris\Desktop\BCCS\` (SM/ + Nachwuchs/).
+- [ ] **sm_licenses-Editor** in `routes_bccs_sm.py` fehlt (aktuell nur manuell per Toggle
+      oder via Portal-Import).
+- [ ] **PORTAL-Seite** (nach SW, „dann Portal-Listen"): `Registration.bccs_sm` + Migration
+      (Muster is_in_season models.py:728), AOA-Import SM-Spalte (`routes_aoa_import._detect_columns`),
+      `exchange_service.py` Export-Payload — dort fehlt HEUTE sogar `is_in_season` → mitnehmen.
+
 ## Session 2026-10-12 (c) — KO: schrittweise Ableitung PRO LAUF + Losnummern-Liste + Split-Demo (UNCOMMITTED)
 
 - [x] **Ableitung pro Lauf statt alles auf einmal** (User-Wunsch: nach jedem Lauf
