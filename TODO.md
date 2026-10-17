@@ -3,7 +3,58 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-10-12
+Stand: 2026-10-17
+
+## Session 2026-10-17 — Zeitplan-Modul-Port Software ← Portal (3 Phasen, mehrtägig)
+
+Auftrag: SW-Zeitplan-Modul durch das (fortgeschrittenere) Portal-Modul ersetzen, damit beide
+Seiten gleich funktionieren. Vollständiger Befund + Portal-Fundstellen in Memory
+`project_schedule_module_portal_parity.md`.
+
+- [x] **Phase 1 — Berechnungs-Engine** (COMMITTED `f7e4004`): Portal-Engine 1:1 nach
+      `planner/schedule_planner.py` portiert (atomare Blöcke statt Mehrfach-Kategorie-Blöcke):
+      `split_into_groups` (gruppiert Disziplin+Klasse, Kategorie NICHT im Schlüssel),
+      `skip_changeover`/`skip_briefing`/`force_new_group`, `participant_count_override`,
+      `estimate_block`/`compute_timeline`/`compute_detailed_segments`/`auto_title` mit Portal-
+      Konstanten (Umbau 1200s, Briefing 8min/50, Preppause 300s nur ≤1 Block), plus stabile
+      `run_id`-Block↔Lauf-Verknüpfung (`link_block_to_run`). 18 Tests
+      `tests_pure/test_schedule_planner_portal_parity.py`. Alte Engine + `plan_schedule.html`
+      bewusst noch unangetastet.
+- [x] **Phase 2 — Cutover scharf** (COMMITTED `cb9cc61`/`086f867`/`d8d487c`/`1e617f0`):
+      **Strategie: KEIN Portal-Key-Rename** (hätte ~15 live-kritische Stellen gebrochen),
+      stattdessen Storage-Keys (type/timing_run_type/size_category/classes) behalten +
+      Parity-Engine per **Dual-Read-Accessors** darauf rechnen lassen.
+      - 2a: Accessors `_blk_type/_blk_discipline/_blk_category/_blk_class_level`.
+      - 2b: `migrate_schedule_to_atomic` in `ensure_schedule_root` (Blöcke beim Laden atomar,
+        idempotent); Timeline → `compute_detailed_segments` (Gruppierung Disziplin+Klasse) mit
+        Kompat-Aliassen (segment_type/num_starters/duration) → Templates/Druck unverändert.
+      - 2c: Editor-Routen `toggle_block`/`set_block_judge`/`set_block_participants` + Controls
+        in `plan_schedule.html` (Umbau/Briefing/Split/Override/Richter), Gruppen-Leader-Logik.
+      - Live-Routen-Smoke grün (ring_pc/ranking/run_entry/ring_monitor). 234 pure + 42 web_app.
+      - **NICHT gemacht (bewusst):** Drag&Drop (SortableJS vendoren) — Auf/Ab reicht;
+        `add_schedule_block`-Formular zeigt noch Mehrfach-Kat-Auswahl (Migration atomisiert eh)
+        → kosmetischer Follow-up.
+      - [x] **EXE-Rebuild ERLEDIGT 2026-10-17 16:13** (`dist\AgilitySoftware.exe`, 86'814'221 B,
+        aus HEAD `1e617f0`). Backup `dist\AgilitySoftware_prebuild_20261017_161154.exe.bak`.
+        Vorher 234 pure + 46 web_app grün. **EXE-Smoke grün** (headless gegen Dev-Daten-Kopie,
+        `AGILITY_NO_WINDOW=1`): `/`, `/events`, `/ring_pc_dashboard/1+2`, `/ring_monitor/1`,
+        `/live/ranking`, `/live/run_entry`, `/announcer_dashboard` alle 200; Zeitplan-Editor
+        migrierte einen injizierten Legacy-Mehrfach-Kat-Block live in **12 atomare Blöcke** mit
+        Umbau/Briefing/Split-Controls, kein Traceback.
+      - **AgilityRing.exe NICHT neu gebaut** — bewusst: seit dem Build 2026-10-12 20:26 kein
+        `web_app/ring_server/`-Code geändert, kein `planner`-Import im Ring → der 12.10.-Ring-Build
+        (16'215'180 B, enthält KO `e979360`) ist weiterhin aktuell.
+- [ ] **Phase 3 — Cleanup toter Pfade** (ZURÜCKGESTELLT bis nach Testwochenende, kein
+      Funktionsgewinn): `event['run_order']`, alte `utils._calculate_timelines`-Legacy
+      (time_per_starter/is_grossring) + `schedule_planner.compute_computed_timeline`/
+      `_compute_timeline_for_ring`, doppelte `_match_run_to_block` (planner/utils/briefing_groups),
+      toter `/api/get_starter_count`, toter `print_order.build_briefing_sessions`. Downstream
+      (routes_print/routes_live/ring_monitor/`_apply_eventexport_schedule`) braucht KEINE Änderung
+      (liest unveränderte Storage-Keys, per Smoke grün).
+- [ ] **Achtung beim Port**: Portal-Modul selbst ist NICHT multi-tag-fähig (ScheduleBlock hat
+      kein Tagesfeld, rechnet einen durchgehenden Zeitstrahl ab event.starts_at) → bei der SW
+      gleich richtig bauen (Tagesgrenzen für Mehrtages-Events wie HCS Fr/Sa/So), NICHT den
+      Portal-Bug mitportieren.
 
 ## Session 2026-10-12 (d) — BCCS-SM: SM-Hund-Filter (offenes Turnier) — COMMITTED `bb5dae1`, ABER SCT offen
 
