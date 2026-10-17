@@ -201,3 +201,49 @@ def test_set_block_judge(client):
     client.post("/events/plan_schedule/EDIT/set_block_judge",
                 data={"block_id": "A", "judge_id": "J7"})
     assert _load_block("A")["judge_id"] == "J7"
+
+
+def _seed_live_event():
+    ev = {
+        "id": "LIVE",
+        "name": "Live Smoke",
+        "Datum": "2026-10-30",
+        "num_rings": 1,
+        "start_times_by_ring": {"ring_1": "08:00"},
+        "runs": [{
+            "id": "RL", "laufart": "Agility", "kategorie": "Large", "klasse": "2",
+            "laufdaten": {"parcours_laenge": "150"},
+            "entries": [
+                {"Lizenznummer": "L1", "Startnummer": "101", "Hundename": "A", "Hundefuehrer": "HF1",
+                 "zeit": "34.50", "fehler": "0", "verweigerungen": "0", "dis_abr": ""},
+                {"Lizenznummer": "L2", "Startnummer": "102", "Hundename": "B", "Hundefuehrer": "HF2",
+                 "zeit": "35.20", "fehler": "5", "verweigerungen": "0", "dis_abr": ""},
+            ],
+        }],
+        "run_order": [],
+        "schedule": {"schedule_version": 2, "event_id": "LIVE", "meta": {}, "rings": {"1": {
+            "start_time": "08:00", "blocks": [
+                {"id": "A", "type": "run", "timing_run_type": "agility", "size_category": "large",
+                 "size_categories": [], "classes": ["2"], "judge_id": "", "title": "",
+                 "sort_index": 0, "skip_changeover": False, "skip_briefing": False,
+                 "force_new_group": False, "participant_count_override": None, "run_id": None},
+            ]}}},
+    }
+    dd = _data_dir()
+    with open(os.path.join(dd, "events.json"), "w", encoding="utf-8") as f:
+        json.dump([ev], f, ensure_ascii=False, indent=2)
+    with open(os.path.join(dd, "active_event.json"), "w", encoding="utf-8") as f:
+        json.dump({"active_event_id": "LIVE"}, f)
+
+
+@pytest.mark.parametrize("url", [
+    "/ring_pc_dashboard/1",
+    "/live/ranking/LIVE/RL",
+    "/live/run_entry/LIVE/RL",
+    "/ring_monitor/1",
+    "/api/render_ring_monitor_content/1",
+])
+def test_live_routes_render_with_atomic_schedule(client, url):
+    _seed_live_event()
+    resp = client.get(url)
+    assert resp.status_code == 200, f"{url} -> {resp.status_code}"
