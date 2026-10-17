@@ -289,3 +289,23 @@ def test_reorder_blocked_in_ko(content_app, data_dir):
     r = content_app.test_client().post(
         "/einweiser/api/reorder/EVT1/any", json={"license_number": "pa", "direction": "down"})
     assert r.status_code == 403
+
+
+# --- P5: Robustheit --------------------------------------------------------
+
+def test_mark_unknown_event_and_run_404(content_app, data_dir):
+    _write_event(data_dir, _normal_event())
+    c = content_app.test_client()
+    assert c.post("/einweiser/api/mark/NOPE/run_a",
+                  json={"license_number": "L1", "mark": "ready"}).status_code == 404
+    assert c.post("/einweiser/api/mark/EVT1/nope",
+                  json={"license_number": "L1", "mark": "ready"}).status_code == 404
+
+
+def test_reorder_unknown_run_404_and_bad_direction_400(content_app, data_dir):
+    _write_event(data_dir, _normal_event())
+    c = content_app.test_client()
+    assert c.post("/einweiser/api/reorder/EVT1/nope",
+                  json={"license_number": "L1", "direction": "down"}).status_code == 404
+    assert c.post("/einweiser/api/reorder/EVT1/run_a",
+                  json={"license_number": "L1", "direction": "sideways"}).status_code == 400
