@@ -482,7 +482,19 @@
       return !!(e.is_in_season || e.start_last || e.start_at_end);
     }
 
+    // Spiegelt utils.sort_entries_for_startlist: liegt eine manuelle Reihenfolge
+    // vom Einweiser vor (start_order), hat sie Vorrang; sonst läufig ans Ende +
+    // Startnummer aufsteigend. So folgt die Ring-PC-Liste (und auto-"Bereit")
+    // der Umreihung des Einweisers.
+    function hasStartOrder(e){
+      return e.start_order !== undefined && e.start_order !== null && e.start_order !== '';
+    }
     function byStartnummer(a,b){
+      const ha = hasStartOrder(a), hb = hasStartOrder(b);
+      if (ha || hb){
+        if (ha && hb) return Number(a.start_order) - Number(b.start_order);
+        return ha ? -1 : 1;  // Einträge mit manueller Reihenfolge zuerst
+      }
       const ea = startsAtEnd(a), eb = startsAtEnd(b);
       if (ea !== eb) return ea ? 1 : -1;
       const na = parseInt(a.Startnummer,10);
@@ -499,6 +511,10 @@
         return;
       }
       const entries = [...state.allEntries].sort(byStartnummer);
+      // Liegt eine manuelle Einweiser-Reihenfolge vor, ist die Liste absichtlich
+      // nicht nach Startnummer sortiert -> die "Reihenfolge unterbrochen"-Warnung
+      // unten unterdruecken (waere sonst Dauerrauschen).
+      const manualOrder = state.allEntries.some(hasStartOrder);
       const assignedLicense = state.currentEntryToEdit ? state.currentEntryToEdit.Lizenznummer : null;
       let prevNr = null;
       ui.starterList.innerHTML = entries.map(entry => {
@@ -528,7 +544,7 @@
         const nr = parseInt(entry.Startnummer, 10);
         const notAscending = prevNr !== null && !isNaN(nr) && nr <= prevNr;
         const hasGap = prevNr !== null && !isNaN(nr) && nr > prevNr + 1;
-        const outOfOrder = notAscending || hasGap;
+        const outOfOrder = !manualOrder && (notAscending || hasGap);
         if (!isNaN(nr)) prevNr = nr;
         const orderLabel = notAscending ? '⚠ Reihenfolge unterbrochen' : '⚠ Nummernlücke';
         const orderMarker = outOfOrder
