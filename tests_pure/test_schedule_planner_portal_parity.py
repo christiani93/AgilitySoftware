@@ -257,3 +257,53 @@ def test_detailed_segments_briefing_window_extends_to_first_run():
     briefing = next(s for s in segs if s["segment"] == "briefing")
     run = next(s for s in segs if s["segment"] == "run")
     assert briefing["end_time"] == run["start_time"]
+
+
+# ---------------------------------------------------------------------------
+# Dual-Read: Engine rechnet auch auf den real gespeicherten Storage-Key-Blöcken
+# (type / timing_run_type / size_category / classes) statt der Portal-Keys.
+# ---------------------------------------------------------------------------
+
+def _storage_block(id, timing_run_type, size_category, klasse, sort_index=0, **overrides):
+    """Atomarer Block im Software-Storage-Format (wie _apply_eventexport_schedule
+    ihn schreibt): Einzel-size_category + genau eine Klasse in classes[]."""
+    b = {
+        "id": id, "ring": "Ring 1", "type": "run",
+        "timing_run_type": timing_run_type, "size_category": size_category,
+        "size_categories": [], "classes": [str(klasse)],
+        "sort_index": sort_index, "run_id": None, "title": "",
+        "skip_changeover": False, "skip_briefing": False, "force_new_group": False,
+        "participant_count_override": None,
+    }
+    b.update(overrides)
+    return b
+
+
+def test_storage_keys_group_by_discipline_and_class():
+    # Zwei atomare Storage-Blöcke gleiche Disziplin+Klasse, andere Kategorie ->
+    # EINE Gruppe (Kategorie zählt nicht), exakt wie bei Portal-Keys.
+    blocks = [
+        _storage_block("b1", "agility", "large", 1, sort_index=10),
+        _storage_block("b2", "agility", "medium", 1, sort_index=20),
+        _storage_block("b3", "jumping", "large", 1, sort_index=30),
+    ]
+    groups = split_into_groups(sorted(blocks, key=lambda b: b["sort_index"]))
+    assert [(t, len(c) if isinstance(c, list) else 1) for t, c in groups] == [
+        ("run_group", 2), ("run_group", 1)]
+
+
+def test_storage_keys_timeline_and_override_and_tunnellauf():
+    # Override greift; tunnellauf -> tunnel-Zeitfaktor (60s); Timeline läuft durch.
+    blocks = [_storage_block("b1", "tunnellauf", "large", 1, sort_index=10,
+                             participant_count_override=10)]
+    tl = compute_timeline({"Ring 1": blocks}, {"Ring 1": "08:00"}, "2026-10-30")
+    item = tl["Ring 1"][0]
+    assert item["participants"] == 10
+    assert item["run_min"] == (10 * 60) // 60   # tunnel = 60s/Starter
+
+
+def test_storage_block_links_run_via_attributes():
+    # Ohne run_id matcht der Storage-Block den Lauf über laufart/kategorie/klasse.
+    block = _storage_block("b1", "agility", "large", 3)
+    runs = [_run("r1", "Agility", "Large", 3, 7)]
+    assert portal_participant_count(block, runs) == 7

@@ -442,6 +442,54 @@ _DISCIPLINE_TO_LAUFART = dict(PORTAL_DISCIPLINE_LABELS)
 PORTAL_CATEGORY_ORDER = ["Large", "Intermediate", "Medium", "Small"]
 PORTAL_CATEGORY_SORT = {cat: i for i, cat in enumerate(PORTAL_CATEGORY_ORDER)}
 
+# --- Dual-Read-Accessors ----------------------------------------------------
+# Die Parity-Engine liest Blöcke über diese Helfer, damit sie SOWOHL die
+# Portal-Keys (block_type/discipline/category/class_level) ALS AUCH die im
+# Software-Storage genutzten Keys (type/timing_run_type/size_category/classes)
+# versteht. So rechnet sie auf den real gespeicherten (atomaren) Blöcken, ohne
+# dass die live-kritischen Verbraucher (die weiterhin die Storage-Keys lesen)
+# umgeschrieben werden müssen. Portal-Key-Tests bleiben unverändert grün.
+_TIMING_TO_DISCIPLINE = {"tunnellauf": "tunnel"}
+_CATEGORY_CANON = {
+    "small": "Small", "medium": "Medium", "intermediate": "Intermediate", "large": "Large",
+    "s": "Small", "m": "Medium", "i": "Intermediate", "l": "Large",
+}
+
+
+def _timing_to_discipline(timing) -> str:
+    t = (timing or "").strip().lower()
+    return _TIMING_TO_DISCIPLINE.get(t, t)
+
+
+def _canon_category(value):
+    if not value or str(value).strip().lower() == "all":
+        return None
+    return _CATEGORY_CANON.get(str(value).strip().lower(), value)
+
+
+def _blk_type(block: Dict) -> str:
+    return block.get("block_type") or block.get("type") or "run"
+
+
+def _blk_discipline(block: Dict) -> str:
+    d = block.get("discipline") or _timing_to_discipline(block.get("timing_run_type"))
+    return (d or "").lower()
+
+
+def _blk_category(block: Dict):
+    c = block.get("category")
+    if not c:
+        c = block.get("size_category")
+    return _canon_category(c)
+
+
+def _blk_class_level(block: Dict):
+    cl = block.get("class_level")
+    if cl in (None, ""):
+        classes = block.get("classes") or []
+        cl = classes[0] if classes else None
+    return cl
+
 
 def _portal_round_to_minutes(dt: datetime.datetime, minutes: int) -> datetime.datetime:
     discard = datetime.timedelta(
@@ -510,18 +558,20 @@ def link_block_to_run(block: Dict, event_runs: List[Dict]) -> Dict | None:
     Zeitplan-Editor). Setzt bei Treffer `block['run_id']`. Portal-Pendant:
     schedule_service.link_block_to_run (dort find-or-CREATE, da EventRun dort
     ein leichtgewichtiges Metadaten-Objekt ohne eigene Entries ist)."""
-    if block.get("block_type") not in (None, "run"):
+    if _blk_type(block) != "run":
         return None
-    discipline = (block.get("discipline") or "").lower()
+    discipline = _blk_discipline(block)
     laufart = _DISCIPLINE_TO_LAUFART.get(discipline, discipline)
+    block_cat = _blk_category(block)
+    block_cls = _blk_class_level(block)
     for run in event_runs or []:
         if not isinstance(run, dict):
             continue
         if (run.get("laufart") or "").strip().lower() != laufart.lower():
             continue
-        if (run.get("kategorie") or "") != (block.get("category") or ""):
+        if _canon_category(run.get("kategorie")) != block_cat:
             continue
-        if str(run.get("klasse")) != str(block.get("class_level")):
+        if str(run.get("klasse")) != str(block_cls):
             continue
         block["run_id"] = run.get("id")
         return run
@@ -555,7 +605,7 @@ def _portal_group_key(block: Dict) -> Tuple:
     """Gruppierschlüssel: gleiche Disziplin + gleiche Klasse = eine Gruppe
     (Kategorie zählt bewusst NICHT mit — genau das lässt mehrere Kategorien
     automatisch zu einer Gruppe verschmelzen). Portal-Pendant: schedule_utils._group_key."""
-    return ((block.get("discipline") or "").lower(), block.get("class_level") or 0)
+    return (_blk_discipline(block), _blk_class_level(block) or 0)
 
 
 def split_into_groups(sorted_blocks: List[Dict]) -> List[Tuple[str, object]]:
@@ -573,7 +623,7 @@ def split_into_groups(sorted_blocks: List[Dict]) -> List[Tuple[str, object]]:
     current_key = None
 
     for block in sorted_blocks:
-        if block.get("block_type") == "rank_announcement":
+        if _blk_type(block) == "rank_announcement":
             if current_grp:
                 groups.append(("run_group", current_grp))
                 current_grp = []
@@ -644,14 +694,14 @@ def compute_timeline(blocks_by_ring: Dict[str, List[Dict]], ring_start_times: Di
 
                 run_times = {}
                 for b, count in zip(run_group, counts):
-                    secs = _portal_secs_per_starter(b.get("discipline"), run_time_config)
+                    secs = _portal_secs_per_starter(_blk_discipline(b), run_time_config)
                     run_s = max(count * secs, 60)
                     s, e, current = _portal_advance(current, run_s, round_minutes)
                     run_times[b.get("id")] = (s, e)
 
                 first = True
                 for b, count in zip(run_group, counts):
-                    secs = _portal_secs_per_starter(b.get("discipline"), run_time_config)
+                    secs = _portal_secs_per_starter(_blk_discipline(b), run_time_config)
                     run_s = count * secs
                     r_start, r_end = run_times[b.get("id")]
                     items.append({
@@ -720,11 +770,11 @@ def compute_detailed_segments(blocks_by_ring: Dict[str, List[Dict]], ring_start_
 
                 if brief_s:
                     s, e, current = _portal_advance(current, brief_s, round_minutes)
-                    disc = PORTAL_DISCIPLINE_LABELS.get((leader.get("discipline") or "").lower(), leader.get("discipline") or "")
+                    disc = PORTAL_DISCIPLINE_LABELS.get(_blk_discipline(leader), _blk_discipline(leader))
                     briefing_item_indices.append(len(items))
                     items.append({
                         "segment": "briefing",
-                        "label": f"Briefing {disc} Kl.{leader.get('class_level') or ''}",
+                        "label": f"Briefing {disc} Kl.{_blk_class_level(leader) or ''}",
                         "block": leader, "start_time": s, "end_time": e, "participants": total_count,
                     })
 
@@ -734,8 +784,8 @@ def compute_detailed_segments(blocks_by_ring: Dict[str, List[Dict]], ring_start_
                                   "start_time": s, "end_time": e, "participants": 0})
 
                 for b, count in zip(run_group, counts):
-                    title = b.get("title") or auto_title(b.get("discipline"), b.get("category"), b.get("class_level"))
-                    secs = _portal_secs_per_starter(b.get("discipline"), run_time_config)
+                    title = b.get("title") or auto_title(_blk_discipline(b), _blk_category(b), _blk_class_level(b))
+                    secs = _portal_secs_per_starter(_blk_discipline(b), run_time_config)
                     run_s = max(count * secs, 60)
                     s, e, current = _portal_advance(current, run_s, round_minutes)
                     items.append({"segment": "run", "label": title, "block": b,
