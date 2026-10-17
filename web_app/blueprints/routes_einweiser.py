@@ -25,7 +25,8 @@ from flask import Blueprint, render_template, request, Response, jsonify
 from extensions import socketio
 from utils import (_get_active_event, _load_data, _save_data, resolve_judge_name,
                    sort_entries_for_startlist, format_ring_name_parts,
-                   collect_ring_numbers, _starts_at_end, find_run_ring_number)
+                   collect_ring_numbers, _starts_at_end, find_run_ring_number,
+                   _DATA_LOCK)
 
 einweiser_bp = Blueprint('einweiser_bp', __name__, template_folder='../templates')
 
@@ -238,30 +239,35 @@ def api_set_mark(event_id, run_id):
     if mark not in _VALID_MARKS and mark != 'none':
         return jsonify({'success': False, 'message': f'Unbekannte Markierung: {mark}'}), 400
 
-    events = _load_data('events.json')
-    event = next((e for e in events if e.get('id') == event_id), None)
-    if not event:
-        return jsonify({'success': False, 'message': 'Event nicht gefunden.'}), 404
-    if _is_ko_event(event):
-        return jsonify({'success': False, 'message': 'KO-Modus ist nur Anzeige.'}), 403
-    run = next((r for r in event.get('runs', []) or [] if r.get('id') == run_id), None)
-    if not run:
-        return jsonify({'success': False, 'message': 'Lauf nicht gefunden.'}), 404
-    entry = next((e for e in run.get('entries', []) or [] if e.get('Lizenznummer') == lic), None)
-    if not entry:
-        return jsonify({'success': False, 'message': 'Teilnehmer nicht gefunden.'}), 404
+    # Laden+Aendern+Speichern unter EINEM Lock -> der Einweiser-Write kann einen
+    # zwischenzeitlichen Ring-PC-Write (z.B. ein Resultat) nicht ueberschreiben:
+    # der Ring-PC-save kann nicht zwischen unserem load und save liegen. Verloren
+    # gehen kann hoechstens die Markierung selbst (harmlos, self-healing).
+    with _DATA_LOCK:
+        events = _load_data('events.json')
+        event = next((e for e in events if e.get('id') == event_id), None)
+        if not event:
+            return jsonify({'success': False, 'message': 'Event nicht gefunden.'}), 404
+        if _is_ko_event(event):
+            return jsonify({'success': False, 'message': 'KO-Modus ist nur Anzeige.'}), 403
+        run = next((r for r in event.get('runs', []) or [] if r.get('id') == run_id), None)
+        if not run:
+            return jsonify({'success': False, 'message': 'Lauf nicht gefunden.'}), 404
+        entry = next((e for e in run.get('entries', []) or [] if e.get('Lizenznummer') == lic), None)
+        if not entry:
+            return jsonify({'success': False, 'message': 'Teilnehmer nicht gefunden.'}), 404
 
-    if mark == 'none':
-        entry.pop('einweiser_mark', None)
-    else:
-        entry['einweiser_mark'] = mark
-    _save_data('events.json', events)
+        if mark == 'none':
+            entry.pop('einweiser_mark', None)
+        else:
+            entry['einweiser_mark'] = mark
+        _save_data('events.json', events)
 
-    ring_no = find_run_ring_number(event, run) or '1'
+    # Global broadcasten (ohne Raum) — erreicht Tablet UND Ring-PC-Dashboard
+    # (letzteres tritt keinem Raum bei, hoert nur globale Events wie result_update).
     try:
-        payload = {'event_id': event_id, 'run_id': run_id, 'license_nr': lic, 'mark': mark}
-        socketio.emit('einweiser_mark_changed', payload, room=f"event:{event_id}:ring:{ring_no}")
-        socketio.emit('einweiser_mark_changed', payload, room=f"event:{event_id}")
+        socketio.emit('einweiser_mark_changed',
+                      {'event_id': event_id, 'run_id': run_id, 'license_nr': lic, 'mark': mark})
     except Exception:
         pass
     return jsonify({'success': True, 'mark': '' if mark == 'none' else mark})
@@ -280,35 +286,36 @@ def api_reorder(event_id, run_id):
     if direction not in ('up', 'down'):
         return jsonify({'success': False, 'message': f'Unbekannte Richtung: {direction}'}), 400
 
-    events = _load_data('events.json')
-    event = next((e for e in events if e.get('id') == event_id), None)
-    if not event:
-        return jsonify({'success': False, 'message': 'Event nicht gefunden.'}), 404
-    if _is_ko_event(event):
-        return jsonify({'success': False, 'message': 'KO-Modus ist nur Anzeige.'}), 403
-    run = next((r for r in event.get('runs', []) or [] if r.get('id') == run_id), None)
-    if not run:
-        return jsonify({'success': False, 'message': 'Lauf nicht gefunden.'}), 404
+    with _DATA_LOCK:
+        events = _load_data('events.json')
+        event = next((e for e in events if e.get('id') == event_id), None)
+        if not event:
+            return jsonify({'success': False, 'message': 'Event nicht gefunden.'}), 404
+        if _is_ko_event(event):
+            return jsonify({'success': False, 'message': 'KO-Modus ist nur Anzeige.'}), 403
+        run = next((r for r in event.get('runs', []) or [] if r.get('id') == run_id), None)
+        if not run:
+            return jsonify({'success': False, 'message': 'Lauf nicht gefunden.'}), 404
 
-    entries = run.get('entries', []) or []
-    ordered = sort_entries_for_startlist(entries)  # gleiche Objektreferenzen
-    idx = next((i for i, e in enumerate(ordered) if e.get('Lizenznummer') == lic), None)
-    if idx is None:
-        return jsonify({'success': False, 'message': 'Teilnehmer nicht gefunden.'}), 404
+        entries = run.get('entries', []) or []
+        ordered = sort_entries_for_startlist(entries)  # gleiche Objektreferenzen
+        idx = next((i for i, e in enumerate(ordered) if e.get('Lizenznummer') == lic), None)
+        if idx is None:
+            return jsonify({'success': False, 'message': 'Teilnehmer nicht gefunden.'}), 404
 
-    swap = idx - 1 if direction == 'up' else idx + 1
-    if swap < 0 or swap >= len(ordered):
-        return jsonify({'success': True, 'noop': True})  # schon am Rand
-    ordered[idx], ordered[swap] = ordered[swap], ordered[idx]
-    for pos, e in enumerate(ordered):
-        e['start_order'] = pos
-    _save_data('events.json', events)
+        swap = idx - 1 if direction == 'up' else idx + 1
+        if swap < 0 or swap >= len(ordered):
+            return jsonify({'success': True, 'noop': True})  # schon am Rand
+        ordered[idx], ordered[swap] = ordered[swap], ordered[idx]
+        for pos, e in enumerate(ordered):
+            e['start_order'] = pos
+        ring_no = find_run_ring_number(event, run) or '1'
+        _save_data('events.json', events)
 
-    ring_no = find_run_ring_number(event, run) or '1'
     try:
         payload = {'event_id': event_id, 'run_id': run_id, 'ring_name': f"Ring {ring_no}"}
+        socketio.emit('einweiser_order_changed', payload)  # global: Tablet + Ring-PC
         for room in (f"event:{event_id}:ring:{ring_no}", f"event:{event_id}"):
-            socketio.emit('einweiser_order_changed', payload, room=room)
             socketio.emit('announcer_update', payload, room=room)  # Ring-Monitor zieht nach
     except Exception:
         pass
