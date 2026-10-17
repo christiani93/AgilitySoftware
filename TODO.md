@@ -22,11 +22,17 @@ geklärt: anzeigen + Anwesenheit + **umreihen**; aktuellen Starter nur **markier
       `resolve_judge_name`/`ko_cup`. `hide_finished` (default KO an, normal aus). 6 Tests
       `tests_pure/test_einweiser.py`; 240 pure + 46 web_app grün; Live-Smoke normal+KO grün.
       In app.py registriert + Spec-hiddenimport. **Bewusst NICHT in der HCS-EXE** (Nach-HCS-Feature).
-- [ ] **P2 — Anwesenheit/DNS vom Tablet** (reuse `set_participant_status`); read_only-Flag aufheben (nur normal).
-- [ ] **P3 — „bereit/am Gate" MARKIEREN** (nicht-autoritativer Flag pro Entry + Socket; NICHT `reassign_current_starter`).
-- [ ] **P4 — Umreihen** (neues optionales `start_order`, `utils.sort_entries_for_startlist` vorsichtig
-      erweitern — live-kritisch: Startliste/Ring-Monitor/Druck; Reorder-Route + Socket).
-- [ ] **P5 — Härtung** (Offline/Reconnect, Tests, echte Tablet-WLAN-Generalprobe vor einem Event).
+- [x] **P2+P3 — markieren** (COMMITTED `fb26cdb`): EIN Mechanismus, nicht-autoritativer Marker
+      `einweiser_mark` ∈ present/absent/ready via `POST /einweiser/api/mark/<ev>/<run>`. Kein Resultat,
+      kein current_starter-Shift. Touch-Buttons ✓/✗/▶ (erneut = löschen) + Live-Sync. KO: 403.
+- [x] **P4 — Umreihen** (COMMITTED `fb26cdb`): `POST /einweiser/api/reorder/<ev>/<run>` (up/down)
+      vergibt `start_order` an ALLE Eintraege; `utils.sort_entries_for_startlist` strikt additiv
+      erweitert (ohne start_order unveraendert). ▲▼-Buttons + Live-Sync. KO: 403. 249 pure + 46 web_app.
+- [~] **P5 — Härtung** (Robustheits-Tests COMMITTED `bd90826`; Client Reconnect + 20s-Fallback).
+      **OFFEN — Entscheid/Hardware nötig:** (A) Mehr-Schreiber last-write-wins (wie Rest der App)
+      akzeptieren oder haerten? (B) Marker present/ready auch auf Ring-PC-Dashboard/Ring-Monitor
+      zeigen? (berührt live-kritische Templates — eigentlicher Zweck des „bereit"-Signals).
+      (C) Echte Tablet-WLAN-Generalprobe (Hardware + Chris).
 
 ## Session 2026-10-17 — Zeitplan-Modul-Port Software ← Portal (3 Phasen, mehrtägig)
 
