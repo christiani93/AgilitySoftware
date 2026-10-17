@@ -1934,6 +1934,14 @@ def plan_schedule(event_id):
     event['start_times_by_ring'] = {f"ring_{k}": v.get('start_time', '07:30') for k, v in (schedule.get('rings') or {}).items()}
     _recalculate_schedule_estimates(event, schedule, settings)
     timelines_by_ring = _calculate_timelines(event)
+    # Gruppen-Leader je Ring (Parity): bestimmt, welcher Block die Umbau/Briefing-
+    # Toggles trägt und welche Blöcke stattdessen den Split-Toggle zeigen.
+    leader_ids = set()
+    for ring_data in (schedule.get('rings') or {}).values():
+        blocks_sorted = sorted(ring_data.get('blocks') or [], key=lambda b: b.get('sort_index', 0))
+        for gtype, content in schedule_planner.split_into_groups(blocks_sorted):
+            if gtype == 'run_group' and content:
+                leader_ids.add(content[0].get('id'))
     unique_participants = {}
     dog_map = {d['Lizenznummer']: d for d in _load_data(DOGS_FILE) if isinstance(d, dict) and d.get('Lizenznummer')}
     all_entries_with_start_num = [entry for run in event.get('runs', []) for entry in run.get('entries', []) if entry.get('Startnummer')]
@@ -1977,6 +1985,7 @@ def plan_schedule(event_id):
                            preview_list=preview_list,
                            timelines_by_ring=timelines_by_ring,
                            schedule=schedule,
+                           leader_ids=leader_ids,
                            rank_announcement_default=settings.get('schedule_planning', {}).get('rank_announcement_default_seconds', 300))
 
 
@@ -2151,6 +2160,85 @@ def move_schedule_block(event_id):
     event['schedule'] = schedule_data
     _save_data(EVENTS_FILE, events)
     return redirect(url_for('events_bp.plan_schedule', event_id=event_id))
+
+def _apply_block_edit(event_id, block_id, mutate_fn, resync_judges=False):
+    """Gemeinsamer Helfer für die atomaren Block-Editier-Routen (Toggle/Richter/
+    Teilnehmer-Override): lädt das Event, findet den Block (ringübergreifend per
+    eindeutiger id), wendet mutate_fn an, rechnet neu, speichert, redirectet."""
+    events = _load_data(EVENTS_FILE)
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        flash("Event nicht gefunden.", "error")
+        return redirect(url_for('events_bp.events_list'))
+    settings = _load_settings()
+    start_times = event.get('start_times_by_ring', {}) or {}
+    num_rings = event.get('num_rings', 1)
+    schedule_data = schedule_planner.ensure_schedule_root(event_id, num_rings, start_times, event.get('schedule'))
+    block = None
+    for ring_data in (schedule_data.get('rings') or {}).values():
+        for b in ring_data.get('blocks') or []:
+            if b.get('id') == block_id:
+                block = b
+                break
+        if block:
+            break
+    if block is None:
+        flash("Block nicht gefunden.", "warning")
+    else:
+        mutate_fn(block)
+        schedule_data['meta']['last_updated'] = datetime.utcnow().isoformat()
+        schedule_data['meta']['updated_by'] = 'user'
+        _recalculate_schedule_estimates(event, schedule_data, settings)
+        event['schedule'] = schedule_data
+        if resync_judges:
+            _sync_block_judges_to_runs(event, overwrite=True)
+        _save_data(EVENTS_FILE, events)
+    return redirect(url_for('events_bp.plan_schedule', event_id=event_id))
+
+
+_BLOCK_TOGGLE_FIELDS = {
+    'changeover': 'skip_changeover',
+    'briefing': 'skip_briefing',
+    'new_group': 'force_new_group',
+}
+
+
+@events_bp.route('/plan_schedule/<event_id>/toggle_block', methods=['POST'])
+def toggle_schedule_block(event_id):
+    """Schaltet einen der Parity-Schalter (Umbau/Briefing überspringen, Gruppe
+    splitten) eines Blocks um. Portal-Pendant: schedule_block_toggle."""
+    attr = _BLOCK_TOGGLE_FIELDS.get((request.form.get('field') or '').lower())
+    block_id = (request.form.get('block_id') or '').strip()
+    if not attr:
+        flash("Unbekannter Schalter.", "warning")
+        return redirect(url_for('events_bp.plan_schedule', event_id=event_id))
+
+    def _mut(block):
+        block[attr] = not bool(block.get(attr))
+    return _apply_block_edit(event_id, block_id, _mut)
+
+
+@events_bp.route('/plan_schedule/<event_id>/set_block_judge', methods=['POST'])
+def set_schedule_block_judge(event_id):
+    """Setzt den Richter eines Blocks (und spiegelt ihn auf den Lauf)."""
+    block_id = (request.form.get('block_id') or '').strip()
+    judge_id = request.form.get('judge_id') or ''
+
+    def _mut(block):
+        block['judge_id'] = judge_id
+    return _apply_block_edit(event_id, block_id, _mut, resync_judges=True)
+
+
+@events_bp.route('/plan_schedule/<event_id>/set_block_participants', methods=['POST'])
+def set_schedule_block_participants(event_id):
+    """Setzt den manuellen Teilnehmerzahl-Override eines Blocks (leer = Auto)."""
+    block_id = (request.form.get('block_id') or '').strip()
+    raw = (request.form.get('participant_count_override') or '').strip()
+
+    def _mut(block):
+        block['participant_count_override'] = int(raw) if raw.isdigit() else None
+    return _apply_block_edit(event_id, block_id, _mut)
+
 
 @events_bp.route('/save_schedule/<event_id>', methods=['POST'])
 def save_schedule(event_id):

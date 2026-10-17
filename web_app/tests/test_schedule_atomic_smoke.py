@@ -123,3 +123,81 @@ def test_schedule_and_print_routes_render(client, url):
     _seed_event()
     resp = client.get(url)
     assert resp.status_code == 200, f"{url} -> {resp.status_code}"
+
+
+def _seed_atomic_two_blocks():
+    ev = {
+        "id": "EDIT",
+        "name": "Editor Test",
+        "Datum": "2026-10-30",
+        "num_rings": 1,
+        "start_times_by_ring": {"ring_1": "08:00"},
+        "runs": [
+            {"id": "RL", "laufart": "Agility", "kategorie": "Large", "klasse": "1",
+             "laufdaten": {"parcours_laenge": "150"}, "entries": []},
+            {"id": "RM", "laufart": "Agility", "kategorie": "Medium", "klasse": "1",
+             "laufdaten": {"parcours_laenge": "150"}, "entries": []},
+        ],
+        "run_order": [],
+        "schedule": {"schedule_version": 2, "event_id": "EDIT", "meta": {}, "rings": {"1": {
+            "start_time": "08:00", "blocks": [
+                {"id": "A", "type": "run", "timing_run_type": "agility", "size_category": "large",
+                 "size_categories": [], "classes": ["1"], "judge_id": "", "title": "",
+                 "sort_index": 0, "skip_changeover": False, "skip_briefing": False,
+                 "force_new_group": False, "participant_count_override": None, "run_id": None},
+                {"id": "B", "type": "run", "timing_run_type": "agility", "size_category": "medium",
+                 "size_categories": [], "classes": ["1"], "judge_id": "", "title": "",
+                 "sort_index": 10, "skip_changeover": False, "skip_briefing": False,
+                 "force_new_group": False, "participant_count_override": None, "run_id": None},
+            ]}}},
+    }
+    with open(os.path.join(_data_dir(), "events.json"), "w", encoding="utf-8") as f:
+        json.dump([ev], f, ensure_ascii=False, indent=2)
+
+
+def _load_block(block_id):
+    with open(os.path.join(_data_dir(), "events.json"), encoding="utf-8") as f:
+        ev = json.load(f)[0]
+    for b in ev["schedule"]["rings"]["1"]["blocks"]:
+        if b["id"] == block_id:
+            return b
+    return None
+
+
+def test_toggle_route_sets_force_new_group(client):
+    _seed_atomic_two_blocks()
+    resp = client.post("/events/plan_schedule/EDIT/toggle_block",
+                       data={"block_id": "B", "field": "new_group"})
+    assert resp.status_code == 302
+    assert _load_block("B")["force_new_group"] is True
+    # erneutes Togglen hebt wieder auf
+    client.post("/events/plan_schedule/EDIT/toggle_block",
+                data={"block_id": "B", "field": "new_group"})
+    assert _load_block("B")["force_new_group"] is False
+
+
+def test_toggle_route_skip_changeover_and_briefing(client):
+    _seed_atomic_two_blocks()
+    client.post("/events/plan_schedule/EDIT/toggle_block",
+                data={"block_id": "A", "field": "changeover"})
+    client.post("/events/plan_schedule/EDIT/toggle_block",
+                data={"block_id": "A", "field": "briefing"})
+    a = _load_block("A")
+    assert a["skip_changeover"] is True and a["skip_briefing"] is True
+
+
+def test_set_participants_override_and_clear(client):
+    _seed_atomic_two_blocks()
+    client.post("/events/plan_schedule/EDIT/set_block_participants",
+                data={"block_id": "A", "participant_count_override": "42"})
+    assert _load_block("A")["participant_count_override"] == 42
+    client.post("/events/plan_schedule/EDIT/set_block_participants",
+                data={"block_id": "A", "participant_count_override": ""})
+    assert _load_block("A")["participant_count_override"] is None
+
+
+def test_set_block_judge(client):
+    _seed_atomic_two_blocks()
+    client.post("/events/plan_schedule/EDIT/set_block_judge",
+                data={"block_id": "A", "judge_id": "J7"})
+    assert _load_block("A")["judge_id"] == "J7"

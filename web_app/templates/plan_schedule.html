@@ -254,6 +254,41 @@
                   {% if block.estimated %}
                     <div class="small text-muted">Teilnehmer: {{ block.estimated.participants_total or 0 }}, Dauer ca.: {{ ((block.estimated.total_seconds or 0) / 60) | round(1) }} min</div>
                   {% endif %}
+                  {# --- Portal-Parity-Controls: Richter / Teilnehmer-Override / Schalter --- #}
+                  <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                    <form method="post" action="{{ url_for('events_bp.set_schedule_block_judge', event_id=event.id) }}" class="m-0">
+                      <input type="hidden" name="block_id" value="{{ block.id }}">
+                      <select name="judge_id" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()" title="{{ _('Richter') }}">
+                        <option value="">— {{ _('Richter') }} —</option>
+                        {% for j in judges %}
+                          <option value="{{ j.id }}" {% if j.id == block.judge_id %}selected{% endif %}>{{ j.firstname }} {{ j.lastname }}</option>
+                        {% endfor %}
+                      </select>
+                    </form>
+                    <form method="post" action="{{ url_for('events_bp.set_schedule_block_participants', event_id=event.id) }}" class="m-0 d-flex align-items-center gap-1">
+                      <input type="hidden" name="block_id" value="{{ block.id }}">
+                      <input type="number" name="participant_count_override" min="0" class="form-control form-control-sm" style="width:84px"
+                             placeholder="{{ (block.estimated or {}).get('participants_total', 0) }} (Auto)"
+                             value="{% if block.participant_count_override is not none %}{{ block.participant_count_override }}{% endif %}"
+                             onchange="this.form.submit()" title="{{ _('Teilnehmer-Override (leer = automatisch)') }}">
+                      <span class="small text-muted">TN</span>
+                    </form>
+                    {% if block.id in (leader_ids or []) %}
+                      <form method="post" action="{{ url_for('events_bp.toggle_schedule_block', event_id=event.id) }}" class="m-0">
+                        <input type="hidden" name="block_id" value="{{ block.id }}"><input type="hidden" name="field" value="changeover">
+                        <button class="btn btn-sm {{ 'btn-success' if not block.skip_changeover else 'btn-outline-secondary' }}" title="{{ _('Umbau einrechnen') }}">{{ _('Umbau') }} {{ '✓' if not block.skip_changeover else '✕' }}</button>
+                      </form>
+                      <form method="post" action="{{ url_for('events_bp.toggle_schedule_block', event_id=event.id) }}" class="m-0">
+                        <input type="hidden" name="block_id" value="{{ block.id }}"><input type="hidden" name="field" value="briefing">
+                        <button class="btn btn-sm {{ 'btn-success' if not block.skip_briefing else 'btn-outline-secondary' }}" title="{{ _('Briefing einrechnen') }}">{{ _('Briefing') }} {{ '✓' if not block.skip_briefing else '✕' }}</button>
+                      </form>
+                    {% else %}
+                      <form method="post" action="{{ url_for('events_bp.toggle_schedule_block', event_id=event.id) }}" class="m-0">
+                        <input type="hidden" name="block_id" value="{{ block.id }}"><input type="hidden" name="field" value="new_group">
+                        <button class="btn btn-sm {{ 'btn-warning' if block.force_new_group else 'btn-outline-secondary' }}" title="{{ _('Neue Gruppe erzwingen (eigener Umbau + eigenes Briefing)') }}">{{ _('Split') }} {{ '✓' if block.force_new_group else '' }}</button>
+                      </form>
+                    {% endif %}
+                  </div>
                 {% else %}
                   <div class="small text-muted">Dauer: {{ block.duration_seconds or (rank_announcement_default or 300) }} Sekunden</div>
                   {% set applies_to = block.applies_to or {} %}
