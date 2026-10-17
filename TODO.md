@@ -5,6 +5,29 @@
 
 Stand: 2026-10-17
 
+## Session 2026-10-17 — Elektronischer Einweiser auf 2 Android-Tablets (Ring-Steward)
+
+Neue Erweiterung (Wunsch Chris): je ein Android-Tablet pro Ring ersetzt am Ringeingang den
+gedruckten Einweiser. Via Chrome über geschütztes Turnier-WLAN auf Hauptserver:5000. Scope
+geklärt: anzeigen + Anwesenheit + **umreihen**; aktuellen Starter nur **markieren**, nicht setzen
+(Ring-PC behält Hoheit); Ganztags-Ansicht **unabhängig vom Ring-PC**; kein Zusatz-Login.
+**KO-Modus (HCS): dauerhaft nur Anzeige, abgeschlossene Duelle ausgeblendet.** Memory
+`project_electronic_einweiser_tablets`.
+
+- [x] **P1 — Ganztags-Ansicht read-only** (COMMITTED `13ce167`): Blueprint `routes_einweiser.py`
+      (`/einweiser`, `/einweiser/<ring>`, `/api/render_einweiser_content/<ring>`) + Templates
+      `einweiser.html` (Touch-CSS, Socket-Live-Refresh wie Ring-Monitor + 20s-Fallback),
+      `_einweiser_content.html`, `einweiser_pick.html`. `build_einweiser_model` normal **und** ko.
+      Reuse `_resolve_runs_for_ring`/`sort_entries_for_startlist`/`format_ring_name_parts`/
+      `resolve_judge_name`/`ko_cup`. `hide_finished` (default KO an, normal aus). 6 Tests
+      `tests_pure/test_einweiser.py`; 240 pure + 46 web_app grün; Live-Smoke normal+KO grün.
+      In app.py registriert + Spec-hiddenimport. **Bewusst NICHT in der HCS-EXE** (Nach-HCS-Feature).
+- [ ] **P2 — Anwesenheit/DNS vom Tablet** (reuse `set_participant_status`); read_only-Flag aufheben (nur normal).
+- [ ] **P3 — „bereit/am Gate" MARKIEREN** (nicht-autoritativer Flag pro Entry + Socket; NICHT `reassign_current_starter`).
+- [ ] **P4 — Umreihen** (neues optionales `start_order`, `utils.sort_entries_for_startlist` vorsichtig
+      erweitern — live-kritisch: Startliste/Ring-Monitor/Druck; Reorder-Route + Socket).
+- [ ] **P5 — Härtung** (Offline/Reconnect, Tests, echte Tablet-WLAN-Generalprobe vor einem Event).
+
 ## Session 2026-10-17 — Zeitplan-Modul-Port Software ← Portal (3 Phasen, mehrtägig)
 
 Auftrag: SW-Zeitplan-Modul durch das (fortgeschrittenere) Portal-Modul ersetzen, damit beide
