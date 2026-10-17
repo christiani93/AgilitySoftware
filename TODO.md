@@ -32,10 +32,14 @@ geklärt: anzeigen + Anwesenheit + **umreihen**; aktuellen Starter nur **markier
       (load+modify+save) → kann zwischenzeitliche Ring-PC-Writes/**Resultate NICHT überschreiben**.
       (B) Marker-Hinweis (bereit/anwesend/fehlt) im **Ring-PC-Dashboard** (Monitor nicht, Chris-Wunsch),
       live via global gebroadcastetem einweiser_mark_changed/_order_changed. 251 pure + 46 web_app grün.
-- [ ] **OFFEN (Chris):** (C) Tablet-WLAN-Generalprobe — davor Nach-HCS eine EXE MIT Einweiser bauen
-      (bewusst NICHT in HCS-EXE). Teilfrage: soll die Ring-PC-Dashboard-Liste der Einweiser-Umreihung
-      (`start_order`) folgen? Heute sortiert sie per `byStartnummer` (zeigt aber die Marker); Server/
-      Ring-Monitor honorieren start_order bereits.
+- [x] **Ring-PC folgt Umreihung** (COMMITTED `0110476`): `byStartnummer` honoriert `start_order`
+      zuerst → sichtbare Liste + auto-"Bereit" folgen der Einweiser-Reihenfolge; „Reihenfolge
+      unterbrochen"-Warnung bei manueller Reihenfolge unterdrückt.
+- [x] **EXE MIT Einweiser gebaut** (17:47, `dist\AgilitySoftware.exe` 86'829'927 B, HEAD `0110476`):
+      Chris testet den Einweiser morgen MIT. EXE-Smoke grün (Routen 200, mark/reorder in EXE,
+      KO read-only 403, Dashboard-Marker+start_order-Sort, Log sauber). 251 pure + 46 web_app grün.
+- [ ] **OFFEN (Chris, Testwochenende):** echte Tablet-WLAN-Generalprobe. Zugang: Tablet pro Ring
+      `http://<server-ip>:5000/einweiser/<ring>`; `/einweiser` = Auswahlseite.
 
 ## Session 2026-10-17 — Zeitplan-Modul-Port Software ← Portal (3 Phasen, mehrtägig)
 
