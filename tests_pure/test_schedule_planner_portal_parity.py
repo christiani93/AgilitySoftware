@@ -307,3 +307,56 @@ def test_storage_block_links_run_via_attributes():
     block = _storage_block("b1", "agility", "large", 3)
     runs = [_run("r1", "Agility", "Large", 3, 7)]
     assert portal_participant_count(block, runs) == 7
+
+
+# ---------------------------------------------------------------------------
+# Migration: Multi-Kat/Klasse-Blöcke -> atomar (Storage-Keys bleiben)
+# ---------------------------------------------------------------------------
+from planner.schedule_planner import migrate_schedule_to_atomic, _is_atomic_run_block
+
+
+def test_migrate_expands_multiblock_to_atomic():
+    schedule = {"rings": {"1": {"start_time": "08:00", "blocks": [
+        {"id": "b1", "type": "run", "timing_run_type": "agility",
+         "size_category": "all", "size_categories": [], "classes": ["1", "2"],
+         "sort": {"primary": {"field": "category", "direction": "asc"},
+                  "secondary": {"field": "class", "direction": "asc"}}},
+    ]}}}
+    migrate_schedule_to_atomic(schedule)
+    blocks = schedule["rings"]["1"]["blocks"]
+    # 4 Kategorien x 2 Klassen = 8 atomare Blöcke
+    assert len(blocks) == 8
+    assert all(_is_atomic_run_block(b) for b in blocks)
+    assert all(len(b["classes"]) == 1 and b["size_categories"] == [] for b in blocks)
+    # Verhaltensfelder + sequenzieller sort_index
+    assert all("skip_changeover" in b and "force_new_group" in b
+               and "participant_count_override" in b for b in blocks)
+    assert [b["sort_index"] for b in blocks] == [i * 10 for i in range(8)]
+    assert schedule["schedule_version"] == 2
+
+
+def test_migrate_is_idempotent():
+    schedule = {"rings": {"1": {"start_time": "08:00", "blocks": [
+        {"id": "b1", "type": "run", "timing_run_type": "agility",
+         "size_category": "large", "size_categories": [], "classes": ["3"]},
+    ]}}}
+    migrate_schedule_to_atomic(schedule)
+    first = [dict(b) for b in schedule["rings"]["1"]["blocks"]]
+    migrate_schedule_to_atomic(schedule)
+    second = schedule["rings"]["1"]["blocks"]
+    assert len(second) == 1 and len(first) == 1
+    assert second[0]["id"] == first[0]["id"]           # keine Neu-Expansion
+    assert second[0]["sort_index"] == 0
+
+
+def test_migrate_keeps_rank_block():
+    schedule = {"rings": {"1": {"start_time": "08:00", "blocks": [
+        {"id": "r1", "type": "rank_announcement", "title": "RV", "duration_seconds": 300},
+        {"id": "b1", "type": "run", "timing_run_type": "jumping",
+         "size_category": "medium", "size_categories": [], "classes": ["2"]},
+    ]}}}
+    migrate_schedule_to_atomic(schedule)
+    blocks = schedule["rings"]["1"]["blocks"]
+    assert len(blocks) == 2
+    assert blocks[0]["type"] == "rank_announcement"
+    assert blocks[0]["sort_index"] == 0 and blocks[1]["sort_index"] == 10

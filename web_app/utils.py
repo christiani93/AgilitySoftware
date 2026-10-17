@@ -637,13 +637,20 @@ def _calculate_timelines(event, round_to_minutes=None):
 
 
 def _calculate_timelines_from_schedule(event, schedule, settings, round_to_minutes=None):
-    return schedule_planner.compute_computed_timeline(
-        schedule,
+    # Portal-Parity: Detail-Segment-Timeline (Umbau/Briefing/Preppause/Lauf je
+    # Segment), Gruppierung Disziplin+Klasse (Kategorie verschmilzt automatisch).
+    # Liefert zusätzlich die alten Keys (segment_type/num_starters/duration) als
+    # Aliasse, damit bestehende Templates/Druckpfade unverändert funktionieren.
+    rings = schedule.get('rings') or {}
+    blocks_by_ring = {rk: (rd.get('blocks') or []) for rk, rd in rings.items()}
+    ring_start_times = {rk: (rd.get('start_time') or '08:00') for rk, rd in rings.items()}
+    return schedule_planner.compute_detailed_segments(
+        blocks_by_ring,
+        ring_start_times,
+        event.get('Datum') or datetime.now().strftime('%Y-%m-%d'),
         event_runs=event.get('runs', []),
-        settings=settings,
-        start_times_by_ring=event.get('start_times_by_ring', {}),
-        event_date=event.get('Datum') or datetime.now().strftime('%Y-%m-%d'),
-        round_to_minutes=round_to_minutes,
+        round_minutes=(round_to_minutes or 0),
+        run_time_config=None,
     )
 
 

@@ -180,6 +180,8 @@ def ensure_schedule_root(event_id: str, num_rings: int, start_times: Dict[str, s
         ring_obj.setdefault("blocks", [])
     schedule["meta"].setdefault("last_updated", datetime.datetime.utcnow().isoformat())
     schedule["meta"].setdefault("updated_by", "system")
+    # Portal-Parity: Blöcke atomar + Verhaltensfelder normieren (idempotent).
+    migrate_schedule_to_atomic(schedule)
     return schedule
 
 
@@ -491,6 +493,82 @@ def _blk_class_level(block: Dict):
     return cl
 
 
+# --- Migration: bestehende (evtl. Multi-Kat/Klasse-)Blöcke -> atomar ---------
+# Wandelt gespeicherte Blöcke in atomare um (1 Kategorie × 1 Klasse) und ergänzt
+# die Parity-Verhaltensfelder. Storage-Keys (type/timing_run_type/size_category/
+# classes) bleiben erhalten -> live-kritische Verbraucher laufen unverändert.
+# Idempotent: bereits atomare Blöcke werden nur mit Feldern/sort_index normiert.
+
+def _is_atomic_run_block(block: Dict) -> bool:
+    if _blk_type(block) != "run":
+        return True
+    size_cats = [s for s in (block.get("size_categories") or []) if s]
+    classes = [c for c in (block.get("classes") or []) if str(c)]
+    sc = (block.get("size_category") or "").strip().lower()
+    if block.get("category") is not None:
+        single_cat = True
+    elif size_cats:
+        single_cat = len(size_cats) == 1
+    else:
+        single_cat = sc not in ("", "all")
+    single_cls = (block.get("class_level") is not None) or (len(classes) == 1)
+    return single_cat and single_cls
+
+
+def _expand_block_to_atomic(block: Dict) -> List[Dict]:
+    sort = block.get("sort") or {}
+    pairs = expand_size_class_groups(
+        block.get("size_category"), block.get("classes"),
+        sort.get("primary"), sort.get("secondary"),
+        block.get("size_categories"))
+    out = []
+    for size, cls in pairs:
+        nb = copy.deepcopy(block)
+        nb["id"] = generate_block_id()
+        nb["size_category"] = size
+        nb["size_categories"] = []
+        nb["classes"] = [str(cls)]
+        nb.pop("category", None)
+        nb.pop("class_level", None)
+        nb["title"] = ""
+        nb["run_id"] = None
+        out.append(nb)
+    return out or [block]
+
+
+def migrate_schedule_to_atomic(schedule: Dict, event_runs: List[Dict] = None) -> Dict:
+    """Stellt ein schedule-dict auf atomare Blöcke um + ergänzt Parity-Felder.
+    Idempotent. Reindexiert sort_index je Ring (Listenreihenfolge ist
+    autoritativ). Optionales event_runs verknüpft run_id stabil (Fallback bleibt
+    Attribut-Matching)."""
+    if not isinstance(schedule, dict):
+        return schedule
+    for ring_data in (schedule.get("rings") or {}).values():
+        if not isinstance(ring_data, dict):
+            continue
+        new_blocks = []
+        for block in ring_data.get("blocks") or []:
+            if not isinstance(block, dict):
+                continue
+            if _blk_type(block) == "run" and not _is_atomic_run_block(block):
+                new_blocks.extend(_expand_block_to_atomic(block))
+            else:
+                new_blocks.append(block)
+        for i, block in enumerate(new_blocks):
+            block["sort_index"] = i * 10
+            if _blk_type(block) == "run":
+                block.setdefault("skip_changeover", False)
+                block.setdefault("skip_briefing", False)
+                block.setdefault("force_new_group", False)
+                block.setdefault("participant_count_override", None)
+                block.setdefault("run_id", None)
+                if event_runs is not None and block.get("run_id") is None:
+                    link_block_to_run(block, event_runs)
+        ring_data["blocks"] = new_blocks
+    schedule["schedule_version"] = 2
+    return schedule
+
+
 def _portal_round_to_minutes(dt: datetime.datetime, minutes: int) -> datetime.datetime:
     discard = datetime.timedelta(
         minutes=dt.minute % minutes, seconds=dt.second, microseconds=dt.microsecond)
@@ -796,6 +874,18 @@ def compute_detailed_segments(blocks_by_ring: Dict[str, List[Dict]], ring_start_
             first_run = next((it for it in items[idx + 1:] if it["segment"] == "run"), None)
             if first_run:
                 items[idx]["end_time"] = first_run["start_time"]
+
+        # Kompatibilitäts-Aliasse für bestehende Templates/Verbraucher, die noch
+        # die alten Timeline-Item-Keys lesen (segment_type/num_starters/duration).
+        for it in items:
+            it["segment_type"] = it["segment"]
+            it["num_starters"] = it.get("participants", 0)
+            try:
+                _s = datetime.datetime.strptime(it["start_time"], "%H:%M")
+                _e = datetime.datetime.strptime(it["end_time"], "%H:%M")
+                it["duration"] = max(int((_e - _s).total_seconds() // 60), 0)
+            except Exception:
+                it["duration"] = 0
 
         segments_by_ring[ring] = items
     return segments_by_ring
