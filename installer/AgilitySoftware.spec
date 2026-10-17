@@ -36,6 +36,7 @@ hiddenimports = [
     "blueprints.routes_debug",
     "blueprints.routes_sm",
     "blueprints.routes_skbs_sm",
+    "blueprints.routes_einweiser",
     "live.live_state",
     "live.ring_state",
     "planner.schedule_planner",

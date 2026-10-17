@@ -1,0 +1,118 @@
+{% extends "layout.html" %}
+{% block title %}Einweiser – {{ model.ring_label if model else ('Ring ' ~ ring_number) }}{% endblock %}
+
+{% block content %}
+<style>
+  /* Touch-optimiert fuer Tablet am Ring: grosse Zeilen/Schrift, wenig Chrome. */
+  .ew-wrap { max-width: 900px; margin: 0 auto; }
+  .ew-topbar { display:flex; align-items:center; justify-content:space-between; gap:.5rem;
+    position:sticky; top:0; z-index:5; background:#fff; padding:.5rem 0; border-bottom:2px solid #dee2e6; }
+  .ew-topbar h4 { margin:0; font-size:1.4rem; }
+  .ew-rings a { font-size:1.1rem; padding:.4rem .9rem; margin-left:.3rem; }
+  .ew-run { border:1px solid #dee2e6; border-radius:.6rem; margin:.8rem 0; overflow:hidden; }
+  .ew-run-active { border-color:#0d6efd; box-shadow:0 0 0 2px rgba(13,110,253,.25); }
+  .ew-run-head { display:flex; align-items:center; justify-content:space-between;
+    background:#f1f3f5; padding:.6rem .9rem; font-size:1.2rem; font-weight:600; }
+  .ew-run-active .ew-run-head { background:#e7f1ff; }
+  .ew-run-sub { padding:.2rem .9rem; color:#6c757d; font-size:1rem; }
+  .ew-count { font-size:1rem; color:#495057; font-weight:600; }
+  .ew-list { list-style:none; margin:0; padding:0; }
+  .ew-item { display:flex; align-items:center; gap:.6rem; padding:.7rem .9rem;
+    border-top:1px solid #eee; font-size:1.25rem; min-height:3.1rem; }
+  .ew-no { flex:0 0 3.2rem; font-weight:700; font-variant-numeric:tabular-nums; font-size:1.3rem; }
+  .ew-name { flex:1 1 auto; }
+  .ew-dog { color:#6c757d; font-size:.95rem; font-weight:400; margin-left:.4rem; }
+  .ew-current { background:#d1e7dd; }
+  .ew-next { background:#fff3cd; }
+  .ew-done { opacity:.5; }
+  .ew-end .ew-no { color:#ad6800; }
+  .ew-badge { flex:0 0 auto; font-size:.8rem; font-weight:700; padding:.2rem .5rem; border-radius:.4rem; white-space:nowrap; }
+  .ew-badge-current { background:#198754; color:#fff; }
+  .ew-badge-next { background:#ffc107; color:#000; }
+  .ew-badge-active { background:#0d6efd; color:#fff; font-size:.85rem; }
+  .ew-badge-end { background:#ffe8cc; color:#ad6800; }
+  .ew-badge-done { background:#e9ecef; color:#495057; }
+  .ew-meta { flex:0 0 auto; color:#6c757d; font-size:.85rem; }
+  .ew-mode-banner { background:#e9ecef; color:#495057; padding:.4rem .9rem; border-radius:.4rem; margin:.6rem 0; font-size:.95rem; }
+  .ew-mode-ko { background:#f3d9fa; color:#862e9c; font-weight:600; }
+  .ew-empty, .ew-empty-sm { padding:1.2rem; text-align:center; color:#6c757d; }
+  .ew-empty-sm { padding:.6rem; font-size:1rem; }
+  .ew-conn { font-size:.8rem; color:#adb5bd; }
+  .ew-conn.ok { color:#198754; }
+</style>
+
+<div class="ew-wrap">
+  {% if not event %}
+    <div class="ew-empty">Kein aktives Event. (Im Hauptprogramm ein Event als „aktiv" setzen.)</div>
+  {% else %}
+  <div class="ew-topbar">
+    <h4>Einweiser · {{ model.ring_label }} <span id="ew-conn" class="ew-conn">○</span></h4>
+    <div class="ew-rings">
+      {% set num_rings = (event.num_rings or 1) %}
+      {% for i in range(1, num_rings + 1) %}
+        <a class="btn btn-{{ 'primary' if i == ring_number else 'outline-secondary' }}"
+           href="{{ url_for('einweiser_bp.einweiser_ring', ring_number=i) }}{{ '?hide_finished=1' if model.hide_finished else '' }}">Ring {{ i }}</a>
+      {% endfor %}
+      {% if model.mode != 'ko' %}
+        <a class="btn btn-outline-dark" id="ew-toggle-finished"
+           href="{{ url_for('einweiser_bp.einweiser_ring', ring_number=ring_number) }}{{ '' if model.hide_finished else '?hide_finished=1' }}">
+          {{ 'Alle zeigen' if model.hide_finished else 'Offene' }}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div id="ew-content">
+    {% include "_einweiser_content.html" %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if event %}
+<script>
+(function () {
+  const eventId = {{ event.id|tojson }};
+  const ringNumber = {{ ring_number|tojson }};
+  const hideFinished = {{ model.hide_finished|tojson }};
+  const contentUrl = "{{ url_for('einweiser_bp.render_einweiser_content', ring_number=ring_number) }}"
+    + (hideFinished ? "?hide_finished=1" : "");
+  const content = document.getElementById('ew-content');
+  const connDot = document.getElementById('ew-conn');
+
+  let refreshing = false;
+  function refresh() {
+    if (refreshing) return;
+    refreshing = true;
+    fetch(contentUrl, { headers: { 'Cache-Control': 'no-cache' } })
+      .then(r => r.text())
+      .then(html => { if (content) content.innerHTML = html; })
+      .catch(() => {})
+      .finally(() => { refreshing = false; });
+  }
+
+  // Live-Aktualisierung ueber dieselben Raeume/Events wie der Ring-Monitor.
+  try {
+    const socket = io();
+    socket.on('connect', function () {
+      if (connDot) { connDot.textContent = '●'; connDot.classList.add('ok'); }
+      socket.emit('join_room', { room: `event:${eventId}:ring:${ringNumber}` });
+      socket.emit('join_room', { room: `event:${eventId}` });
+    });
+    socket.on('disconnect', function () {
+      if (connDot) { connDot.textContent = '○'; connDot.classList.remove('ok'); }
+    });
+    const onEvt = function (data) { if (!data || data.event_id === eventId) refresh(); };
+    ['announcer_update', 'current_run_changed', 'ring_result_saved',
+     'ring_ready_changed', 'ring_run_changed', 'result_update'].forEach(function (name) {
+      socket.on(name, onEvt);
+    });
+  } catch (e) { /* ohne Socket laeuft die Seite als statische Anzeige weiter */ }
+
+  // Sicherheitsnetz: alle 20 s nachladen, falls ein Socket-Event ausbleibt.
+  setInterval(refresh, 20000);
+})();
+</script>
+{% endif %}
+{% endblock %}

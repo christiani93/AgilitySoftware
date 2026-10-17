@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block title %}Einweiser{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:600px;">
+  <h3 class="mb-3">Elektronischer Einweiser</h3>
+  {% if not event %}
+    <div class="alert alert-warning">Kein aktives Event. Im Hauptprogramm ein Event als „aktiv" setzen.</div>
+  {% else %}
+    <p class="text-muted">Aktives Event: <strong>{{ event.Bezeichnung or event.name or event.id }}</strong></p>
+    <p>Ring wählen:</p>
+    <div class="d-grid gap-3">
+      {% for i in rings %}
+        <a class="btn btn-primary btn-lg py-3" href="{{ url_for('einweiser_bp.einweiser_ring', ring_number=i) }}">Ring {{ i }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
