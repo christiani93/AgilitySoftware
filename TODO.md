@@ -28,11 +28,14 @@ geklärt: anzeigen + Anwesenheit + **umreihen**; aktuellen Starter nur **markier
 - [x] **P4 — Umreihen** (COMMITTED `fb26cdb`): `POST /einweiser/api/reorder/<ev>/<run>` (up/down)
       vergibt `start_order` an ALLE Eintraege; `utils.sort_entries_for_startlist` strikt additiv
       erweitert (ohne start_order unveraendert). ▲▼-Buttons + Live-Sync. KO: 403. 249 pure + 46 web_app.
-- [~] **P5 — Härtung** (Robustheits-Tests COMMITTED `bd90826`; Client Reconnect + 20s-Fallback).
-      **OFFEN — Entscheid/Hardware nötig:** (A) Mehr-Schreiber last-write-wins (wie Rest der App)
-      akzeptieren oder haerten? (B) Marker present/ready auch auf Ring-PC-Dashboard/Ring-Monitor
-      zeigen? (berührt live-kritische Templates — eigentlicher Zweck des „bereit"-Signals).
-      (C) Echte Tablet-WLAN-Generalprobe (Hardware + Chris).
+- [x] **P5 — Härtung** (`bd90826` Tests + `5c3f2ff` A+B): (A) mark/reorder unter `_DATA_LOCK`
+      (load+modify+save) → kann zwischenzeitliche Ring-PC-Writes/**Resultate NICHT überschreiben**.
+      (B) Marker-Hinweis (bereit/anwesend/fehlt) im **Ring-PC-Dashboard** (Monitor nicht, Chris-Wunsch),
+      live via global gebroadcastetem einweiser_mark_changed/_order_changed. 251 pure + 46 web_app grün.
+- [ ] **OFFEN (Chris):** (C) Tablet-WLAN-Generalprobe — davor Nach-HCS eine EXE MIT Einweiser bauen
+      (bewusst NICHT in HCS-EXE). Teilfrage: soll die Ring-PC-Dashboard-Liste der Einweiser-Umreihung
+      (`start_order`) folgen? Heute sortiert sie per `byStartnummer` (zeigt aber die Marker); Server/
+      Ring-Monitor honorieren start_order bereits.
 
 ## Session 2026-10-17 — Zeitplan-Modul-Port Software ← Portal (3 Phasen, mehrtägig)
 
