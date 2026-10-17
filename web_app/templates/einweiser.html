@@ -39,6 +39,23 @@
   .ew-empty-sm { padding:.6rem; font-size:1rem; }
   .ew-conn { font-size:.8rem; color:#adb5bd; }
   .ew-conn.ok { color:#198754; }
+  /* Einweiser-Markierungen (nicht-autoritativ) */
+  .ew-badge-ready { background:#0dcaf0; color:#000; }
+  .ew-badge-present { background:#198754; color:#fff; }
+  .ew-badge-absent { background:#dc3545; color:#fff; }
+  .ew-mark-ready { background:#e7fbff; }
+  .ew-mark-present { background:#eafaf1; }
+  .ew-mark-absent { background:#fdecee; }
+  .ew-actions { flex:0 0 auto; display:flex; gap:.3rem; margin-left:auto; }
+  .ew-mark-btn { border:1px solid #ced4da; background:#fff; border-radius:.5rem;
+    min-width:2.6rem; min-height:2.6rem; font-size:1.2rem; line-height:1; cursor:pointer; }
+  .ew-mark-btn:active { transform:scale(.94); }
+  .ew-mb-present { color:#198754; }
+  .ew-mb-absent { color:#dc3545; }
+  .ew-mb-ready { color:#0893b0; }
+  .ew-item.ew-mark-present .ew-mb-present { background:#198754; color:#fff; }
+  .ew-item.ew-mark-absent .ew-mb-absent { background:#dc3545; color:#fff; }
+  .ew-item.ew-mark-ready .ew-mb-ready { background:#0dcaf0; color:#000; }
 </style>
 
 <div class="ew-wrap">
@@ -92,6 +109,41 @@
       .finally(() => { refreshing = false; });
   }
 
+  // Markieren (Anwesenheit/bereit) + Umreihen — Event-Delegation auf dem
+  // Container, damit die Buttons auch nach einem Live-Refresh (innerHTML-
+  // Austausch) weiter funktionieren.
+  function postJson(url, body, btn) {
+    btn.disabled = true;
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(r => r.json()).then(function () { refresh(); })
+      .catch(function () { btn.disabled = false; });
+  }
+  if (content) {
+    content.addEventListener('click', function (ev) {
+      const btn = ev.target.closest('.ew-mark-btn');
+      if (!btn) return;
+      const li = btn.closest('.ew-item');
+      const ul = btn.closest('[data-run-id]');
+      if (!li || !ul) return;
+      const lic = li.getAttribute('data-lic');
+      const runId = ul.getAttribute('data-run-id');
+      const reorder = btn.getAttribute('data-reorder');
+      if (reorder) {
+        postJson(`/einweiser/api/reorder/${encodeURIComponent(eventId)}/${encodeURIComponent(runId)}`,
+          { license_number: lic, direction: reorder, ring: ringNumber }, btn);
+        return;
+      }
+      const wanted = btn.getAttribute('data-set-mark');
+      const current = li.getAttribute('data-mark') || '';
+      const mark = (current === wanted) ? 'none' : wanted;  // erneut tippen = löschen
+      postJson(`/einweiser/api/mark/${encodeURIComponent(eventId)}/${encodeURIComponent(runId)}`,
+        { license_number: lic, mark: mark, ring: ringNumber }, btn);
+    });
+  }
+
   // Live-Aktualisierung ueber dieselben Raeume/Events wie der Ring-Monitor.
   try {
     const socket = io();
@@ -105,7 +157,8 @@
     });
     const onEvt = function (data) { if (!data || data.event_id === eventId) refresh(); };
     ['announcer_update', 'current_run_changed', 'ring_result_saved',
-     'ring_ready_changed', 'ring_run_changed', 'result_update'].forEach(function (name) {
+     'ring_ready_changed', 'ring_run_changed', 'result_update',
+     'einweiser_mark_changed', 'einweiser_order_changed'].forEach(function (name) {
       socket.on(name, onEvt);
     });
   } catch (e) { /* ohne Socket laeuft die Seite als statische Anzeige weiter */ }

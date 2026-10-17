@@ -20,13 +20,20 @@ Live-Aktualisierung ueber dieselben SocketIO-Raeume/Events wie der Ring-Monitor
 (``event:<id>:ring:<n>`` + announcer_update/ring_result_saved/...), die Seite
 laedt bei einem Event das Content-Partial neu.
 """
-from flask import Blueprint, render_template, request, Response
+from flask import Blueprint, render_template, request, Response, jsonify
 
-from utils import (_get_active_event, _load_data, resolve_judge_name,
+from extensions import socketio
+from utils import (_get_active_event, _load_data, _save_data, resolve_judge_name,
                    sort_entries_for_startlist, format_ring_name_parts,
-                   collect_ring_numbers, _starts_at_end)
+                   collect_ring_numbers, _starts_at_end, find_run_ring_number)
 
 einweiser_bp = Blueprint('einweiser_bp', __name__, template_folder='../templates')
+
+# Nicht-autoritative Einweiser-Markierungen pro Teilnehmer (Phase 2/3). Bewusst
+# OHNE Resultat-/DNS-/current_starter-Wirkung — der Einweiser MARKIERT nur
+# (present/absent = Anwesenheit, ready = "bereit/am Gate"), der Ring-PC behaelt
+# die Hoheit ueber Wertung und aktiven Starter. 'none' loescht die Markierung.
+_VALID_MARKS = {'present', 'absent', 'ready'}
 
 
 def _is_ko_event(event: dict) -> bool:
@@ -86,11 +93,13 @@ def _build_normal_ring(event: dict, ring_number: int, hide_finished: bool):
             lic = e.get('Lizenznummer')
             handler, dog = format_ring_name_parts(e)
             entries_model.append({
+                'license': lic,
                 'startnummer': e.get('Startnummer'),
                 'handler': handler,
                 'dog': dog,
                 'status': status,
                 'status_label': label,
+                'mark': e.get('einweiser_mark') or '',
                 'starts_at_end': _starts_at_end(e),
                 'is_current': bool(is_active and lic and lic == cur_lic),
                 'is_next': bool(is_active and lic and lic == next_lic),
@@ -183,7 +192,7 @@ def build_einweiser_model(event: dict, ring_number: int, hide_finished: bool):
     runs_model, active_run_id = _build_normal_ring(event, ring_number, hide_finished)
     base.update({
         'mode': 'normal',
-        'read_only': True,  # Phase 1 ist noch rein lesend
+        'read_only': False,  # P2+: Anwesenheit/bereit markieren + umreihen erlaubt
         'runs': runs_model,
         'active_run_id': active_run_id,
         'ko_rows': [],
@@ -216,3 +225,91 @@ def render_einweiser_content(ring_number):
         return Response("<div class='ew-empty'>Kein aktives Event.</div>", mimetype='text/html')
     model = build_einweiser_model(event, ring_number, _hide_finished_arg(event))
     return render_template('_einweiser_content.html', model=model)
+
+
+@einweiser_bp.post('/einweiser/api/mark/<event_id>/<run_id>')
+def api_set_mark(event_id, run_id):
+    """Setzt/loescht eine nicht-autoritative Einweiser-Markierung (present/absent/
+    ready) fuer einen Teilnehmer. Schreibt KEIN Resultat und veraendert NICHT
+    current_starter — nur ein Hinweis-Flag. Im KO-Modus gesperrt (read-only)."""
+    data = request.get_json(silent=True) or {}
+    lic = data.get('license_number')
+    mark = (data.get('mark') or '').strip().lower()
+    if mark not in _VALID_MARKS and mark != 'none':
+        return jsonify({'success': False, 'message': f'Unbekannte Markierung: {mark}'}), 400
+
+    events = _load_data('events.json')
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return jsonify({'success': False, 'message': 'Event nicht gefunden.'}), 404
+    if _is_ko_event(event):
+        return jsonify({'success': False, 'message': 'KO-Modus ist nur Anzeige.'}), 403
+    run = next((r for r in event.get('runs', []) or [] if r.get('id') == run_id), None)
+    if not run:
+        return jsonify({'success': False, 'message': 'Lauf nicht gefunden.'}), 404
+    entry = next((e for e in run.get('entries', []) or [] if e.get('Lizenznummer') == lic), None)
+    if not entry:
+        return jsonify({'success': False, 'message': 'Teilnehmer nicht gefunden.'}), 404
+
+    if mark == 'none':
+        entry.pop('einweiser_mark', None)
+    else:
+        entry['einweiser_mark'] = mark
+    _save_data('events.json', events)
+
+    ring_no = find_run_ring_number(event, run) or '1'
+    try:
+        payload = {'event_id': event_id, 'run_id': run_id, 'license_nr': lic, 'mark': mark}
+        socketio.emit('einweiser_mark_changed', payload, room=f"event:{event_id}:ring:{ring_no}")
+        socketio.emit('einweiser_mark_changed', payload, room=f"event:{event_id}")
+    except Exception:
+        pass
+    return jsonify({'success': True, 'mark': '' if mark == 'none' else mark})
+
+
+@einweiser_bp.post('/einweiser/api/reorder/<event_id>/<run_id>')
+def api_reorder(event_id, run_id):
+    """Umreihen: schiebt einen Teilnehmer in der Startreihenfolge eines Laufs um
+    eine Position (up/down). Vergibt danach ``start_order`` an ALLE Einträge des
+    Laufs (0..n), sodass die Reihenfolge vollständig explizit ist. Veraendert
+    bewusst NICHT current_starter (der Ring-PC behaelt die Starter-Hoheit). Im
+    KO-Modus gesperrt."""
+    data = request.get_json(silent=True) or {}
+    lic = data.get('license_number')
+    direction = (data.get('direction') or '').strip().lower()
+    if direction not in ('up', 'down'):
+        return jsonify({'success': False, 'message': f'Unbekannte Richtung: {direction}'}), 400
+
+    events = _load_data('events.json')
+    event = next((e for e in events if e.get('id') == event_id), None)
+    if not event:
+        return jsonify({'success': False, 'message': 'Event nicht gefunden.'}), 404
+    if _is_ko_event(event):
+        return jsonify({'success': False, 'message': 'KO-Modus ist nur Anzeige.'}), 403
+    run = next((r for r in event.get('runs', []) or [] if r.get('id') == run_id), None)
+    if not run:
+        return jsonify({'success': False, 'message': 'Lauf nicht gefunden.'}), 404
+
+    entries = run.get('entries', []) or []
+    ordered = sort_entries_for_startlist(entries)  # gleiche Objektreferenzen
+    idx = next((i for i, e in enumerate(ordered) if e.get('Lizenznummer') == lic), None)
+    if idx is None:
+        return jsonify({'success': False, 'message': 'Teilnehmer nicht gefunden.'}), 404
+
+    swap = idx - 1 if direction == 'up' else idx + 1
+    if swap < 0 or swap >= len(ordered):
+        return jsonify({'success': True, 'noop': True})  # schon am Rand
+    ordered[idx], ordered[swap] = ordered[swap], ordered[idx]
+    for pos, e in enumerate(ordered):
+        e['start_order'] = pos
+    _save_data('events.json', events)
+
+    ring_no = find_run_ring_number(event, run) or '1'
+    try:
+        payload = {'event_id': event_id, 'run_id': run_id, 'ring_name': f"Ring {ring_no}"}
+        for room in (f"event:{event_id}:ring:{ring_no}", f"event:{event_id}"):
+            socketio.emit('einweiser_order_changed', payload, room=room)
+            socketio.emit('announcer_update', payload, room=room)  # Ring-Monitor zieht nach
+    except Exception:
+        pass
+    return jsonify({'success': True})

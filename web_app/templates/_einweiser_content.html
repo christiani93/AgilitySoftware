@@ -45,17 +45,30 @@
         </div>
         {% if run.judge %}<div class="ew-run-sub">Richter: {{ run.judge }}</div>{% endif %}
         {% if run.entries %}
-          <ul class="ew-list">
+          <ul class="ew-list" data-run-id="{{ run.id }}">
             {% for e in run.entries %}
-              <li class="ew-item{% if e.is_current %} ew-current{% elif e.is_next %} ew-next{% endif %}{% if e.status != 'pending' %} ew-done{% endif %}{% if e.starts_at_end %} ew-end{% endif %}">
+              <li class="ew-item{% if e.is_current %} ew-current{% elif e.is_next %} ew-next{% endif %}{% if e.status != 'pending' %} ew-done{% endif %}{% if e.starts_at_end %} ew-end{% endif %}{% if e.mark %} ew-mark-{{ e.mark }}{% endif %}"
+                  data-lic="{{ e.license }}" data-mark="{{ e.mark }}">
                 <span class="ew-no">{{ e.startnummer if e.startnummer is not none else '–' }}</span>
                 <span class="ew-name"><strong>{{ e.handler or '—' }}</strong>
                   {% if e.dog %}<span class="ew-dog">{{ e.dog }}</span>{% endif %}</span>
+                {% if e.mark == 'ready' %}<span class="ew-badge ew-badge-ready">bereit</span>
+                {% elif e.mark == 'present' %}<span class="ew-badge ew-badge-present">anwesend</span>
+                {% elif e.mark == 'absent' %}<span class="ew-badge ew-badge-absent">fehlt</span>{% endif %}
                 {% if e.is_current %}<span class="ew-badge ew-badge-current">am Start</span>
-                {% elif e.is_next %}<span class="ew-badge ew-badge-next">bereit</span>{% endif %}
+                {% elif e.is_next %}<span class="ew-badge ew-badge-next">nächste/r</span>{% endif %}
                 {% if e.starts_at_end %}<span class="ew-badge ew-badge-end">läufig → Ende</span>{% endif %}
                 {% if e.status == 'disq' %}<span class="ew-badge ew-badge-done">{{ e.status_label }}</span>
                 {% elif e.status == 'done' %}<span class="ew-badge ew-badge-done">✓</span>{% endif %}
+                {% if not model.read_only %}
+                  <span class="ew-actions">
+                    <button type="button" class="ew-mark-btn ew-mb-present" data-set-mark="present" title="anwesend">✓</button>
+                    <button type="button" class="ew-mark-btn ew-mb-absent" data-set-mark="absent" title="fehlt">✗</button>
+                    <button type="button" class="ew-mark-btn ew-mb-ready" data-set-mark="ready" title="bereit / am Gate">▶</button>
+                    <button type="button" class="ew-mark-btn ew-reorder" data-reorder="up" title="nach oben">▲</button>
+                    <button type="button" class="ew-mark-btn ew-reorder" data-reorder="down" title="nach unten">▼</button>
+                  </span>
+                {% endif %}
               </li>
             {% endfor %}
           </ul>

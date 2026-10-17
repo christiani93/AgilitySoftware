@@ -45,16 +45,22 @@ def _starts_at_end(entry: dict) -> bool:
 def sort_entries_for_startlist(entries: list) -> list:
     """
     Sortiert Entries für die Startliste:
-      1. Nach Startnummer aufsteigend
+      0. Manuelle Reihenfolge (``start_order``, vom elektronischen Einweiser
+         gesetzt) hat Vorrang — sobald EIN Eintrag des Laufs sie trägt, vergibt
+         der Reorder-Endpoint sie an ALLE, die Liste ist dann vollständig explizit
+         (die Läufig-Regel ist darin bereits eingearbeitet).
+      1. Sonst nach Startnummer aufsteigend
       2. Läufige/"am Schluss starten"-Einträge immer ans Ende
+
+    Strikt abwärtskompatibel: ohne ``start_order`` identisch zum alten Verhalten.
     """
-    return sorted(
-        entries or [],
-        key=lambda e: (
-            _starts_at_end(e),   # False (normal) vor True (ans Ende)
-            _to_int(e.get("Startnummer"), default=999999),
-        )
-    )
+    def _key(e):
+        so = e.get("start_order")
+        if so is not None and str(so) != "":
+            # Gleichlange 3-Tupel, damit nie int mit bool verglichen wird.
+            return (0, _to_int(so, default=999999), 0)
+        return (1, 1 if _starts_at_end(e) else 0, _to_int(e.get("Startnummer"), default=999999))
+    return sorted(entries or [], key=_key)
 
 
 def _norm(value):

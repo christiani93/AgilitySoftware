@@ -104,7 +104,7 @@ def test_normal_model_whole_day(data_dir):
     model = ew.build_einweiser_model(_normal_event(), 1, hide_finished=False)
 
     assert model["mode"] == "normal"
-    assert model["read_only"] is True
+    assert model["read_only"] is False  # P2+: normal ist beschreibbar (markieren/umreihen)
     # Ganzer Ring-Tag: beide Laeufe des Rings, nicht nur der aktive
     titles = [(r["laufart"], r["klasse"]) for r in model["runs"]]
     assert ("Agility", "3") in titles and ("Jumping", "3") in titles
@@ -190,3 +190,102 @@ def test_content_endpoint_ko_200(content_app, data_dir):
     html = resp.get_data(as_text=True)
     assert "KO-Modus" in html
     assert "Cora Gamma" in html and "Anna Alpha" not in html
+
+
+# --- P2/P3: nicht-autoritatives Markieren ----------------------------------
+
+def _read_entry(data_dir, run_id, lic):
+    with open(os.path.join(data_dir, "events.json"), "r", encoding="utf-8") as f:
+        ev = json.load(f)[0]
+    run = next(r for r in ev["runs"] if r["id"] == run_id)
+    return next(e for e in run["entries"] if e["Lizenznummer"] == lic)
+
+
+def test_mark_set_and_toggle_clear(content_app, data_dir):
+    _write_event(data_dir, _normal_event())
+    c = content_app.test_client()
+
+    r = c.post("/einweiser/api/mark/EVT1/run_a", json={"license_number": "L1", "mark": "ready"})
+    assert r.status_code == 200 and r.get_json()["mark"] == "ready"
+    assert _read_entry(data_dir, "run_a", "L1").get("einweiser_mark") == "ready"
+
+    # 'none' loescht die Markierung
+    r = c.post("/einweiser/api/mark/EVT1/run_a", json={"license_number": "L1", "mark": "none"})
+    assert r.status_code == 200 and r.get_json()["mark"] == ""
+    assert "einweiser_mark" not in _read_entry(data_dir, "run_a", "L1")
+
+
+def test_mark_does_not_write_result(content_app, data_dir):
+    """Markieren ist nicht-autoritativ: kein Resultat, kein current_starter-Shift."""
+    _write_event(data_dir, _normal_event())
+    c = content_app.test_client()
+    c.post("/einweiser/api/mark/EVT1/run_a", json={"license_number": "L2", "mark": "absent"})
+    entry = _read_entry(data_dir, "run_a", "L2")
+    assert "result" not in entry  # KEINE DNS-Wertung
+    with open(os.path.join(data_dir, "events.json"), "r", encoding="utf-8") as f:
+        run = json.load(f)[0]["runs"][0]
+    assert run["current_starter"].get("Lizenznummer") == "L1"  # unveraendert
+
+
+def test_mark_invalid_rejected(content_app, data_dir):
+    _write_event(data_dir, _normal_event())
+    r = content_app.test_client().post(
+        "/einweiser/api/mark/EVT1/run_a", json={"license_number": "L1", "mark": "bogus"})
+    assert r.status_code == 400
+
+
+def test_mark_blocked_in_ko(content_app, data_dir):
+    _write_event(data_dir, _ko_event())
+    r = content_app.test_client().post(
+        "/einweiser/api/mark/EVT1/any", json={"license_number": "pa", "mark": "ready"})
+    assert r.status_code == 403
+
+
+# --- P4: Umreihen (start_order) --------------------------------------------
+
+def test_sort_backward_compatible_without_start_order():
+    """Ohne start_order: Startnummer aufsteigend, läufig ans Ende (wie bisher)."""
+    from utils import sort_entries_for_startlist
+    a = {"Lizenznummer": "A", "Startnummer": 1}
+    b = {"Lizenznummer": "B", "Startnummer": 2, "is_in_season": True}  # läufig
+    c = {"Lizenznummer": "C", "Startnummer": 3}
+    order = [e["Lizenznummer"] for e in sort_entries_for_startlist([c, b, a])]
+    assert order == ["A", "C", "B"]
+
+
+def test_sort_manual_order_wins():
+    from utils import sort_entries_for_startlist
+    a = {"Lizenznummer": "A", "Startnummer": 1, "start_order": 2}
+    b = {"Lizenznummer": "B", "Startnummer": 2, "start_order": 0, "is_in_season": True}
+    c = {"Lizenznummer": "C", "Startnummer": 3, "start_order": 1}
+    order = [e["Lizenznummer"] for e in sort_entries_for_startlist([a, b, c])]
+    assert order == ["B", "C", "A"]  # manuelle Reihenfolge schlaegt Startnr + läufig
+
+
+def test_reorder_moves_and_assigns_all(content_app, data_dir):
+    _write_event(data_dir, _normal_event())
+    c = content_app.test_client()
+    r = c.post("/einweiser/api/reorder/EVT1/run_a", json={"license_number": "L1", "direction": "down"})
+    assert r.status_code == 200 and r.get_json().get("success") is True
+
+    from utils import sort_entries_for_startlist
+    with open(os.path.join(data_dir, "events.json"), "r", encoding="utf-8") as f:
+        run = json.load(f)[0]["runs"][0]
+    # Alle Eintraege haben jetzt eine explizite start_order
+    assert all("start_order" in e for e in run["entries"])
+    order = [e["Lizenznummer"] for e in sort_entries_for_startlist(run["entries"])]
+    assert order == ["L2", "L1", "L3"]
+
+
+def test_reorder_top_up_is_noop(content_app, data_dir):
+    _write_event(data_dir, _normal_event())
+    r = content_app.test_client().post(
+        "/einweiser/api/reorder/EVT1/run_a", json={"license_number": "L1", "direction": "up"})
+    assert r.status_code == 200 and r.get_json().get("noop") is True
+
+
+def test_reorder_blocked_in_ko(content_app, data_dir):
+    _write_event(data_dir, _ko_event())
+    r = content_app.test_client().post(
+        "/einweiser/api/reorder/EVT1/any", json={"license_number": "pa", "direction": "down"})
+    assert r.status_code == 403
