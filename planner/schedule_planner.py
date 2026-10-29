@@ -427,7 +427,7 @@ def compute_computed_timeline(schedule: Dict, event_runs=None, settings=None, st
 #     "judge_id": str | None,
 #   }
 
-PORTAL_SECONDS_PER_STARTER = {"agility": 65, "jumping": 60, "open": 65, "tunnel": 60}
+PORTAL_SECONDS_PER_STARTER = {"agility": 65, "jumping": 60, "open": 65, "tunnel": 60, "final": 240}
 PORTAL_CHANGEOVER_SECONDS = 1200
 PORTAL_BRIEFING_MINUTES_PER_50 = 8
 PORTAL_BRIEFING_BLOCK_SIZE = 50
@@ -435,6 +435,7 @@ PORTAL_PREP_PAUSE_SECONDS = 300
 
 PORTAL_DISCIPLINE_LABELS = {
     "agility": "Agility", "jumping": "Jumping", "open": "Open", "tunnel": "Tunnellauf",
+    "final": "Finale",
 }
 # SW-Läufe tragen `laufart` als exaktes Literal (siehe exchange_service.py-Kommentar
 # "Software matcht auf exakte Literale") — identisch zu PORTAL_DISCIPLINE_LABELS,
@@ -692,21 +693,24 @@ def split_into_groups(sorted_blocks: List[Dict]) -> List[Tuple[str, object]]:
     Aufeinanderfolgende "run"-Blöcke mit gleicher Disziplin+Klasse bilden eine
     Gruppe (ein Umbau, ein gemeinsames Briefing). `force_new_group=True`
     erzwingt eine neue Gruppe auch bei gleichem Schlüssel. `rank_announcement`
-    unterbricht immer. Portal-Pendant: schedule_utils._split_into_groups.
+    und `final` (eigene, fix berechnete Dauer, kein EventRun) unterbrechen
+    immer und stehen standalone dazwischen. Portal-Pendant:
+    schedule_utils._split_into_groups.
 
-    Rückgabe: Liste von ("run_group", [block,...]) | ("rank", block).
+    Rückgabe: Liste von ("run_group", [block,...]) | ("rank", block) | ("final", block).
     """
     groups: List[Tuple[str, object]] = []
     current_grp: List[Dict] = []
     current_key = None
 
     for block in sorted_blocks:
-        if _blk_type(block) == "rank_announcement":
+        bt = _blk_type(block)
+        if bt in ("rank_announcement", "final"):
             if current_grp:
                 groups.append(("run_group", current_grp))
                 current_grp = []
                 current_key = None
-            groups.append(("rank", block))
+            groups.append(("rank" if bt == "rank_announcement" else "final", block))
         else:
             key = _portal_group_key(block)
             force_split = bool(block.get("force_new_group")) and bool(current_grp)
@@ -747,6 +751,18 @@ def compute_timeline(blocks_by_ring: Dict[str, List[Dict]], ring_start_times: Di
                     "block": content, "start_time": ts, "end_time": ts,
                     "participants": 0, "total_min": 0, "changeover_min": 0,
                     "briefing_min": 0, "prep_pause_min": 0, "run_min": 0,
+                })
+            elif gtype == "final":
+                block = content
+                count = portal_participant_count(block, event_runs)
+                secs = _portal_secs_per_starter("final", run_time_config)
+                run_s = max(count * secs, 60)
+                s, e, current = _portal_advance(current, run_s, round_minutes)
+                items.append({
+                    "block": block, "start_time": s, "end_time": e,
+                    "participants": count, "total_min": run_s // 60,
+                    "changeover_min": 0, "briefing_min": 0, "prep_pause_min": 0,
+                    "run_min": run_s // 60,
                 })
             else:
                 run_group = content
@@ -827,6 +843,16 @@ def compute_detailed_segments(blocks_by_ring: Dict[str, List[Dict]], ring_start_
                     "segment": "rank_announcement",
                     "label": content.get("title") or "Rangverkündigung",
                     "block": content, "start_time": ts, "end_time": ts, "participants": 0,
+                })
+            elif gtype == "final":
+                block = content
+                count = portal_participant_count(block, event_runs)
+                secs = _portal_secs_per_starter("final", run_time_config)
+                run_s = max(count * secs, 60)
+                s, e, current = _portal_advance(current, run_s, round_minutes)
+                items.append({
+                    "segment": "final", "label": block.get("title") or "Finale",
+                    "block": block, "start_time": s, "end_time": e, "participants": count,
                 })
             else:
                 run_group = content

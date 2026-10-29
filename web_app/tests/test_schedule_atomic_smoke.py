@@ -203,6 +203,41 @@ def test_set_block_judge(client):
     assert _load_block("A")["judge_id"] == "J7"
 
 
+def test_add_final_block_and_grossring_render_and_persist(client):
+    """Portal-Parity-Port 'Finale-Block + Grossring' (2026-10-29): Finalblock
+    hinzufuegen -> Zeitplan-Seite rendert weiter 200, Teilnehmer-Override setzt
+    die Dauer; Grossring-Checkbox am Ring persistiert auf event['grossring_rings']."""
+    _seed_atomic_two_blocks()
+    resp = client.post("/events/plan_schedule/EDIT/add_block",
+                        data={"block_type": "final", "ring": "1", "title": "Finale"})
+    assert resp.status_code == 302
+
+    with open(os.path.join(_data_dir(), "events.json"), encoding="utf-8") as f:
+        ev = json.load(f)[0]
+    final_blocks = [b for b in ev["schedule"]["rings"]["1"]["blocks"] if b["type"] == "final"]
+    assert len(final_blocks) == 1
+    final_id = final_blocks[0]["id"]
+
+    resp = client.post("/events/plan_schedule/EDIT/set_block_participants",
+                        data={"block_id": final_id, "participant_count_override": "32"})
+    assert resp.status_code == 302
+    assert _load_block(final_id)["participant_count_override"] == 32
+
+    resp = client.get("/events/plan_schedule/EDIT")
+    assert resp.status_code == 200
+
+    resp = client.post("/events/save_schedule/EDIT",
+                        data={"start_time_ring_1": "08:00", "grossring_ring_1": "1"})
+    assert resp.status_code == 302
+    with open(os.path.join(_data_dir(), "events.json"), encoding="utf-8") as f:
+        ev = json.load(f)[0]
+    assert ev["grossring_rings"] == ["1"]
+
+    resp = client.get("/events/plan_schedule/EDIT")
+    assert resp.status_code == 200
+    assert "Grossring".encode() in resp.data or "Grossring" in resp.get_data(as_text=True)
+
+
 def _seed_live_event():
     ev = {
         "id": "LIVE",

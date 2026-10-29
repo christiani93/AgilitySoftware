@@ -360,3 +360,50 @@ def test_migrate_keeps_rank_block():
     assert len(blocks) == 2
     assert blocks[0]["type"] == "rank_announcement"
     assert blocks[0]["sort_index"] == 0 and blocks[1]["sort_index"] == 10
+
+
+# ---------------------------------------------------------------------------
+# block_type "final" (American/KO) — Portal-Pendant: schedule_utils "final"
+# ---------------------------------------------------------------------------
+
+def _final(id, sort_index, participant_count_override=None, title=None):
+    return {"id": id, "ring": "Ring 1", "block_type": "final",
+            "title": title, "sort_index": sort_index,
+            "participant_count_override": participant_count_override}
+
+
+def test_final_block_interrupts_group_like_rank():
+    blocks = [
+        _block("b1", "agility", "Large", 1, sort_index=10),
+        _final("f1", sort_index=20, participant_count_override=32),
+        _block("b2", "agility", "Large", 1, sort_index=30),
+    ]
+    groups = split_into_groups(blocks)
+    assert [g[0] for g in groups] == ["run_group", "final", "run_group"]
+
+
+def test_timeline_final_block_duration_from_override():
+    blocks_by_ring = {"Ring 1": [_final("f1", sort_index=0, participant_count_override=32)]}
+    tl = compute_timeline(blocks_by_ring, {"Ring 1": "09:00"}, "2026-10-31")
+    item = tl["Ring 1"][0]
+    assert item["participants"] == 32
+    assert item["run_min"] == (32 * 240) // 60      # 240s/Finalstarter Default
+    assert item["changeover_min"] == 0 and item["briefing_min"] == 0
+
+
+def test_timeline_final_block_minimum_duration_when_empty():
+    blocks_by_ring = {"Ring 1": [_final("f1", sort_index=0)]}
+    tl = compute_timeline(blocks_by_ring, {"Ring 1": "09:00"}, "2026-10-31")
+    item = tl["Ring 1"][0]
+    assert item["participants"] == 0
+    assert item["run_min"] == 1                     # Mindestdauer 60s, aufgerundet auf 1 Min
+
+
+def test_detailed_segments_final_block_has_label_and_segment():
+    blocks_by_ring = {"Ring 1": [_final("f1", sort_index=0, participant_count_override=16, title="Finale Large")]}
+    segs = compute_detailed_segments(blocks_by_ring, {"Ring 1": "09:00"}, "2026-10-31")
+    seg = segs["Ring 1"][0]
+    assert seg["segment"] == "final"
+    assert seg["label"] == "Finale Large"
+    assert seg["participants"] == 16
+    assert seg["segment_type"] == "final" and seg["num_starters"] == 16

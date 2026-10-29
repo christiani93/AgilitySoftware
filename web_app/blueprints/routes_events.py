@@ -2034,6 +2034,16 @@ def add_schedule_block(event_id):
             'applies_to': applies_to,
             'applies_to_block_ids': [],
         }
+    elif block_type == 'final':
+        # Finalblock (American/KO): kein EventRun, keine Online-Anmeldung.
+        # Dauer = Teilnehmer-Override (manuell gesetzt) x Sek./Finalstarter.
+        block = {
+            'id': block_id,
+            'type': 'final',
+            'title': title or 'Finale',
+            'participant_count_override': None,
+            'notes': notes,
+        }
     else:
         classes = request.form.getlist('classes')
         size_categories = request.form.getlist('size_categories')
@@ -2257,6 +2267,14 @@ def save_schedule(event_id):
             ring_key = key.replace('start_time_ring_', 'ring_')
             start_times[ring_key] = value
     event['start_times_by_ring'] = start_times
+
+    # Grossring-Markierung pro Ring (nur Anzeige im Zeitplan, Portal-Pendant
+    # Event.grossring_rings). Checkbox "grossring_ring_<i>" je Ring.
+    event['grossring_rings'] = [
+        key.replace('grossring_ring_', '')
+        for key in form_data
+        if key.startswith('grossring_ring_')
+    ]
 
     schedule_raw = (form_data.get('schedule_json') or form_data.get('run_order_data') or "").strip()
     schedule_payload = None
