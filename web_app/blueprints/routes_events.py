@@ -767,6 +767,18 @@ def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -
                 "duration_seconds": int(duration_min) * 60,
                 "notes":            _get_first_value(block, ("notes", "note"), ""),
             }
+        elif block_type == "final":
+            # Finalblock (American/KO): Portal exportiert bereits die Gesamt-
+            # Finalteilnehmerzahl (final_participants); als Override übernehmen,
+            # damit die SW-Engine dieselbe Dauer wie das Portal berechnet.
+            fp_total = _get_first_value(block, ("final_participants",), None)
+            schedule_block = {
+                "id":                        schedule_planner.generate_block_id(),
+                "type":                      "final",
+                "title":                     _get_first_value(block, ("title",), "Finale"),
+                "participant_count_override": int(fp_total) if fp_total is not None else None,
+                "notes":                     _get_first_value(block, ("notes", "note"), ""),
+            }
         else:
             discipline  = _normalize_discipline(_get_first_value(block, ("discipline", "laufart"), ""))
             category    = _get_first_value(block, ("category_code", "kategorie", "Kategorie"), "")
