@@ -69,6 +69,7 @@ def _build_eventexport_zip_with_final_block() -> bytes:
     registrations = {"registrations": []}
     schedule = {
         "ring_start_times": {"3": "08:00"},
+        "grossring_rings": ["3"],
         "blocks": [
             {"ring": 3, "sort_index": 0, "block_type": "final",
              "title": "Finale", "final_participants": 32,
@@ -112,3 +113,4 @@ def test_import_final_block_becomes_final_not_run(client, tmp_path, monkeypatch)
     assert final_block["title"] == "Finale"
     assert final_block["participant_count_override"] == 32
     assert "discipline" not in final_block and "size_category" not in final_block
+    assert events[0]["grossring_rings"] == ["3"]
