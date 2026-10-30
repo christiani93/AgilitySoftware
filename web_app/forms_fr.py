@@ -211,6 +211,18 @@ def _dog_and_handler_header(event, lizenznummer):
         # (handlers.json Vereinsnummer) - auf dem offiziellen Formular leer lassen.
         verein = ""
 
+    # Französische Zusatzfelder (vom Portal importiert bzw. in Stammdaten gepflegt):
+    # FAPAC = Hundelizenz, FR_Licence = Läuferlizenz, FR_Club = franz. Verein,
+    # FR_Regionale = franz. Regionalverband, Sexe = Geschlecht des Hundes.
+    fapac = str(dog.get("FAPAC", "") or "").strip()
+    sexe = str(dog.get("Sexe", "") or "").strip()
+    fr_club = str(handler.get("FR_Club", "") or "").strip()
+    fr_licence = str(handler.get("FR_Licence", "") or "").strip()
+    fr_regionale = str(handler.get("FR_Regionale", "") or "").strip()
+    # Franz. Verein hat Vorrang vor dem CH-/Ausland-Vereinsfeld.
+    if fr_club:
+        verein = fr_club
+
     handler_name = None
     dog_name = None
     start_no = None
@@ -225,8 +237,12 @@ def _dog_and_handler_header(event, lizenznummer):
         "race": dog.get("Rasse") or "",
         "conducteur": handler_name or "",
         "club": verein,
-        "n_licence": lizenznummer,
+        # N° licence = franz. Läuferlizenz, falls erfasst; sonst unsere Identitäts-Lizenz.
+        "n_licence": fr_licence or lizenznummer,
         "n_dossard": start_no,
+        "fapac": fapac,
+        "sexe": sexe,
+        "regionale": fr_regionale,
     }
 
 

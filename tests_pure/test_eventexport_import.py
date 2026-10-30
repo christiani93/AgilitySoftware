@@ -41,13 +41,14 @@ def _portal_payload():
     entities = {
         "persons": [
             {"external_id": "P1", "first_name": "Christiane", "last_name": "Broennimann", "email": None},
-            {"external_id": "P2", "first_name": "Claire", "last_name": "Arola", "email": None},
+            {"external_id": "P2", "first_name": "Claire", "last_name": "Arola", "email": None,
+             "fr_licence": "L-98765", "fr_club": "CC Lyon", "fr_regionale": "Rhône-Alpes"},
         ],
         "dogs": [
             {"external_id": "D1", "name": "Mac", "license_no": "15333", "license_kind": "CH",
              "breed": "Border Collie"},
             {"external_id": "D2", "name": "Fate", "license_no": "FRA-105002", "license_kind": "FOREIGN",
-             "breed": "Sheltie"},
+             "breed": "Sheltie", "fapac": "D-12345", "sexe": "F"},
         ],
     }
     regs = [
@@ -90,3 +91,22 @@ def test_eventexport_persons_key_is_recognized_as_handlers(fresh_data_dir):
     handler_map = R._merge_eventexport_handlers([], entities)
     assert set(handler_map.keys()) == {"P1", "P2"}
     assert handler_map["P1"]["Vorname"] == "Christiane"
+
+
+def test_eventexport_imports_french_extra_fields(fresh_data_dir):
+    """FR-Zusatzfelder (FAPAC/Sexe am Hund, N° licence/Club/Régionale am Läufer)
+    werden aus dem Portal-Export in dogs.json/handlers.json übernommen."""
+    entities, regs = _portal_payload()
+    event = {"id": "ev1", "runs": []}
+    R._apply_eventexport_registrations(event, regs, entities)
+
+    saved_dogs = {d.get("Lizenznummer"): d for d in utils._load_data("dogs.json")}
+    assert saved_dogs["FRA-105002"]["FAPAC"] == "D-12345"
+    assert saved_dogs["FRA-105002"]["Sexe"] == "F"
+    # CH-Hund ohne FR-Felder bleibt davon unberührt.
+    assert not saved_dogs["15333"].get("FAPAC")
+
+    handlers = {h.get("Nachname"): h for h in utils._load_data("handlers.json")}
+    assert handlers["Arola"]["FR_Licence"] == "L-98765"
+    assert handlers["Arola"]["FR_Club"] == "CC Lyon"
+    assert handlers["Arola"]["FR_Regionale"] == "Rhône-Alpes"

@@ -16,8 +16,8 @@ JUDGES_FILE = 'judges.json'
 # Datenmodell-Konfiguration für die gesamte Anwendung
 DATA_CONFIG = {
     'clubs': {'file': CLUBS_FILE, 'title': 'Vereine', 'fields': {'nummer': 'Nummer', 'name': 'Name'}, 'id_field': 'nummer', 'import_info': 'Spalten: Nr;Name. Ersetzt alle vorhandenen Daten.'},
-    'dogs': {'file': DOGS_FILE, 'title': 'Hunde', 'fields': {'Lizenznummer': 'Lizenznummer', 'Hundename': 'Hundename', 'Hundefuehrer_ID': 'Hundeführer ID', 'Kategorie': 'Kategorie', 'Klasse': 'Klasse'}, 'id_field': 'Lizenznummer', 'import_info': 'Spalten: H-Lizenz;H-Name;... Aktualisiert Hunde & Hundeführer.'},
-    'handlers': {'file': HANDLERS_FILE, 'title': 'Hundeführer', 'fields': {'id': 'ID', 'Vorname': 'Vorname', 'Nachname': 'Nachname', 'Vereinsnummer': 'Vereinsnummer'}, 'id_field': 'id', 'import_info': 'Nutzt die gleiche Datei wie Hunde-Import. Aktualisiert Hunde & Hundeführer.'},
+    'dogs': {'file': DOGS_FILE, 'title': 'Hunde', 'fields': {'Lizenznummer': 'Lizenznummer', 'Hundename': 'Hundename', 'Hundefuehrer_ID': 'Hundeführer ID', 'Kategorie': 'Kategorie', 'Klasse': 'Klasse', 'FAPAC': 'FAPAC (franz. Hundelizenz)', 'Sexe': 'Sexe (M/F)'}, 'id_field': 'Lizenznummer', 'import_info': 'Spalten: H-Lizenz;H-Name;... Aktualisiert Hunde & Hundeführer.'},
+    'handlers': {'file': HANDLERS_FILE, 'title': 'Hundeführer', 'fields': {'id': 'ID', 'Vorname': 'Vorname', 'Nachname': 'Nachname', 'Vereinsnummer': 'Vereinsnummer', 'FR_Licence': 'N° licence (franz. Läuferlizenz)', 'FR_Club': 'Club (franz. Verein)', 'FR_Regionale': 'Régionale'}, 'id_field': 'id', 'import_info': 'Nutzt die gleiche Datei wie Hunde-Import. Aktualisiert Hunde & Hundeführer.'},
     'judges': {'file': JUDGES_FILE, 'title': 'Richter', 'fields': {'id': 'ID', 'firstname': 'Vorname', 'lastname': 'Nachname'}, 'id_field': 'id', 'import_info': 'Spalten: ID;Vorname;Name. Ersetzt alle vorhandenen Daten.'},
 }
 

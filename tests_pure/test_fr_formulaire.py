@@ -126,3 +126,31 @@ def test_dog_handler_header_blanks_foreign_sentinel_club(app_and_dir):
     assert header["club"] == ""
     assert header["chien"] == "Haze"
     assert header["conducteur"] == "Arthur Naud"
+    # Ohne erfasste FR-Zusatzfelder bleiben die neuen Felder leer, N° licence
+    # faellt auf die Identitaets-Lizenz zurueck.
+    assert header["fapac"] == ""
+    assert header["sexe"] == ""
+    assert header["regionale"] == ""
+    assert header["n_licence"] == "FRA-1001"
+
+
+def test_dog_handler_header_uses_french_extra_fields(app_and_dir):
+    """FAPAC/Sexe (Hund) + N° licence/Club/Régionale (Läufer) werden ins
+    Formular-Header-Dict übernommen, sobald sie in den Stammdaten stehen."""
+    import forms_fr
+    _, data_dir = app_and_dir
+    with open(os.path.join(data_dir, "dogs.json"), "w", encoding="utf-8") as f:
+        json.dump([{"Lizenznummer": "FRA-1001", "Hundename": "Haze", "Rasse": "Border Collie",
+                    "Hundefuehrer_ID": "h1", "FAPAC": "D-12345", "Sexe": "M"}], f)
+    with open(os.path.join(data_dir, "handlers.json"), "w", encoding="utf-8") as f:
+        json.dump([{"id": "h1", "Vereinsnummer": "--- AUSLAND/ ETRANGER/ FOREIGN ---",
+                    "FR_Licence": "L-98765", "FR_Club": "CC Lyon", "FR_Regionale": "Rhône-Alpes"}], f)
+    ev = _event()
+    header = forms_fr._dog_and_handler_header(ev, "FRA-1001")
+    assert header["fapac"] == "D-12345"
+    assert header["sexe"] == "M"
+    assert header["regionale"] == "Rhône-Alpes"
+    # Franz. Verein hat Vorrang vor dem Ausland-Sentinel.
+    assert header["club"] == "CC Lyon"
+    # N° licence = erfasste Läuferlizenz statt Identitäts-Lizenz.
+    assert header["n_licence"] == "L-98765"

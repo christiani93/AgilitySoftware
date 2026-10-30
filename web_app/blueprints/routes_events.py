@@ -432,6 +432,10 @@ def _merge_eventexport_handlers(handlers: list, entities: dict) -> dict:
         first_name = _get_first_value(handler, ("firstname", "first_name", "Vorname", "vorname"), "")
         last_name = _get_first_value(handler, ("lastname", "last_name", "Nachname", "nachname"), "")
         external_id = _get_first_value(handler, ("external_id", "id", "handler_id"), "")
+        # Französische Zusatzfelder (nur bei FR-Teilnehmern gesetzt, sonst leer)
+        fr_licence = _get_first_value(handler, ("fr_licence", "fr_license", "FR_Licence"), "")
+        fr_club = _get_first_value(handler, ("fr_club", "FR_Club"), "")
+        fr_regionale = _get_first_value(handler, ("fr_regionale", "regionale", "FR_Regionale"), "")
         key = _fullname_key(first_name, last_name)
         existing = external_map.get(external_id) if external_id else None
         if not existing and key:
@@ -447,6 +451,9 @@ def _merge_eventexport_handlers(handlers: list, entities: dict) -> dict:
             handler_map[key] = existing
         _safe_update(existing, "Vorname", first_name)
         _safe_update(existing, "Nachname", last_name)
+        _safe_update(existing, "FR_Licence", fr_licence)
+        _safe_update(existing, "FR_Club", fr_club)
+        _safe_update(existing, "FR_Regionale", fr_regionale)
         if external_id:
             existing["external_id"] = external_id
             external_map[external_id] = existing
@@ -465,6 +472,9 @@ def _merge_eventexport_dogs(dogs: list, entities: dict, handler_external_map: di
         license_no = _get_first_value(dog, ("license_no", "license_number", "Lizenznummer", "lizenznummer"), "")
         dog_name = _get_first_value(dog, ("dog_name", "Hundename", "name"), "")
         breed = _get_first_value(dog, ("breed", "Rasse", "rasse"), "")
+        # Französische Zusatzfelder am Hund (nur bei FR-Teilnehmern gesetzt)
+        fapac = _get_first_value(dog, ("fapac", "FAPAC", "fapac_no", "fapac_license"), "")
+        sexe = _get_first_value(dog, ("sexe", "sex", "Sexe"), "")
         external_id = _get_first_value(dog, ("external_id", "id"), "")
         handler_external_id = _get_first_value(dog, ("handler_external_id", "handler_id"), "")
         handler_id = None
@@ -486,6 +496,8 @@ def _merge_eventexport_dogs(dogs: list, entities: dict, handler_external_map: di
             dog_map[license_no] = existing
         _safe_update(existing, "Hundename", dog_name)
         _safe_update(existing, "Rasse", breed)
+        _safe_update(existing, "FAPAC", fapac)
+        _safe_update(existing, "Sexe", sexe)
         if handler_id:
             existing["Hundefuehrer_ID"] = handler_id
         _safe_update(existing, "Kategorie", _get_first_value(dog, ("category_code", "Kategorie", "kategorie"), ""))
@@ -727,6 +739,13 @@ def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -
             if parsed_portal:
                 digits = "".join(ch for ch in str(rk) if ch.isdigit()) or str(rk)
                 start_times_by_ring[f"ring_{digits}"] = parsed_portal
+
+        # Grossring-Markierung übernehmen (rein visuell, Portal-Pendant
+        # Event.grossring_rings) — Portal liefert Ring-NUMMERN ("3"), SW-Editor
+        # verwendet dieselben Ring-Nummern als Checkbox-Keys (plan_schedule.html).
+        grossring_in = schedule_payload.get("grossring_rings")
+        if isinstance(grossring_in, list):
+            event["grossring_rings"] = [str(r) for r in grossring_in if str(r).strip()]
 
     for block in blocks:
         if not isinstance(block, dict):
