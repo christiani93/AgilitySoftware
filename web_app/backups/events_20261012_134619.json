@@ -1,0 +1,5431 @@
+[
+  {
+    "id": "E_PDF",
+    "name": "Testevent",
+    "external_id": null,
+    "runs": [
+      {
+        "id": "R_PDF",
+        "name": "Agility Medium Kl. 2",
+        "klasse": "2",
+        "laufart": "Agility",
+        "kategorie": "Medium",
+        "assigned_ring": "Ring 1",
+        "laufdaten": {
+          "parcours_laenge": "150"
+        },
+        "entries": [
+          {
+            "lizenz": "A",
+            "zeit": "34.50",
+            "fehler": "0",
+            "verweigerungen": "0",
+            "dis_abr": ""
+          },
+          {
+            "lizenz": "B",
+            "zeit": "35.20",
+            "fehler": "0",
+            "verweigerungen": "0",
+            "dis_abr": ""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ko-demo-event",
+    "Bezeichnung": "Halloween Cup (Demo – KO-Anzeige)",
+    "Datum": "2026-10-31",
+    "Veranstaltungsart": "Turnier",
+    "is_test": true,
+    "is_published": true,
+    "runs": [],
+    "ko_cup": {
+      "enabled": true,
+      "finals": [
+        {
+          "id": "ko-demo-final-large",
+          "group_label": "Large",
+          "category_code": "Large",
+          "class_level": null,
+          "participants": [
+            {
+              "id": "ko-demo-p1",
+              "dog_name": "Rex",
+              "handler_name": "Nina Keller",
+              "license_no": "CH10001",
+              "start_number": 101,
+              "seeding_rank": 1,
+              "draw_number": 1,
+              "source": "run"
+            },
+            {
+              "id": "ko-demo-p2",
+              "dog_name": "Fido",
+              "handler_name": "Marco Steiner",
+              "license_no": "CH10002",
+              "start_number": 104,
+              "seeding_rank": 2,
+              "draw_number": 2,
+              "source": "run"
+            },
+            {
+              "id": "ko-demo-p3",
+              "dog_name": "Luna",
+              "handler_name": "Sara Weber",
+              "license_no": "CH10003",
+              "start_number": 107,
+              "seeding_rank": 3,
+              "draw_number": 3,
+              "source": "run"
+            },
+            {
+              "id": "ko-demo-p4",
+              "dog_name": "Balu",
+              "handler_name": "Tom Fischer",
+              "license_no": "CH10004",
+              "start_number": 110,
+              "seeding_rank": 4,
+              "draw_number": 4,
+              "source": "run"
+            }
+          ],
+          "matchups": [
+            {
+              "id": "m_dfcc7e91",
+              "round_no": 1,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": "ko-demo-p1",
+              "b_id": "ko-demo-p4",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": 19.8,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 19.5,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": 20.1,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 20.4,
+                  "faults": 5,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": "ko-demo-p1",
+              "loser_id": "ko-demo-p4"
+            },
+            {
+              "id": "m_cd252c2d",
+              "round_no": 1,
+              "matchup_no": 2,
+              "matchup_type": "winner",
+              "a_id": "ko-demo-p2",
+              "b_id": "ko-demo-p3",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": 21.0,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 46.5,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": 21.6,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 25.0,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": "ko-demo-p3",
+              "loser_id": "ko-demo-p2"
+            },
+            {
+              "id": "m_173516ec",
+              "round_no": 2,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": "ko-demo-p1",
+              "b_id": "ko-demo-p3",
+              "a_source": {
+                "matchup_id": "m_dfcc7e91",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_cd252c2d",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_6dfa9505",
+              "round_no": 2,
+              "matchup_no": 2,
+              "matchup_type": "third_place",
+              "a_id": "ko-demo-p4",
+              "b_id": "ko-demo-p2",
+              "a_source": {
+                "matchup_id": "m_dfcc7e91",
+                "take": "loser"
+              },
+              "b_source": {
+                "matchup_id": "m_cd252c2d",
+                "take": "loser"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            }
+          ],
+          "results": [],
+          "is_published": true
+        },
+        {
+          "id": "ko-demo-final-medium",
+          "group_label": "Medium",
+          "category_code": "Medium",
+          "class_level": null,
+          "participants": [
+            {
+              "id": "ko-demo-p5",
+              "dog_name": "Nala",
+              "handler_name": "Jasmin Huber",
+              "license_no": "CH10005",
+              "start_number": 205,
+              "seeding_rank": 5,
+              "draw_number": 1,
+              "source": "run"
+            },
+            {
+              "id": "ko-demo-p6",
+              "dog_name": "Max",
+              "handler_name": "Dario Keller",
+              "license_no": "CH10006",
+              "start_number": 208,
+              "seeding_rank": 6,
+              "draw_number": 2,
+              "source": "run"
+            }
+          ],
+          "matchups": [
+            {
+              "id": "m_5fd43caa",
+              "round_no": 1,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": "ko-demo-p5",
+              "b_id": "ko-demo-p6",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": 18.2,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 18.0,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": 19.1,
+                  "faults": 0,
+                  "refusals": 1,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 18.9,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": "ko-demo-p5",
+              "loser_id": "ko-demo-p6"
+            }
+          ],
+          "results": [
+            {
+              "participant_id": "ko-demo-p5",
+              "rank": 1
+            },
+            {
+              "participant_id": "ko-demo-p6",
+              "rank": 2
+            }
+          ],
+          "is_published": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "DEMO_HCS",
+    "external_id": null,
+    "Bezeichnung": "DEMO Halloween Cup (KO)",
+    "Datum": "2026-10-31",
+    "VeranstalterClubNr": "9999",
+    "Turniernummer": "DEMO-HCS",
+    "num_rings": 2,
+    "runs": [],
+    "run_order": [],
+    "start_number_schema": {},
+    "start_times_by_ring": {
+      "ring_1": "09:00",
+      "ring_2": "09:00"
+    },
+    "Veranstaltungsart": "",
+    "ko_cup": {
+      "enabled": true,
+      "finals": [
+        {
+          "id": "final_5c7027b2",
+          "group_label": "Large",
+          "category_code": "Large",
+          "class_level": null,
+          "participants": [
+            {
+              "id": "p_l1",
+              "dog_name": "Spooky",
+              "handler_name": "Anna Keller",
+              "license_no": "9101",
+              "start_number": 3,
+              "seeding_rank": 1,
+              "draw_number": 1,
+              "source": "run"
+            },
+            {
+              "id": "p_l2",
+              "dog_name": "Pumpkin",
+              "handler_name": "Beat Müller",
+              "license_no": "9102",
+              "start_number": 7,
+              "seeding_rank": 2,
+              "draw_number": 2,
+              "source": "run"
+            },
+            {
+              "id": "p_l3",
+              "dog_name": "Grim",
+              "handler_name": "Clara Rossi",
+              "license_no": "9103",
+              "start_number": 12,
+              "seeding_rank": 3,
+              "draw_number": 3,
+              "source": "run"
+            },
+            {
+              "id": "p_l4",
+              "dog_name": "Zombie",
+              "handler_name": "Dario Weber",
+              "license_no": "9104",
+              "start_number": 18,
+              "seeding_rank": 4,
+              "draw_number": 4,
+              "source": "run"
+            },
+            {
+              "id": "p_l5",
+              "dog_name": "Witch",
+              "handler_name": "Eva Steiner",
+              "license_no": "9105",
+              "start_number": 21,
+              "seeding_rank": 5,
+              "draw_number": 5,
+              "source": "run"
+            },
+            {
+              "id": "p_l6",
+              "dog_name": "Ghost",
+              "handler_name": "Finn Brun",
+              "license_no": "9106",
+              "start_number": 25,
+              "seeding_rank": 6,
+              "draw_number": 6,
+              "source": "run"
+            }
+          ],
+          "matchups": [
+            {
+              "id": "m_14bad420",
+              "round_no": 1,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": "p_l1",
+              "b_id": null,
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": "p_l1",
+              "loser_id": null
+            },
+            {
+              "id": "m_cc226859",
+              "round_no": 1,
+              "matchup_no": 2,
+              "matchup_type": "winner",
+              "a_id": "p_l2",
+              "b_id": null,
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": "p_l2",
+              "loser_id": null
+            },
+            {
+              "id": "m_6515e717",
+              "round_no": 1,
+              "matchup_no": 3,
+              "matchup_type": "winner",
+              "a_id": "p_l3",
+              "b_id": "p_l6",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": 18.6,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 18.97,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": 19.25,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 19.62,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": "p_l3",
+              "loser_id": "p_l6"
+            },
+            {
+              "id": "m_880d596a",
+              "round_no": 1,
+              "matchup_no": 4,
+              "matchup_type": "winner",
+              "a_id": "p_l4",
+              "b_id": "p_l5",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": 18.9,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 19.27,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": 19.05,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 19.42,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": "p_l4",
+              "loser_id": "p_l5"
+            },
+            {
+              "id": "m_dc281431",
+              "round_no": 2,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": "p_l1",
+              "b_id": "p_l2",
+              "a_source": {
+                "matchup_id": "m_14bad420",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_cc226859",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": 18.15,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 18.52,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": 18.35,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 18.72,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": "p_l1",
+              "loser_id": "p_l2"
+            },
+            {
+              "id": "m_c1693622",
+              "round_no": 2,
+              "matchup_no": 2,
+              "matchup_type": "winner",
+              "a_id": "p_l3",
+              "b_id": "p_l4",
+              "a_source": {
+                "matchup_id": "m_6515e717",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_880d596a",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": 18.6,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 18.97,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": 18.9,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 19.27,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": "p_l3",
+              "loser_id": "p_l4"
+            },
+            {
+              "id": "m_3fe929cd",
+              "round_no": 3,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": "p_l1",
+              "b_id": "p_l3",
+              "a_source": {
+                "matchup_id": "m_dc281431",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_c1693622",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": 18.15,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 18.52,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": 18.6,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 18.97,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": "p_l1",
+              "loser_id": "p_l3"
+            },
+            {
+              "id": "m_6070a8f1",
+              "round_no": 3,
+              "matchup_no": 2,
+              "matchup_type": "third_place",
+              "a_id": "p_l2",
+              "b_id": "p_l4",
+              "a_source": {
+                "matchup_id": "m_dc281431",
+                "take": "loser"
+              },
+              "b_source": {
+                "matchup_id": "m_c1693622",
+                "take": "loser"
+              },
+              "a": {
+                "run1": {
+                  "time": 18.35,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 18.72,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": 18.9,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": 19.27,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": "p_l2",
+              "loser_id": "p_l4"
+            }
+          ],
+          "results": [
+            {
+              "participant_id": "p_l1",
+              "rank": 1
+            },
+            {
+              "participant_id": "p_l3",
+              "rank": 2
+            },
+            {
+              "participant_id": "p_l2",
+              "rank": 3
+            },
+            {
+              "participant_id": "p_l4",
+              "rank": 4
+            },
+            {
+              "participant_id": "p_l6",
+              "rank": 5
+            },
+            {
+              "participant_id": "p_l5",
+              "rank": 5
+            }
+          ],
+          "is_published": false
+        },
+        {
+          "id": "final_cefefbb5",
+          "group_label": "Small",
+          "category_code": "Small",
+          "class_level": null,
+          "participants": [
+            {
+              "id": "p_s1",
+              "dog_name": "Mini-Bat",
+              "handler_name": "Gina Hofer",
+              "license_no": "9201",
+              "start_number": 2,
+              "seeding_rank": 1,
+              "draw_number": 1,
+              "source": "run"
+            },
+            {
+              "id": "p_s2",
+              "dog_name": "Skelly",
+              "handler_name": "Hans Graf",
+              "license_no": "9202",
+              "start_number": 5,
+              "seeding_rank": 2,
+              "draw_number": 2,
+              "source": "run"
+            },
+            {
+              "id": "p_s3",
+              "dog_name": "Casper",
+              "handler_name": "Ida Meier",
+              "license_no": "9203",
+              "start_number": 9,
+              "seeding_rank": 3,
+              "draw_number": 3,
+              "source": "run"
+            },
+            {
+              "id": "p_s4",
+              "dog_name": "Hex",
+              "handler_name": "Jonas Vogt",
+              "license_no": "9204",
+              "start_number": 14,
+              "seeding_rank": 4,
+              "draw_number": 4,
+              "source": "run"
+            }
+          ],
+          "matchups": [
+            {
+              "id": "m_3777559f",
+              "round_no": 1,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": "p_s1",
+              "b_id": "p_s4",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_a4f61b9e",
+              "round_no": 1,
+              "matchup_no": 2,
+              "matchup_type": "winner",
+              "a_id": "p_s2",
+              "b_id": "p_s3",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_412efcac",
+              "round_no": 2,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_3777559f",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_a4f61b9e",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_65b79d63",
+              "round_no": 2,
+              "matchup_no": 2,
+              "matchup_type": "third_place",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_3777559f",
+                "take": "loser"
+              },
+              "b_source": {
+                "matchup_id": "m_a4f61b9e",
+                "take": "loser"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            }
+          ],
+          "results": [],
+          "is_published": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "DEMO_HCS_QUALI",
+    "external_id": null,
+    "Bezeichnung": "DEMO Halloween Cup (Quali-Läufe → Ableiten)",
+    "Datum": "2026-10-31",
+    "VeranstalterClubNr": "9999",
+    "Turniernummer": "DEMO-HCS-Q",
+    "num_rings": 2,
+    "runs": [
+      {
+        "id": "c8250e72-eb80-430e-8234-0f7ce804d8c3",
+        "name": "Tunnellauf Large Kl.1",
+        "laufart": "Tunnellauf",
+        "kategorie": "Large",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "L11",
+            "Hundename": "Casper",
+            "Hundefuehrer": "Anna Keller",
+            "result": {
+              "zeit": "25.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "L12",
+            "Hundename": "Bones",
+            "Hundefuehrer": "Beat Müller",
+            "result": {
+              "zeit": "26.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "L13",
+            "Hundename": "Specter",
+            "Hundefuehrer": "Clara Rossi",
+            "result": {
+              "zeit": "27.10",
+              "fehler": 1,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "40",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "65cd6166-c8f5-4dee-b2b8-69d4871c901f",
+        "name": "Tunnellauf Large Kl.2",
+        "laufart": "Tunnellauf",
+        "kategorie": "Large",
+        "klasse": "2",
+        "entries": [
+          {
+            "Lizenznummer": "L21",
+            "Hundename": "Wraith",
+            "Hundefuehrer": "Dario Weber",
+            "result": {
+              "zeit": "24.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "L22",
+            "Hundename": "Phantom",
+            "Hundefuehrer": "Eva Steiner",
+            "result": {
+              "zeit": "25.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "40",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "3cfcd2ba-f876-4a09-bfce-d5dd6fb7b36c",
+        "name": "Tunnellauf Large Kl.3",
+        "laufart": "Tunnellauf",
+        "kategorie": "Large",
+        "klasse": "3",
+        "entries": [
+          {
+            "Lizenznummer": "L31",
+            "Hundename": "Nightmare",
+            "Hundefuehrer": "Finn Brun",
+            "result": {
+              "zeit": "23.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "L32",
+            "Hundename": "Reaper",
+            "Hundefuehrer": "Gina Hofer",
+            "result": {
+              "zeit": "24.10",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "L33",
+            "Hundename": "Banshee",
+            "Hundefuehrer": "Hans Graf",
+            "result": {
+              "zeit": "26.90",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "40",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "ba5b3645-612a-4c3c-ac94-cb7f7cb006bf",
+        "name": "Tunnellauf Small Kl.1",
+        "laufart": "Tunnellauf",
+        "kategorie": "Small",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "S11",
+            "Hundename": "Mini-Bat",
+            "Hundefuehrer": "Ida Meier",
+            "result": {
+              "zeit": "30.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "S12",
+            "Hundename": "Pebble",
+            "Hundefuehrer": "Jonas Vogt",
+            "result": {
+              "zeit": "31.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "40",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "460fc165-a67d-487a-bbf3-2b01042489aa",
+        "name": "Tunnellauf Small Kl.3",
+        "laufart": "Tunnellauf",
+        "kategorie": "Small",
+        "klasse": "3",
+        "entries": [
+          {
+            "Lizenznummer": "S31",
+            "Hundename": "Shadow",
+            "Hundefuehrer": "Kim Lang",
+            "result": {
+              "zeit": "28.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "S32",
+            "Hundename": "Gremlin",
+            "Hundefuehrer": "Lea Frei",
+            "result": {
+              "zeit": "29.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "40",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "f9a78730-d9b2-4cb8-9c0a-041c615eed7f",
+        "name": "Agility Large Kl.1",
+        "laufart": "Agility",
+        "kategorie": "Large",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "L11",
+            "Hundename": "Casper",
+            "Hundefuehrer": "Anna Keller",
+            "result": {
+              "zeit": "28.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "L12",
+            "Hundename": "Bones",
+            "Hundefuehrer": "Beat Müller",
+            "result": {
+              "zeit": "28.90",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "L14",
+            "Hundename": "Ghoul",
+            "Hundefuehrer": "Mia Studer",
+            "result": {
+              "zeit": "30.10",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "40",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "0644ed29-f115-4842-ba73-4c24ab7b6ac5",
+        "name": "Agility Large Kl.3",
+        "laufart": "Agility",
+        "kategorie": "Large",
+        "klasse": "3",
+        "entries": [
+          {
+            "Lizenznummer": "L31",
+            "Hundename": "Nightmare",
+            "Hundefuehrer": "Finn Brun",
+            "result": {
+              "zeit": "27.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "L35",
+            "Hundename": "Mortis",
+            "Hundefuehrer": "Nico Frei",
+            "result": {
+              "zeit": "28.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "L36",
+            "Hundename": "Hex",
+            "Hundefuehrer": "Ole Bianchi",
+            "result": {
+              "zeit": "29.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "40",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "b5fd5b51-077f-4b6f-93c5-c5c951d07329",
+        "name": "Jumping Small Kl.3",
+        "laufart": "Jumping",
+        "kategorie": "Small",
+        "klasse": "3",
+        "entries": [
+          {
+            "Lizenznummer": "S31",
+            "Hundename": "Shadow",
+            "Hundefuehrer": "Kim Lang",
+            "result": {
+              "zeit": "26.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "S33",
+            "Hundename": "Imp",
+            "Hundefuehrer": "Pia Lehmann",
+            "result": {
+              "zeit": "27.30",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "S34",
+            "Hundename": "Sprite",
+            "Hundefuehrer": "Rolf Senn",
+            "result": {
+              "zeit": "28.10",
+              "fehler": 1,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "40",
+          "auto_dis_on_mct_exceeded": false
+        }
+      }
+    ],
+    "run_order": [],
+    "start_number_schema": {},
+    "start_times_by_ring": {
+      "ring_1": "09:00",
+      "ring_2": "09:00"
+    },
+    "Veranstaltungsart": "",
+    "ko_cup": {
+      "enabled": true,
+      "finals": [
+        {
+          "id": "final_c71c9057",
+          "group_label": "Large",
+          "category_code": "Large",
+          "class_level": null,
+          "participants": [
+            {
+              "id": "p_title_L",
+              "dog_name": "Count Dracula",
+              "handler_name": "Vorjahressieger",
+              "license_no": "L99",
+              "start_number": 1,
+              "seeding_rank": null,
+              "draw_number": null,
+              "source": "title_defender"
+            }
+          ],
+          "matchups": [],
+          "results": [],
+          "is_published": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "DEMO_HCS_FULL",
+    "external_id": null,
+    "Bezeichnung": "DEMO Halloween Cup – komplett (Fr+Sa, Large 32)",
+    "Datum": "2026-10-30",
+    "VeranstalterClubNr": "9999",
+    "Turniernummer": "DEMO-HCS-FULL",
+    "num_rings": 2,
+    "runs": [
+      {
+        "id": "2c70159d-d0a8-4e9f-8cd6-09c3e75d3b6a",
+        "name": "Tunnellauf Large Kl.1",
+        "laufart": "Tunnellauf",
+        "kategorie": "Large",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "FL-T01",
+            "Hundename": "Spooky",
+            "Hundefuehrer": "Anna Keller",
+            "result": {
+              "zeit": "20.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T02",
+            "Hundename": "Pumpkin",
+            "Hundefuehrer": "Beat Müller",
+            "result": {
+              "zeit": "20.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T03",
+            "Hundename": "Grim",
+            "Hundefuehrer": "Clara Rossi",
+            "result": {
+              "zeit": "20.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T04",
+            "Hundename": "Zombie",
+            "Hundefuehrer": "Dario Weber",
+            "result": {
+              "zeit": "20.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T05",
+            "Hundename": "Witch",
+            "Hundefuehrer": "Eva Steiner",
+            "result": {
+              "zeit": "20.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T06",
+            "Hundename": "Ghost",
+            "Hundefuehrer": "Finn Brun",
+            "result": {
+              "zeit": "21.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T07",
+            "Hundename": "Casper",
+            "Hundefuehrer": "Gina Hofer",
+            "result": {
+              "zeit": "21.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T08",
+            "Hundename": "Bones",
+            "Hundefuehrer": "Hans Graf",
+            "result": {
+              "zeit": "21.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T09",
+            "Hundename": "Specter",
+            "Hundefuehrer": "Ida Meier",
+            "result": {
+              "zeit": "21.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T10",
+            "Hundename": "Wraith",
+            "Hundefuehrer": "Jonas Vogt",
+            "result": {
+              "zeit": "21.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T11",
+            "Hundename": "Phantom",
+            "Hundefuehrer": "Kim Lang",
+            "result": {
+              "zeit": "22.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T12",
+            "Hundename": "Nightmare",
+            "Hundefuehrer": "Lea Frei",
+            "result": {
+              "zeit": "22.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T13",
+            "Hundename": "Reaper",
+            "Hundefuehrer": "Mia Studer",
+            "result": {
+              "zeit": "22.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T14",
+            "Hundename": "Banshee",
+            "Hundefuehrer": "Nico Frei",
+            "result": {
+              "zeit": "22.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T15",
+            "Hundename": "Shadow",
+            "Hundefuehrer": "Ole Bianchi",
+            "result": {
+              "zeit": "22.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-T16",
+            "Hundename": "Gremlin",
+            "Hundefuehrer": "Pia Lehmann",
+            "result": {
+              "zeit": "23.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-TX01",
+            "Hundename": "Mortis",
+            "Hundefuehrer": "Rolf Senn",
+            "result": {
+              "zeit": "45.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-TX02",
+            "Hundename": "Hex",
+            "Hundefuehrer": "Sina Kunz",
+            "result": {
+              "zeit": "45.50",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "1fa32bc6-1863-423d-8960-a73219e1223e",
+        "name": "Tunnellauf Medium Kl.1",
+        "laufart": "Tunnellauf",
+        "kategorie": "Medium",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "FM-T01",
+            "Hundename": "Frost",
+            "Hundefuehrer": "Tim Roth",
+            "result": {
+              "zeit": "30.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FM-T02",
+            "Hundename": "Thorn",
+            "Hundefuehrer": "Urs Baumann",
+            "result": {
+              "zeit": "30.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FM-T03",
+            "Hundename": "Spooky-2",
+            "Hundefuehrer": "Anna Keller",
+            "result": {
+              "zeit": "30.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FM-T04",
+            "Hundename": "Pumpkin-2",
+            "Hundefuehrer": "Beat Müller",
+            "result": {
+              "zeit": "30.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FM-TX01",
+            "Hundename": "Grim-2",
+            "Hundefuehrer": "Clara Rossi",
+            "result": {
+              "zeit": "55.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FM-TX02",
+            "Hundename": "Zombie-2",
+            "Hundefuehrer": "Dario Weber",
+            "result": {
+              "zeit": "55.50",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "01f93af0-3d7c-45a4-b7d1-fa892b266ae6",
+        "name": "Agility Large Kl.1",
+        "laufart": "Agility",
+        "kategorie": "Large",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "FL-A01",
+            "Hundename": "Goblin",
+            "Hundefuehrer": "Tim Roth",
+            "result": {
+              "zeit": "20.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-A02",
+            "Hundename": "Raven",
+            "Hundefuehrer": "Urs Baumann",
+            "result": {
+              "zeit": "20.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-A03",
+            "Hundename": "Fang",
+            "Hundefuehrer": "Anna Keller",
+            "result": {
+              "zeit": "20.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-A04",
+            "Hundename": "Cobweb",
+            "Hundefuehrer": "Beat Müller",
+            "result": {
+              "zeit": "20.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-A05",
+            "Hundename": "Lantern",
+            "Hundefuehrer": "Clara Rossi",
+            "result": {
+              "zeit": "20.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-A06",
+            "Hundename": "Hollow",
+            "Hundefuehrer": "Dario Weber",
+            "result": {
+              "zeit": "21.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-A07",
+            "Hundename": "Mummy",
+            "Hundefuehrer": "Eva Steiner",
+            "result": {
+              "zeit": "21.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-A08",
+            "Hundename": "Vampire",
+            "Hundefuehrer": "Finn Brun",
+            "result": {
+              "zeit": "21.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-AX01",
+            "Hundename": "Skull",
+            "Hundefuehrer": "Gina Hofer",
+            "result": {
+              "zeit": "45.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-AX02",
+            "Hundename": "Crypt",
+            "Hundefuehrer": "Hans Graf",
+            "result": {
+              "zeit": "45.50",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "5065db0b-ca7a-4627-973f-b33672cfe3c8",
+        "name": "Agility Medium Kl.1",
+        "laufart": "Agility",
+        "kategorie": "Medium",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "FM-A01",
+            "Hundename": "Witch-2",
+            "Hundefuehrer": "Eva Steiner",
+            "result": {
+              "zeit": "30.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FM-A02",
+            "Hundename": "Ghost-2",
+            "Hundefuehrer": "Finn Brun",
+            "result": {
+              "zeit": "30.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FM-AX01",
+            "Hundename": "Casper-2",
+            "Hundefuehrer": "Gina Hofer",
+            "result": {
+              "zeit": "55.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "10e81553-3638-4561-976a-f1a647282e77",
+        "name": "Jumping Large Kl.1",
+        "laufart": "Jumping",
+        "kategorie": "Large",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "FL-J01",
+            "Hundename": "Dusk",
+            "Hundefuehrer": "Ida Meier",
+            "result": {
+              "zeit": "20.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-J02",
+            "Hundename": "Howl",
+            "Hundefuehrer": "Jonas Vogt",
+            "result": {
+              "zeit": "20.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-J03",
+            "Hundename": "Boo",
+            "Hundefuehrer": "Kim Lang",
+            "result": {
+              "zeit": "20.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-J04",
+            "Hundename": "Spider",
+            "Hundefuehrer": "Lea Frei",
+            "result": {
+              "zeit": "20.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-J05",
+            "Hundename": "Nocturne",
+            "Hundefuehrer": "Mia Studer",
+            "result": {
+              "zeit": "20.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-J06",
+            "Hundename": "Onyx",
+            "Hundefuehrer": "Nico Frei",
+            "result": {
+              "zeit": "21.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-J07",
+            "Hundename": "Ember",
+            "Hundefuehrer": "Ole Bianchi",
+            "result": {
+              "zeit": "21.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-J08",
+            "Hundename": "Cinder",
+            "Hundefuehrer": "Pia Lehmann",
+            "result": {
+              "zeit": "21.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-JX01",
+            "Hundename": "Ash",
+            "Hundefuehrer": "Rolf Senn",
+            "result": {
+              "zeit": "45.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FL-JX02",
+            "Hundename": "Smoke",
+            "Hundefuehrer": "Sina Kunz",
+            "result": {
+              "zeit": "45.50",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "b9de8548-bbca-4bff-9118-9e57cf3063f3",
+        "name": "Jumping Medium Kl.1",
+        "laufart": "Jumping",
+        "kategorie": "Medium",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "FM-J01",
+            "Hundename": "Bones-2",
+            "Hundefuehrer": "Hans Graf",
+            "result": {
+              "zeit": "30.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FM-J02",
+            "Hundename": "Specter-2",
+            "Hundefuehrer": "Ida Meier",
+            "result": {
+              "zeit": "30.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "FM-JX01",
+            "Hundename": "Wraith-2",
+            "Hundefuehrer": "Jonas Vogt",
+            "result": {
+              "zeit": "55.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      }
+    ],
+    "run_order": [],
+    "start_number_schema": {},
+    "start_times_by_ring": {
+      "ring_1": "09:00",
+      "ring_2": "09:00"
+    },
+    "Veranstaltungsart": "",
+    "ko_cup": {
+      "enabled": true,
+      "qualification": {
+        "runs": [
+          {
+            "label": "Tunnellauf",
+            "match": {
+              "laufart": "Tunnellauf"
+            },
+            "split_by_class": false,
+            "spots": {
+              "Large": 16,
+              "Intermediate": 0,
+              "Medium": 4,
+              "Small": 0
+            }
+          },
+          {
+            "label": "Agility",
+            "match": {
+              "laufart": "Agility"
+            },
+            "split_by_class": true,
+            "spots": {
+              "Large": 8,
+              "Intermediate": 0,
+              "Medium": 2,
+              "Small": 0
+            }
+          },
+          {
+            "label": "Jumping",
+            "match": {
+              "laufart": "Jumping"
+            },
+            "split_by_class": true,
+            "spots": {
+              "Large": 8,
+              "Intermediate": 0,
+              "Medium": 2,
+              "Small": 0
+            }
+          }
+        ]
+      },
+      "finals": [
+        {
+          "id": "final_8ccd71e1",
+          "group_label": "Large",
+          "category_code": "Large",
+          "class_level": null,
+          "participants": [
+            {
+              "id": "p_1af48d18",
+              "dog_name": "Spooky",
+              "handler_name": "Anna Keller",
+              "license_no": "FL-T01",
+              "start_number": 1,
+              "seeding_rank": 1,
+              "draw_number": 1,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_1003b853",
+              "dog_name": "Pumpkin",
+              "handler_name": "Beat Müller",
+              "license_no": "FL-T02",
+              "start_number": 2,
+              "seeding_rank": 2,
+              "draw_number": 2,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_d577a2e8",
+              "dog_name": "Grim",
+              "handler_name": "Clara Rossi",
+              "license_no": "FL-T03",
+              "start_number": 3,
+              "seeding_rank": 3,
+              "draw_number": 3,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_1d062956",
+              "dog_name": "Zombie",
+              "handler_name": "Dario Weber",
+              "license_no": "FL-T04",
+              "start_number": 4,
+              "seeding_rank": 4,
+              "draw_number": 4,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_6211b344",
+              "dog_name": "Witch",
+              "handler_name": "Eva Steiner",
+              "license_no": "FL-T05",
+              "start_number": 5,
+              "seeding_rank": 5,
+              "draw_number": 5,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_559ab07b",
+              "dog_name": "Ghost",
+              "handler_name": "Finn Brun",
+              "license_no": "FL-T06",
+              "start_number": 6,
+              "seeding_rank": 6,
+              "draw_number": 6,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_0612e8cb",
+              "dog_name": "Casper",
+              "handler_name": "Gina Hofer",
+              "license_no": "FL-T07",
+              "start_number": 7,
+              "seeding_rank": 7,
+              "draw_number": 7,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_a3ead7f1",
+              "dog_name": "Bones",
+              "handler_name": "Hans Graf",
+              "license_no": "FL-T08",
+              "start_number": 8,
+              "seeding_rank": 8,
+              "draw_number": 8,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_98e3ff84",
+              "dog_name": "Specter",
+              "handler_name": "Ida Meier",
+              "license_no": "FL-T09",
+              "start_number": 9,
+              "seeding_rank": 9,
+              "draw_number": 9,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_8674cea4",
+              "dog_name": "Wraith",
+              "handler_name": "Jonas Vogt",
+              "license_no": "FL-T10",
+              "start_number": 10,
+              "seeding_rank": 10,
+              "draw_number": 10,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_607bc70c",
+              "dog_name": "Phantom",
+              "handler_name": "Kim Lang",
+              "license_no": "FL-T11",
+              "start_number": 11,
+              "seeding_rank": 11,
+              "draw_number": 11,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_6fd8463a",
+              "dog_name": "Nightmare",
+              "handler_name": "Lea Frei",
+              "license_no": "FL-T12",
+              "start_number": 12,
+              "seeding_rank": 12,
+              "draw_number": 12,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_484cad11",
+              "dog_name": "Reaper",
+              "handler_name": "Mia Studer",
+              "license_no": "FL-T13",
+              "start_number": 13,
+              "seeding_rank": 13,
+              "draw_number": 13,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_7c3483ca",
+              "dog_name": "Banshee",
+              "handler_name": "Nico Frei",
+              "license_no": "FL-T14",
+              "start_number": 14,
+              "seeding_rank": 14,
+              "draw_number": 14,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_8c91f2d8",
+              "dog_name": "Shadow",
+              "handler_name": "Ole Bianchi",
+              "license_no": "FL-T15",
+              "start_number": 15,
+              "seeding_rank": 15,
+              "draw_number": 15,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_1dd1a951",
+              "dog_name": "Gremlin",
+              "handler_name": "Pia Lehmann",
+              "license_no": "FL-T16",
+              "start_number": 16,
+              "seeding_rank": 16,
+              "draw_number": 16,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_388731aa",
+              "dog_name": "Goblin",
+              "handler_name": "Tim Roth",
+              "license_no": "FL-A01",
+              "start_number": 17,
+              "seeding_rank": 17,
+              "draw_number": 17,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Agility"
+            },
+            {
+              "id": "p_0311bee9",
+              "dog_name": "Raven",
+              "handler_name": "Urs Baumann",
+              "license_no": "FL-A02",
+              "start_number": 18,
+              "seeding_rank": 18,
+              "draw_number": 18,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Agility"
+            },
+            {
+              "id": "p_5154834d",
+              "dog_name": "Fang",
+              "handler_name": "Anna Keller",
+              "license_no": "FL-A03",
+              "start_number": 19,
+              "seeding_rank": 19,
+              "draw_number": 19,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Agility"
+            },
+            {
+              "id": "p_e61315fe",
+              "dog_name": "Cobweb",
+              "handler_name": "Beat Müller",
+              "license_no": "FL-A04",
+              "start_number": 20,
+              "seeding_rank": 20,
+              "draw_number": 20,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Agility"
+            },
+            {
+              "id": "p_a1f00d0a",
+              "dog_name": "Lantern",
+              "handler_name": "Clara Rossi",
+              "license_no": "FL-A05",
+              "start_number": 21,
+              "seeding_rank": 21,
+              "draw_number": 21,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Agility"
+            },
+            {
+              "id": "p_f3e082f8",
+              "dog_name": "Hollow",
+              "handler_name": "Dario Weber",
+              "license_no": "FL-A06",
+              "start_number": 22,
+              "seeding_rank": 22,
+              "draw_number": 22,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Agility"
+            },
+            {
+              "id": "p_6394d55c",
+              "dog_name": "Mummy",
+              "handler_name": "Eva Steiner",
+              "license_no": "FL-A07",
+              "start_number": 23,
+              "seeding_rank": 23,
+              "draw_number": 23,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Agility"
+            },
+            {
+              "id": "p_6fb882b7",
+              "dog_name": "Vampire",
+              "handler_name": "Finn Brun",
+              "license_no": "FL-A08",
+              "start_number": 24,
+              "seeding_rank": 24,
+              "draw_number": 24,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Agility"
+            },
+            {
+              "id": "p_7c5ac790",
+              "dog_name": "Dusk",
+              "handler_name": "Ida Meier",
+              "license_no": "FL-J01",
+              "start_number": 25,
+              "seeding_rank": 25,
+              "draw_number": 25,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Jumping"
+            },
+            {
+              "id": "p_9601004f",
+              "dog_name": "Howl",
+              "handler_name": "Jonas Vogt",
+              "license_no": "FL-J02",
+              "start_number": 26,
+              "seeding_rank": 26,
+              "draw_number": 26,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Jumping"
+            },
+            {
+              "id": "p_6943fff7",
+              "dog_name": "Boo",
+              "handler_name": "Kim Lang",
+              "license_no": "FL-J03",
+              "start_number": 27,
+              "seeding_rank": 27,
+              "draw_number": 27,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Jumping"
+            },
+            {
+              "id": "p_c3499a47",
+              "dog_name": "Spider",
+              "handler_name": "Lea Frei",
+              "license_no": "FL-J04",
+              "start_number": 28,
+              "seeding_rank": 28,
+              "draw_number": 28,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Jumping"
+            },
+            {
+              "id": "p_ddc9d4ef",
+              "dog_name": "Nocturne",
+              "handler_name": "Mia Studer",
+              "license_no": "FL-J05",
+              "start_number": 29,
+              "seeding_rank": 29,
+              "draw_number": 29,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Jumping"
+            },
+            {
+              "id": "p_ffeb38a2",
+              "dog_name": "Onyx",
+              "handler_name": "Nico Frei",
+              "license_no": "FL-J06",
+              "start_number": 30,
+              "seeding_rank": 30,
+              "draw_number": 30,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Jumping"
+            },
+            {
+              "id": "p_87d0cf38",
+              "dog_name": "Ember",
+              "handler_name": "Ole Bianchi",
+              "license_no": "FL-J07",
+              "start_number": 31,
+              "seeding_rank": 31,
+              "draw_number": 31,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Jumping"
+            },
+            {
+              "id": "p_17a5f106",
+              "dog_name": "Cinder",
+              "handler_name": "Pia Lehmann",
+              "license_no": "FL-J08",
+              "start_number": 32,
+              "seeding_rank": 32,
+              "draw_number": 32,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Jumping"
+            }
+          ],
+          "matchups": [
+            {
+              "id": "m_f395c014",
+              "round_no": 1,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": "p_1af48d18",
+              "b_id": "p_17a5f106",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_1afe6aec",
+              "round_no": 1,
+              "matchup_no": 2,
+              "matchup_type": "winner",
+              "a_id": "p_1003b853",
+              "b_id": "p_87d0cf38",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_43953081",
+              "round_no": 1,
+              "matchup_no": 3,
+              "matchup_type": "winner",
+              "a_id": "p_d577a2e8",
+              "b_id": "p_ffeb38a2",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_286df7a3",
+              "round_no": 1,
+              "matchup_no": 4,
+              "matchup_type": "winner",
+              "a_id": "p_1d062956",
+              "b_id": "p_ddc9d4ef",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_ada43cf6",
+              "round_no": 1,
+              "matchup_no": 5,
+              "matchup_type": "winner",
+              "a_id": "p_6211b344",
+              "b_id": "p_c3499a47",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_bc481e6a",
+              "round_no": 1,
+              "matchup_no": 6,
+              "matchup_type": "winner",
+              "a_id": "p_559ab07b",
+              "b_id": "p_6943fff7",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_87abfbd3",
+              "round_no": 1,
+              "matchup_no": 7,
+              "matchup_type": "winner",
+              "a_id": "p_0612e8cb",
+              "b_id": "p_9601004f",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_a21290f4",
+              "round_no": 1,
+              "matchup_no": 8,
+              "matchup_type": "winner",
+              "a_id": "p_a3ead7f1",
+              "b_id": "p_7c5ac790",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_01346edc",
+              "round_no": 1,
+              "matchup_no": 9,
+              "matchup_type": "winner",
+              "a_id": "p_98e3ff84",
+              "b_id": "p_6fb882b7",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_5da4b4cd",
+              "round_no": 1,
+              "matchup_no": 10,
+              "matchup_type": "winner",
+              "a_id": "p_8674cea4",
+              "b_id": "p_6394d55c",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_41f4e1ee",
+              "round_no": 1,
+              "matchup_no": 11,
+              "matchup_type": "winner",
+              "a_id": "p_607bc70c",
+              "b_id": "p_f3e082f8",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_9cc57186",
+              "round_no": 1,
+              "matchup_no": 12,
+              "matchup_type": "winner",
+              "a_id": "p_6fd8463a",
+              "b_id": "p_a1f00d0a",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_8de5242c",
+              "round_no": 1,
+              "matchup_no": 13,
+              "matchup_type": "winner",
+              "a_id": "p_484cad11",
+              "b_id": "p_e61315fe",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_f4a14411",
+              "round_no": 1,
+              "matchup_no": 14,
+              "matchup_type": "winner",
+              "a_id": "p_7c3483ca",
+              "b_id": "p_5154834d",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_b090341a",
+              "round_no": 1,
+              "matchup_no": 15,
+              "matchup_type": "winner",
+              "a_id": "p_8c91f2d8",
+              "b_id": "p_0311bee9",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_f03db8a9",
+              "round_no": 1,
+              "matchup_no": 16,
+              "matchup_type": "winner",
+              "a_id": "p_1dd1a951",
+              "b_id": "p_388731aa",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_37e0941a",
+              "round_no": 2,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_f395c014",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_1afe6aec",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_c53c8538",
+              "round_no": 2,
+              "matchup_no": 2,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_43953081",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_286df7a3",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_ca5ae1e2",
+              "round_no": 2,
+              "matchup_no": 3,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_ada43cf6",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_bc481e6a",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_cbd40cb2",
+              "round_no": 2,
+              "matchup_no": 4,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_87abfbd3",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_a21290f4",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_ac69c349",
+              "round_no": 2,
+              "matchup_no": 5,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_01346edc",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_5da4b4cd",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_33f24a28",
+              "round_no": 2,
+              "matchup_no": 6,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_41f4e1ee",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_9cc57186",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_5164dcc2",
+              "round_no": 2,
+              "matchup_no": 7,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_8de5242c",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_f4a14411",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_065e73ad",
+              "round_no": 2,
+              "matchup_no": 8,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_b090341a",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_f03db8a9",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_7daf7e34",
+              "round_no": 3,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_37e0941a",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_c53c8538",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_c913989d",
+              "round_no": 3,
+              "matchup_no": 2,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_ca5ae1e2",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_cbd40cb2",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_4ea483ed",
+              "round_no": 3,
+              "matchup_no": 3,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_ac69c349",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_33f24a28",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_da9f95c3",
+              "round_no": 3,
+              "matchup_no": 4,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_5164dcc2",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_065e73ad",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_5c3ee5aa",
+              "round_no": 4,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_7daf7e34",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_c913989d",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_d1209b0e",
+              "round_no": 4,
+              "matchup_no": 2,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_4ea483ed",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_da9f95c3",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_c36c8f84",
+              "round_no": 5,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_5c3ee5aa",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_d1209b0e",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_7ef14855",
+              "round_no": 5,
+              "matchup_no": 2,
+              "matchup_type": "third_place",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_5c3ee5aa",
+                "take": "loser"
+              },
+              "b_source": {
+                "matchup_id": "m_d1209b0e",
+                "take": "loser"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            }
+          ],
+          "results": [],
+          "is_published": false
+        },
+        {
+          "id": "final_d0eef43d",
+          "group_label": "Medium",
+          "category_code": "Medium",
+          "class_level": null,
+          "participants": [
+            {
+              "id": "p_ae08b7ef",
+              "dog_name": "Frost",
+              "handler_name": "Tim Roth",
+              "license_no": "FM-T01",
+              "start_number": 1,
+              "seeding_rank": 1,
+              "draw_number": 1,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_6dc4205d",
+              "dog_name": "Thorn",
+              "handler_name": "Urs Baumann",
+              "license_no": "FM-T02",
+              "start_number": 2,
+              "seeding_rank": 2,
+              "draw_number": 2,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_e2c49cd4",
+              "dog_name": "Spooky-2",
+              "handler_name": "Anna Keller",
+              "license_no": "FM-T03",
+              "start_number": 3,
+              "seeding_rank": 3,
+              "draw_number": 3,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_e360fffc",
+              "dog_name": "Pumpkin-2",
+              "handler_name": "Beat Müller",
+              "license_no": "FM-T04",
+              "start_number": 4,
+              "seeding_rank": 4,
+              "draw_number": 4,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Tunnellauf"
+            },
+            {
+              "id": "p_3fc11838",
+              "dog_name": "Witch-2",
+              "handler_name": "Eva Steiner",
+              "license_no": "FM-A01",
+              "start_number": 5,
+              "seeding_rank": 5,
+              "draw_number": 5,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Agility"
+            },
+            {
+              "id": "p_685661b7",
+              "dog_name": "Ghost-2",
+              "handler_name": "Finn Brun",
+              "license_no": "FM-A02",
+              "start_number": 6,
+              "seeding_rank": 6,
+              "draw_number": 6,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Agility"
+            },
+            {
+              "id": "p_a3be30d5",
+              "dog_name": "Bones-2",
+              "handler_name": "Hans Graf",
+              "license_no": "FM-J01",
+              "start_number": 7,
+              "seeding_rank": 7,
+              "draw_number": 7,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Jumping"
+            },
+            {
+              "id": "p_3a45ee41",
+              "dog_name": "Specter-2",
+              "handler_name": "Ida Meier",
+              "license_no": "FM-J02",
+              "start_number": 8,
+              "seeding_rank": 8,
+              "draw_number": 8,
+              "source": "run",
+              "from_class": 1,
+              "quali_label": "Jumping"
+            }
+          ],
+          "matchups": [
+            {
+              "id": "m_999aa9b0",
+              "round_no": 1,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": "p_ae08b7ef",
+              "b_id": "p_3a45ee41",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_c1179bc8",
+              "round_no": 1,
+              "matchup_no": 2,
+              "matchup_type": "winner",
+              "a_id": "p_6dc4205d",
+              "b_id": "p_a3be30d5",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_b95d3961",
+              "round_no": 1,
+              "matchup_no": 3,
+              "matchup_type": "winner",
+              "a_id": "p_e2c49cd4",
+              "b_id": "p_685661b7",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_ee3302e7",
+              "round_no": 1,
+              "matchup_no": 4,
+              "matchup_type": "winner",
+              "a_id": "p_e360fffc",
+              "b_id": "p_3fc11838",
+              "a_source": null,
+              "b_source": null,
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_f33ec09a",
+              "round_no": 2,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_999aa9b0",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_c1179bc8",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_fe209b20",
+              "round_no": 2,
+              "matchup_no": 2,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_b95d3961",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_ee3302e7",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_412cfa32",
+              "round_no": 3,
+              "matchup_no": 1,
+              "matchup_type": "winner",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_f33ec09a",
+                "take": "winner"
+              },
+              "b_source": {
+                "matchup_id": "m_fe209b20",
+                "take": "winner"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            },
+            {
+              "id": "m_c1503f15",
+              "round_no": 3,
+              "matchup_no": 2,
+              "matchup_type": "third_place",
+              "a_id": null,
+              "b_id": null,
+              "a_source": {
+                "matchup_id": "m_f33ec09a",
+                "take": "loser"
+              },
+              "b_source": {
+                "matchup_id": "m_fe209b20",
+                "take": "loser"
+              },
+              "a": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "b": {
+                "run1": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                },
+                "run2": {
+                  "time": null,
+                  "faults": 0,
+                  "refusals": 0,
+                  "dis": false
+                }
+              },
+              "forfeit_id": null,
+              "manual_winner_id": null,
+              "winner_id": null,
+              "loser_id": null
+            }
+          ],
+          "results": [],
+          "is_published": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "DEMO_HCS_FR",
+    "external_id": null,
+    "Bezeichnung": "DEMO Halloween Cup – Freitag (Tunnellauf, separat)",
+    "Datum": "2026-10-30",
+    "VeranstalterClubNr": "9999",
+    "Turniernummer": "DEMO-HCS-FR",
+    "num_rings": 1,
+    "runs": [
+      {
+        "id": "3076329f-9086-41fb-95e4-2b1a9bc791c0",
+        "name": "Tunnellauf Large Kl.1",
+        "laufart": "Tunnellauf",
+        "kategorie": "Large",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "SPL-T01",
+            "Hundename": "Spooky",
+            "Hundefuehrer": "Anna Keller",
+            "result": {
+              "zeit": "20.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T02",
+            "Hundename": "Pumpkin",
+            "Hundefuehrer": "Beat Müller",
+            "result": {
+              "zeit": "20.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T03",
+            "Hundename": "Grim",
+            "Hundefuehrer": "Clara Rossi",
+            "result": {
+              "zeit": "20.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T04",
+            "Hundename": "Zombie",
+            "Hundefuehrer": "Dario Weber",
+            "result": {
+              "zeit": "20.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T05",
+            "Hundename": "Witch",
+            "Hundefuehrer": "Eva Steiner",
+            "result": {
+              "zeit": "20.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T06",
+            "Hundename": "Ghost",
+            "Hundefuehrer": "Finn Brun",
+            "result": {
+              "zeit": "21.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T07",
+            "Hundename": "Casper",
+            "Hundefuehrer": "Gina Hofer",
+            "result": {
+              "zeit": "21.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T08",
+            "Hundename": "Bones",
+            "Hundefuehrer": "Hans Graf",
+            "result": {
+              "zeit": "21.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T09",
+            "Hundename": "Specter",
+            "Hundefuehrer": "Ida Meier",
+            "result": {
+              "zeit": "21.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T10",
+            "Hundename": "Wraith",
+            "Hundefuehrer": "Jonas Vogt",
+            "result": {
+              "zeit": "21.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T11",
+            "Hundename": "Phantom",
+            "Hundefuehrer": "Kim Lang",
+            "result": {
+              "zeit": "22.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T12",
+            "Hundename": "Nightmare",
+            "Hundefuehrer": "Lea Frei",
+            "result": {
+              "zeit": "22.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T13",
+            "Hundename": "Reaper",
+            "Hundefuehrer": "Mia Studer",
+            "result": {
+              "zeit": "22.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T14",
+            "Hundename": "Banshee",
+            "Hundefuehrer": "Nico Frei",
+            "result": {
+              "zeit": "22.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T15",
+            "Hundename": "Shadow",
+            "Hundefuehrer": "Ole Bianchi",
+            "result": {
+              "zeit": "22.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-T16",
+            "Hundename": "Gremlin",
+            "Hundefuehrer": "Pia Lehmann",
+            "result": {
+              "zeit": "23.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-TX01",
+            "Hundename": "Mortis",
+            "Hundefuehrer": "Rolf Senn",
+            "result": {
+              "zeit": "45.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-TX02",
+            "Hundename": "Hex",
+            "Hundefuehrer": "Sina Kunz",
+            "result": {
+              "zeit": "45.50",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "b901f0f5-d60b-4448-bab3-692cb913acea",
+        "name": "Tunnellauf Medium Kl.1",
+        "laufart": "Tunnellauf",
+        "kategorie": "Medium",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "SPM-T01",
+            "Hundename": "Goblin",
+            "Hundefuehrer": "Tim Roth",
+            "result": {
+              "zeit": "30.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPM-T02",
+            "Hundename": "Raven",
+            "Hundefuehrer": "Urs Baumann",
+            "result": {
+              "zeit": "30.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPM-T03",
+            "Hundename": "Fang",
+            "Hundefuehrer": "Anna Keller",
+            "result": {
+              "zeit": "30.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPM-T04",
+            "Hundename": "Cobweb",
+            "Hundefuehrer": "Beat Müller",
+            "result": {
+              "zeit": "30.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPM-TX01",
+            "Hundename": "Lantern",
+            "Hundefuehrer": "Clara Rossi",
+            "result": {
+              "zeit": "55.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPM-TX02",
+            "Hundename": "Hollow",
+            "Hundefuehrer": "Dario Weber",
+            "result": {
+              "zeit": "55.50",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      }
+    ],
+    "run_order": [],
+    "start_number_schema": {},
+    "start_times_by_ring": {
+      "ring_1": "17:00"
+    },
+    "Veranstaltungsart": ""
+  },
+  {
+    "id": "DEMO_HCS_SPLIT",
+    "external_id": null,
+    "Bezeichnung": "DEMO Halloween Cup – Samstag (Final, Fr separat → ableiten)",
+    "Datum": "2026-10-31",
+    "VeranstalterClubNr": "9999",
+    "Turniernummer": "DEMO-HCS-SPLIT",
+    "num_rings": 2,
+    "runs": [
+      {
+        "id": "5998ef86-ad19-4772-bbd0-67bc5c89e3e0",
+        "name": "Agility Large Kl.1",
+        "laufart": "Agility",
+        "kategorie": "Large",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "SPL-A01",
+            "Hundename": "Mummy",
+            "Hundefuehrer": "Eva Steiner",
+            "result": {
+              "zeit": "20.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-A02",
+            "Hundename": "Vampire",
+            "Hundefuehrer": "Finn Brun",
+            "result": {
+              "zeit": "20.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-A03",
+            "Hundename": "Skull",
+            "Hundefuehrer": "Gina Hofer",
+            "result": {
+              "zeit": "20.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-A04",
+            "Hundename": "Crypt",
+            "Hundefuehrer": "Hans Graf",
+            "result": {
+              "zeit": "20.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-A05",
+            "Hundename": "Dusk",
+            "Hundefuehrer": "Ida Meier",
+            "result": {
+              "zeit": "20.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-A06",
+            "Hundename": "Howl",
+            "Hundefuehrer": "Jonas Vogt",
+            "result": {
+              "zeit": "21.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-A07",
+            "Hundename": "Boo",
+            "Hundefuehrer": "Kim Lang",
+            "result": {
+              "zeit": "21.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-A08",
+            "Hundename": "Spider",
+            "Hundefuehrer": "Lea Frei",
+            "result": {
+              "zeit": "21.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-AX01",
+            "Hundename": "Nocturne",
+            "Hundefuehrer": "Mia Studer",
+            "result": {
+              "zeit": "45.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-AX02",
+            "Hundename": "Onyx",
+            "Hundefuehrer": "Nico Frei",
+            "result": {
+              "zeit": "45.50",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "d187d117-bfca-4e85-af2f-2cad8f6f66de",
+        "name": "Agility Medium Kl.1",
+        "laufart": "Agility",
+        "kategorie": "Medium",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "SPM-A01",
+            "Hundename": "Witch-2",
+            "Hundefuehrer": "Eva Steiner",
+            "result": {
+              "zeit": "30.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPM-A02",
+            "Hundename": "Ghost-2",
+            "Hundefuehrer": "Finn Brun",
+            "result": {
+              "zeit": "30.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPM-AX01",
+            "Hundename": "Casper-2",
+            "Hundefuehrer": "Gina Hofer",
+            "result": {
+              "zeit": "55.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "9703b0df-8b5f-4830-af11-cf39e6142ade",
+        "name": "Jumping Large Kl.1",
+        "laufart": "Jumping",
+        "kategorie": "Large",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "SPL-J01",
+            "Hundename": "Ember",
+            "Hundefuehrer": "Ole Bianchi",
+            "result": {
+              "zeit": "20.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-J02",
+            "Hundename": "Cinder",
+            "Hundefuehrer": "Pia Lehmann",
+            "result": {
+              "zeit": "20.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-J03",
+            "Hundename": "Ash",
+            "Hundefuehrer": "Rolf Senn",
+            "result": {
+              "zeit": "20.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-J04",
+            "Hundename": "Smoke",
+            "Hundefuehrer": "Sina Kunz",
+            "result": {
+              "zeit": "20.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-J05",
+            "Hundename": "Frost",
+            "Hundefuehrer": "Tim Roth",
+            "result": {
+              "zeit": "20.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-J06",
+            "Hundename": "Thorn",
+            "Hundefuehrer": "Urs Baumann",
+            "result": {
+              "zeit": "21.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-J07",
+            "Hundename": "Spooky-2",
+            "Hundefuehrer": "Anna Keller",
+            "result": {
+              "zeit": "21.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-J08",
+            "Hundename": "Pumpkin-2",
+            "Hundefuehrer": "Beat Müller",
+            "result": {
+              "zeit": "21.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-JX01",
+            "Hundename": "Grim-2",
+            "Hundefuehrer": "Clara Rossi",
+            "result": {
+              "zeit": "45.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPL-JX02",
+            "Hundename": "Zombie-2",
+            "Hundefuehrer": "Dario Weber",
+            "result": {
+              "zeit": "45.50",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      },
+      {
+        "id": "603d4095-fba7-41ee-abb9-f5d7c72178e4",
+        "name": "Jumping Medium Kl.1",
+        "laufart": "Jumping",
+        "kategorie": "Medium",
+        "klasse": "1",
+        "entries": [
+          {
+            "Lizenznummer": "SPM-J01",
+            "Hundename": "Bones-2",
+            "Hundefuehrer": "Hans Graf",
+            "result": {
+              "zeit": "30.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPM-J02",
+            "Hundename": "Specter-2",
+            "Hundefuehrer": "Ida Meier",
+            "result": {
+              "zeit": "30.20",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "SPM-JX01",
+            "Hundename": "Wraith-2",
+            "Hundefuehrer": "Jonas Vogt",
+            "result": {
+              "zeit": "55.00",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "60",
+          "auto_dis_on_mct_exceeded": false
+        }
+      }
+    ],
+    "run_order": [],
+    "start_number_schema": {},
+    "start_times_by_ring": {
+      "ring_1": "09:00",
+      "ring_2": "09:00"
+    },
+    "Veranstaltungsart": "",
+    "ko_cup": {
+      "enabled": true,
+      "qualification": {
+        "runs": [
+          {
+            "label": "Tunnellauf",
+            "match": {
+              "laufart": "Tunnellauf"
+            },
+            "split_by_class": false,
+            "source_event_id": "DEMO_HCS_FR",
+            "spots": {
+              "Large": 16,
+              "Intermediate": 0,
+              "Medium": 4,
+              "Small": 0
+            }
+          },
+          {
+            "label": "Agility",
+            "match": {
+              "laufart": "Agility"
+            },
+            "split_by_class": true,
+            "spots": {
+              "Large": 8,
+              "Intermediate": 0,
+              "Medium": 2,
+              "Small": 0
+            }
+          },
+          {
+            "label": "Jumping",
+            "match": {
+              "laufart": "Jumping"
+            },
+            "split_by_class": true,
+            "spots": {
+              "Large": 8,
+              "Intermediate": 0,
+              "Medium": 2,
+              "Small": 0
+            }
+          }
+        ]
+      },
+      "finals": []
+    }
+  },
+  {
+    "id": "DEMO_EDELWEISS",
+    "external_id": null,
+    "Bezeichnung": "DEMO Edelweiss Team-Challenge",
+    "Datum": "2027-01-09",
+    "VeranstalterClubNr": "9999",
+    "Turniernummer": "DEMO-EDW",
+    "num_rings": 1,
+    "runs": [
+      {
+        "id": "685034d9-f1ba-4f6e-83ce-7c62d2398dd8",
+        "name": "Team-Challenge Soft (Kl. 1+2) – Agility",
+        "laufart": "Agility",
+        "kategorie": "Team",
+        "klasse": "Soft",
+        "is_team_challenge": true,
+        "team_level": "soft",
+        "entries": [
+          {
+            "Lizenznummer": "9301",
+            "Hundename": "Flocke",
+            "Hundefuehrer": "Lara Amrein",
+            "result": {
+              "zeit": "28.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "9303",
+            "Hundename": "Yuki",
+            "Hundefuehrer": "Mia Studer",
+            "result": {
+              "zeit": "30.10",
+              "fehler": 1,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "9305",
+            "Hundename": "Rocky",
+            "Hundefuehrer": "Pia Lehmann",
+            "result": {
+              "zeit": "27.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "9307",
+            "Hundename": "Thor",
+            "Hundefuehrer": "Rolf Senn",
+            "result": {
+              "zeit": "26.60",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "999"
+        }
+      },
+      {
+        "id": "ecc5cfd7-6f27-4959-9eee-f54e7616fc24",
+        "name": "Team-Challenge Soft (Kl. 1+2) – Jumping",
+        "laufart": "Jumping",
+        "kategorie": "Team",
+        "klasse": "Soft",
+        "is_team_challenge": true,
+        "team_level": "soft",
+        "entries": [
+          {
+            "Lizenznummer": "9302",
+            "Hundename": "Pepe",
+            "Hundefuehrer": "Nico Frei",
+            "result": {
+              "zeit": "22.90",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "9304",
+            "Hundename": "Luna",
+            "Hundefuehrer": "Ole Bianchi",
+            "result": {
+              "zeit": "24.50",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "9306",
+            "Hundename": "Bella",
+            "Hundefuehrer": "Sina Kunz",
+            "result": {
+              "zeit": "21.40",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "9308",
+            "Hundename": "Max",
+            "Hundefuehrer": "Tim Roth",
+            "result": {
+              "zeit": "20.90",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": "DIS"
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "999"
+        }
+      },
+      {
+        "id": "f95daf14-6ad1-4d6f-bf2e-5ba33204ec5c",
+        "name": "Team-Challenge Expert (Kl. 3) – Agility",
+        "laufart": "Agility",
+        "kategorie": "Team",
+        "klasse": "Expert",
+        "is_team_challenge": true,
+        "team_level": "expert",
+        "entries": [
+          {
+            "Lizenznummer": "9309",
+            "Hundename": "Nala",
+            "Hundefuehrer": "Urs Baumann",
+            "result": {
+              "zeit": "25.10",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "9311",
+            "Hundename": "Zorro",
+            "Hundefuehrer": "Vera Hug",
+            "result": {
+              "zeit": "24.30",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "999"
+        }
+      },
+      {
+        "id": "55c2de3a-d206-4621-ab04-21132643a0d8",
+        "name": "Team-Challenge Expert (Kl. 3) – Jumping",
+        "laufart": "Jumping",
+        "kategorie": "Team",
+        "klasse": "Expert",
+        "is_team_challenge": true,
+        "team_level": "expert",
+        "entries": [
+          {
+            "Lizenznummer": "9310",
+            "Hundename": "Kira",
+            "Hundefuehrer": "Walter Moser",
+            "result": {
+              "zeit": "19.80",
+              "fehler": 0,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          },
+          {
+            "Lizenznummer": "9312",
+            "Hundename": "Rex",
+            "Hundefuehrer": "Xenia Good",
+            "result": {
+              "zeit": "18.90",
+              "fehler": 1,
+              "verweigerungen": 0,
+              "disqualifikation": null
+            }
+          }
+        ],
+        "laufdaten": {
+          "standardzeit_sct": "999"
+        }
+      }
+    ],
+    "run_order": [],
+    "start_number_schema": {},
+    "start_times_by_ring": {
+      "ring_1": "09:00"
+    },
+    "Veranstaltungsart": "Team-Challenge",
+    "teams": [
+      {
+        "id": "4d7fe01a-3634-44b4-8d50-a6d9eda2fe28",
+        "external_id": "demo_9301_9302",
+        "name": "Edelweiss Small A",
+        "kategorie": "Small",
+        "level": "soft",
+        "mitglied_agility_lizenz": "9301",
+        "mitglied_jumping_lizenz": "9302",
+        "source": "software"
+      },
+      {
+        "id": "5fa869fa-87ca-4379-92b6-ccdceca97b5b",
+        "external_id": "demo_9303_9304",
+        "name": "Edelweiss Small B",
+        "kategorie": "Small",
+        "level": "soft",
+        "mitglied_agility_lizenz": "9303",
+        "mitglied_jumping_lizenz": "9304",
+        "source": "software"
+      },
+      {
+        "id": "6f6a1389-9650-4db5-a509-778c72906503",
+        "external_id": "demo_9305_9306",
+        "name": "Berg Large A",
+        "kategorie": "Large",
+        "level": "soft",
+        "mitglied_agility_lizenz": "9305",
+        "mitglied_jumping_lizenz": "9306",
+        "source": "software"
+      },
+      {
+        "id": "6fd4199a-c0e9-4df0-99da-8582ae3afab8",
+        "external_id": "demo_9307_9308",
+        "name": "Berg Large B",
+        "kategorie": "Large",
+        "level": "soft",
+        "mitglied_agility_lizenz": "9307",
+        "mitglied_jumping_lizenz": "9308",
+        "source": "software"
+      },
+      {
+        "id": "acb9de32-f0ba-4e37-8379-f7cd58313ea7",
+        "external_id": "demo_9309_9310",
+        "name": "Gipfel Expert A",
+        "kategorie": "Large",
+        "level": "expert",
+        "mitglied_agility_lizenz": "9309",
+        "mitglied_jumping_lizenz": "9310",
+        "source": "software"
+      },
+      {
+        "id": "94d5e227-7f75-4942-ac3b-163d9765ec45",
+        "external_id": "demo_9311_9312",
+        "name": "Gipfel Expert B",
+        "kategorie": "Large",
+        "level": "expert",
+        "mitglied_agility_lizenz": "9311",
+        "mitglied_jumping_lizenz": "9312",
+        "source": "software"
+      }
+    ]
+  }
+]

@@ -3,7 +3,44 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-10-17
+Stand: 2026-10-30
+
+## Session 2026-10-30 — HCS Tunnellauf-Import + EXE (DRINGEND)
+
+**Tunnellauf wird pro KATEGORIE importiert statt pro Klasse** — GEFIXT, committed
+`ab4a5d1`, gegen echte HCS-Daten verifiziert (12→4 Läufe, 115/117 Hunde in allen
+Drucksachen). Details: Memory `project_tunnellauf_per_category_import`.
+
+- [x] `_apply_eventexport_registrations`: Tunnellauf `run_key=(discipline,category)`,
+      Lauf-`klasse=""`, Einzel-Klasse bleibt am Entry.
+- [x] `schedule_planner._match_run_to_block`: beim Tunnellauf Klasse ignorieren
+      (Portal-Block trägt `classes:["1"]`, gemergter Lauf `klasse=""`).
+- [x] Tests grün (259 pure + 48 web_app); Agility/Jumping-Regression ok.
+- [ ] ⚠️ **EXE NEU BAUEN** — der Build wurde vom Session-Rollover gekillt
+      (build.log bricht ab). `dist/AgilitySoftware.exe` ist weiterhin die 09:38-EXE
+      (nur FR-Felder `040d082`), der Tunnellauf-Fix ist in KEINER EXE.
+      Befehl: `web_app/flask_env/Scripts/pyinstaller.exe installer/AgilitySoftware.spec
+      --noconfirm --clean --distpath %LOCALAPPDATA%\AgilityBuild\main\dist
+      --workpath %LOCALAPPDATA%\AgilityBuild\main\build` → EXE nach `dist/` kopieren.
+- [ ] ⚠️ **Nach neuer EXE**: User hat Event 18 bereits mit alter EXE importiert
+      (12 per-Klasse-Tunnel-Läufe in `dist/data/events.json`). Entweder **neu
+      importieren** (Startnummern gehen verloren) ODER `dist/data/events.json`
+      **in-place mergen** (12→4 Tunnel-Läufe pro Kat, klasse="", Einträge/Startnummern
+      bleiben; Backup vorher). Offen: User-Frage „schon Startnummern vergeben?".
+- [ ] Event 20 (So): Grossring Ring 3 gesetzt, aber KEIN Final-Block/final_participants
+      — mit User klären, ob am Sonntag ein KO geplant war (sonst ok, nur Grossring).
+
+### KO-Cup / FMBB-Button-Gating (nach HCS, vor BCCS-SM-Modul-Fertigstellung)
+- [ ] In `manage_runs.html` sind FMBB-Quali- und KO-Cup-Buttons IMMER sichtbar
+      (nur Styling/Badge hängt an `fmbb_quali_active` / `ko_cup.finals`). Team
+      Challenge ist dagegen in `{% if %}` gekapselt. Gewünscht: FMBB/KO hinter den
+      Aktiv-Status legen — idealerweise mit dem geplanten „Funktionen"-Umschalter
+      ([[project_software_functions_toggle]]). KO-Cup ist beim HCS immer sichtbar →
+      kein Risiko fürs Wochenende (Sa Event 19 = KO-Tag).
+
+### Verworfen
+- Startnummern-Haushalts-Spreizung (gleichnamige Läufer wie Cuénoud/Mauroux
+  auseinanderziehen): vom User VERWORFEN ("lassen wir es"). Nicht bauen.
 
 ## Session 2026-10-17 — Elektronischer Einweiser auf 2 Android-Tablets (Ring-Steward)
 

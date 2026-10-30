@@ -349,7 +349,7 @@ def _build_master_steward_groups(event, judges, ring_key=None):
     for cat in sorted(grouped_participants.keys(), key=get_category_sort_key):
         for cls in sorted(grouped_participants[cat].keys()):
             participants_in_group = grouped_participants[cat][cls]
-            runs_for_group = [r for r in ordered_runs if r.get('kategorie') == cat and str(r.get('klasse')) == cls]
+            runs_for_group = [r for r in ordered_runs if r.get('kategorie') == cat and (str(r.get('klasse')) == cls or r.get('klasse') == '')]
             if ring_key is not None:
                 runs_for_group = [r for r in runs_for_group if str(r.get('assigned_ring')) == f"ring_{ring_key}"]
                 if not runs_for_group:
