@@ -664,6 +664,69 @@ def _resolve_runs_for_ring(event, ring_number):
     return runs_for_ring, debug
 
 
+# ---------------------------------------------------------------------------
+# Ring-PC-Auto-Registrierung
+#
+# Jeder Ring-Server meldet sich im Heartbeat beim Hauptserver
+# (GET /api/ring_register?ring=N&port=P). Der Hauptserver merkt sich die
+# Quell-IP (request.remote_addr) pro Ring, damit das Ring-PC-Dashboard den
+# Ring-Server direkt unter seiner echten IP erreicht – ohne netsh-portproxy.
+# Faellt die Registrierung aus, nutzt das Dashboard den bisherigen Fallback
+# (127.0.0.1 / window.location.hostname), ist also nie schlechter als vorher.
+# ---------------------------------------------------------------------------
+_RING_REGISTRY = {}  # {"1": {"ip": "...", "port": 5001, "last_seen": "..."}}
+
+
+def _register_ring(ring_number, ip, port):
+    key = str(ring_number)
+    entry = {"ip": ip, "port": port, "last_seen": datetime.utcnow().isoformat()}
+    prev = _RING_REGISTRY.get(key)
+    _RING_REGISTRY[key] = entry
+    # Nur bei IP-/Port-Wechsel persistieren (kein Disk-Thrash im 3s-Heartbeat).
+    if not prev or prev.get("ip") != ip or prev.get("port") != port:
+        try:
+            reg = _load_data('ring_registry.json')
+            if not isinstance(reg, dict):
+                reg = {}
+            reg[key] = entry
+            _save_data('ring_registry.json', reg)
+        except Exception:
+            pass
+
+
+def _get_registered_ring_host(ring_number):
+    key = str(ring_number)
+    entry = _RING_REGISTRY.get(key)
+    if not entry:
+        try:
+            reg = _load_data('ring_registry.json')
+            if isinstance(reg, dict) and isinstance(reg.get(key), dict):
+                entry = reg[key]
+                _RING_REGISTRY[key] = entry
+        except Exception:
+            entry = None
+    if isinstance(entry, dict) and entry.get("ip"):
+        return entry.get("ip")
+    return None
+
+
+@live_bp.route('/api/ring_register', methods=['GET', 'POST'])
+def api_ring_register():
+    try:
+        ring_number = int(request.values.get('ring'))
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "ring required"}), 400
+    try:
+        port = int(request.values.get('port'))
+    except (TypeError, ValueError):
+        port = 5000 + ring_number
+    ip = request.remote_addr or ''
+    if ip == '::1':  # IPv6-localhost auf IPv4 normalisieren
+        ip = '127.0.0.1'
+    _register_ring(ring_number, ip, port)
+    return jsonify({"ok": True, "ring": ring_number, "ip": ip, "port": port}), 200
+
+
 @live_bp.route('/ring_pc_dashboard/<int:ring_number>')
 def ring_pc_dashboard(ring_number):
     event = _get_active_event()
@@ -722,6 +785,7 @@ def ring_pc_dashboard(ring_number):
         runs=runs_for_ring,
         selected_run_id=selected_run_id,
         judges=_load_data('judges.json'),
+        ring_host=_get_registered_ring_host(ring_number) or '',
     )
 
 @live_bp.route('/ring_pc_ko/<int:ring_number>')

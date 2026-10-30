@@ -8,7 +8,13 @@
   .monitor-fullpage .card { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
   /* Kein Scrollen: der Inhalt wird per JS (fitMonitor) auf die Hoehe skaliert. */
   .monitor-fullpage > .card > .card-body { flex: 1; overflow: hidden; padding: .75rem; }
-  #monitor-scale { transform-origin: top left; }
+  #monitor-scale { transform-origin: top left; font-size: 1.3rem; }
+  /* Grössere Basis-Schrift fuer den Monitor (aus der Distanz lesbar). Die
+     Listen werden per JS dynamisch gekuerzt (trimListsToFit), damit diese
+     Schriftgroesse nicht durch fitMonitor wieder weggeschrumpft wird. */
+  #monitor-scale .card-header { font-size: 1.15rem; }
+  #monitor-scale .list-group-item,
+  #monitor-scale table.table > tbody > tr > td { font-size: 1.2rem; }
   /* Beide Listen (Startliste list-group + Rangliste table) auf gleiche
      Zeilenhoehe bringen, damit die Spalten sauber auf einer Linie liegen. */
   #monitor-scale .list-group-item,
@@ -177,16 +183,64 @@ document.addEventListener('DOMContentLoaded', function () {
     // Skaliert den gesamten Inhalt so, dass er ohne Scrollen auf den Monitor
     // passt (Kiosk). Wird nach jedem Render + bei Fenstergroesse-Aenderung
     // aufgerufen. Nie hochskalieren (max. 1.0), nur verkleinern wenn noetig.
+    // Kuerzt die beiden Listen (Startliste + Rangliste) Zeile fuer Zeile aus der
+    // jeweils laengeren Spalte, bis der Inhalt ohne Skalierung in die Monitor-
+    // Hoehe passt. So bleibt die (grosse) Schrift erhalten, statt alles per
+    // fitMonitor klein zu schrumpfen. Behaelt die relevanten Zeilen: oben die
+    // naechsten Starter, oben die Top-Raenge. Ein "+N weitere"-Hinweis zeigt,
+    // dass gekuerzt wurde.
+    function trimListsToFit(body, scale) {
+        scale.querySelectorAll('[data-overflow-hint]').forEach(e => e.remove());
+        const avail = body.clientHeight;
+        if (avail <= 0 || scale.scrollHeight <= avail) return;
+
+        const startUl = scale.querySelector('.ring-startlist, #monitor-startlist');
+        const rankBody = scale.querySelector('table.table tbody, #monitor-ranking');
+        const dataLis = () => startUl
+            ? Array.from(startUl.children).filter(li => !li.classList.contains('text-muted') || li.querySelector('span'))
+            : [];
+        const dataTrs = () => rankBody
+            ? Array.from(rankBody.children).filter(tr => tr.children.length > 1)
+            : [];
+
+        let removedStart = 0, guard = 0;
+        while (scale.scrollHeight > avail && guard++ < 1000) {
+            const lis = dataLis(), trs = dataTrs();
+            if (lis.length <= 1 && trs.length <= 1) break;
+            const sH = startUl ? startUl.getBoundingClientRect().height : 0;
+            const rH = rankBody ? rankBody.getBoundingClientRect().height : 0;
+            if (lis.length > 1 && (sH >= rH || trs.length <= 1)) {
+                lis[lis.length - 1].remove();
+                removedStart++;
+            } else if (trs.length > 1) {
+                trs[trs.length - 1].remove();
+            } else {
+                break;
+            }
+        }
+
+        if (removedStart > 0 && startUl) {
+            const li = document.createElement('li');
+            li.className = 'list-group-item text-muted fst-italic text-center';
+            li.setAttribute('data-overflow-hint', '');
+            li.textContent = '… +' + removedStart + ' ' + '{{ _('weitere') }}';
+            startUl.appendChild(li);
+        }
+    }
+
     function fitMonitor() {
         const body = document.querySelector('.monitor-fullpage > .card > .card-body');
         const scale = document.getElementById('monitor-scale');
         if (!body || !scale) return;
         scale.style.transform = 'none';
         scale.style.width = '100%';
+        // Erst dynamisch kuerzen (Schrift bleibt gross), dann nur noch minimal
+        // skalieren, falls selbst der fixe Rahmen (Meta/Starter) zu hoch ist.
+        trimListsToFit(body, scale);
         const avail = body.clientHeight;
         const needed = scale.scrollHeight;
         if (needed > 0 && needed > avail) {
-            const f = Math.max(0.3, avail / needed);
+            const f = Math.max(0.6, avail / needed);
             scale.style.transform = 'scale(' + f + ')';
             scale.style.width = (100 / f) + '%';
         }

@@ -486,11 +486,19 @@ def run_server(ring_label=None, ring_number=None, port_num=None,
     def _heartbeat_thread():
         import time as _t
         import requests as _rq
-        url = f"http://{server_ip}:{server_port}/health"
+        # Registriert diesen Ring beim Hauptserver (Auto-Registrierung: der
+        # Hauptserver merkt sich unsere Quell-IP pro Ring) UND dient als
+        # Erreichbarkeits-Check. Faellt der Endpoint aus (alter Hauptserver
+        # ohne /api/ring_register), auf /health zurueckfallen.
+        reg_url = (f"http://{server_ip}:{server_port}/api/ring_register"
+                   f"?ring={ring_number}&port={port_num}")
+        health_url = f"http://{server_ip}:{server_port}/health"
         while True:
             ok = False
             try:
-                r = _rq.get(url, timeout=2.0)
+                r = _rq.get(reg_url, timeout=2.0)
+                if r.status_code == 404:
+                    r = _rq.get(health_url, timeout=2.0)
                 ok = (r.status_code == 200)
             except Exception:
                 ok = False

@@ -330,6 +330,13 @@ def _match_run_to_block(run_item, block):
         if size_cat not in ('', 'all') and category != size_cat:
             return False
 
+    # Tunnellauf wird pro Kategorie (klassenübergreifend) gelaufen – die Klasse
+    # ist dort nicht massgeblich. Der Portal-Zeitplan markiert Tunnellauf-Blöcke
+    # mit classes=["1"], der zusammengefasste Software-Lauf hat aber klasse="".
+    # Deshalb beim Tunnellauf NICHT auf Klasse filtern (Disziplin + Kategorie
+    # reichen) – identisch zu schedule_planner._match_run_to_block.
+    if block_laufart == 'tunnellauf':
+        return True
     klasse = str(run_item.get('klasse'))
     if block.get('classes'):
         if str(klasse) not in [str(c) for c in block.get('classes', [])]:
@@ -358,12 +365,16 @@ def _get_run_list_from_schedule(event, schedule):
                 secondary,
                 block.get('size_categories', []),
             )
+            block_is_tunnellauf = (block.get('timing_run_type') or '').lower() == 'tunnellauf'
             for size_val, cls_val in groups:
                 for run_item in all_runs:
                     if not isinstance(run_item, dict):
                         continue
                     if _match_run_to_block(run_item, block) and (_norm(run_item.get('kategorie')).lower() == size_val):
-                        if str(run_item.get('klasse')) != str(cls_val):
+                        # Tunnellauf: 1 Lauf pro Kategorie (klasse=""), nicht auf
+                        # cls_val filtern – sonst matcht der zusammengefasste
+                        # Kategorielauf keine der Block-Klassen (classes=["1"]).
+                        if not block_is_tunnellauf and str(run_item.get('klasse')) != str(cls_val):
                             continue
                         run_id = run_item.get('id')
                         if run_id in seen_ids:
