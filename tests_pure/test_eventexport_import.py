@@ -93,6 +93,64 @@ def test_eventexport_persons_key_is_recognized_as_handlers(fresh_data_dir):
     assert handler_map["P1"]["Vorname"] == "Christiane"
 
 
+def _tunnel_payload():
+    persons = [{"external_id": f"P{i}", "first_name": "V", "last_name": f"N{i}"} for i in range(1, 6)]
+    dogs = [{"external_id": f"D{i}", "name": f"Dog{i}", "license_no": str(100 + i),
+             "license_kind": "CH"} for i in range(1, 6)]
+    regs = [
+        {"external_id": "R1", "dog_external_id": "D1", "handler_person_external_id": "P1",
+         "discipline": "Tunnellauf", "category_code": "Large", "class_level": 1},
+        {"external_id": "R2", "dog_external_id": "D2", "handler_person_external_id": "P2",
+         "discipline": "Tunnellauf", "category_code": "Large", "class_level": 2},
+        {"external_id": "R3", "dog_external_id": "D3", "handler_person_external_id": "P3",
+         "discipline": "Tunnellauf", "category_code": "Large", "class_level": 3},
+        {"external_id": "R4", "dog_external_id": "D4", "handler_person_external_id": "P4",
+         "discipline": "Tunnellauf", "category_code": "Small", "class_level": 3},
+        {"external_id": "R5", "dog_external_id": "D5", "handler_person_external_id": "P5",
+         "discipline": "Tunnellauf", "category_code": "Large", "class_level": 1},
+    ]
+    return {"persons": persons, "dogs": dogs}, regs
+
+
+def test_tunnellauf_grouped_per_category_not_per_class(fresh_data_dir):
+    """HCS-Tunnellauf: EIN Lauf pro Kategorie (alle Klassen zusammen), NICHT pro
+    Klasse. Die Einzel-Klasse jedes Hundes bleibt am Entry erhalten."""
+    entities, regs = _tunnel_payload()
+    event = {"id": "ev1", "runs": []}
+    R._apply_eventexport_registrations(event, regs, entities)
+    runs = event["runs"]
+
+    tunnel_large = [r for r in runs if r["laufart"] == "Tunnellauf" and r["kategorie"] == "Large"]
+    assert len(tunnel_large) == 1, "Large-Tunnellauf muss EIN Lauf sein, nicht pro Klasse"
+    assert len(tunnel_large[0]["entries"]) == 4  # Klassen 1,2,3 + zweiter Kl.1-Hund
+    assert tunnel_large[0]["klasse"] == ""
+    # Einzel-Klassen am Entry erhalten
+    assert {str(e["Klasse"]) for e in tunnel_large[0]["entries"]} == {"1", "2", "3"}
+    # Andere Kategorie bleibt eigener Lauf
+    assert len([r for r in runs if r["laufart"] == "Tunnellauf" and r["kategorie"] == "Small"]) == 1
+
+
+def test_agility_still_grouped_per_class(fresh_data_dir):
+    """Regression: Agility/Jumping bleiben WEITERHIN pro Klasse getrennt."""
+    entities = {
+        "persons": [{"external_id": "P1", "first_name": "V", "last_name": "A"},
+                    {"external_id": "P2", "first_name": "V", "last_name": "B"}],
+        "dogs": [{"external_id": "D1", "name": "a", "license_no": "201", "license_kind": "CH"},
+                 {"external_id": "D2", "name": "b", "license_no": "202", "license_kind": "CH"}],
+    }
+    regs = [
+        {"external_id": "R1", "dog_external_id": "D1", "handler_person_external_id": "P1",
+         "discipline": "Agility", "category_code": "Large", "class_level": 1},
+        {"external_id": "R2", "dog_external_id": "D2", "handler_person_external_id": "P2",
+         "discipline": "Agility", "category_code": "Large", "class_level": 2},
+    ]
+    event = {"id": "ev1", "runs": []}
+    R._apply_eventexport_registrations(event, regs, entities)
+    agi_large = [r for r in event["runs"] if r["laufart"] == "Agility" and r["kategorie"] == "Large"]
+    assert len(agi_large) == 2, "Agility muss pro Klasse getrennt bleiben"
+    assert {str(r["klasse"]) for r in agi_large} == {"1", "2"}
+
+
 def test_eventexport_imports_french_extra_fields(fresh_data_dir):
     """FR-Zusatzfelder (FAPAC/Sexe am Hund, N° licence/Club/Régionale am Läufer)
     werden aus dem Portal-Export in dogs.json/handlers.json übernommen."""

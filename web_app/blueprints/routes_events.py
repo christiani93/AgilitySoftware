@@ -594,15 +594,22 @@ def _apply_eventexport_registrations(event: dict, registrations: list, entities:
             if class_level:
                 dog["Klasse"] = str(class_level)
 
-        run_key = (discipline, category, class_level)
+        # Tunnellauf wird pro KATEGORIE gelaufen (alle Klassen zusammen in EINEM
+        # Lauf), nicht pro Klasse wie Agility/Jumping. Darum die Klasse aus dem
+        # Lauf-Schlüssel nehmen und am Lauf leer lassen; die Einzel-Klasse jedes
+        # Hundes bleibt am Entry ("Klasse") erhalten.
+        is_tunnel = "tunnel" in discipline.lower()
+        run_class = "" if is_tunnel else class_level
+        run_key = (discipline, category) if is_tunnel else (discipline, category, class_level)
         run = runs_by_key.get(run_key)
         if not run:
             run = {
                 "id": str(uuid.uuid4()),
-                "name": f"{discipline} {category} {class_level}".strip(),
+                "name": (f"{discipline} {category}" if is_tunnel
+                         else f"{discipline} {category} {class_level}").strip(),
                 "laufart": discipline,
                 "kategorie": category,
-                "klasse": class_level,
+                "klasse": run_class,
                 "entries": [],
                 "laufdaten": {},
             }

@@ -219,6 +219,13 @@ def _match_run_to_block(run_item, block):
         if size_cat not in ("", "all") and category != size_cat:
             return False
 
+    # Tunnellauf wird pro Kategorie (klassenübergreifend) gelaufen – die Klasse
+    # ist dort nicht massgeblich. Der Portal-Zeitplan markiert Tunnellauf-Blöcke
+    # mit classes=["1"] (Default class_level=1), der zusammengefasste Software-Lauf
+    # hat aber klasse="" (ein Lauf pro Kategorie). Darum beim Tunnellauf NICHT auf
+    # die Klasse filtern – Übereinstimmung von Disziplin + Kategorie reicht.
+    if block_laufart == "tunnellauf":
+        return True
     klasse = str(run_item.get("klasse"))
     if block.get("classes"):
         if str(klasse) not in [str(c) for c in block.get("classes", [])]:
