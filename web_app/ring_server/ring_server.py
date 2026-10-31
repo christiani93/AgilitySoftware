@@ -535,10 +535,14 @@ def run_server(ring_label=None, ring_number=None, port_num=None,
         print("!! TIMY nicht verfügbar (pywin32 fehlt) – Server läuft im 'ohne TIMY'-Modus.")
 
     def _run_socketio():
+        # host='0.0.0.0': Ring-Server muss auch auf der LAN-IP erreichbar sein,
+        # nicht nur Loopback. Sonst kann der Hauptserver (bzw. das per
+        # Auto-Registrierung mit der LAN-IP befüllte ring_pc_dashboard) den
+        # Ring-Server nicht erreichen -> "Keine Verbindung" trotz laufendem Ring.
         try:
-            socketio.run(app, host='127.0.0.1', port=port_num, allow_unsafe_werkzeug=True)
+            socketio.run(app, host='0.0.0.0', port=port_num, allow_unsafe_werkzeug=True)
         except TypeError:
-            socketio.run(app, host='127.0.0.1', port=port_num)
+            socketio.run(app, host='0.0.0.0', port=port_num)
 
     if not (with_window or with_dashboard):
         # CLI-/Headless-Modus: Server blockierend, Ansicht manuell im Browser.
