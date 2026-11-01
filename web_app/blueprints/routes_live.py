@@ -343,8 +343,7 @@ def save_result(event_id, run_id):
             e for e in entries_sorted
             if not (e.get('result') and (e['result'].get('zeit') or e['result'].get('disqualifikation')))
         ]
-        run['current_starter'] = unfinished[0] if unfinished else {}
-        run['next_starter'] = unfinished[1] if len(unfinished) > 1 else {}
+        run['current_starter'], run['next_starter'] = _pick_auto_starter(unfinished)
 
         # ring_entry_state (current_entry_id) ebenfalls weiterruecken - sonst
         # bleibt der Ring-Monitor/Sprecher-Display (die ueber build_ring_view_model
@@ -683,6 +682,22 @@ def find_run_ring_number(event, run):
         if any(r.get('id') == run_id for r in runs_for_ring):
             return re.sub(r"[^0-9]", "", _norm_ring_strict(key)) or "1"
     return "1"
+
+
+def _pick_auto_starter(unfinished):
+    """Waehlt current/next aus den noch offenen (unfinished) Eintraegen.
+
+    Ein vom Einweiser als 'ready' (bereit/am Gate) markierter Eintrag hat Vorrang
+    vor der reinen Startlisten-Reihenfolge: die Auto-Reihenfolge springt auf den,
+    den der Einweiser bereitgestellt hat, statt stur auf die naechste offene
+    Startnummer (Wunsch #6). 'next' = naechster offener in Startlisten-Reihenfolge.
+    """
+    if not unfinished:
+        return {}, {}
+    ready = [e for e in unfinished if str(e.get('einweiser_mark') or '').lower() == 'ready']
+    current = ready[0] if ready else unfinished[0]
+    rest = [e for e in unfinished if e is not current]
+    return current, (rest[0] if rest else {})
 
 
 # ---------------------------------------------------------------------------
@@ -1197,8 +1212,7 @@ def api_set_participant_status(event_id, run_id):
         e for e in entries_sorted
         if not (e.get('result') and (e['result'].get('zeit') or e['result'].get('disqualifikation')))
     ]
-    run['current_starter'] = unfinished[0] if unfinished else {}
-    run['next_starter'] = unfinished[1] if len(unfinished) > 1 else {}
+    run['current_starter'], run['next_starter'] = _pick_auto_starter(unfinished)
 
     # ring_entry_state ebenfalls weiterruecken, analog save_result (sonst
     # haengt der Ring-Monitor nach DNS/DIS auf dem alten Starter fest).
