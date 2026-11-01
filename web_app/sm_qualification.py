@@ -64,6 +64,7 @@ def _get_results_from_run(run: dict) -> list:
         if not lic:
             continue
         dis_val = e.get("disqualifikation") or ""
+        is_dns = dis_val == "DNS"
         is_dis = dis_val in ("DIS", "ABR", "DNS") or e.get("fehler_total", 0) >= 998
         results.append({
             "license":      lic,
@@ -76,6 +77,7 @@ def _get_results_from_run(run: dict) -> list:
             "fehler_parcours": e.get("fehler_parcours", 0),
             "zeit":           e.get("zeit_total", 999.99) if not is_dis else 999.99,
             "dis":            is_dis,
+            "dns":            is_dns,
             "rang":           e.get("platz"),
         })
     return results
@@ -118,9 +120,13 @@ def calculate_sm_qualification(event: dict) -> dict:
         qa_results = _get_results_from_run(qa_run) if qa_run else []
         qj_results = _get_results_from_run(qj_run) if qj_run else []
 
-        # Starters = nicht-DIS Lizenzen über beide Läufe
+        # Starters = alle GESTARTETEN Teams über beide Läufe (inkl. DIS/ABR — die sind
+        # angetreten); nur DNS (nicht angetreten) zählt nicht. Reglement 3.1: die 16 %-
+        # Direktquote und final_spots (40 %) beziehen sich auf die Gestarteten, nicht nur
+        # auf die fehlerfreien (an TKAMO-SM-2024-Echtdaten verifiziert: 0.4·Gestartete
+        # reproduziert das reale Finalfeld L46/I16/M28+TV/S19+TV exakt).
         all_licenses = set(
-            r["license"] for r in (qa_results + qj_results) if not r["dis"]
+            r["license"] for r in (qa_results + qj_results) if not r.get("dns")
         )
         starters = len(all_licenses)
 
@@ -223,8 +229,12 @@ def calculate_sm_qualification(event: dict) -> dict:
             else:
                 r["kombi_rang"] = None
 
-        # Final-Liste zusammenstellen
-        direct_list    = [r for r in combined if r["is_direct"] and not r["kombi_dis"]]
+        # Final-Liste zusammenstellen.
+        # Direktqualifizierte (Top 16 % je Lauf nach Rang + Titelverteidiger) zählen auch
+        # dann, wenn sie im ANDEREN Lauf disqualifiziert sind — die Direktquote bezieht sich
+        # pro Lauf auf den Rang in diesem Lauf, nicht auf eine gültige Kombination. Nur die
+        # Kombi-Nachrücker unten brauchen beide Läufe sauber (gültige Kombi-Rangliste).
+        direct_list    = [r for r in combined if r["is_direct"]]
         direct_lic_set = {r["license"] for r in direct_list}
 
         remaining_spots = max(0, final_spots - len(direct_lic_set))
