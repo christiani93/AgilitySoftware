@@ -159,7 +159,7 @@
     ['announcer_update', 'current_run_changed', 'ring_result_saved',
      'ring_ready_changed', 'ring_run_changed', 'result_update',
      'einweiser_mark_changed', 'einweiser_order_changed',
-     'ko_update'].forEach(function (name) {
+     'einweiser_mode_changed', 'ko_update'].forEach(function (name) {
       socket.on(name, onEvt);
     });
   } catch (e) { /* ohne Socket laeuft die Seite als statische Anzeige weiter */ }

@@ -997,10 +997,12 @@ def ko_ring(event_id):
     _save_data(EVENTS_FILE, events)
     ring_no = _to_int(request.args.get('ring'), 1) or 1
     rings_total = _to_int(request.args.get('rings'), 2) or 2
+    from blueprints.routes_einweiser import _effective_ko_mode
     return render_template(
         'ko_cup_ring.html',
         event=event,
         ring_no=ring_no,
         rings_total=max(rings_total, ring_no),
         ring_url_override=request.args.get('ring_url', ''),
+        einweiser_ko_mode=_effective_ko_mode(event),
     )

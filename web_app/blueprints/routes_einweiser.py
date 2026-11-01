@@ -42,13 +42,32 @@ def _is_ko_event(event: dict) -> bool:
     return bool((event or {}).get('ko_cup', {}).get('finals'))
 
 
+# Globaler Einweiser-Anzeigemodus (alle Tablets), am KO-Ring-PC umschaltbar.
+_VALID_MODES = {'auto', 'ko', 'normal'}
+
+
+def _effective_ko_mode(event: dict) -> bool:
+    """Effektiver Anzeigemodus der Einweiser-Tablets. `event['einweiser_mode']`:
+    - 'ko'     → erzwingt KO-Anzeige (read-only Duelle)
+    - 'normal' → erzwingt Normal-Läufe (auch wenn Finals konfiguriert sind)
+    - 'auto'/fehlt → KO genau dann, wenn Finals konfiguriert sind (_is_ko_event).
+    Der Button am KO-Ring-PC schaltet diesen globalen Override um (Wunsch HCS:
+    während des KO einen normalen Quali-Ring am Einweiser vorbereiten können)."""
+    mode = ((event or {}).get('einweiser_mode') or 'auto').strip().lower()
+    if mode == 'ko':
+        return True
+    if mode == 'normal':
+        return False
+    return _is_ko_event(event)
+
+
 def _hide_finished_arg(event: dict) -> bool:
     """`hide_finished`-Query auswerten. Default: im KO-Modus AN (Reglement-Wunsch:
     abgeschlossene Duelle ausblenden), im Normalmodus AUS (Einweiser will den
     ganzen Lauf sehen)."""
     raw = request.args.get('hide_finished')
     if raw is None:
-        return _is_ko_event(event)
+        return _effective_ko_mode(event)
     return str(raw).strip().lower() in ('1', 'true', 'yes', 'on')
 
 
@@ -192,7 +211,7 @@ def build_einweiser_model(event: dict, ring_number: int, hide_finished: bool):
         'event_name': event.get('Bezeichnung') or event.get('name') or '',
         'hide_finished': hide_finished,
     }
-    if _is_ko_event(event):
+    if _effective_ko_mode(event):
         base.update({
             'mode': 'ko',
             'read_only': True,
@@ -239,6 +258,39 @@ def render_einweiser_content(ring_number):
     return render_template('_einweiser_content.html', model=model)
 
 
+@einweiser_bp.post('/einweiser/api/set_mode')
+def api_set_einweiser_mode():
+    """Schaltet den GLOBALEN Einweiser-Anzeigemodus aller Tablets um (am KO-Ring-PC).
+    Body: {"mode": "auto"|"ko"|"normal"}. Speichert `event['einweiser_mode']` am
+    aktiven Event ('auto' löscht den Override) und broadcastet `einweiser_mode_changed`
+    → die Tablets laden ihr Content-Partial neu (neuer Modus)."""
+    data = request.get_json(silent=True) or {}
+    mode = (data.get('mode') or '').strip().lower()
+    if mode not in _VALID_MODES:
+        return jsonify({'success': False, 'message': f'Unbekannter Modus: {mode}'}), 400
+    active = _get_active_event()
+    if not active:
+        return jsonify({'success': False, 'message': 'Kein aktives Event.'}), 404
+    event_id = active.get('id')
+    with _DATA_LOCK:
+        events = _load_data('events.json')
+        event = next((e for e in events if e.get('id') == event_id), None)
+        if not event:
+            return jsonify({'success': False, 'message': 'Event nicht gefunden.'}), 404
+        if mode == 'auto':
+            event.pop('einweiser_mode', None)
+        else:
+            event['einweiser_mode'] = mode
+        effective_ko = _effective_ko_mode(event)
+        _save_data('events.json', events)
+
+    try:
+        socketio.emit('einweiser_mode_changed', {'event_id': event_id, 'mode': mode})
+    except Exception:
+        pass
+    return jsonify({'success': True, 'mode': mode, 'effective_ko': effective_ko})
+
+
 @einweiser_bp.post('/einweiser/api/mark/<event_id>/<run_id>')
 def api_set_mark(event_id, run_id):
     """Setzt/loescht eine nicht-autoritative Einweiser-Markierung (present/absent/
@@ -259,7 +311,7 @@ def api_set_mark(event_id, run_id):
         event = next((e for e in events if e.get('id') == event_id), None)
         if not event:
             return jsonify({'success': False, 'message': 'Event nicht gefunden.'}), 404
-        if _is_ko_event(event):
+        if _effective_ko_mode(event):
             return jsonify({'success': False, 'message': 'KO-Modus ist nur Anzeige.'}), 403
         run = next((r for r in event.get('runs', []) or [] if r.get('id') == run_id), None)
         if not run:
@@ -302,7 +354,7 @@ def api_reorder(event_id, run_id):
         event = next((e for e in events if e.get('id') == event_id), None)
         if not event:
             return jsonify({'success': False, 'message': 'Event nicht gefunden.'}), 404
-        if _is_ko_event(event):
+        if _effective_ko_mode(event):
             return jsonify({'success': False, 'message': 'KO-Modus ist nur Anzeige.'}), 403
         run = next((r for r in event.get('runs', []) or [] if r.get('id') == run_id), None)
         if not run:

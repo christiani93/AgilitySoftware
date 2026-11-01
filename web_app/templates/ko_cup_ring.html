@@ -65,6 +65,11 @@
     <button class="btn-startlist" onclick="window.print()" style="background: #b07400;">
       🖨️ Drucken
     </button>
+    <button id="btn-ew-mode" class="btn-startlist" style="background: #2f6fb0;"
+            data-ko="{{ '1' if einweiser_ko_mode else '0' }}"
+            title="Schaltet alle Einweiser-Tablets zwischen KO-Anzeige und normalen Läufen um">
+      👁️ Einweiser: <span id="ew-mode-label">{{ 'KO' if einweiser_ko_mode else 'Normal' }}</span>
+    </button>
   </header>
   <main>
     <div class="panel-monitor">
@@ -463,6 +468,28 @@
       e.preventDefault(); bumpDis(1);
     }
   });
+
+  // Einweiser-Anzeigemodus global umschalten (KO <-> Normal) – Wunsch HCS 31.10.
+  var ewBtn = document.getElementById('btn-ew-mode');
+  if (ewBtn) {
+    ewBtn.addEventListener('click', function () {
+      var target = ewBtn.getAttribute('data-ko') === '1' ? 'normal' : 'ko';
+      ewBtn.disabled = true;
+      fetch('/einweiser/api/set_mode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: target })
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        if (!j || !j.success) { showMsg((j && j.message) || 'Umschalten fehlgeschlagen', false); return; }
+        var ko = !!j.effective_ko;
+        ewBtn.setAttribute('data-ko', ko ? '1' : '0');
+        var lbl = document.getElementById('ew-mode-label');
+        if (lbl) lbl.textContent = ko ? 'KO' : 'Normal';
+        showMsg('Einweiser-Tablets: ' + (ko ? 'KO-Anzeige' : 'normale Läufe'), true);
+      }).catch(function () { showMsg('Umschalten fehlgeschlagen (Netz)', false); })
+        .finally(function () { ewBtn.disabled = false; });
+    });
+  }
 
   connect();
   loadState(false);
