@@ -518,6 +518,47 @@ def final_run2_start_order(run1_entries: list[dict]) -> list[str]:
     return [str(e.get("Lizenznummer")) for e in not_classified + classified]
 
 
+def apply_final_start_order(event: dict, run_results_fn) -> list[dict]:
+    """Schreibt die Startreihenfolge des 2. Finallaufs (Agility) auf dessen Entries,
+    abgeleitet aus der Rangliste des 1. Finallaufs (Jumping) — Reglement 3.2.
+
+    Paart `is_final`-Läufe je (Kategorie, Klasse): für jede Paarung Jumping→Agility wird
+    `final_run2_start_order` auf das Jumping-Ergebnis angewendet und das Resultat als
+    `entry["start_order"]` (1-basiert) auf die Agility-Entries geschrieben (gematcht über
+    Lizenznummer). `run_results_fn(run) -> list[entry]` liefert die berechneten Entries
+    eines Laufs (mit `platz`/`Startnummer`/`Lizenznummer`), z.B. _calculate_run_results.
+
+    Returns: Liste {kategorie, klasse, count} der befüllten Agility-Finalläufe.
+    """
+    finals = [r for r in event.get("runs", []) or [] if r.get("is_final")]
+    applied = []
+    for agi in finals:
+        if (agi.get("laufart") or "") != "Agility":
+            continue
+        jump = next(
+            (r for r in finals
+             if (r.get("laufart") or "") == "Jumping"
+             and r.get("kategorie") == agi.get("kategorie")
+             and str(r.get("klasse")) == str(agi.get("klasse"))),
+            None,
+        )
+        if jump is None:
+            continue
+        order = final_run2_start_order(run_results_fn(jump))
+        pos = {lic: i for i, lic in enumerate(order, start=1)}
+        tail = len(order) + 1
+        for e in agi.get("entries", []) or []:
+            lic = str(e.get("Lizenznummer"))
+            if lic in pos:
+                e["start_order"] = pos[lic]
+            else:
+                e["start_order"] = tail  # in Lauf 1 nicht vorhanden -> ans Ende
+                tail += 1
+        applied.append({"kategorie": agi.get("kategorie"), "klasse": agi.get("klasse"),
+                         "count": len(agi.get("entries", []) or [])})
+    return applied
+
+
 def _rank_division_final(final_pools: dict) -> list[dict]:
     """
     Rangiert eine Division aus den 2 Finalläufen (Summe Jumping + Agility) gemäss

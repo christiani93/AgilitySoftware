@@ -14,6 +14,12 @@
     <a href="{{ url_for('bccs_sm_bp.bccs_sm_export_csv', event_id=event.id) }}" class="btn btn-outline-success">
       <i class="fas fa-file-csv me-1"></i>CSV Export
     </a>
+    <form method="post" action="{{ url_for('bccs_sm_bp.bccs_sm_final_startorder', event_id=event.id) }}" class="d-inline"
+          onsubmit="return confirm('Startreihenfolge des 2. Finallaufs (Agility) aus dem 1. Finallauf (Jumping) neu setzen? Bestehende Reihenfolge der Agility-Finalläufe wird überschrieben.');">
+      <button type="submit" class="btn btn-outline-primary">
+        <i class="fas fa-list-ol me-1"></i>Startreihenfolge 2. Final
+      </button>
+    </form>
     <a href="{{ url_for('events_bp.manage_runs', event_id=event.id) }}" class="btn btn-outline-secondary">
       <i class="fas fa-arrow-left me-1"></i>Zurück
     </a>

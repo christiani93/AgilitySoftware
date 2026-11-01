@@ -23,6 +23,7 @@ from bccs_sm_qualification import (   # noqa: E402
     calculate_bccs_sm_qualification,
     rank_final_bccs,
     final_run2_start_order,
+    apply_final_start_order,
     _quota,
 )
 
@@ -342,6 +343,28 @@ def test_final_run2_start_order_reverse_mit_dis_zuerst():
     order = final_run2_start_order(run1)
     # DIS zuerst nach Startnummer (E=2, D=5), dann klassiert umgekehrt (C, B, A).
     assert order == ["E", "D", "C", "B", "A"]
+
+
+def test_apply_final_start_order_schreibt_start_order_auf_agility():
+    """apply_final_start_order paart Jumping→Agility-Final je (Kat,Kl) und schreibt
+    die umgekehrte Reihenfolge als start_order auf die Agility-Entries."""
+    jump_entries = [
+        {"Lizenznummer": "A", "platz": 1, "Startnummer": 3},
+        {"Lizenznummer": "B", "platz": 2, "Startnummer": 1},
+        {"Lizenznummer": "C", "platz": 3, "Startnummer": 4},
+        {"Lizenznummer": "D", "platz": None, "Startnummer": 5},  # DIS
+        {"Lizenznummer": "E", "platz": None, "Startnummer": 2},  # DIS
+    ]
+    agi_entries = [{"Lizenznummer": lic} for lic in ("A", "B", "C", "D", "E")]
+    event = {"runs": [
+        {"kategorie": "Large", "klasse": "3", "laufart": "Jumping", "is_final": True, "entries": jump_entries},
+        {"kategorie": "Large", "klasse": "3", "laufart": "Agility", "is_final": True, "entries": agi_entries},
+    ]}
+    applied = apply_final_start_order(event, lambda run: run["entries"])
+    assert applied == [{"kategorie": "Large", "klasse": "3", "count": 5}]
+    so = {e["Lizenznummer"]: e["start_order"] for e in agi_entries}
+    # E(DIS,Startnr2)=1, D(DIS,Startnr5)=2, dann C,B,A (umgekehrte Rangfolge)
+    assert so == {"E": 1, "D": 2, "C": 3, "B": 4, "A": 5}
 
 
 # ---------------------------------------------------------------------------

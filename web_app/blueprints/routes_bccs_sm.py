@@ -17,7 +17,7 @@ from flask import (Blueprint, render_template, request, redirect,
 
 from utils import _load_data, _save_data, _load_settings, recalc_and_store, _safe_http_filename
 from bccs_sm_qualification import (
-    calculate_bccs_sm_qualification, rank_final_bccs,
+    calculate_bccs_sm_qualification, rank_final_bccs, apply_final_start_order,
     CATEGORIES, DIVISIONS, QUALI_RUN_TYPES,
 )
 
@@ -79,6 +79,25 @@ def bccs_sm_dashboard(event_id):
         categories=CATEGORIES,
         divisions=DIVISIONS,
     )
+
+
+@bccs_sm_bp.post('/final-startorder/<event_id>')
+def bccs_sm_final_startorder(event_id):
+    """Setzt die Startreihenfolge des 2. Finallaufs (Agility) je Kategorie/Klasse
+    aus der Rangliste des 1. Finallaufs (Jumping): nicht klassierte (DIS) zuerst nach
+    Startnummer, dann Schlechtester→Sieger. Schreibt `start_order` auf die Agility-Entries."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+    settings = _load_settings()
+    applied = apply_final_start_order(event, lambda run: recalc_and_store(run, settings))
+    _save_data(EVENTS_FILE, events)
+    if applied:
+        parts = ", ".join(f"{a['kategorie']} Kl.{a['klasse']} ({a['count']})" for a in applied)
+        flash(f"Startreihenfolge 2. Finallauf gesetzt: {parts}.", "success")
+    else:
+        flash("Keine Final-Paarung (Jumping→Agility) mit is_final gefunden.", "warning")
+    return redirect(url_for('bccs_sm_bp.bccs_sm_dashboard', event_id=event_id))
 
 
 @bccs_sm_bp.route('/config/<event_id>', methods=['GET', 'POST'])
