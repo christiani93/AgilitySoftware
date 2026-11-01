@@ -139,3 +139,119 @@ def build_sm_event_from_csvs(quali_data, final_data=None, *, event_id="SM_IMPORT
         "runs":              runs,
         "sm_config":         {},
     }
+
+
+# ── Teilnehmer-Import (Anmeldeliste, AOA-Format) ────────────────────────────────
+# Anders als der Resultat-Export (oben) hat die Anmeldeliste eine zuverlässige
+# Kopfzeile → per Spaltenname gelesen. Enthält KEINE Ergebnisse und KEINE
+# Startnummern (letztere kommen später).
+
+def parse_sm_participants(data):
+    """Liest eine SM-Anmeldeliste (AOA-Export, ';', cp1252) in Teilnehmer-Dicts.
+
+    Doppelte Lizenznummern werden zusammengeführt (erster Eintrag gewinnt). Returns
+    Liste in Eingabereihenfolge (dedupliziert).
+    """
+    text = _decode(data)
+    rows = list(csv.DictReader(text.splitlines(), delimiter=";"))
+    seen = {}
+    out = []
+    for r in rows:
+        lic = (r.get("Lizenznummer") or "").strip()
+        if not lic or lic in seen:
+            continue
+        seen[lic] = True
+        handler = " ".join(x for x in [(r.get("Vorname") or "").strip(),
+                                       (r.get("Name") or "").strip()] if x)
+        out.append({
+            "Lizenznummer": lic,
+            "Hundename":    (r.get("Rufname") or "").strip(),        # Rufname = Anzeigename
+            "Zuchtname":    (r.get("Hundename") or "").strip(),      # voller Zwinger-/FCI-Name
+            "Rasse":        (r.get("Rasse") or "").strip(),
+            "Geschlecht":   (r.get("Geschlecht") or "").strip(),
+            "Vorname":      (r.get("Vorname") or "").strip(),
+            "Nachname":     (r.get("Name") or "").strip(),
+            "Handler":      handler,
+            "Kategorie":    (r.get("Kategorie") or "").strip(),
+            "Klasse":       (r.get("Klasse") or "").strip(),
+            "SHSB":         (r.get("SHSB") or "").strip(),
+            "VereinsNr":    (r.get("Vereins-Nr.") or "").strip(),
+            "Verein":       (r.get("Verein") or "").strip(),
+            "ChipNr":       (r.get("Chip-Nr.") or "").strip(),
+            "Land":         (r.get("Land") or "").strip(),
+            "Sprache":      (r.get("Sprache") or "").strip(),
+            "EMail":        (r.get("E-Mail") or "").strip(),
+        })
+    return out
+
+
+def _participant_entry(p):
+    """Macht aus einem Teilnehmer einen Lauf-Entry (ohne Ergebnis, ohne Startnummer)."""
+    return {
+        "Startnummer":  None,                 # kommt später
+        "Lizenznummer": p["Lizenznummer"],
+        "Hundename":    p["Hundename"],
+        "Zuchtname":    p.get("Zuchtname", ""),
+        "Rasse":        p.get("Rasse", ""),
+        "Vorname":      p["Vorname"],
+        "Nachname":     p["Nachname"],
+        "Kategorie":    p["Kategorie"],
+        "Klasse":       p["Klasse"],
+        "Verein":       p.get("Verein", ""),
+        "VereinsNr":    p.get("VereinsNr", ""),
+        "SHSB":         p.get("SHSB", ""),
+        "ChipNr":       p.get("ChipNr", ""),
+        "Land":         p.get("Land", ""),
+    }
+
+
+def build_sm_event_from_participants(data, *, event_id="SM_2026",
+                                     bezeichnung="TKAMO-SM (Teilnehmer-Import)",
+                                     datum=None) -> tuple[dict, dict]:
+    """Baut ein SM-Event aus der Anmeldeliste: je Kategorie die beiden Quali-Läufe
+    (qual_agility, qual_jumping) mit allen Teilnehmern als Einträge + leere Finalläufe
+    (final_jumping, final_agility). Noch OHNE Ergebnisse und OHNE Startnummern.
+
+    Returns (event, stats) — stats = {kategorie: anzahl, ..., "_total": n, "_duplikate": n}.
+    """
+    participants = parse_sm_participants(data)
+
+    by_cat: dict = {}
+    for p in participants:
+        by_cat.setdefault(p["Kategorie"], []).append(p)
+
+    runs = []
+    stats = {}
+    # Feste Kategorie-Reihenfolge (nur vorhandene).
+    for cat in CATEGORIES:
+        plist = by_cat.get(cat) or []
+        if not plist:
+            continue
+        stats[cat] = len(plist)
+        klasse = plist[0]["Klasse"] or "3"
+        for phase, laufart in (("quali", "Agility"), ("quali", "Jumping")):
+            runs.append({
+                "id":          f"sm_{phase}_{cat}_{laufart}".lower(),
+                "kategorie":   cat, "klasse": klasse, "laufart": laufart,
+                "sm_run_type": _RUN_TYPE[(phase, laufart)], "is_final": False,
+                "laufdaten":   {},
+                "entries":     [_participant_entry(p) for p in plist],
+            })
+        for phase, laufart in (("final", "Jumping"), ("final", "Agility")):
+            runs.append({
+                "id":          f"sm_{phase}_{cat}_{laufart}".lower(),
+                "kategorie":   cat, "klasse": klasse, "laufart": laufart,
+                "sm_run_type": _RUN_TYPE[(phase, laufart)], "is_final": True,
+                "laufdaten":   {}, "entries": [],
+            })
+
+    stats["_total"] = len(participants)
+    event = {
+        "id":                event_id,
+        "Bezeichnung":       bezeichnung,
+        "Datum":             datum or "",
+        "Veranstaltungsart": "SM Einzel",
+        "runs":              runs,
+        "sm_config":         {},
+    }
+    return event, stats

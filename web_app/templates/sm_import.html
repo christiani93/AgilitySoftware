@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block title %}SM Einzel – Teilnehmer-Import{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="mb-0">🏆 SM Einzel – Teilnehmer-Import</h1>
+  <p class="text-muted mb-0">Anmeldeliste (CSV, SportyDog/AOA-Export) hochladen. Legt die
+    beiden Quali-Läufe je Kategorie mit den Teilnehmern an. Startnummern und Ergebnisse
+    kommen später.</p>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="card p-3" style="max-width: 640px;">
+  <div class="mb-3">
+    <label class="form-label">Anmeldeliste (CSV)</label>
+    <input type="file" name="csv" accept=".csv" class="form-control" required>
+    <div class="form-text">Format: ';'-getrennt, Spalten Lizenznummer/Rufname/Kategorie/Klasse …
+      Doppelte Lizenzen werden zusammengeführt.</div>
+  </div>
+  <div class="row g-2">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Bezeichnung</label>
+      <input type="text" name="bezeichnung" class="form-control"
+             value="TKAMO Agility-SM 2026">
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Datum</label>
+      <input type="date" name="datum" class="form-control">
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Event-ID</label>
+      <input type="text" name="event_id" class="form-control" value="SM_2026">
+      <div class="form-text">Gleiche ID überschreibt.</div>
+    </div>
+  </div>
+  <div>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-file-import me-1"></i>Importieren
+    </button>
+  </div>
+</form>
+{% endblock %}

@@ -12,6 +12,7 @@ from sm_qualification import (
     calculate_sm_qualification, get_sm_runs,
     CATEGORIES, SM_RUN_TYPES,
 )
+from sm_import import build_sm_event_from_participants
 
 sm_bp = Blueprint('sm_bp', __name__, template_folder='../templates', url_prefix='/sm')
 
@@ -27,6 +28,37 @@ def _get_event(event_id: str):
 
 
 # ── Routen ────────────────────────────────────────────────────────────────────
+
+@sm_bp.route('/import-participants', methods=['GET', 'POST'])
+def sm_import_participants():
+    """Teilnehmer-Import: Anmeldeliste (CSV) → SM-Event mit Quali-Läufen je Kategorie.
+    Noch ohne Startnummern/Ergebnisse. Gleiche Event-ID überschreibt ein vorhandenes Event."""
+    if request.method == 'POST':
+        file = request.files.get('csv')
+        if not file or not file.filename:
+            flash('Keine Datei gewählt.', 'warning')
+            return redirect(url_for('sm_bp.sm_import_participants'))
+        event_id = (request.form.get('event_id') or '').strip() or 'SM_IMPORT'
+        bezeichnung = (request.form.get('bezeichnung') or '').strip() or 'TKAMO-SM (Teilnehmer-Import)'
+        datum = (request.form.get('datum') or '').strip()
+        try:
+            event, stats = build_sm_event_from_participants(
+                file.read(), event_id=event_id, bezeichnung=bezeichnung, datum=datum)
+        except Exception as exc:  # pragma: no cover - defensiver Pfad
+            flash(f'Import fehlgeschlagen: {exc}', 'danger')
+            return redirect(url_for('sm_bp.sm_import_participants'))
+
+        events = [e for e in _load_data(EVENTS_FILE) if e.get('id') != event_id]
+        events.append(event)
+        _save_data(EVENTS_FILE, events)
+
+        parts = ", ".join(f"{k} {v}" for k, v in stats.items() if not k.startswith('_'))
+        flash(f"{stats['_total']} Teilnehmer importiert ({parts}). "
+              f"Startnummern und Ergebnisse folgen später.", 'success')
+        return redirect(url_for('sm_bp.sm_dashboard', event_id=event_id))
+
+    return render_template('sm_import.html')
+
 
 @sm_bp.get('/dashboard/<event_id>')
 def sm_dashboard(event_id):

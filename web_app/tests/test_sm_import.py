@@ -80,3 +80,62 @@ def test_invalid_phase_raises():
     import pytest
     with pytest.raises(ValueError):
         sm_import.parse_sm_result_csv("x", "bogus")
+
+
+# ── Teilnehmer-Import (Anmeldeliste) ───────────────────────────────────────────
+
+_PART_HEADER = ("Lizenznummer;Rufname;Hundename;Rasse;Geschlecht;Wurfdatum;Kategorie;"
+                "Klasse;SHSB;Vereins-Nr.;Verein;Chip-Nr.;Vorname;Name;Strasse;PLZ;Ort;"
+                "Telefon;Mobile;E-Mail;Sprache;Land;ACR-Rang;ACR-Punkte;Geburtsdatum;")
+
+
+def _part_row(lic, rufname, zucht, kat, vorname, name, verein="V", chip="C"):
+    return (f"{lic};{rufname};{zucht};Border Collie;Weiblich;2021-01-01;{kat};3;789;"
+            f"439;{verein};{chip};{vorname};{name};Str 1;6000;Ort;;079;a@b.ch;d;SUI;10;500;1990-01-01;")
+
+
+def _part_csv(*rows):
+    return "\n".join([_PART_HEADER, *rows])
+
+
+def test_parse_participants_fields_and_dedup():
+    text = _part_csv(
+        _part_row("16105", "Nayhra", "O Nayhra from Elly", "Large", "Annette", "Ogierman"),
+        _part_row("16307", "Eddy", "Shadow of Aire", "Large", "Philippe", "Cottet"),
+        _part_row("16307", "Eddy", "Shadow of Aire", "Large", "Philippe", "Cottet"),  # Dublette
+    )
+    parts = sm_import.parse_sm_participants(text)
+    assert len(parts) == 2                       # Dublette zusammengeführt
+    p = parts[0]
+    assert p["Hundename"] == "Nayhra"            # Rufname = Anzeigename
+    assert p["Zuchtname"] == "O Nayhra from Elly"
+    assert p["Handler"] == "Annette Ogierman"
+    assert p["Kategorie"] == "Large"
+
+
+def test_build_event_from_participants_structure():
+    text = _part_csv(
+        _part_row("1", "A", "AA", "Large", "V", "N"),
+        _part_row("2", "B", "BB", "Large", "V", "N"),
+        _part_row("3", "C", "CC", "Small", "V", "N"),
+    )
+    event, stats = sm_import.build_sm_event_from_participants(text)
+    assert stats["_total"] == 3
+    assert stats["Large"] == 2 and stats["Small"] == 1
+    # Je Kategorie 2 Quali (gefüllt) + 2 Final (leer).
+    large_quali = [r for r in event["runs"] if r["kategorie"] == "Large" and not r["is_final"]]
+    assert len(large_quali) == 2
+    assert all(len(r["entries"]) == 2 for r in large_quali)
+    large_final = [r for r in event["runs"] if r["kategorie"] == "Large" and r["is_final"]]
+    assert len(large_final) == 2 and all(len(r["entries"]) == 0 for r in large_final)
+    # Entries ohne Startnummer/Ergebnis.
+    e = large_quali[0]["entries"][0]
+    assert e["Startnummer"] is None and "result" not in e
+
+
+def test_entries_are_independent_copies_per_run():
+    text = _part_csv(_part_row("1", "A", "AA", "Large", "V", "N"))
+    event, _ = sm_import.build_sm_event_from_participants(text)
+    quali = [r for r in event["runs"] if r["kategorie"] == "Large" and not r["is_final"]]
+    quali[0]["entries"][0]["Startnummer"] = 5
+    assert quali[1]["entries"][0]["Startnummer"] is None  # nicht dieselbe Referenz
