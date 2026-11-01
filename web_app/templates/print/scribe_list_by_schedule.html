@@ -25,7 +25,8 @@
         .run-container:last-child { page-break-after: auto; }
 
         h4 { text-align: center; font-size: 11pt; margin: 0 0 2px 0; }
-        .run-meta-info { text-align: center; font-size: 7.5pt; margin-bottom: 4px; padding: 3px; border: 1px solid #ccc; border-radius: 5px; background-color: #f8f9fa !important; }
+        .run-meta-info { text-align: center; font-size: 11pt; margin-bottom: 8px; padding: 6px 10px; border: 1px solid #999; border-radius: 5px; background-color: #f8f9fa !important; line-height: 1.5; }
+        .run-meta-info strong { font-size: 12pt; }
 
         table { width: 100%; border-collapse: collapse; font-size: 8pt; page-break-inside: auto; }
         th, td { border: 1px solid black !important; padding: 2px 5px; vertical-align: middle; line-height: 1.15; }
@@ -57,13 +58,13 @@
              <div class="run-container">
                 <h4 class="mt-4 text-center">{{ _('Ring') }} {{ section.ring }} – {{ section.title }}</h4>
                 <p class="run-meta-info">
-                    {{ _('Richter') }}: {{ section.judge_name or '—' }}
+                    {{ _('Richter') }}: <strong>{{ section.judge_name or '—' }}</strong>
                     {% for run in section.runs %}
                         {% set ld = run.laufdaten or {} %}
-                        <br>{{ run.name }}: {{ _('Parcourslänge') }} {{ ld.parcours_laenge or '___' }}m |
-                        {{ _('Anz. Geräte') }} {{ ld.anzahl_hindernisse or '___' }} |
-                        {{ _('Standardzeit (SCT)') }} {{ ld.standardzeit_sct_berechnet or ld.standardzeit_sct_gerundet or ld.standardzeit_sct or '___' }}s |
-                        {{ _('Maximalzeit (MCT)') }} {{ ld.maximalzeit_mct_berechnet or ld.maximalzeit_mct_gerundet or ld.maximalzeit_mct or '___' }}s
+                        <br>{{ run.name }}: {{ _('Parcourslänge') }} <strong>{{ ld.parcours_laenge or '___' }}m</strong> |
+                        {{ _('Anz. Geräte') }} <strong>{{ ld.anzahl_hindernisse or '___' }}</strong> |
+                        {{ _('Standardzeit (SCT)') }} <strong>{{ ld.standardzeit_sct_berechnet or ld.standardzeit_sct_gerundet or ld.standardzeit_sct or '___' }}s</strong> |
+                        {{ _('Maximalzeit (MCT)') }} <strong>{{ ld.maximalzeit_mct_berechnet or ld.maximalzeit_mct_gerundet or ld.maximalzeit_mct or '___' }}s</strong>
                     {% endfor %}
                 </p>
                 <table class="table table-sm">

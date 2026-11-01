@@ -25,7 +25,8 @@
         .run-container:last-child { page-break-after: auto; }
 
         h4 { text-align: center; font-size: 11pt; margin: 0 0 2px 0; }
-        .run-meta-info { text-align: center; font-size: 7.5pt; margin-bottom: 4px; padding: 3px; border: 1px solid #ccc; border-radius: 5px; background-color: #f8f9fa !important; }
+        .run-meta-info { text-align: center; font-size: 11pt; margin-bottom: 8px; padding: 6px 10px; border: 1px solid #999; border-radius: 5px; background-color: #f8f9fa !important; line-height: 1.5; }
+        .run-meta-info strong { font-size: 12pt; }
 
         table { width: 100%; border-collapse: collapse; font-size: 8pt; page-break-inside: auto; }
         th, td { border: 1px solid black !important; padding: 2px 5px; vertical-align: middle; line-height: 1.15; }
@@ -59,11 +60,11 @@
                 <h4 class="mt-4 text-center">{{ run.name }}</h4>
                 {# NEU: Platzhalter für Geräteanzahl hinzugefügt (Punkt 1.1) #}
                 <p class="run-meta-info">
-                    {{ _('Richter') }}: {{ run.judge_display or '—' }} |
-                    {{ _('Parcourslänge') }}: {{ ld.parcours_laenge or '___' }}m |
-                    {{ _('Anz. Geräte') }}: {{ ld.anzahl_hindernisse or '___' }} <br>
-                    {{ _('Standardzeit (SCT)') }}: {{ ld.standardzeit_sct or '___' }}s |
-                    {{ _('Maximalzeit (MCT)') }}: {{ ld.maximalzeit_mct or '___' }}s
+                    {{ _('Richter') }}: <strong>{{ run.judge_display or '—' }}</strong> |
+                    {{ _('Parcourslänge') }}: <strong>{{ ld.parcours_laenge or '___' }}m</strong> |
+                    {{ _('Anz. Geräte') }}: <strong>{{ ld.anzahl_hindernisse or '___' }}</strong> <br>
+                    {{ _('Standardzeit (SCT)') }}: <strong>{{ ld.standardzeit_sct or '___' }}s</strong> |
+                    {{ _('Maximalzeit (MCT)') }}: <strong>{{ ld.maximalzeit_mct or '___' }}s</strong>
                 </p>
                 <table class="table table-sm">
                     <thead class="table-light">
