@@ -22,6 +22,7 @@ if WEB_APP_PATH not in sys.path:
 from bccs_sm_qualification import (   # noqa: E402
     calculate_bccs_sm_qualification,
     rank_final_bccs,
+    final_run2_start_order,
     _quota,
 )
 
@@ -326,6 +327,21 @@ def test_final_dis_nicht_klassiert_hinter_sauberen():
     # Alle DIS-Teams: unrangiert, dahinter, stabil nach Lizenz (ADIS < BOTH < JDIS).
     assert order[2:] == ["ADIS", "BOTH", "JDIS"]
     assert all(rang[l] is None for l in ("ADIS", "JDIS", "BOTH"))
+
+
+def test_final_run2_start_order_reverse_mit_dis_zuerst():
+    """2. Finallauf (Agility) = umgekehrte Rangliste des 1. Laufs (Jumping):
+    DIS/nicht klassiert zuerst (nach Startnummer), dann Schlechtester→Sieger."""
+    run1 = [
+        {"Lizenznummer": "A", "platz": 1, "Startnummer": 3},
+        {"Lizenznummer": "B", "platz": 2, "Startnummer": 1},
+        {"Lizenznummer": "C", "platz": 3, "Startnummer": 4},
+        {"Lizenznummer": "D", "platz": None, "Startnummer": 5},  # DIS
+        {"Lizenznummer": "E", "platz": None, "Startnummer": 2},  # DIS
+    ]
+    order = final_run2_start_order(run1)
+    # DIS zuerst nach Startnummer (E=2, D=5), dann klassiert umgekehrt (C, B, A).
+    assert order == ["E", "D", "C", "B", "A"]
 
 
 # ---------------------------------------------------------------------------

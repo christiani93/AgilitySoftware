@@ -492,6 +492,32 @@ def _compute_class(quali_pools: dict, quali_order: list[str], qualified: set) ->
 # Internal — Final-Rangierung (2 Läufe summiert)
 # ---------------------------------------------------------------------------
 
+def final_run2_start_order(run1_entries: list[dict]) -> list[str]:
+    """Startreihenfolge des 2. Finallaufs (Agility) gemäss Reglement 3.2:
+    „umgekehrte Reihenfolge der Rangliste des ersten Finallaufs" (Jumping).
+
+    `run1_entries`: Ergebnis-Dicts des 1. Finallaufs (wie von _calculate_run_results),
+    mit `platz` (None = nicht klassiert/DIS), `Startnummer`, `Lizenznummer`.
+
+    Regel (User 2026-11-01): die **nicht klassierten (DIS/ABR/DNS) starten zuerst**,
+    nach Startnummer aufsteigend; danach die klassierten in **umgekehrter**
+    Rangreihenfolge (Schlechtester zuerst, Sieger des 1. Laufs zuletzt).
+
+    Returns: Liste der Lizenznummern in Startreihenfolge des 2. Laufs.
+    """
+    def _startnr(e):
+        try:
+            return int(e.get("Startnummer"))
+        except (TypeError, ValueError):
+            return 10 ** 9
+
+    classified = [e for e in run1_entries if e.get("platz") is not None]
+    not_classified = [e for e in run1_entries if e.get("platz") is None]
+    classified.sort(key=lambda e: e["platz"], reverse=True)   # Schlechtester zuerst
+    not_classified.sort(key=_startnr)                          # DIS zuerst, nach Startnummer
+    return [str(e.get("Lizenznummer")) for e in not_classified + classified]
+
+
 def _rank_division_final(final_pools: dict) -> list[dict]:
     """
     Rangiert eine Division aus den 2 Finalläufen (Summe Jumping + Agility) gemäss
