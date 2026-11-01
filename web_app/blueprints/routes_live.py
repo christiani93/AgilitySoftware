@@ -1199,6 +1199,33 @@ def api_set_participant_status(event_id, run_id):
     except Exception:
         pass
 
+    # Portal-Sync: Live-Update + Result-Export im Hintergrund (analog save_result).
+    # Ohne diesen Block blieb das Portal nach einem DIS/DNS ohne nächsten Starter
+    # stehen, weil nur save_result pushte.
+    try:
+        from portal_sync import push_live_update, send_result_export
+        from threading import Thread
+        settings_for_sync = _load_settings()
+        if settings_for_sync.get("portal_url"):
+            if settings_for_sync.get("portal_live_api_key"):
+                all_results_for_sync = _calculate_run_results(run, settings_for_sync)
+                enriched_entry = next(
+                    (r for r in all_results_for_sync if r.get("Lizenznummer") == license_nr),
+                    entry
+                )
+                push_live_update(settings_for_sync, event, run, enriched_entry)
+            if settings_for_sync.get("portal_results_api_key"):
+                _event_snap = dict(event)
+                _settings_snap = dict(settings_for_sync)
+                def _bg_export():
+                    try:
+                        send_result_export(_settings_snap, _event_snap, final=False)
+                    except Exception:
+                        pass
+                Thread(target=_bg_export, daemon=True).start()
+    except Exception:
+        pass  # Portal-Sync darf nie den Hauptprozess unterbrechen
+
     return jsonify({'success': True})
 
 

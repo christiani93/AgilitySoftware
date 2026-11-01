@@ -2738,117 +2738,61 @@ def api_rename_participant(event_id, license_nr):
     return jsonify(success=True, changed=changed)
 
 
+@events_bp.route('/api/remove_run_participant/<event_id>/<run_id>', methods=['POST'])
+def api_remove_run_participant(event_id, run_id):
+    """Entfernt einen Teilnehmer aus EINEM Lauf (JSON-API, Pendant zu api_rename_participant).
+
+    Liest ``Lizenznummer`` aus dem JSON-Body und filtert den Entry nur aus dem
+    angegebenen Lauf. Das Per-Lauf-„Papierkorb"-Icon in manage_run_participants.html
+    ruft diese Route; sie fehlte bisher komplett (→ Flask-404, JS-JSON-Fehler).
+    """
+    run_id = str(run_id)
+    all_events = _load_data(EVENTS_FILE)
+    event = next((e for e in all_events if isinstance(e, dict) and e.get('id') == event_id), None)
+    if not event:
+        return jsonify(success=False, message="Event nicht gefunden"), 404
+
+    run = next((r for r in event.get('runs', []) if str(r.get('id')) == run_id), None)
+    if not run:
+        return jsonify(success=False, message="Lauf nicht gefunden"), 404
+
+    payload = request.get_json(silent=True) or {}
+    lic = _norm(payload.get('Lizenznummer'))
+    if not lic:
+        return jsonify(success=False, message="Lizenznummer fehlt"), 400
+
+    before = len(run.get('entries', []))
+    run['entries'] = [e for e in run.get('entries', []) if _norm(e.get('Lizenznummer')) != lic]
+    removed = before - len(run.get('entries', []))
+    if not removed:
+        return jsonify(success=False, message="Teilnehmer war nicht in diesem Lauf"), 404
+
+    _save_data(EVENTS_FILE, all_events)
+    return jsonify(success=True, removed=removed)
+
+
 @events_bp.route('/remove_participant_from_event/<event_id>/<license_nr>', methods=['POST'])
 def remove_participant_from_event(event_id, license_nr):
-    """Entfernt einen Teilnehmer aus ALLEN Läufen des Events und speichert."""
-    event_data, source = _load_event_by_id(event_id)
-    if not event_data:
+    """Entfernt einen Teilnehmer aus ALLEN Läufen des Events und speichert.
+
+    Nutzt dieselbe Datenquelle wie die Schwester-Route manage_all_participants
+    (``_load_data(EVENTS_FILE)``). Der frühere Weg über ``_load_event_by_id``
+    suchte in ``web_app/blueprints/data/`` (falsches Verzeichnis, im EXE
+    PyInstaller-Temp) → „Event nicht gefunden".
+    """
+    all_events = _load_data(EVENTS_FILE)
+    event = next((e for e in all_events if isinstance(e, dict) and e.get('id') == event_id), None)
+    if not event:
         return jsonify(success=False, message="Event nicht gefunden"), 404
 
     removed_count = 0
-    for r in event_data.get('runs', []):
+    for r in event.get('runs', []):
         before = len(r.get('entries', []))
-        r['entries'] = [e for e in r.get('entries', []) if str(e.get('Lizenznummer', '')) != str(license_nr)]
+        r['entries'] = [e for e in r.get('entries', []) if _norm(e.get('Lizenznummer')) != _norm(license_nr)]
         removed_count += (before - len(r['entries']))
 
-    _save_event_by_source(event_id, event_data, source)
+    _save_data(EVENTS_FILE, all_events)
     return jsonify(success=True, removed=removed_count)
-
-def _load_event_by_id(event_id: str):
-    """Versucht das Event zu laden (per-file oder zentrale Liste)."""
-    from pathlib import Path
-    PROJECT_ROOT = Path(__file__).resolve().parent
-    per_file = PROJECT_ROOT / 'data' / 'events' / f'{event_id}.json'
-    # 1) Direktdatei {id}.json
-    if per_file.exists():
-        try:
-            with per_file.open('r', encoding='utf-8') as f:
-                data = json.load(f)
-            if isinstance(data, dict) and data.get('id') == event_id:
-                return data, 'per_file'
-            if isinstance(data, list):
-                for ev in data:
-                    if isinstance(ev, dict) and ev.get('id') == event_id:
-                        return ev, 'per_file_list'
-        except Exception:
-            pass
-
-    # 2) Zentrales events.json
-    events_json = PROJECT_ROOT / 'data' / 'events.json'
-    if events_json.exists():
-        try:
-            with events_json.open('r', encoding='utf-8') as f:
-                data = json.load(f)
-            if isinstance(data, list):
-                for ev in data:
-                    if isinstance(ev, dict) and ev.get('id') == event_id:
-                        return ev, 'events_list'
-            elif isinstance(data, dict) and data.get('id') == event_id:
-                return data, 'events_json_dict'
-        except Exception:
-            pass
-
-    # 3) Fallback: alle Dateien im Verzeichnis durchsuchen
-    events_dir = PROJECT_ROOT / 'data' / 'events'
-    if events_dir.exists() and events_dir.is_dir():
-        for p in events_dir.glob('*.json'):
-            try:
-                with p.open('r', encoding='utf-8') as f:
-                    data = json.load(f)
-                if isinstance(data, dict) and data.get('id') == event_id:
-                    return data, f'per_file({p.name})'
-                if isinstance(data, list):
-                    for ev in data:
-                        if isinstance(ev, dict) and ev.get('id') == event_id:
-                            return ev, f'per_file_list({p.name})'
-            except Exception:
-                continue
-    return None, ''
-
-def _save_event_by_source(event_id: str, event_obj: dict, source_flag: str) -> None:
-    """Speichert das Event basierend auf seiner Quelle zurück."""
-    from pathlib import Path
-    PROJECT_ROOT = Path(__file__).resolve().parent
-    events_dir = PROJECT_ROOT / 'data' / 'events'
-    events_dir.mkdir(parents=True, exist_ok=True)
-    events_json = PROJECT_ROOT / 'data' / 'events.json'
-
-    def _write_json(p: Path, data):
-        p.parent.mkdir(parents=True, exist_ok=True)
-        with p.open('w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-
-    if source_flag == 'per_file':
-        _write_json(events_dir / f'{event_id}.json', event_obj)
-        return
-    if source_flag.startswith('per_file(') or source_flag.startswith('per_file_list('):
-        name = source_flag[source_flag.find('(')+1: source_flag.rfind(')')]
-        _write_json(events_dir / name, event_obj)
-        return
-    if source_flag == 'per_file_list':
-        _write_json(events_dir / f'{event_id}.json', event_obj)
-        return
-    if source_flag == 'events_list':
-        if events_json.exists():
-            try:
-                with events_json.open('r', encoding='utf-8') as f:
-                    data = json.load(f)
-                if isinstance(data, list):
-                    for i, ev in enumerate(data):
-                        if isinstance(ev, dict) and ev.get('id') == event_id:
-                            data[i] = event_obj
-                            _write_json(events_json, data)
-                            return
-            except Exception:
-                pass
-        _write_json(events_dir / f'{event_id}.json', event_obj)
-        return
-    if source_flag == 'events_json_dict':
-        _write_json(events_json, event_obj)
-        return
-
-    # Default-Fallback
-    _write_json(events_dir / f'{event_id}.json', event_obj)
 # === END ring-api helpers ====================================================
 
 @events_bp.route('/api/list_runs/<event_id>', methods=['GET'])

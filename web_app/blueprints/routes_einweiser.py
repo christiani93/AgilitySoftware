@@ -83,6 +83,17 @@ def _build_normal_ring(event: dict, ring_number: int, hide_finished: bool):
         cur_lic = (run.get('current_starter') or {}).get('Lizenznummer')
         next_lic = (run.get('next_starter') or {}).get('Lizenznummer')
 
+        # Fallback wie Ring-Monitor: zu Laufbeginn ist current_starter noch leer
+        # (wird erst beim ersten save_result/Ring-PC-Socket gesetzt). Dann gilt der
+        # erste noch nicht gelaufene (pending) Eintrag als "am Start", damit der
+        # Einweiser nicht mit leerem Starter dasteht.
+        if is_active and not cur_lic:
+            pending = [e for e in entries_sorted if _entry_status(e)[0] == 'pending']
+            if pending:
+                cur_lic = pending[0].get('Lizenznummer')
+                if not next_lic and len(pending) > 1:
+                    next_lic = pending[1].get('Lizenznummer')
+
         entries_model = []
         finished = 0
         for e in entries_sorted:
