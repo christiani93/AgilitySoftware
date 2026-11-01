@@ -51,17 +51,26 @@
     <h5 class="mb-0">Finalisten ({{ final.participants | length }})</h5>
   </div>
   <div class="card-body">
-    {# Add-Formular #}
-    <form method="post" class="row g-2 align-items-end mb-3">
+    {# Add-Formular: Teilnehmer per SUCHE aus den Event-Meldungen wählen
+       (füllt Lizenz exakt → kein Duplikat beim Ableiten). Freitext bleibt als
+       Fallback für Teams, die nicht im Event gemeldet sind (z.B. Titelverteidiger). #}
+    <div class="mb-2 position-relative">
+      <label class="form-label small mb-0">Teilnehmer suchen (Name/Lizenz)</label>
+      <input type="text" id="ko-add-search" class="form-control form-control-sm" autocomplete="off"
+             placeholder="Tippen zum Suchen – Treffer anklicken füllt die Felder unten">
+      <div id="ko-add-results" class="list-group position-absolute w-100 shadow"
+           style="z-index:1000; max-height:16rem; overflow:auto; display:none;"></div>
+    </div>
+    <form method="post" class="row g-2 align-items-end mb-3" id="ko-add-form">
       <input type="hidden" name="action" value="add_participant">
       <div class="col-md-3"><label class="form-label small mb-0">Hund</label>
-        <input type="text" name="dog_name" class="form-control form-control-sm" required></div>
+        <input type="text" name="dog_name" id="ko-add-dog" class="form-control form-control-sm" required></div>
       <div class="col-md-3"><label class="form-label small mb-0">Führer</label>
-        <input type="text" name="handler_name" class="form-control form-control-sm"></div>
+        <input type="text" name="handler_name" id="ko-add-handler" class="form-control form-control-sm"></div>
       <div class="col-md-2"><label class="form-label small mb-0">Lizenz</label>
-        <input type="text" name="license_no" class="form-control form-control-sm"></div>
+        <input type="text" name="license_no" id="ko-add-lic" class="form-control form-control-sm"></div>
       <div class="col-md-1"><label class="form-label small mb-0">Startnr</label>
-        <input type="number" name="start_number" class="form-control form-control-sm"></div>
+        <input type="number" name="start_number" id="ko-add-startnr" class="form-control form-control-sm"></div>
       <div class="col-md-2"><label class="form-label small mb-0">Quelle</label>
         <select name="source" class="form-select form-select-sm">
           {% for s in sources %}<option value="{{ s }}">{{ source_labels[s] }}</option>{% endfor %}
@@ -223,4 +232,59 @@
   </div>
 </div>
 {% endif %}
+
+<script>
+(function () {
+  const searchUrl = "{{ url_for('ko_cup_bp.ko_final_search_participants', event_id=event.id, final_id=final.id) }}";
+  const box = document.getElementById('ko-add-search');
+  const results = document.getElementById('ko-add-results');
+  if (!box || !results) return;
+  let timer = null;
+
+  function hide() { results.style.display = 'none'; results.innerHTML = ''; }
+
+  function render(items) {
+    if (!items.length) {
+      results.innerHTML = '<div class="list-group-item small text-muted">Keine gemeldeten Teams gefunden (ggf. Freitext unten nutzen).</div>';
+    } else {
+      results.innerHTML = items.map((it, i) =>
+        `<button type="button" class="list-group-item list-group-item-action py-1" data-idx="${i}">
+           <span class="fw-semibold">${it.label || it.dog_name}</span>
+           <span class="text-muted small ms-1">${it.klasse ? 'Kl.' + it.klasse : ''}${it.start_number ? ' · Nr ' + it.start_number : ''}</span>
+         </button>`).join('');
+      results._items = items;
+    }
+    results.style.display = 'block';
+  }
+
+  box.addEventListener('input', () => {
+    const q = box.value.trim();
+    if (timer) clearTimeout(timer);
+    if (!q) { hide(); return; }
+    timer = setTimeout(() => {
+      fetch(`${searchUrl}?q=${encodeURIComponent(q)}`)
+        .then(r => r.json())
+        .then(d => { if (d.success) render(d.results || []); })
+        .catch(() => hide());
+    }, 200);
+  });
+
+  results.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-idx]');
+    if (!btn) return;
+    const it = (results._items || [])[parseInt(btn.dataset.idx, 10)];
+    if (!it) return;
+    document.getElementById('ko-add-dog').value = it.dog_name || '';
+    document.getElementById('ko-add-handler').value = it.handler_name || '';
+    document.getElementById('ko-add-lic').value = it.license_no || '';
+    document.getElementById('ko-add-startnr').value = it.start_number || '';
+    hide();
+    box.value = '';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (e.target !== box && !results.contains(e.target)) hide();
+  });
+})();
+</script>
 {% endblock %}

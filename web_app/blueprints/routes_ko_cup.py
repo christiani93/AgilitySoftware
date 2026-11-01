@@ -521,6 +521,59 @@ def ko_final_print(event_id, final_id):
     )
 
 
+@ko_cup_bp.get('/final/<event_id>/<final_id>/search')
+def ko_final_search_participants(event_id, final_id):
+    """Sucht Kandidaten für die manuelle Finalisten-Aufnahme.
+
+    Quelle = alle im Event gemeldeten Teams der Finale-Kategorie (über alle
+    Läufe, nach Lizenz/Hund dedupliziert). Teams, die bereits im Finale stehen,
+    werden ausgeschlossen. So wird ein Finalist per Auswahl mit der EXAKTEN
+    Lizenznummer eingefügt (wichtig bei Ausländer-Lizenzen, die man sonst
+    unvollständig eintippt) → beim Ableiten greift die Dedup-Logik und derselbe
+    Teilnehmer wird nicht ein zweites Mal eingefügt.
+    """
+    from ko_qualification import _norm_cat, _entry_category, _entry_key, _participant_key
+
+    events, event = _get_event(event_id)
+    if not event:
+        return jsonify(success=False, message="Event nicht gefunden"), 404
+    final = _get_final(event, final_id)
+    if not final:
+        return jsonify(success=False, message="Finale nicht gefunden"), 404
+
+    want_cat = _norm_cat(final.get('category_code'))
+    q = (request.args.get('q') or '').strip().lower()
+
+    # Lizenz/Hund-Schlüssel der bereits aufgenommenen Finalisten → ausschliessen.
+    taken = {k for k in (_participant_key(p) for p in final.get('participants', [])) if k}
+
+    seen: set[str] = set()
+    out: list[dict] = []
+    for run in event.get('runs', []):
+        for e in run.get('entries', []):
+            if want_cat and _norm_cat(_entry_category(e, run)) != want_cat:
+                continue
+            key = _entry_key(e)
+            if not key or key in seen or key in taken:
+                continue
+            dog = (e.get('Hundename') or '').strip()
+            handler = (e.get('Hundefuehrer') or '').strip()
+            lic = str(e.get('Lizenznummer') or '').strip()
+            if q and q not in dog.lower() and q not in handler.lower() and q not in lic.lower():
+                continue
+            seen.add(key)
+            out.append({
+                'dog_name': dog,
+                'handler_name': handler,
+                'license_no': lic,
+                'start_number': e.get('Startnummer'),
+                'klasse': e.get('Klasse') or run.get('klasse'),
+                'label': f"{handler} · {dog}" + (f" ({lic})" if lic else ""),
+            })
+    out.sort(key=lambda c: c['label'].lower())
+    return jsonify(success=True, results=out[:50])
+
+
 @ko_cup_bp.post('/final/<event_id>/<final_id>')
 def ko_final_post(event_id, final_id):
     events, event = _get_event(event_id)
@@ -532,22 +585,30 @@ def ko_final_post(event_id, final_id):
     action = request.form.get('action')
 
     if action == 'add_participant':
+        from ko_qualification import _participant_key
         dog = request.form.get('dog_name', '').strip()
         handler = request.form.get('handler_name', '').strip()
+        lic = request.form.get('license_no', '').strip() or None
         if not dog:
             flash("Hundename ist Pflicht.", "error")
         else:
-            final.setdefault('participants', []).append({
-                "id": ko_cup._gen_id("p"),
-                "dog_name": dog,
-                "handler_name": handler,
-                "license_no": request.form.get('license_no', '').strip() or None,
-                "start_number": _to_int(request.form.get('start_number'), None) if request.form.get('start_number') else None,
-                "seeding_rank": _to_int(request.form.get('seeding_rank'), None) if request.form.get('seeding_rank') else None,
-                "draw_number": _to_int(request.form.get('draw_number'), None) if request.form.get('draw_number') else None,
-                "source": request.form.get('source', 'run'),
-            })
-            flash("Finalist hinzugefügt.", "success")
+            candidate = {"license_no": lic, "dog_name": dog}
+            new_key = _participant_key(candidate)
+            existing_keys = {k for k in (_participant_key(p) for p in final.get('participants', [])) if k}
+            if new_key and new_key in existing_keys:
+                flash(f"{handler + ' · ' if handler else ''}{dog} ist bereits im Finale – nicht erneut hinzugefügt.", "warning")
+            else:
+                final.setdefault('participants', []).append({
+                    "id": ko_cup._gen_id("p"),
+                    "dog_name": dog,
+                    "handler_name": handler,
+                    "license_no": lic,
+                    "start_number": _to_int(request.form.get('start_number'), None) if request.form.get('start_number') else None,
+                    "seeding_rank": _to_int(request.form.get('seeding_rank'), None) if request.form.get('seeding_rank') else None,
+                    "draw_number": _to_int(request.form.get('draw_number'), None) if request.form.get('draw_number') else None,
+                    "source": request.form.get('source', 'run'),
+                })
+                flash("Finalist hinzugefügt.", "success")
 
     elif action == 'delete_participant':
         pid = request.form.get('participant_id')
