@@ -413,6 +413,66 @@ def _event_ring_startlists(ko: dict) -> list:
     return out
 
 
+def _event_duell_scribe(ko: dict) -> list:
+    """Flache, event-weite Duell-Liste in tatsaechlicher ABLAUF-Reihenfolge der
+    Duelle (ueber alle Kategorien/Finals) — Grundlage der KO-Ringschreiberliste.
+
+    Sortierung = wie die Duelle ablaufen (identisch zu _event_ring_startlists /
+    Einweiser): frueheste Runden aller Kategorien zuerst, Finalrunden zuletzt in
+    Kategorie-Reihenfolge S-M-I-L; innerhalb der letzten Runde Spiel um Platz 3
+    vor dem grossen Final. Jedes Duell einmal (beide Teams), mit Schreib-Feldern.
+    """
+    cat_rank = {c: i for i, c in enumerate(CATEGORY_ORDER)}
+    type_rank = {"third_place": 0, "winner": 1}
+    out = []
+    for final in ko.get('finals', []):
+        rounds = ko_cup.matchups_by_round(final)
+        if not rounds:
+            continue
+        rounds_total = max(rnd for rnd, _label, _ms in rounds)
+        c_rank = cat_rank.get(final.get('category_code'), 99)
+        cat_label = final.get('group_label') or final.get('category_code')
+        for round_no, label, matchups in rounds:
+            phase = rounds_total - round_no  # 0 = letzte Runde
+            for m in matchups:
+                pa = ko_cup.get_participant(final, m.get('a_id'))
+                pb = ko_cup.get_participant(final, m.get('b_id'))
+                rings = ko_cup.ring_assignment(final, m) if (pa and pb) else None
+                t_rank = type_rank.get(m.get('matchup_type'), 1)
+                out.append({
+                    "sort_key": (-phase, c_rank, t_rank, m['matchup_no']),
+                    "category": cat_label,
+                    "round_label": label,
+                    "m": m, "a": pa, "b": pb, "rings": rings,
+                    "a_total": ko_cup.score_side(m.get('a')),
+                    "b_total": ko_cup.score_side(m.get('b')),
+                    "winner": ko_cup.get_participant(final, m.get('winner_id')),
+                    "is_tie": ko_cup.is_tie(m),
+                })
+    out.sort(key=lambda r: r["sort_key"])
+    return out
+
+
+@ko_cup_bp.get('/scribe_print/<event_id>')
+def ko_scribe_print(event_id):
+    """Druckansicht: KO-Ringschreiberliste — alle Duelle des Events als Schreib-
+    Laufzettel in tatsaechlicher Ablauf-Reihenfolge (ueber alle Kategorien)."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+    ko = _ensure_ko_cup(event)
+    _save_data(EVENTS_FILE, events)
+    logos = get_event_logo_data_uris(event)
+    return render_template(
+        'ko_cup_scribe_print.html',
+        event=event,
+        duelle=_event_duell_scribe(ko),
+        title='KO-Ringschreiberliste',
+        event_logo_data=logos['event'],
+        club_logo_data=logos['club'],
+    )
+
+
 @ko_cup_bp.get('/rings_print/<event_id>')
 def ko_rings_print(event_id):
     """Druckansicht: Startliste pro Ring, kombiniert ueber alle Kategorien/

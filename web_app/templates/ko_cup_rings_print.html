@@ -28,6 +28,7 @@
 <body>
     <div class="noprint">
         <button onclick="window.print()">🖨️ {{ _('Drucken') }}</button>
+        <a href="{{ url_for('ko_cup_bp.ko_scribe_print', event_id=event.id) }}">{{ _('Ringschreiberliste (Ablauf)') }}</a>
     </div>
 
     {% include 'print/_print_header.html' %}

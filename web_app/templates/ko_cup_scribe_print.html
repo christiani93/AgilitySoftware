@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ _('KO-Ringschreiberliste') }} – {{ event.Bezeichnung }}</title>
+    <style>
+        /* Bewusst KEIN Bootstrap-CDN: wird am Event oft OHNE Internet gedruckt.
+           Typo/Layout wie Duell-Laufzettel (ko_cup_print). */
+        body { font-family: sans-serif; color: #111; margin: 1.2cm; -webkit-print-color-adjust: exact; }
+        h2 { font-size: 1.1em; border-bottom: 2px solid #333; padding-bottom: 3px; margin: 1.1em 0 0.5em; }
+        .print-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 3cm; margin-bottom: 0.3cm; }
+        .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
+        .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .print-header__logo-img { max-width: 2.5cm; max-height: 2.8cm; object-fit: contain; }
+        .print-header__titles { text-align: center; flex: 1; font-size: 10pt; }
+        .print-header__title { font-size: 1.1em; font-weight: 600; }
+        .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #bbb; padding: 5px 7px; text-align: left; font-size: 10pt; }
+        th { background: #f2f2f2; }
+        .num { text-align: center; width: 2.2cm; }
+        .fill { background: #fcfcfc; text-align: center; min-width: 2.2cm; }
+        .run-time { font-weight: 600; }
+        .run-detail { font-size: 8.5pt; margin-top: 1px; }
+        .seq { display: inline-block; min-width: 1.6em; text-align: center; background: #333; color: #fff; border-radius: 3px; padding: 0 4px; margin-right: 6px; font-size: 0.9em; }
+        .duell { border: 1px solid #999; border-radius: 4px; padding: 8px 10px; margin-bottom: 10px; page-break-inside: avoid; }
+        .duell h3 { font-size: 1em; margin: 0 0 6px; }
+        .cat-tag { font-weight: 600; color: #444; }
+        .ring { font-weight: 600; white-space: nowrap; }
+        .foot { margin-top: 5px; font-size: 9pt; color: #333; display: flex; justify-content: space-between; }
+        .muted { color: #888; }
+        .noprint { margin-bottom: 14px; }
+        @media print { .noprint { display: none; } body { margin: 0.8cm; } }
+    </style>
+</head>
+<body>
+    <div class="noprint">
+        <button onclick="window.print()">🖨️ {{ _('Drucken') }}</button>
+        <a href="{{ url_for('ko_cup_bp.ko_rings_print', event_id=event.id) }}">{{ _('Ring-Startlisten') }}</a>
+    </div>
+
+    {% include 'print/_print_header.html' %}
+
+    <h2>{{ _('KO-Ringschreiberliste') }}</h2>
+    <p class="muted" style="margin-top:-0.4em;">
+        {{ _('Alle Duelle in Ablauf-Reihenfolge: frühe Runden aller Kategorien zuerst, Finalrunden zuletzt (Small – Medium – Intermediate – Large; Spiel um Platz 3 vor dem grossen Final).') }}
+    </p>
+
+    {% for d in duelle %}
+      {% set m = d.m %}
+      <div class="duell">
+        <h3>
+          <span class="seq">{{ loop.index }}</span>
+          <span class="cat-tag">{{ d.category }}</span> · {{ d.round_label }} · {{ _('Duell') }} {{ m.matchup_no }}
+        </h3>
+        <table>
+          <thead>
+            <tr>
+              <th>{{ _('Team') }}</th>
+              <th class="num">{{ _('Start-Nr.') }}</th>
+              <th class="ring">{{ _('Lauf') }} 1{% if d.rings %} ({{ _('Ring') }} {{ d.rings.a.run1 }}/{{ d.rings.b.run1 }}){% endif %}</th>
+              <th>{{ _('Zeit / F / V / DIS') }}</th>
+              <th class="ring">{{ _('Lauf') }} 2{% if d.rings %} ({{ _('Ring') }} {{ d.rings.a.run2 }}/{{ d.rings.b.run2 }}){% endif %}</th>
+              <th>{{ _('Zeit / F / V / DIS') }}</th>
+              <th class="num">{{ _('Total') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for side, part, tot in [('a', d.a, d.a_total), ('b', d.b, d.b_total)] %}
+            <tr>
+              <td>
+                {% if part %}{{ part.dog_name }}{% if part.handler_name %} <span class="muted">({{ part.handler_name }})</span>{% endif %}
+                {% else %}<span class="muted">
+                  {%- set src = m.a_source if side == 'a' else m.b_source -%}
+                  {%- if src %}{{ _('Sieger') if src.take == 'winner' else _('Verlierer') }} {{ _('Vorrunde') }}{% else %}{{ _('Freilos') }}{% endif -%}
+                </span>{% endif %}
+              </td>
+              <td class="num">{{ part.start_number if part and part.start_number is not none else '–' }}</td>
+              <td class="ring num">{% if d.rings %}Ring {{ d.rings[side].run1 }}{% else %}–{% endif %}</td>
+              <td class="fill">
+                {% set r1 = m[side].run1 %}
+                <div class="run-time">{{ r1.time if r1.time is not none else '' }}</div>
+                <div class="run-detail muted">F {{ r1.faults or 0 }} · V {{ r1.refusals or 0 }} · DIS {{ (r1.dis or 0) | int }}</div>
+              </td>
+              <td class="ring num">{% if d.rings %}Ring {{ d.rings[side].run2 }}{% else %}–{% endif %}</td>
+              <td class="fill">
+                {% set r2 = m[side].run2 %}
+                <div class="run-time">{{ r2.time if r2.time is not none else '' }}</div>
+                <div class="run-detail muted">F {{ r2.faults or 0 }} · V {{ r2.refusals or 0 }} · DIS {{ (r2.dis or 0) | int }}</div>
+              </td>
+              <td class="num">{{ '%.2f' | format(tot) if tot is not none else '' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="foot">
+          <span>
+            {% if d.winner %}{{ _('Sieger') }}: <strong>{{ d.winner.dog_name }}</strong>
+            {% elif d.is_tie %}<strong>{{ _('Gleichstand – manuell entscheiden') }}</strong>
+            {% elif m.forfeit_id %}{{ _('Forfeit') }}
+            {% else %}{{ _('Sieger') }}: __________________________{% endif %}
+          </span>
+          <span class="muted">{{ _('F = Fehler (+2 s) · V = Verweigerung (+2 s) · DIS (+5 s)') }}</span>
+        </div>
+      </div>
+    {% else %}
+      <p class="muted">{{ _('Noch keine Duelle mit Teilnehmern.') }}</p>
+    {% endfor %}
+
+</body>
+</html>
