@@ -979,6 +979,7 @@ def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_r
         "klasse": run.get("klasse"),
         "kategorie": run.get("kategorie"),
         "laufart": run.get("laufart"),
+        "is_final": bool(run.get("is_final")),
     }
 
     entries = run.get("entries", []) or []
