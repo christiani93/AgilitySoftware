@@ -501,12 +501,12 @@ def _rank_division_final(final_pools: dict) -> list[dict]:
       3. kleinerer Summe Laufzeiten
     Gleichstand in allen dreien → ex aequo.
 
-    **DIS im Final = „nicht klassiert"** (User-Entscheid 2026-11-01, bestätigt am
-    Reglement): ein Team mit DIS/ABR/DNS in einem Finallauf (oder ohne beide Läufe)
-    erhält KEINEN Kombi-Rang und wird unrangiert ans Ende gestellt. Das Reglement
-    kennt nur die Summe der zwei sauberen Läufe; die offizielle SportyDog-PDF listet
-    Ein-Lauf-DIS zwar auf hinteren Rängen, das ist aber keine reglementarische
-    Klassierung. So kann ein DIS-Lauf nie Sieger werden, solange saubere Teams existieren.
+    **DIS im Final = „nicht klassiert"** (User-Entscheid 2026-11-01): ein Team mit
+    DIS/ABR/DNS in einem Finallauf (oder ohne beide Läufe) erhält KEINEN Kombi-Rang
+    und wird **einfach hinter alle Nicht-DIS-Teams gestellt — egal, in welchem Lauf
+    die DIS passierte** (KEINE Agility-/Jumping-Priorisierung). Untereinander werden
+    die DIS-Teams unrangiert, stabil nach Lizenz sortiert gelistet. So kann ein
+    DIS-Lauf nie Sieger werden, solange saubere Teams existieren.
     """
     by_lic: dict[str, dict] = {}
     for la in QUALI_RUN_TYPES:
@@ -548,9 +548,9 @@ def _rank_division_final(final_pools: dict) -> list[dict]:
         d["final_rang"] = rank
         out.append(d)
 
-    for d in results:
-        if d["dis"]:
-            d["final_rang"] = None
-            out.append(d)
+    # DIS-Teams: unrangiert, hinter alle Nicht-DIS, stabil nach Lizenz (egal welcher Lauf).
+    for d in sorted((d for d in results if d["dis"]), key=lambda d: str(d.get("license") or "")):
+        d["final_rang"] = None
+        out.append(d)
 
     return out
