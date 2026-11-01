@@ -198,20 +198,17 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 60px;">{{ _('Start-Nr.') }}</th>
-                <th style="width: 150px;">{{ _('Hundeführer') }}</th>
-                <th style="width: 120px;">{{ _('Hund') }}</th>
                 {% for run in section.runs %}
                     <th class="run-col run-header"><div>{{ run.name }}</div></th>
                 {% endfor %}
+                <th style="width: 60px;">{{ _('Start-Nr.') }}</th>
+                <th style="width: 150px;">{{ _('Hundeführer') }}</th>
+                <th style="width: 120px;">{{ _('Hund') }}</th>
             </tr>
         </thead>
         <tbody>
             {% for p in section.participants %}
             <tr>
-                <td><strong>{{ p.Startnummer }}</strong></td>
-                <td>{{ p.Hundefuehrer }}</td>
-                <td>{{ p.Hundename }}</td>
                 {% for run in section.runs %}
                     <td style="text-align: center;">
                         {% if section.run_map.get(p.Lizenznummer, {}).get(run.id) %}
@@ -219,6 +216,9 @@
                         {% endif %}
                     </td>
                 {% endfor %}
+                <td><strong>{{ p.Startnummer }}</strong></td>
+                <td>{{ p.Hundefuehrer }}</td>
+                <td>{{ p.Hundename }}</td>
             </tr>
             {% endfor %}
         </tbody>

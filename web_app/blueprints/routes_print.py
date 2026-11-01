@@ -345,6 +345,10 @@ def _build_master_steward_groups(event, judges, ring_key=None):
         grouped_participants.setdefault(cat, {}).setdefault(cls, []).append(p)
 
     ordered_runs = get_ordered_runs_for_print(event)
+    # Zeitplan-Position je Lauf (ordered_runs ist bereits in Laufreihenfolge) →
+    # erlaubt es, die Einweiser-Gruppen am Ende nach Zeitplan statt nach fixer
+    # Kategorie-Reihenfolge zu sortieren (Wunsch print/all).
+    run_pos = {r.get('id'): i for i, r in enumerate(ordered_runs)}
     groups = []
     for cat in sorted(grouped_participants.keys(), key=get_category_sort_key):
         for cls in sorted(grouped_participants[cat].keys()):
@@ -368,7 +372,10 @@ def _build_master_steward_groups(event, judges, ring_key=None):
                 'runs': runs_for_group,
                 'participants': participants_sorted,
                 'run_map': participant_run_map,
+                '_sched_pos': min((run_pos.get(r.get('id'), 10**9) for r in runs_for_group), default=10**9),
             })
+    # Nach Zeitplan-Reihenfolge sortieren (früheste zugehörige Lauf-Position).
+    groups.sort(key=lambda g: g['_sched_pos'])
     return groups
 
 

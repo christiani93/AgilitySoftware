@@ -65,20 +65,17 @@
                     <table>
                         <thead>
                             <tr>
-                                <th class="participant-col" style="writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Start-Nr.') }}</th>
-                                <th class="participant-col" style="width: 150px; writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Hundeführer') }}</th>
-                                <th class="participant-col" style="width: 120px; writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Hund') }}</th>
                                 {% for run in group_data.runs %}
                                     <th class="run-col run-header"><div>{{ run.name }}</div></th>
                                 {% endfor %}
+                                <th class="participant-col" style="writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Start-Nr.') }}</th>
+                                <th class="participant-col" style="width: 150px; writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Hundeführer') }}</th>
+                                <th class="participant-col" style="width: 120px; writing-mode: horizontal-tb; transform: none; height: auto;">{{ _('Hund') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for p in group_data.participants %}
                             <tr>
-                                <td><strong>{{ p.Startnummer }}</strong></td>
-                                <td>{{ p.Hundefuehrer }}{% if p.is_foreign %} ({{ p.foreign_cc or _('Ausland') }}){% endif %}</td>
-                                <td>{{ p.Hundename }}</td>
                                 {% for run in group_data.runs %}
                                     <td style="text-align: center;">
                                         {% if group_data.run_map[p.Lizenznummer][run.id] %}
@@ -86,6 +83,9 @@
                                         {% endif %}
                                     </td>
                                 {% endfor %}
+                                <td><strong>{{ p.Startnummer }}</strong></td>
+                                <td>{{ p.Hundefuehrer }}{% if p.is_foreign %} ({{ p.foreign_cc or _('Ausland') }}){% endif %}</td>
+                                <td>{{ p.Hundename }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
