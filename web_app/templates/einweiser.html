@@ -158,13 +158,15 @@
     const onEvt = function (data) { if (!data || data.event_id === eventId) refresh(); };
     ['announcer_update', 'current_run_changed', 'ring_result_saved',
      'ring_ready_changed', 'ring_run_changed', 'result_update',
-     'einweiser_mark_changed', 'einweiser_order_changed'].forEach(function (name) {
+     'einweiser_mark_changed', 'einweiser_order_changed',
+     'ko_update'].forEach(function (name) {
       socket.on(name, onEvt);
     });
   } catch (e) { /* ohne Socket laeuft die Seite als statische Anzeige weiter */ }
 
-  // Sicherheitsnetz: alle 20 s nachladen, falls ein Socket-Event ausbleibt.
-  setInterval(refresh, 20000);
+  // Sicherheitsnetz: alle 15 s nachladen, falls ein Socket-Event ausbleibt.
+  // (KO-Duell-Ergebnisse feuern 'ko_update' → normal sofortige Aktualisierung.)
+  setInterval(refresh, 15000);
 })();
 </script>
 {% endif %}
