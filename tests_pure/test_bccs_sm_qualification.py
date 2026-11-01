@@ -297,6 +297,37 @@ def test_final_nur_ein_lauf_kein_rang():
     assert rang["ONLYJUMP"] is None
 
 
+def test_final_dis_gruppe_sportydog_penalty_reihenfolge():
+    """DIS-Teams: unrangiert, hinter allen Sauberen; Reihenfolge nach SportyDog-Pauschale
+    (+100 Fehler & +100 s pro DIS-Lauf), egal in welchem Lauf die DIS passierte."""
+    event = {"runs": [
+        _run("Large", "3", "Jumping", [
+            _entry("CLEAN",  fehler_total=0, fehler_parcours=0, zeit_total=30.0),
+            _entry("CLEAN2", fehler_total=5, fehler_parcours=5, zeit_total=30.0),
+            _entry("ADIS",   fehler_total=0, fehler_parcours=0, zeit_total=28.0),  # Jump sauber
+            _entry("JDIS",   dis="DIS"),
+            _entry("BOTH",   dis="DIS"),
+        ], is_final=True),
+        _run("Large", "3", "Agility", [
+            _entry("CLEAN",  fehler_total=0, fehler_parcours=0, zeit_total=35.0),
+            _entry("CLEAN2", fehler_total=0, fehler_parcours=0, zeit_total=35.0),
+            _entry("ADIS",   dis="DIS"),
+            _entry("JDIS",   fehler_total=0, fehler_parcours=0, zeit_total=40.0),  # Agi sauber
+            _entry("BOTH",   dis="DIS"),
+        ], is_final=True),
+    ]}
+    final = rank_final_bccs(event)["Large/sm"]
+    order = [d["license"] for d in final]
+    rang = {d["license"]: d["final_rang"] for d in final}
+    # Saubere zuerst (rangiert), DIS-Gruppe dahinter (unrangiert).
+    assert order[:2] == ["CLEAN", "CLEAN2"]
+    assert rang["CLEAN"] == 1 and rang["CLEAN2"] == 2
+    # ADIS (sauberer Lauf 28s) vor JDIS (sauberer Lauf 40s) vor BOTH (beide DIS) —
+    # nach Penalty-Summe, NICHT nach Lauf-Art.
+    assert order[2:] == ["ADIS", "JDIS", "BOTH"]
+    assert all(rang[l] is None for l in ("ADIS", "JDIS", "BOTH"))
+
+
 # ---------------------------------------------------------------------------
 # SM-Hund-Filter (Reglement P.2): offenes Turnier, nur markierte Border zählen
 # ---------------------------------------------------------------------------
