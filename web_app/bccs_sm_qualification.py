@@ -492,26 +492,6 @@ def _compute_class(quali_pools: dict, quali_order: list[str], qualified: set) ->
 # Internal — Final-Rangierung (2 Läufe summiert)
 # ---------------------------------------------------------------------------
 
-# SportyDog-Pauschale für einen DIS/ABR/DNS- (oder fehlenden) Finallauf in der Kombi.
-DIS_FINAL_PENALTY_FEHLER = 100.0
-DIS_FINAL_PENALTY_ZEIT = 100.0
-
-
-def _dis_sort_key(d: dict) -> tuple:
-    """Sortierschlüssel der DIS-Gruppe (SportyDog): pro DIS-Lauf +100 Fehler & +100 s,
-    dann Summe (Gesamtfehler → Parcoursfehler → Zeit)."""
-    runs = d["runs"]
-
-    def pen(la):
-        r = runs.get(la)
-        if r is None or r["dis"]:
-            return (DIS_FINAL_PENALTY_FEHLER, DIS_FINAL_PENALTY_FEHLER, DIS_FINAL_PENALTY_ZEIT)
-        return (float(r["fehler_total"]), float(r["fehler_parcours"]), float(r["zeit"]))
-
-    j, a = pen("Jumping"), pen("Agility")
-    return (round(j[0] + a[0], 3), round(j[1] + a[1], 3), round(j[2] + a[2], 3))
-
-
 def _rank_division_final(final_pools: dict) -> list[dict]:
     """
     Rangiert eine Division aus den 2 Finalläufen (Summe Jumping + Agility) gemäss
@@ -524,12 +504,11 @@ def _rank_division_final(final_pools: dict) -> list[dict]:
     **DIS im Final = „nicht klassiert"** (User-Entscheid 2026-11-01): ein Team mit
     DIS/ABR/DNS in einem Finallauf (oder ohne beide Läufe) erhält KEINEN Kombi-Rang,
     wird aber weiterhin auf der Liste geführt — hinter allen in beiden Läufen sauberen
-    Teams. Die Reihenfolge der DIS-Gruppe folgt der SportyDog-Mechanik: für jeden
-    DIS-Lauf werden pauschal **+100 Fehlerpunkte und +100 Sekunden** aufgerechnet und
-    dann normal summiert (Fehler → Parcours → Zeit). Dadurch stehen DIS-Teams
-    automatisch hinter den Sauberen (egal in welchem Lauf die DIS passierte) und
-    untereinander nach ihrem sauberen Lauf; ein DIS-Lauf kann nie Sieger werden,
-    solange saubere Teams existieren.
+    Teams, stabil nach Lizenz sortiert. Begründung: mit einer DIS gibt es keine
+    gültige Kombination (keine Summe über beide Läufe) → das Team ist schlicht nicht
+    klassiert. (SportyDog rechnete dafür historisch pauschal +100 Fehler/+100 s auf,
+    um sie zu reihen; das übernehmen wir bewusst NICHT.) So kann ein DIS-Lauf nie
+    Sieger werden, solange saubere Teams existieren.
     """
     by_lic: dict[str, dict] = {}
     for la in QUALI_RUN_TYPES:
@@ -571,9 +550,9 @@ def _rank_division_final(final_pools: dict) -> list[dict]:
         d["final_rang"] = rank
         out.append(d)
 
-    # DIS-Teams: unrangiert, hinter allen Nicht-DIS. Reihenfolge = SportyDog-Mechanik
-    # (+100 Fehlerpunkte & +100 Sekunden pro DIS-Lauf, dann Summe Fehler→Parcours→Zeit).
-    for d in sorted((d for d in results if d["dis"]), key=_dis_sort_key):
+    # DIS-Teams: nicht klassiert (keine gültige Kombination), hinter allen Nicht-DIS,
+    # stabil nach Lizenz (egal in welchem Lauf die DIS passierte).
+    for d in sorted((d for d in results if d["dis"]), key=lambda d: str(d.get("license") or "")):
         d["final_rang"] = None
         out.append(d)
 
