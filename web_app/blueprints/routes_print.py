@@ -530,6 +530,41 @@ def print_fr_formulaire(event_id, lizenznummer):
     return Response(pdf_bytes, mimetype='application/pdf',
                     headers={'Content-Disposition': f'inline; filename="{filename}"'})
 
+@print_bp.route('/print/vdh_formulaire/<event_id>')
+def print_vdh_formulaire_list(event_id):
+    """Liste aller deutschen Teilnehmer (Lizenz-Ländercode DEU/GER) mit Link
+    zum VDH-Formular "Bestätigung für Auslandsergebnisse"."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+    dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
+    seen = {}
+    for run in event.get('runs', []):
+        for entry in run.get('entries', []):
+            lic = str(entry.get('Lizenznummer') or '')
+            prefix = lic.split('-', 1)[0].upper() if '-' in lic else ''
+            if prefix not in ('DEU', 'GER') or lic in seen:
+                continue
+            seen[lic] = {
+                'lizenznummer': lic,
+                'foreign_cc': prefix,
+                'hundename': entry.get('Hundename') or dogs_map.get(lic, {}).get('Hundename', ''),
+                'hundefuehrer': entry.get('Hundefuehrer', ''),
+                'startnummer': entry.get('Startnummer'),
+            }
+    participants = sorted(seen.values(), key=lambda p: (p['hundefuehrer'] or ''))
+    return render_template('print/vdh_formulaire_list.html', event=event, participants=participants)
+
+@print_bp.route('/print/vdh_formulaire/<event_id>/<lizenznummer>')
+def print_vdh_formulaire(event_id, lizenznummer):
+    """Rendert das VDH-Formular "Bestätigung für Auslandsergebnisse" (ein Bogen
+    pro Lauf) für diesen deutschen Teilnehmer als Druckseite."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+    from forms_vdh import collect_vdh_sheets, RUN_CODES, GRADE_CODES, CATEGORY_CODES
+    header, sheets = collect_vdh_sheets(event, lizenznummer)
+    return render_template('print/vdh_formulaire.html', event=event, header=header, sheets=sheets,
+                           run_codes=RUN_CODES, grade_codes=GRADE_CODES, category_codes=CATEGORY_CODES)
+
 @print_bp.route('/print/ranking_single/<event_id>/<run_id>')
 def print_ranking_single(event_id, run_id):
     """Archiv-Rangliste."""

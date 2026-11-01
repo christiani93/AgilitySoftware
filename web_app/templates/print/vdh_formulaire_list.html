@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}{{ _('VDH-Auslandsergebnisse') }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ _('VDH-Formular "Bestätigung für Auslandsergebnisse"') }}</h1>
+    <p class="text-muted">
+        {{ _('Deutsche Starter (Lizenz-Ländercode DEU) dieses Events. Das Formular wird pro Lauf
+        mit den vorhandenen Daten vorbefüllt (Hund, Hundeführer, Lizenz, Ergebnis, Richter);
+        alle Felder sind optional und können handschriftlich ergänzt werden. Die
+        Richter-Unterschrift erfolgt auf dem Ausdruck.') }}
+    </p>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>{{ _('Land') }}</th>
+                <th>{{ _('Hundeführer') }}</th>
+                <th>{{ _('Hund') }}</th>
+                <th>{{ _('Lizenz') }}</th>
+                <th>{{ _('Start-Nr.') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in participants %}
+            <tr>
+                <td>{{ p.foreign_cc }}</td>
+                <td>{{ p.hundefuehrer or '—' }}</td>
+                <td>{{ p.hundename or '—' }}</td>
+                <td>{{ p.lizenznummer }}</td>
+                <td>{{ p.startnummer or '—' }}</td>
+                <td>
+                    <a class="btn btn-sm btn-primary" target="_blank"
+                       href="{{ url_for('print_bp.print_vdh_formulaire', event_id=event.id, lizenznummer=p.lizenznummer) }}">
+                        <i class="fas fa-print"></i> {{ _('Formular') }}
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">{{ _('Keine deutschen Teilnehmer gefunden.') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

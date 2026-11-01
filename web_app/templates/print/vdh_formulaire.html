@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ _('Bestätigung für Auslandsergebnisse') }} - {{ header.handler }}</title>
+    <style>
+        @page { size: A4; margin: 14mm; }
+        * { box-sizing: border-box; }
+        body { font-family: sans-serif; color: #000; font-size: 11pt; margin: 0; }
+        .sheet { page-break-after: always; }
+        .sheet:last-child { page-break-after: auto; }
+        h1 { font-size: 15pt; text-align: center; margin: 0 0 2px 0; }
+        .subtitle { text-align: center; font-size: 10pt; color: #333; margin-bottom: 14px; }
+        .block { border: 1px solid #000; margin-bottom: 8px; }
+        .block__title { background: #eee; font-weight: 700; padding: 3px 6px; font-size: 10pt; border-bottom: 1px solid #000; }
+        .row { display: flex; flex-wrap: wrap; }
+        .field { flex: 1 1 0; min-width: 120px; padding: 4px 6px; border-right: 1px solid #ccc; }
+        .field:last-child { border-right: none; }
+        .field__label { font-size: 8pt; color: #444; text-transform: uppercase; letter-spacing: .3px; }
+        .field__value { font-size: 11pt; min-height: 16px; padding-top: 2px; font-weight: 600; }
+        .checks { display: inline-flex; gap: 10px; padding-top: 2px; font-weight: 600; }
+        .check { white-space: nowrap; }
+        .box { display: inline-block; width: 11px; height: 11px; border: 1.3px solid #000; text-align: center; line-height: 10px; margin-right: 3px; vertical-align: -1px; font-size: 10pt; }
+        .box--on { background: #000; color: #fff; }
+        .confirm { font-size: 8.5pt; color: #222; margin-top: 6px; line-height: 1.35; }
+        .confirm .en { color: #555; font-style: italic; }
+        .sign { display: flex; gap: 18px; margin-top: 4px; }
+        .sign .field { border: none; padding: 10px 6px 2px 0; }
+        .sign .line { border-bottom: 1px solid #000; min-height: 26px; }
+        @media screen { body { background: #f4f4f4; } .sheet { background: #fff; max-width: 190mm; margin: 12px auto; padding: 14mm; box-shadow: 0 1px 5px rgba(0,0,0,.2); } }
+    </style>
+</head>
+<body>
+    {% include 'print/_print_button.html' %}
+
+    {% macro box(code, selected) -%}
+        <span class="check"><span class="box {% if code == selected %}box--on{% endif %}">{% if code == selected %}✕{% endif %}</span>{{ code }}</span>
+    {%- endmacro %}
+
+    {% for sheet in sheets %}
+    <div class="sheet">
+        <h1>{{ _('Bestätigung für Auslandsergebnisse') }}</h1>
+        <div class="subtitle">Confirmation of foreign results</div>
+
+        <div class="block">
+            <div class="block__title">{{ _('Hund') }} / Dog</div>
+            <div class="row">
+                <div class="field"><div class="field__label">Name</div><div class="field__value">{{ header.dog_name }}</div></div>
+                <div class="field"><div class="field__label">Chip</div><div class="field__value">{{ header.chip }}</div></div>
+                <div class="field"><div class="field__label">{{ _('Größenklasse') }} / Category</div>
+                    <div class="checks">{% for c in category_codes %}{{ box(c, header.category) }}{% endfor %}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block__title">{{ _('Hundeführer') }} / Handler</div>
+            <div class="row">
+                <div class="field"><div class="field__label">Name</div><div class="field__value">{{ header.handler }}</div></div>
+                <div class="field"><div class="field__label">{{ _('Leistungsbuch Nr.') }} / Licence No.</div><div class="field__value">{{ header.licence_no }}</div></div>
+                <div class="field"><div class="field__label">Team</div><div class="field__value">{{ header.team }}</div></div>
+            </div>
+            <div class="row">
+                <div class="field"><div class="field__label">{{ _('Leistungsklasse') }} / Grade</div>
+                    <div class="checks">{% for g in grade_codes %}{{ box(g, sheet.grade_code) }}{% endfor %}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block__title">{{ _('Wettbewerb') }} / Competition</div>
+            <div class="row">
+                <div class="field"><div class="field__label">{{ _('Datum') }} / Date</div><div class="field__value">{{ header.date }}</div></div>
+                <div class="field"><div class="field__label">{{ _('Verein') }} / Club</div><div class="field__value">{{ header.competition_club }}</div></div>
+                <div class="field"><div class="field__label">{{ _('Land') }} / Country</div><div class="field__value">{{ header.competition_country }}</div></div>
+                <div class="field"><div class="field__label">{{ _('Teilnehmer insgesamt') }} / No. of competitors</div><div class="field__value">{{ header.total_competitors }}</div></div>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block__title">{{ _('Ergebnis') }} / Result</div>
+            <div class="row">
+                <div class="field" style="flex: 2 1 0;"><div class="field__label">{{ _('Lauf') }} / Run</div>
+                    <div class="checks">{% for r in run_codes %}{{ box(r, sheet.run_code) }}{% endfor %}</div>
+                    {% if not sheet.run_code %}<div class="field__value" style="font-weight:400;">{{ sheet.run_label }}</div>{% endif %}
+                </div>
+                <div class="field"><div class="field__label">{{ _('Platzierung') }} / Ranking</div><div class="field__value">{{ sheet.ranking }}</div></div>
+                <div class="field"><div class="field__label">{{ _('Fehler insgesamt') }} / Total faults</div><div class="field__value">{{ sheet.faults }}</div></div>
+                <div class="field"><div class="field__label">{{ _('Zeit') }} / Time</div><div class="field__value">{{ sheet.time }}</div></div>
+                <div class="field"><div class="field__label">m/sec</div><div class="field__value">{{ sheet.speed }}</div></div>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block__title">{{ _('Richter') }} / Judge</div>
+            <div class="sign">
+                <div class="field" style="flex:2 1 0;"><div class="field__label">Name</div><div class="field__value line">{{ sheet.judge }}</div></div>
+                <div class="field"><div class="field__label">{{ _('Datum') }} / Date</div><div class="field__value line"></div></div>
+                <div class="field" style="flex:2 1 0;"><div class="field__label">{{ _('Unterschrift') }} / Signature</div><div class="field__value line"></div></div>
+            </div>
+            <div class="confirm">
+                {{ _('Der Richter bestätigt mit der Unterschrift, dass die eingetragenen Ergebnisse korrekt sind und der Wettbewerb (alle Leistungs- und Größenklassen zusammen) insgesamt mindestens 40 Teilnehmer hatte.') }}
+                <br><span class="en">The judge confirms with his signature that the results are correct and that the whole competition (all grades and categories together) had 40 competitors minimum.</span>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="sheet"><p>{{ _('Keine Läufe für diesen Starter gefunden.') }}</p></div>
+    {% endfor %}
+</body>
+</html>
