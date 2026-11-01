@@ -201,13 +201,15 @@
     // Nach Runde gruppieren (aufsteigend = frühe Runde links).
     const allRounds = [...new Set(f.matchups.map(m => m.round_no))].sort((a,b) => a-b);
     const lastRoundNo = allRounds[allRounds.length - 1];
-    // Nur AKTUELLE + NÄCHSTE Runde zeigen (nicht den ganzen Baum) — gibt in der
-    // Breite deutlich mehr Platz pro Duell. "Aktuell" = dieselbe Runde, auf die
-    // auch "Live folgen" zielt (focusMatchup: läuft > nächstes offenes > Final).
+    // VORANGEHENDE (sofern vorhanden) + AKTUELLE + NÄCHSTE Runde zeigen (nicht den
+    // ganzen Baum) — so sehen Zuschauer, aus welcher Runde die aktuellen Teams
+    // kamen (Advancement), ohne die Breite mit allen Runden zu fluten. "Aktuell" =
+    // dieselbe Runde, auf die auch "Live folgen" zielt (focusMatchup: läuft >
+    // nächstes offenes > Final).
     const activeM = focusMatchup(f);
     const curRoundNo = activeM ? activeM.round_no : allRounds[0];
     const curIdx = allRounds.indexOf(curRoundNo);
-    const rounds = allRounds.slice(curIdx, curIdx + 2);
+    const rounds = allRounds.slice(Math.max(0, curIdx - 1), curIdx + 2);
     rounds.forEach(rno => {
       const ms = f.matchups.filter(m => m.round_no === rno)
         // Kleines Finale (Platz 3) zuerst, dann das grosse Finale/die regulären
