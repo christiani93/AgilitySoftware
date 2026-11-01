@@ -252,10 +252,12 @@ def _normalize_ring(raw: str) -> str:
 
 
 def _build_live_update_payload(event: dict, run: dict, result_entry: dict,
-                                device_id: str, update_type: str = "result") -> dict:
+                                device_id: str, update_type: str = "result",
+                                ring_label: str | None = None) -> dict:
     """Erzeugt das Payload für einen Live-Update (Ergebnis oder Lauf-Wechsel)."""
     entry_result = result_entry.get("result") or {} if result_entry else {}
     startlist    = _build_startlist_snapshot(run)
+    ring = ring_label or _normalize_ring(run.get("assigned_ring") or run.get("ring"))
 
     payload = {
         "schema":             "agility.exchange.liveupdate.v1",
@@ -271,7 +273,7 @@ def _build_live_update_payload(event: dict, run: dict, result_entry: dict,
         # Lauf-Kontext
         "run_id":        run.get("id"),
         "run_name":      run.get("name") or run.get("title") or "",
-        "ring":          _normalize_ring(run.get("assigned_ring") or run.get("ring")),
+        "ring":          ring,
         "discipline":    run.get("laufart") or run.get("discipline") or "",
         "category_code": run.get("kategorie") or run.get("category") or "",
         "class_level":   _safe_int(run.get("klasse") or run.get("class_level")),
@@ -324,8 +326,13 @@ def _do_push_live_update(url: str, api_key: str, payload: dict) -> None:
 
 
 def push_live_update(settings: dict, event: dict, run: dict,
-                     result_entry: dict) -> None:
-    """Schickt einen Ergebnis-Live-Update asynchron ans Portal."""
+                     result_entry: dict, ring_label: str | None = None) -> None:
+    """Schickt einen Ergebnis-Live-Update asynchron ans Portal.
+
+    ``ring_label`` (z.B. "Ring 2") ueberschreibt die Ring-Angabe, falls der
+    Aufrufer den Ring aus der Zeitplan-Zuordnung kennt — der Lauf selbst traegt
+    bei genutztem Zeitplan-Modul kein ``assigned_ring`` (sonst Default "Ring 1").
+    """
     portal_url = (settings.get("portal_url") or "").rstrip("/")
     api_key    = settings.get("portal_live_api_key") or ""
     device_id  = settings.get("portal_device_id") or "agility-software"
@@ -334,7 +341,8 @@ def push_live_update(settings: dict, event: dict, run: dict,
         return
 
     endpoint = f"{portal_url}/api/liveupdate"
-    payload  = _build_live_update_payload(event, run, result_entry, device_id, update_type="result")
+    payload  = _build_live_update_payload(event, run, result_entry, device_id,
+                                          update_type="result", ring_label=ring_label)
 
     t = Thread(target=_do_push_live_update, args=(endpoint, api_key, payload), daemon=True)
     t.start()

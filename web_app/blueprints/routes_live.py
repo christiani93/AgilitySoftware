@@ -360,8 +360,7 @@ def save_result(event_id, run_id):
 
         # Realtime Updates
         try:
-            ring_num_raw = run.get('assigned_ring')
-            ring_num = re.sub(r"[^0-9]", "", str(ring_num_raw or "")) or "1"
+            ring_num = find_run_ring_number(event, run)
             ring_label = f"Ring {ring_num}"
             announcer_payload = {'event_id': event_id, 'ring_name': ring_label}
             socketio.emit('result_update', {'run_id': run_id, 'license_nr': license_nr, 'result': entry['result']})
@@ -390,7 +389,8 @@ def save_result(event_id, run_id):
                         (r for r in all_results_for_sync if r.get("Lizenznummer") == license_nr),
                         entry
                     )
-                    push_live_update(settings_for_sync, event, run, enriched_entry)
+                    push_live_update(settings_for_sync, event, run, enriched_entry,
+                                     ring_label=f"Ring {find_run_ring_number(event, run)}")
                 # 2) Result-Export (aktuelle Rangliste, asynchron)
                 if settings_for_sync.get("portal_results_api_key"):
                     _event_snap = dict(event)  # shallow copy für Thread-Sicherheit
@@ -662,6 +662,27 @@ def _resolve_runs_for_ring(event, ring_number):
             if assigned and _norm_ring_strict(assigned) == target:
                 runs_for_ring.append(r)
     return runs_for_ring, debug
+
+
+def find_run_ring_number(event, run):
+    """Ermittelt die Ring-NUMMER (als str "1"/"2"/...) eines Laufs.
+
+    Primär aus der Zeitplan-Ring-Zuordnung (``event['schedule']['rings']`` →
+    Blöcke), denn bei genutztem Zeitplan-Modul trägt der Lauf selbst KEIN
+    ``assigned_ring`` → sonst landete bisher alles auf „Ring 1" (u.a. im
+    Portal-Live-Upload). Fallback: direktes Feld am Lauf, sonst "1".
+    """
+    direct = run.get('assigned_ring') or run.get('ring') or run.get('ring_id') or run.get('ringName')
+    if direct:
+        return re.sub(r"[^0-9]", "", _norm_ring_strict(direct)) or "1"
+    schedule = event.get('schedule') or {}
+    rings = schedule.get('rings') or {}
+    run_id = run.get('id')
+    for key in rings.keys():
+        runs_for_ring, _dbg = _schedule_runs_for_ring(event, key)
+        if any(r.get('id') == run_id for r in runs_for_ring):
+            return re.sub(r"[^0-9]", "", _norm_ring_strict(key)) or "1"
+    return "1"
 
 
 # ---------------------------------------------------------------------------
@@ -1181,7 +1202,7 @@ def api_set_participant_status(event_id, run_id):
 
     # ring_entry_state ebenfalls weiterruecken, analog save_result (sonst
     # haengt der Ring-Monitor nach DNS/DIS auf dem alten Starter fest).
-    ring_num_for_state = re.sub(r"[^0-9]", "", str(run.get('assigned_ring') or "")) or "1"
+    ring_num_for_state = find_run_ring_number(event, run)
     ring_state_all = event.setdefault("ring_entry_state", {})
     ring_state_all[ring_num_for_state] = apply_result_saved(
         ring_state_all.get(ring_num_for_state) or {}, entries_sorted, license_nr
@@ -1190,7 +1211,7 @@ def api_set_participant_status(event_id, run_id):
     _save_data('events.json', events)
 
     try:
-        ring_num = re.sub(r"[^0-9]", "", str(run.get('assigned_ring') or "")) or "1"
+        ring_num = find_run_ring_number(event, run)
         socketio.emit('result_update', {'run_id': run_id, 'license_nr': license_nr, 'status': status})
         socketio.emit('announcer_update', {'event_id': event_id, 'ring_name': f"Ring {ring_num}"},
                       room=f"event:{event_id}:ring:{ring_num}")
@@ -1213,7 +1234,8 @@ def api_set_participant_status(event_id, run_id):
                     (r for r in all_results_for_sync if r.get("Lizenznummer") == license_nr),
                     entry
                 )
-                push_live_update(settings_for_sync, event, run, enriched_entry)
+                push_live_update(settings_for_sync, event, run, enriched_entry,
+                                 ring_label=f"Ring {ring_num}")
             if settings_for_sync.get("portal_results_api_key"):
                 _event_snap = dict(event)
                 _settings_snap = dict(settings_for_sync)
