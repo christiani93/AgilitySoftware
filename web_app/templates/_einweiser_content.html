@@ -57,7 +57,7 @@
                 {% elif e.mark == 'absent' %}<span class="ew-badge ew-badge-absent">fehlt</span>{% endif %}
                 {% if e.is_current %}<span class="ew-badge ew-badge-current">am Start</span>
                 {% elif e.is_next %}<span class="ew-badge ew-badge-next">nächste/r</span>{% endif %}
-                {% if e.starts_at_end %}<span class="ew-badge ew-badge-end">läufig → Ende</span>{% endif %}
+                {% if e.starts_at_end %}<span class="ew-badge ew-badge-end">→ Ende</span>{% endif %}
                 {% if e.status == 'disq' %}<span class="ew-badge ew-badge-done">{{ e.status_label }}</span>
                 {% elif e.status == 'done' %}<span class="ew-badge ew-badge-done">✓</span>{% endif %}
                 {% if not model.read_only %}

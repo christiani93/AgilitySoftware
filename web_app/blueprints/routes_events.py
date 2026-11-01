@@ -2677,6 +2677,38 @@ def api_toggle_in_season(event_id, license_nr):
     return jsonify(success=True, is_in_season=new_state)
 
 
+@events_bp.route('/api/toggle_start_at_end/<event_id>/<license_nr>', methods=['POST'])
+def api_toggle_start_at_end(event_id, license_nr):
+    """Markiert ein Team neutral als „startet am Ende seines Laufes" – oder hebt es auf.
+
+    Setzt ausschliesslich ``start_at_end`` (NICHT ``is_in_season``). Damit kann
+    die reine Reihenfolge-Wirkung (am Schluss starten) gesetzt werden, ohne den
+    sensiblen Grund „läufig" am Ring/Tablet sichtbar zu machen. Der Startlisten-
+    Sort honoriert ``start_at_end`` über ``_starts_at_end`` genau wie ``is_in_season``
+    und ``start_last``. Wirkt auf ALLE Läufe des Events (ein Team startet in jedem
+    seiner Läufe am Schluss).
+    """
+    all_events = _load_data(EVENTS_FILE)
+    event = next((e for e in all_events if isinstance(e, dict) and e.get('id') == event_id), None)
+    if not event:
+        return jsonify(success=False, message="Event nicht gefunden"), 404
+
+    lic = str(license_nr or '').strip()
+    new_state = None
+    for r in event.get('runs', []):
+        for p in r.get('entries', []):
+            if str(p.get('Lizenznummer', '')).strip() == lic:
+                if new_state is None:
+                    new_state = not bool(p.get('start_at_end'))
+                p['start_at_end'] = new_state
+
+    if new_state is None:
+        return jsonify(success=False, message="Teilnehmer nicht gefunden"), 404
+
+    _save_data(EVENTS_FILE, all_events)
+    return jsonify(success=True, start_at_end=new_state)
+
+
 @events_bp.route('/api/toggle_bccs_sm/<event_id>/<license_nr>', methods=['POST'])
 def api_toggle_bccs_sm(event_id, license_nr):
     """Markiert ein Team als BCCS-SM-Teilnehmer (SM-Hund) – oder hebt es auf.

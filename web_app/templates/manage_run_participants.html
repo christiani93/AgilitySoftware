@@ -248,6 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
           const seasonBtn = laeufig
             ? `<button class="btn btn-sm btn-warning" data-toggle-season="${e.Lizenznummer}" title="Läufig-Markierung aufheben">Läufig</button>`
             : `<button class="btn btn-sm btn-outline-secondary" data-toggle-season="${e.Lizenznummer}" title="Als läufig markieren – startet am Schluss ihres Laufes">Läufig</button>`;
+          const atEnd = !!e.start_at_end;
+          const endBadge = atEnd ? ' <span class="badge bg-dark">→ Ende</span>' : '';
+          const endBtn = atEnd
+            ? `<button class="btn btn-sm btn-dark" data-toggle-end="${e.Lizenznummer}" title="„Am Ende starten" aufheben">↓ Ende</button>`
+            : `<button class="btn btn-sm btn-outline-secondary" data-toggle-end="${e.Lizenznummer}" title="Startet am Schluss seines Laufes (neutral, ohne Grund – nicht als läufig markiert)">↓ Ende</button>`;
           const isSm = !!e.bccs_sm;
           const smBadge = (isBccsSm && isSm) ? ' <span class="badge bg-success">SM</span>' : '';
           const smBtn = !isBccsSm ? '' : (isSm
@@ -257,13 +262,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <tr>
             <td>${e.startnummer_offiziell || e.Startnummer_offiziell || e.Startnummer || ''}</td>
             <td><code>${e.Lizenznummer || ''}</code></td>
-            <td>${e.Hundename || ''}${badge}${smBadge}</td>
+            <td>${e.Hundename || ''}${badge}${endBadge}${smBadge}</td>
             <td>${e.Hundefuehrer || ''}</td>
             <td>${e.Kategorie || ''}/${e.Klasse || ''}</td>
             <td class="text-end">
               <div class="d-flex gap-1 justify-content-end">
                 <button class="btn btn-sm btn-outline-secondary" data-rename="${e.Lizenznummer}" title="Name korrigieren">✎</button>
                 ${seasonBtn}
+                ${endBtn}
                 ${smBtn}
                 <button class="btn btn-sm btn-outline-dark" data-remove="${e.Lizenznummer}">Entfernen</button>
               </div>
@@ -396,6 +402,22 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchRunDetails();
       })
       .catch(err => alert('Läufig-Markierung fehlgeschlagen: ' + err.message))
+      .finally(() => btn.disabled = false);
+  });
+
+  // ------- "Am Ende starten" neutral umschalten (ohne Grund läufig; alle Läufe)
+  ui.tbody.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-toggle-end]');
+    if (!btn) return;
+    const liz = btn.dataset.toggleEnd;
+    btn.disabled = true;
+    fetch(`/events/api/toggle_start_at_end/${eventId}/${encodeURIComponent(liz)}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.success) throw new Error(data.message || 'Fehlschlag');
+        fetchRunDetails();
+      })
+      .catch(err => alert('„Am Ende"-Markierung fehlgeschlagen: ' + err.message))
       .finally(() => btn.disabled = false);
   });
 
