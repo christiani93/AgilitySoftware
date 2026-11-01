@@ -48,7 +48,7 @@ def _portal_payload():
             {"external_id": "D1", "name": "Mac", "license_no": "15333", "license_kind": "CH",
              "breed": "Border Collie"},
             {"external_id": "D2", "name": "Fate", "license_no": "FRA-105002", "license_kind": "FOREIGN",
-             "breed": "Sheltie", "fapac": "D-12345", "sexe": "F"},
+             "breed": "Sheltie", "fapac": "D-12345", "sexe": "F", "chip": "276098100123456"},
         ],
     }
     regs = [
@@ -161,6 +161,8 @@ def test_eventexport_imports_french_extra_fields(fresh_data_dir):
     saved_dogs = {d.get("Lizenznummer"): d for d in utils._load_data("dogs.json")}
     assert saved_dogs["FRA-105002"]["FAPAC"] == "D-12345"
     assert saved_dogs["FRA-105002"]["Sexe"] == "F"
+    # Chip-Nummer (dt. VDH-Auslandsergebnis-Formular) wird mit importiert.
+    assert saved_dogs["FRA-105002"]["Chip"] == "276098100123456"
     # CH-Hund ohne FR-Felder bleibt davon unberührt.
     assert not saved_dogs["15333"].get("FAPAC")
 

@@ -475,6 +475,8 @@ def _merge_eventexport_dogs(dogs: list, entities: dict, handler_external_map: di
         # Französische Zusatzfelder am Hund (nur bei FR-Teilnehmern gesetzt)
         fapac = _get_first_value(dog, ("fapac", "FAPAC", "fapac_no", "fapac_license"), "")
         sexe = _get_first_value(dog, ("sexe", "sex", "Sexe"), "")
+        # Chip-/Transpondernummer (dt. VDH-Auslandsergebnis-Formular)
+        chip = _get_first_value(dog, ("chip", "Chip", "microchip"), "")
         external_id = _get_first_value(dog, ("external_id", "id"), "")
         handler_external_id = _get_first_value(dog, ("handler_external_id", "handler_id"), "")
         handler_id = None
@@ -498,6 +500,7 @@ def _merge_eventexport_dogs(dogs: list, entities: dict, handler_external_map: di
         _safe_update(existing, "Rasse", breed)
         _safe_update(existing, "FAPAC", fapac)
         _safe_update(existing, "Sexe", sexe)
+        _safe_update(existing, "Chip", chip)
         if handler_id:
             existing["Hundefuehrer_ID"] = handler_id
         _safe_update(existing, "Kategorie", _get_first_value(dog, ("category_code", "Kategorie", "kategorie"), ""))
