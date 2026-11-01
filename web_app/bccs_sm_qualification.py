@@ -494,8 +494,19 @@ def _compute_class(quali_pools: dict, quali_order: list[str], qualified: set) ->
 
 def _rank_division_final(final_pools: dict) -> list[dict]:
     """
-    Rangiert eine Division aus den 2 Finalläufen (Summe Jumping + Agility).
-    Teams ohne beide Läufe oder mit DIS in einem Lauf werden ohne Rang ans Ende gesetzt.
+    Rangiert eine Division aus den 2 Finalläufen (Summe Jumping + Agility) gemäss
+    Reglement 3.2: nur in BEIDEN Läufen klassierte Teams werden rangiert, nach
+      1. kleinerer Summe Gesamtfehlerpunkte (Parcours- + Zeitfehler)
+      2. kleinerer Summe Parcoursfehler
+      3. kleinerer Summe Laufzeiten
+    Gleichstand in allen dreien → ex aequo.
+
+    **DIS im Final = „nicht klassiert"** (User-Entscheid 2026-11-01, bestätigt am
+    Reglement): ein Team mit DIS/ABR/DNS in einem Finallauf (oder ohne beide Läufe)
+    erhält KEINEN Kombi-Rang und wird unrangiert ans Ende gestellt. Das Reglement
+    kennt nur die Summe der zwei sauberen Läufe; die offizielle SportyDog-PDF listet
+    Ein-Lauf-DIS zwar auf hinteren Rängen, das ist aber keine reglementarische
+    Klassierung. So kann ein DIS-Lauf nie Sieger werden, solange saubere Teams existieren.
     """
     by_lic: dict[str, dict] = {}
     for la in QUALI_RUN_TYPES:
