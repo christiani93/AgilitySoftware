@@ -670,6 +670,8 @@ def build_result_export_zip(event: dict, final: bool = False) -> bytes:
 
     # Schema v1.6: optionaler Finalisten-Block für SKBS-SM (siehe project_offline_architektur)
     finalists_payload = _build_finalists_payload(event, recalc_fn=_recalc_fn)
+    # KO-Cup-Final-Sieger (Halloween-Cup) dauerhaft mitschicken → Titelverteidiger-Automatik
+    cup_finals_payload = _build_cup_finals_payload(event)
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -677,6 +679,8 @@ def build_result_export_zip(event: dict, final: bool = False) -> bytes:
         zf.writestr("results.json",  json.dumps(results_payload, ensure_ascii=False))
         if finalists_payload:
             zf.writestr("finalists.json", json.dumps(finalists_payload, ensure_ascii=False))
+        if cup_finals_payload:
+            zf.writestr("cup_finals.json", json.dumps(cup_finals_payload, ensure_ascii=False))
     return buf.getvalue()
 
 
@@ -736,6 +740,93 @@ def _build_finalists_payload(event: dict, recalc_fn=None) -> dict | None:
         }
 
     return None
+
+
+def _season_from_event(event: dict) -> int:
+    """Saison-Jahr für die Cup-Zuordnung — aus einem Datums-/Jahr-Feld des Events,
+    sonst aktuelles Jahr. Akzeptiert '14.09.2024', '2026-…', ISO etc."""
+    import re
+    import datetime
+    for key in ("season", "Jahr", "year", "Datum", "datum", "date", "start_date", "Startdatum"):
+        val = event.get(key)
+        if val:
+            m = re.search(r"(20\d{2})", str(val))
+            if m:
+                return int(m.group(1))
+    return datetime.date.today().year
+
+
+def _build_cup_finals_payload(event: dict) -> dict | None:
+    """KO-Cup-Final-Ergebnisse (Halloween-Cup) als dauerhaftes Export-Paket.
+
+    Erkennung über Präsenz von `event['ko_cup']['finals']` (NICHT Veranstaltungsart).
+    Liefert None, wenn kein KO-Cup oder noch keine Schlussrangliste (`results`) existiert
+    — die flüchtige Live-Spiegelung läuft weiter über `push_ko_bracket`, dies hier ist der
+    PERSISTENTE Weg, damit das Portal die Sieger als `CupFinalResult` ablegen und daraus im
+    Folgejahr Titelverteidiger ableiten kann.
+
+    Format (Schema-Zusatz zu resultexport.v1):
+      {
+        "event_external_id": "...",
+        "cup_ruleset": "halloween_cup",   # auflösbar gegen Cup.special_ruleset
+        "season": 2026,                   # + Cup.season → eindeutiger Cup
+        "finals": [
+          {"category_code","class_level","group_label","is_published",
+           "participants": [{"license","dog_name","handler_name","draw_number","seeding_rank","source"}],
+           "results":      [{"license","dog_name","handler_name","final_rank"}]},
+          ...
+        ],
+      }
+    """
+    ko = event.get("ko_cup") or {}
+    finals = ko.get("finals") or []
+    if not finals:
+        return None
+
+    out_finals = []
+    for final in finals:
+        participants = final.get("participants") or []
+        by_id = {p.get("id"): p for p in participants}
+        parts_payload = [{
+            "license":      (p.get("license_no") or "").strip(),
+            "dog_name":     p.get("dog_name") or "",
+            "handler_name": p.get("handler_name") or "",
+            "draw_number":  p.get("draw_number"),
+            "seeding_rank": p.get("seeding_rank"),
+            "source":       p.get("source") or "",
+        } for p in participants]
+
+        results_payload = []
+        for r in (final.get("results") or []):
+            p = by_id.get(r.get("participant_id"))
+            if not p:
+                continue
+            results_payload.append({
+                "license":      (p.get("license_no") or "").strip(),
+                "dog_name":     p.get("dog_name") or "",
+                "handler_name": p.get("handler_name") or "",
+                "final_rank":   r.get("rank"),
+            })
+
+        out_finals.append({
+            "category_code": final.get("category_code") or "",
+            "class_level":   final.get("class_level"),
+            "group_label":   final.get("group_label") or "",
+            "is_published":  bool(final.get("is_published")),
+            "participants":  parts_payload,
+            "results":       results_payload,
+        })
+
+    # Nur exportieren, wenn mindestens ein Final eine Schlussrangliste hat.
+    if not any(f["results"] for f in out_finals):
+        return None
+
+    return {
+        "event_external_id": event.get("external_id") or event.get("id") or "",
+        "cup_ruleset":       event.get("cup_ruleset") or "halloween_cup",
+        "season":            _season_from_event(event),
+        "finals":            out_finals,
+    }
 
 
 def _do_send_result_export(url: str, api_key: str, zip_bytes: bytes) -> dict:
