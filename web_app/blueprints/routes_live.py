@@ -1005,12 +1005,18 @@ def _render_bccs_platz1_projection(rows, view):
     """A3: „Was darf sich der Läufer erlauben, um Platz 1 zu erreichen" — Live-Projektion
     für den aktuellen Starter im 2. Finallauf (Agility).
 
-    Annahme/Semantik (Reglement 3.2, Default — mit User abzustimmen): „Platz 1 erreichen"
-    = mindestens ex aequo mit dem aktuell Kombi-Führenden (gleiche Summe Fehler → Parcours →
-    Zeit teilt Rang 1). Budget gegenüber dem besten bereits in BEIDEN Läufen klassierten Team:
-      - Fehlerpunkte-Budget im Agility = Führender.Summe_Fehler − Jumping-Fehler des Starters.
+    Semantik (User-Entscheid 2026-11-02, final): „Platz 1 erreichen" heisst **alleiniger**
+    Platz 1 (überholen), nicht Teilen mit dem Führenden. Die Strenge greift dabei nur auf
+    der Zeit-Ebene — bei Fehler-Gleichstand übernimmt der Starter die Führung trotzdem, wenn
+    er schneller ist (Reglement 3.2: Gesamtfehler → Parcoursfehler → Zeit; bei Fehlergleichstand
+    entscheidet die Zeit). Budget gegenüber dem besten bereits in BEIDEN Läufen klassierten Team:
+      - Fehlerpunkte-Budget im Agility = Führender.Summe_Fehler − Jumping-Fehler des Starters
+        (höchstens so viele Punkte → Gesamtfehler ≤ Führender, Gleichstand zulässig).
       - Zeit-Budget im Agility (für den Fehler-Gleichstand-Fall) = Führender.Summe_Zeit −
-        Jumping-Zeit des Starters.
+        Jumping-Zeit des Starters (Zeit muss ECHT UNTER diesem Wert liegen, nicht nur gleich).
+    ⚠️ Vereinfachung: ignoriert die Parcoursfehler-Zwischenstufe (Reglement-Tiebreak #2) —
+    bei exaktem Gesamtfehler-Gleichstand entscheidet offiziell zuerst die Parcoursfehler-Summe,
+    erst dann die Zeit. Für die Live-Anzeige bewusst auf Fehler→Zeit vereinfacht.
     Liefert leeren String, wenn nicht anwendbar (kein Agility-Final, kein aktueller Starter,
     Starter im Jumping disqualifiziert → keine Kombination mehr möglich)."""
     current_run = view.get("current_run") or {}
