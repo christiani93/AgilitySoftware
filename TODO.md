@@ -3,7 +3,24 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-10-30
+Stand: 2026-11-02
+
+## Session 2026-11-02 — BCCS A3-Semantik, i18n-Sweep, EXE-Rebuild
+
+- [x] **A3-Platz1-Projektion-Semantik final geklärt** (User-Entscheid): alleiniger Platz 1
+      (überholen), Strenge nur auf Zeit-Ebene bei Fehler-Gleichstand. Code war schon korrekt,
+      nur Docstring in `routes_live.py` korrigiert (`c73c6d0`). Parcoursfehler-Zwischenstufe
+      bewusst NICHT nachgerüstet (User-Begründung: SCT wird dynamisch vom Schnellsten
+      abgeleitet, macht den Edge-Case praktisch irrelevant). Details `project_bccs_reglement`.
+- [x] **i18n-Sweep FR/EN** (`59e8632`): 54 neue/fuzzy msgids (BCCS A2/A3, KO-Ringschreiberliste,
+      VDH-/CNEAC-Formulare, Zeitplan-Buttons) übersetzt, alle Fuzzy-Treffer einzeln geprüft
+      (NICHT blind von pybabel übernommen). 380/380 je Sprache, 0 fuzzy/leer.
+- [x] **AgilitySoftware.exe neu gebaut** (enthält alle 9 lokalen HCS-Nachbesserungs-Commits +
+      BCCS A2/A3 + i18n-Sweep). Smoke-Test grün (`/`, `/events`, `/ring_pc_dashboard/1`,
+      `/health`). **AgilityRing.exe bewusst NICHT neu gebaut** — Ring-Monitor läuft über den
+      Hauptserver, AgilityRing.exe ist nur für TIMY/Ring-PC-Dashboard relevant.
+- [ ] **`main` weiterhin NICHT auf GitHub gepusht** (lokal weit vor `origin`) — noch offen.
+- [ ] Realtest von BCCS A2/A3 + allen HCS-Fixes am echten Event steht noch aus.
 
 ## Session 2026-10-30 — HCS Tunnellauf-Import + EXE (DRINGEND)
 
