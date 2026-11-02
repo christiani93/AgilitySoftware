@@ -121,8 +121,11 @@ def collect_vdh_sheets(event, lizenznummer):
         "chip": str(dog.get("Chip", "") or "").strip(),
         "category": _category_letter(kategorie),
         "handler": handler_name or "",
-        # N° Leistungsbuch / Licence No. = die Lizenz, mit der angemeldet wurde.
-        "licence_no": lizenznummer,
+        # N° Leistungsbuch / Licence No. = die deutsche VDH-Leistungsbuchnummer des
+        # Hundes (z.B. "K-33333"), NICHT die Schweizer Start-/TKAMO-Lizenznummer
+        # (= lizenznummer, dient hier nur als Lookup-Key für dogs.json). Separat
+        # gepflegt, da im System sonst nirgends vorhanden — leer, wenn nicht erfasst.
+        "licence_no": str(dog.get("Leistungsbuch", "") or "").strip(),
         "team": str(handler.get("Team", "") or "").strip(),
         "competition_club": org_club,
         "competition_country": _event_country(event),

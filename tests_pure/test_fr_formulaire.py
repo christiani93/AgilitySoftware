@@ -96,6 +96,33 @@ def test_fr_formulaire_pdf_download(app_and_dir):
     assert resp.data[:4] == b"%PDF"
 
 
+def test_fr_formulaire_list_excludes_german_starters(app_and_dir, monkeypatch):
+    """CNEAC ist ein franzoesisches Formular - deutsche Starter (DEU/GER) werden
+    hier bewusst ausgeschlossen, die haben ihr eigenes VDH-Formular."""
+    app, data_dir = app_and_dir
+    ev = _event()
+    ev["runs"][0]["entries"].append(
+        {"Startnummer": 2, "Hundefuehrer": "Max Mustermann", "Hundename": "Bello",
+         "Lizenznummer": "DEU-5001", "Kategorie": "Large", "Klasse": "2",
+         "result": {"zeit": 44.0, "fehler": 0, "verweigerungen": 0, "disqualifikation": None}}
+    )
+    with open(os.path.join(data_dir, "events.json"), "w", encoding="utf-8") as f:
+        json.dump([ev], f, ensure_ascii=False)
+
+    captured = {}
+
+    def fake_render(template, **ctx):
+        captured.update(ctx)
+        return ""
+
+    monkeypatch.setattr(rp, "render_template", fake_render)
+    with app.test_request_context():
+        rp.print_fr_formulaire_list(EVENT_ID)
+
+    lics = {p["lizenznummer"] for p in captured["participants"]}
+    assert lics == {"FRA-1001"}  # DEU-5001 ist raus
+
+
 def test_fr_formulaire_404_for_unknown_event(app_and_dir):
     app, _ = app_and_dir
     resp = app.test_client().get("/print/fr_formulaire/does_not_exist/FRA-1001")

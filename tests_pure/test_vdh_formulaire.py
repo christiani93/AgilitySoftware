@@ -72,7 +72,8 @@ def app_and_dir(tmp_path, monkeypatch):
     monkeypatch.setenv("AGILITY_DATA_DIR", data_dir)
     with open(os.path.join(data_dir, "dogs.json"), "w", encoding="utf-8") as f:
         json.dump([{"Lizenznummer": "DEU-5001", "Hundename": "Bello", "Rasse": "Border Collie",
-                    "Hundefuehrer_ID": "h1", "Kategorie": "Large", "Chip": "276098100123456"}], f)
+                    "Hundefuehrer_ID": "h1", "Kategorie": "Large", "Chip": "276098100123456",
+                    "Leistungsbuch": "K-33333"}], f)
     with open(os.path.join(data_dir, "handlers.json"), "w", encoding="utf-8") as f:
         json.dump([{"id": "h1", "Vorname": "Max", "Nachname": "Mustermann", "Vereinsnummer": ""}], f)
     with open(os.path.join(data_dir, "clubs.json"), "w", encoding="utf-8") as f:
@@ -98,7 +99,8 @@ def test_vdh_form_renders(app_and_dir):
     assert "Bestätigung für Auslandsergebnisse" in html
     assert "Bello" in html
     assert "Max Mustermann" in html
-    assert "DEU-5001" in html
+    # Leistungsbuch-Nr. (deutsche VDH-Nummer, NICHT die CH-Lizenz DEU-5001) wird vorbefüllt.
+    assert "K-33333" in html
     # Chip-Nummer aus den Stammdaten wird vorbefüllt.
     assert "276098100123456" in html
 
@@ -123,6 +125,29 @@ def test_vdh_list_only_german_starters(app_and_dir, monkeypatch):
     assert captured["participants"][0]["foreign_cc"] == "DEU"
 
 
+def test_save_vdh_leistungsbuch_persists_to_dog(app_and_dir):
+    app, data_dir = app_and_dir
+    resp = app.test_client().post(
+        f"/print/vdh_formulaire/{EVENT_ID}/DEU-5001/leistungsbuch",
+        json={"leistungsbuch": "K-99999"},
+    )
+    assert resp.status_code == 200
+    assert resp.get_json()["success"] is True
+
+    with open(os.path.join(data_dir, "dogs.json"), encoding="utf-8") as f:
+        dogs = json.load(f)
+    assert dogs[0]["Leistungsbuch"] == "K-99999"
+
+
+def test_save_vdh_leistungsbuch_404_for_unknown_dog(app_and_dir):
+    app, _ = app_and_dir
+    resp = app.test_client().post(
+        f"/print/vdh_formulaire/{EVENT_ID}/NOPE/leistungsbuch",
+        json={"leistungsbuch": "K-1"},
+    )
+    assert resp.status_code == 404
+
+
 def test_vdh_404_for_unknown_event(app_and_dir):
     app, _ = app_and_dir
     resp = app.test_client().get("/print/vdh_formulaire/nope/DEU-5001")
@@ -136,7 +161,8 @@ def test_collect_sheets_mapping_and_dis(app_and_dir):
     assert header["dog_name"] == "Bello"
     assert header["handler"] == "Max Mustermann"
     assert header["category"] == "L"
-    assert header["licence_no"] == "DEU-5001"
+    # Leistungsbuch-Nr. (deutsche VDH-Nummer), NICHT die CH-Lizenz "DEU-5001".
+    assert header["licence_no"] == "K-33333"
     assert header["competition_club"] == "LyTiWee"
     assert header["total_competitors"] == 2  # DEU-5001 + 12345
 

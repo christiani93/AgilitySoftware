@@ -19,6 +19,7 @@
                 <th>{{ _('Hund') }}</th>
                 <th>{{ _('Lizenz') }}</th>
                 <th>{{ _('Start-Nr.') }}</th>
+                <th>{{ _('Leistungsbuch Nr.') }}</th>
                 <th></th>
             </tr>
         </thead>
@@ -31,6 +32,17 @@
                 <td>{{ p.lizenznummer }}</td>
                 <td>{{ p.startnummer or '—' }}</td>
                 <td>
+                    <div class="input-group input-group-sm" style="max-width: 160px;">
+                        <input type="text" class="form-control leistungsbuch-input"
+                               data-lizenznummer="{{ p.lizenznummer }}"
+                               value="{{ p.leistungsbuch or '' }}" placeholder="z.B. K-33333">
+                        <button class="btn btn-outline-secondary leistungsbuch-save" type="button"
+                                title="{{ _('Speichern') }}">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </div>
+                </td>
+                <td>
                     <a class="btn btn-sm btn-primary" target="_blank"
                        href="{{ url_for('print_bp.print_vdh_formulaire', event_id=event.id, lizenznummer=p.lizenznummer) }}">
                         <i class="fas fa-print"></i> {{ _('Formular') }}
@@ -38,9 +50,36 @@
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="6">{{ _('Keine deutschen Teilnehmer gefunden.') }}</td></tr>
+            <tr><td colspan="7">{{ _('Keine deutschen Teilnehmer gefunden.') }}</td></tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+<script>
+document.querySelectorAll('.leistungsbuch-save').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var input = btn.closest('.input-group').querySelector('.leistungsbuch-input');
+        var lic = input.dataset.lizenznummer;
+        fetch('{{ url_for("print_bp.print_vdh_formulaire_list", event_id=event.id) }}/' + encodeURIComponent(lic) + '/leistungsbuch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ leistungsbuch: input.value })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success) {
+                btn.classList.remove('btn-outline-secondary');
+                btn.classList.add('btn-success');
+                setTimeout(function () {
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-secondary');
+                }, 1200);
+            } else {
+                alert(data.message || 'Fehler beim Speichern.');
+            }
+        })
+        .catch(function () { alert('Fehler beim Speichern.'); });
+    });
+});
+</script>
 {% endblock %}

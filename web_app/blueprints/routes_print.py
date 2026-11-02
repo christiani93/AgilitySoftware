@@ -1,5 +1,5 @@
 # blueprints/routes_print.py
-from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, Response
+from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, Response, jsonify
 from flask_babel import gettext as _
 from datetime import datetime
 import csv
@@ -497,7 +497,11 @@ def print_participant_list(event_id):
 @print_bp.route('/print/fr_formulaire/<event_id>')
 def print_fr_formulaire_list(event_id):
     """Liste aller ausländischen Teilnehmer (Lizenz-Präfix, z.B. FRA) mit
-    Download-Link fürs ausgefüllte CNEAC-Ergebnisformular."""
+    Download-Link fürs ausgefüllte CNEAC-Ergebnisformular.
+
+    Deutsche Starter (DEU/GER) werden hier bewusst ausgeschlossen - CNEAC ist
+    ein französisches Formular, für DEU gibt es das separate VDH-Formular
+    (print_vdh_formulaire_list)."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
@@ -506,7 +510,7 @@ def print_fr_formulaire_list(event_id):
         for entry in run.get('entries', []):
             lic = str(entry.get('Lizenznummer') or '')
             prefix = lic.split('-', 1)[0] if '-' in lic else ''
-            if not prefix or prefix.isdigit() or lic in seen:
+            if not prefix or prefix.isdigit() or prefix.upper() in ('DEU', 'GER') or lic in seen:
                 continue
             seen[lic] = {
                 'lizenznummer': lic,
@@ -550,9 +554,26 @@ def print_vdh_formulaire_list(event_id):
                 'hundename': entry.get('Hundename') or dogs_map.get(lic, {}).get('Hundename', ''),
                 'hundefuehrer': entry.get('Hundefuehrer', ''),
                 'startnummer': entry.get('Startnummer'),
+                'leistungsbuch': dogs_map.get(lic, {}).get('Leistungsbuch', ''),
             }
     participants = sorted(seen.values(), key=lambda p: (p['hundefuehrer'] or ''))
     return render_template('print/vdh_formulaire_list.html', event=event, participants=participants)
+
+@print_bp.route('/print/vdh_formulaire/<event_id>/<lizenznummer>/leistungsbuch', methods=['POST'])
+def save_vdh_leistungsbuch(event_id, lizenznummer):
+    """Speichert die deutsche VDH-Leistungsbuchnummer (z.B. "K-33333") am Hund.
+
+    Separates Feld von der Schweizer Lizenznummer (= Lookup-Key hier), da es im
+    System sonst nirgends erfasst wird. Direkt an dogs.json, event-unabhängig
+    (die Nummer gehört zum Hund, nicht zum Event)."""
+    dogs = _load_data('dogs.json')
+    dog = next((d for d in dogs if str(d.get('Lizenznummer')) == str(lizenznummer)), None)
+    if not dog:
+        return jsonify(success=False, message="Hund nicht gefunden"), 404
+    payload = request.get_json(silent=True) or {}
+    dog['Leistungsbuch'] = str(payload.get('leistungsbuch') or '').strip()
+    _save_data('dogs.json', dogs)
+    return jsonify(success=True, leistungsbuch=dog['Leistungsbuch'])
 
 @print_bp.route('/print/vdh_formulaire/<event_id>/<lizenznummer>')
 def print_vdh_formulaire(event_id, lizenznummer):
