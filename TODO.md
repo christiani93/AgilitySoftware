@@ -21,6 +21,21 @@ Stand: 2026-11-02
       Hauptserver, AgilityRing.exe ist nur für TIMY/Ring-PC-Dashboard relevant.
 - [ ] **`main` weiterhin NICHT auf GitHub gepusht** (lokal weit vor `origin`) — noch offen.
 - [ ] Realtest von BCCS A2/A3 + allen HCS-Fixes am echten Event steht noch aus.
+- [x] **VDH-Formular: Lauf-Checkboxen-Umbruch gefixt** (`9b3931f`) — 5 Lauf-Codes liefen über
+      den Spaltenrand in „Platzierung" rein, `.checks` bricht jetzt um.
+- [x] **VDH-Formular: eigene Leistungsbuch-Nr. statt CH-Lizenz** (`4a805f3`) — neues Dog-Feld
+      `Leistungsbuch`, inline editierbar auf der VDH-Teilnehmerliste. CNEAC-Liste schliesst
+      deutsche Starter (DEU/GER) jetzt aus (eigenes VDH-Formular).
+- [x] **SM-Modul: Resultat-Upload-Route `/sm/import-csv`** (`c225884`) — Quali+Final-CSV hochladen,
+      eigenständiges Event, Dashboard zeigt Prozent-Cutoff-Kontrolle direkt danach.
+- [x] **SM-Modul: Startnummern-Import `/sm/import-startnumbers/<id>`** (`c225884`) — einfache
+      CSV Lizenznummer;Startnummer, event-weit. Format ist Annahme, echtes Veranstalter-Format
+      noch nicht gesehen — ggf. anpassen sobald da.
+- [x] **SM-Modul: sm_config/Titelverteidiger geprüft** — war bereits vollständig umgesetzt.
+- [ ] **AgilitySoftware.exe erneut rebuild nötig** (enthält VDH-Fixes + SM-Erweiterungen noch
+      nicht — Build von vorhin in dieser Session ist jetzt wieder einen Schritt zurück).
+- [ ] TKAMO-SM-Turnier-IDs bekannt (Quali=12304 Sa 07.11., Final=12305 So 08.11., Münsingen) —
+      noch nicht im Code verankert (bewusst, siehe `reference_sm_module_state`).
 
 ## Session 2026-10-30 — HCS Tunnellauf-Import + EXE (DRINGEND)
 
