@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AgilitySuite 4.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 22:38+0200\n"
+"POT-Creation-Date: 2026-11-02 09:38+0100\n"
 "PO-Revision-Date: 2026-10-07 00:00+0000\n"
 "Last-Translator: \n"
 "Language: en\n"
@@ -36,709 +36,320 @@ msgstr "Server error"
 msgid "Auf dem Server ist ein interner Fehler aufgetreten."
 msgstr "An internal error occurred on the server."
 
-#: blueprints/routes_events.py:959
+#: blueprints/routes_events.py:1006
 msgid "Keine Datei ausgewählt (startlist_all_combined.json)."
 msgstr "No file selected (startlist_all_combined.json)."
 
-#: blueprints/routes_events.py:964
+#: blueprints/routes_events.py:1011
 msgid "Bitte eine JSON-Datei hochladen (startlist_all_combined.json)."
 msgstr "Please upload a JSON file (startlist_all_combined.json)."
 
-#: blueprints/routes_events.py:1247
+#: blueprints/routes_events.py:1294
 #, python-format
 msgid "Veranstaltung '%(name)s' erfolgreich erstellt."
 msgstr "Event '%(name)s' created successfully."
 
-#: blueprints/routes_events.py:1266
+#: blueprints/routes_events.py:1313
 msgid "Event nicht gefunden."
 msgstr "Event not found."
 
-#: blueprints/routes_events.py:1280
+#: blueprints/routes_events.py:1327
 msgid "Veranstaltung erfolgreich aktualisiert."
 msgstr "Event updated successfully."
 
-#: blueprints/routes_events.py:1295
+#: blueprints/routes_events.py:1342
 msgid "Veranstaltung wurde gelöscht."
 msgstr "Event has been deleted."
 
-#: blueprints/routes_events.py:1301
+#: blueprints/routes_events.py:1348
 msgid "Event als 'Live' markiert."
 msgstr "Event marked as 'Live'."
 
-#: blueprints/routes_events.py:1307
+#: blueprints/routes_events.py:1354
 msgid "Kein Event mehr als 'Live' markiert."
 msgstr "No event is marked as 'Live' anymore."
 
-#: blueprints/routes_events.py:1540
+#: blueprints/routes_events.py:1587
 msgid "Lizenznummer fehlt."
 msgstr "License number missing."
 
-#: blueprints/routes_events.py:1545
+#: blueprints/routes_events.py:1592
 msgid "Hund nicht gefunden."
 msgstr "Dog not found."
 
-#: blueprints/routes_events.py:1550
+#: blueprints/routes_events.py:1597
 msgid "Kategorie/Klasse passt für diesen Lauf nicht."
 msgstr "Category/class does not match this run."
 
-#: blueprints/routes_events.py:1554
+#: blueprints/routes_events.py:1601
 msgid "Teilnehmer ist bereits in diesem Lauf."
 msgstr "Participant is already in this run."
 
-#: blueprints/routes_events.py:1565
+#: blueprints/routes_events.py:1612
 msgid "Teilnehmer hinzugefügt."
 msgstr "Participant added."
 
-#: blueprints/routes_events.py:1574
+#: blueprints/routes_events.py:1621
 msgid "Teilnehmer entfernt."
 msgstr "Participant removed."
 
-#: blueprints/routes_events.py:1574
+#: blueprints/routes_events.py:1621
 msgid "Teilnehmer war nicht in diesem Lauf."
 msgstr "Participant was not in this run."
 
-#: blueprints/routes_events.py:1583
+#: blueprints/routes_events.py:1630
 msgid "Einstellungen gespeichert."
 msgstr "Settings saved."
 
-#: blueprints/routes_events.py:1590
+#: blueprints/routes_events.py:1637
 msgid "Ungültige Startnummer."
 msgstr "Invalid start number."
 
-#: blueprints/routes_events.py:1594
+#: blueprints/routes_events.py:1641
 msgid "Startnummer in diesem Lauf bereits vergeben."
 msgstr "Start number already assigned in this run."
 
-#: blueprints/routes_events.py:1600
+#: blueprints/routes_events.py:1647
 msgid "Startnummer gesetzt."
 msgstr "Start number set."
 
-#: blueprints/routes_events.py:1602
+#: blueprints/routes_events.py:1649
 msgid "Teilnehmer nicht gefunden."
 msgstr "Participant not found."
 
-#: blueprints/routes_live.py:243
+#: blueprints/routes_live.py:246
 msgid "Kein Event als 'Live' markiert."
 msgstr "No event marked as 'Live'."
 
-#: blueprints/routes_live.py:247
+#: blueprints/routes_live.py:250
 #, python-format
 msgid "Live-Event mit ID %(id)s wurde nicht gefunden."
 msgstr "Live event with ID %(id)s was not found."
 
-#: blueprints/routes_live.py:456
+#: blueprints/routes_live.py:458
 msgid "Lauf konnte nicht für Sprecher/Monitore aktiviert werden."
 msgstr "Run could not be activated for speaker/monitors."
 
-#: blueprints/routes_live.py:526
+#: blueprints/routes_live.py:528
 #, python-format
 msgid "'%(run)s' ist jetzt aktiv für die Anzeige auf %(ring)s."
 msgstr "'%(run)s' is now active for display on %(ring)s."
 
-#: blueprints/routes_live.py:659
+#: blueprints/routes_live.py:783
 #, python-format
 msgid "Zeitplan gefunden, aber keine Lauf-Blöcke für %(ring)s: %(debug)s"
 msgstr "Schedule found, but no run blocks for %(ring)s: %(debug)s"
 
-#: blueprints/routes_live.py:829
-msgid "Kein aktives Event."
-msgstr "No active event."
+#: blueprints/routes_live.py:977
+msgid "Kombinierte Rangliste"
+msgstr "Combined ranking"
 
-#: blueprints/routes_live.py:835 templates/ring_monitor.html:63
-msgid "Kein Lauf wurde für diesen Ring aktiviert."
-msgstr "No run has been activated for this ring."
-
-#: blueprints/routes_live.py:837 templates/ring_monitor.html:64
-msgid "Zeitplan anzeigen"
-msgstr "Show schedule"
-
-#: blueprints/routes_live.py:842 blueprints/routes_print.py:355
-#: templates/plan_schedule.html:332 templates/print/all.html:160
-#: templates/print/briefing_groups.html:69
-#: templates/print/master_steward_list.html:64
-#: templates/print/startlists_by_schedule.html:64
-#: templates/ring_monitor.html:69
-msgid "Klasse"
-msgstr "Class"
-
-#: blueprints/routes_live.py:844 blueprints/routes_print.py:355
-#: templates/ko_cup_rings_print.html:45 templates/plan_schedule.html:331
-#: templates/print/all.html:160 templates/print/briefing_groups.html:68
-#: templates/print/master_steward_list.html:64
-#: templates/print/startlists_by_schedule.html:63
-#: templates/print_ranking_pdf.html:189 templates/ring_monitor.html:70
-msgid "Kategorie"
-msgstr "Category"
-
-#: blueprints/routes_live.py:846 templates/ring_monitor.html:71
-msgid "Laufart"
-msgstr "Run type"
-
-#: blueprints/routes_live.py:858 templates/live_event_dashboard.html:77
-#: templates/master_data.html:11 templates/print/_steward_list_table.html:2
-#: templates/print/all.html:103 templates/print/all.html:232
-#: templates/print/schedule.html:65 templates/print/scribe_list.html:62
-#: templates/print/scribe_list_by_schedule.html:60
-#: templates/print_award_list.html:149 templates/print_ranking_pdf.html:167
-#: templates/print_ranking_pdf.html:296 templates/ranking.html:22
-#: templates/ring_monitor.html:76 templates/ring_pc_dashboard.html:106
-msgid "Richter"
-msgstr "Judge"
-
-#: blueprints/routes_live.py:862 templates/print/_steward_list_table.html:4
-#: templates/print/all.html:235 templates/print/scribe_list.html:63
-#: templates/print/scribe_list_by_schedule.html:63 templates/ranking.html:19
-#: templates/ring_monitor.html:80
-msgid "Parcourslänge"
-msgstr "Course length"
-
-#: blueprints/routes_live.py:863 templates/ring_monitor.html:81
-msgid "Geräte"
-msgstr "Obstacles"
-
-#: blueprints/routes_live.py:873 templates/ring_monitor.html:21
-msgid "Aktuelle Startliste"
-msgstr "Current start list"
-
-#: blueprints/routes_live.py:889 templates/ring_monitor.html:98
-msgid "Keine Startliste verfügbar."
-msgstr "No start list available."
-
-#: blueprints/routes_live.py:897 templates/ring_monitor.html:27
-msgid "Aktuelle Rangliste"
-msgstr "Current ranking"
-
-#: blueprints/routes_live.py:900 templates/ring_monitor.html:31
+#: blueprints/routes_live.py:983 blueprints/routes_live.py:1179
+#: templates/ring_monitor.html:55
 msgid "Platz"
 msgstr "Place"
 
-#: blueprints/routes_live.py:900 templates/print/all.html:167
-#: templates/print_startlists.html:66 templates/ring_monitor.html:31
+#: blueprints/routes_live.py:983 blueprints/routes_live.py:1179
+#: templates/print/all.html:167 templates/print_startlists.html:66
+#: templates/ring_monitor.html:55
 msgid "Name"
 msgstr "Name"
 
-#: blueprints/routes_live.py:900 templates/ring_monitor.html:31
+#: blueprints/routes_live.py:984 blueprints/routes_live.py:1179
+#: templates/ring_monitor.html:55
 msgid "Gesamtfehler"
 msgstr "Total faults"
 
-#: blueprints/routes_live.py:900 blueprints/routes_live.py:938
-#: templates/live_run_entry.html:25 templates/print/_steward_list_table.html:11
-#: templates/print/all.html:246 templates/print/scribe_list.html:73
-#: templates/print/scribe_list_by_schedule.html:74 templates/ranking.html:33
-#: templates/ring_monitor.html:31 templates/ring_monitor.html:140
+#: blueprints/routes_live.py:984 blueprints/routes_live.py:1179
+#: blueprints/routes_live.py:1222 templates/live_run_entry.html:25
+#: templates/print/_steward_list_table.html:11 templates/print/all.html:246
+#: templates/print/scribe_list.html:74
+#: templates/print/scribe_list_by_schedule.html:75
+#: templates/print/vdh_formulaire.html:89 templates/ranking.html:33
+#: templates/ring_monitor.html:55 templates/ring_monitor.html:166
 msgid "Zeit"
 msgstr "Time"
 
-#: blueprints/routes_live.py:916 templates/ring_monitor.html:115
-msgid "Noch keine Rangliste verfügbar."
-msgstr "No ranking available yet."
+#: blueprints/routes_live.py:989
+msgid "n. kl."
+msgstr "n.c."
 
-#: blueprints/routes_live.py:926 templates/ring_monitor.html:40
-msgid "Letzte 3 Ergebnisse"
-msgstr "Last 3 results"
+#: blueprints/routes_live.py:1034
+msgid "Für Platz 1"
+msgstr "For 1st place"
 
-#: blueprints/routes_live.py:938 templates/live_run_entry.html:25
+#: blueprints/routes_live.py:1044
+msgid "Keine Kombination möglich (Jumping disqualifiziert)."
+msgstr "No combination possible (disqualified in Jumping)."
+
+#: blueprints/routes_live.py:1050
+msgid "Noch keine Kombi-Führung – ein fehlerfreier Lauf führt."
+msgstr "No combined leader yet – a clean run takes the lead."
+
+#: blueprints/routes_live.py:1060
+msgid "Platz 1 nicht mehr erreichbar."
+msgstr "1st place no longer reachable."
+
+#: blueprints/routes_live.py:1061 blueprints/routes_live.py:1070
+msgid "Führend"
+msgstr "Leading"
+
+#: blueprints/routes_live.py:1062 blueprints/routes_live.py:1071
+#: blueprints/routes_live.py:1222 templates/live_run_entry.html:25
 #: templates/live_run_entry.html:50 templates/print/_steward_list_table.html:12
-#: templates/print/all.html:247 templates/print/scribe_list.html:74
-#: templates/print/scribe_list_by_schedule.html:75 templates/ranking.html:34
-#: templates/ring_monitor.html:140
+#: templates/print/all.html:247 templates/print/scribe_list.html:75
+#: templates/print/scribe_list_by_schedule.html:76 templates/ranking.html:34
+#: templates/ring_monitor.html:166 templates/ring_pc_dashboard.html:197
 msgid "Fehler"
 msgstr "Faults"
 
-#: blueprints/routes_live.py:943 templates/ring_monitor.html:132
+#: blueprints/routes_live.py:1067
+msgid "Höchstens"
+msgstr "At most"
+
+#: blueprints/routes_live.py:1068
+msgid "Fehlerpunkte im Agility"
+msgstr "fault points in Agility"
+
+#: blueprints/routes_live.py:1069
+msgid "Bei Null Fehlern: Agility-Zeit unter"
+msgstr "At zero faults: Agility time under"
+
+# --- Master data ---
+#: blueprints/routes_live.py:1096
+msgid "Intermediate"
+msgstr "Intermediate"
+
+#: blueprints/routes_live.py:1096
+msgid "Large"
+msgstr "Large"
+
+#: blueprints/routes_live.py:1106
+msgid "Kein aktives Event."
+msgstr "No active event."
+
+#: blueprints/routes_live.py:1112 templates/ring_monitor.html:89
+msgid "Kein Lauf wurde für diesen Ring aktiviert."
+msgstr "No run has been activated for this ring."
+
+#: blueprints/routes_live.py:1114 templates/ring_monitor.html:90
+msgid "Zeitplan anzeigen"
+msgstr "Show schedule"
+
+#: blueprints/routes_live.py:1119 blueprints/routes_print.py:371
+#: templates/plan_schedule.html:384 templates/print/all.html:160
+#: templates/print/briefing_groups.html:69
+#: templates/print/master_steward_list.html:64
+#: templates/print/startlists_by_schedule.html:64
+#: templates/ring_monitor.html:95
+msgid "Klasse"
+msgstr "Class"
+
+#: blueprints/routes_live.py:1121 blueprints/routes_print.py:371
+#: templates/ko_cup_rings_print.html:46 templates/plan_schedule.html:383
+#: templates/print/all.html:160 templates/print/briefing_groups.html:68
+#: templates/print/master_steward_list.html:64
+#: templates/print/startlists_by_schedule.html:63
+#: templates/print_ranking_pdf.html:189 templates/ring_monitor.html:96
+msgid "Kategorie"
+msgstr "Category"
+
+#: blueprints/routes_live.py:1123 templates/ring_monitor.html:97
+msgid "Laufart"
+msgstr "Run type"
+
+#: blueprints/routes_live.py:1135 templates/live_event_dashboard.html:77
+#: templates/master_data.html:11 templates/plan_schedule.html:268
+#: templates/plan_schedule.html:269 templates/print/_steward_list_table.html:2
+#: templates/print/all.html:103 templates/print/all.html:232
+#: templates/print/schedule.html:65 templates/print/scribe_list.html:63
+#: templates/print/scribe_list_by_schedule.html:61
+#: templates/print/vdh_formulaire.html:95 templates/print_award_list.html:149
+#: templates/print_ranking_pdf.html:167 templates/print_ranking_pdf.html:296
+#: templates/ranking.html:22 templates/ring_monitor.html:102
+#: templates/ring_pc_dashboard.html:131
+msgid "Richter"
+msgstr "Judge"
+
+#: blueprints/routes_live.py:1141 templates/print/_steward_list_table.html:4
+#: templates/print/all.html:235 templates/print/scribe_list.html:64
+#: templates/print/scribe_list_by_schedule.html:64 templates/ranking.html:19
+#: templates/ring_monitor.html:106
+msgid "Parcourslänge"
+msgstr "Course length"
+
+#: blueprints/routes_live.py:1142 templates/ring_monitor.html:107
+msgid "Geräte"
+msgstr "Obstacles"
+
+#: blueprints/routes_live.py:1152 templates/ring_monitor.html:45
+msgid "Aktuelle Startliste"
+msgstr "Current start list"
+
+#: blueprints/routes_live.py:1168 templates/ring_monitor.html:124
+msgid "Keine Startliste verfügbar."
+msgstr "No start list available."
+
+#: blueprints/routes_live.py:1176 templates/ring_monitor.html:51
+msgid "Aktuelle Rangliste"
+msgstr "Current ranking"
+
+#: blueprints/routes_live.py:1195 templates/ring_monitor.html:141
+msgid "Noch keine Rangliste verfügbar."
+msgstr "No ranking available yet."
+
+#: blueprints/routes_live.py:1208 templates/ring_monitor.html:64
+msgid "Letzte 3 Ergebnisse"
+msgstr "Last 3 results"
+
+#: blueprints/routes_live.py:1227 templates/ring_monitor.html:158
 msgid "Noch keine Ergebnisse."
 msgstr "No results yet."
 
-#: blueprints/routes_live.py:950 templates/ring_monitor.html:88
+#: blueprints/routes_live.py:1235 templates/ring_monitor.html:114
 msgid "Aktueller Starter"
 msgstr "Current starter"
 
-#: blueprints/routes_live.py:1123
+#: blueprints/routes_live.py:1469
 #, python-format
 msgid "Portal-Export fehlgeschlagen: %(error)s"
 msgstr "Portal export failed: %(error)s"
 
-#: blueprints/routes_live.py:1126
+#: blueprints/routes_live.py:1472
 #, python-format
 msgid "Ergebnisse erfolgreich ans Portal übertragen %(detail)s"
 msgstr "Results successfully transferred to the portal %(detail)s"
 
-#: blueprints/routes_print.py:396 templates/print/index.html:42
-#: templates/print/scribe_list.html:5 templates/print/scribe_list.html:44
+#: blueprints/routes_print.py:415 templates/print/index.html:42
+#: templates/print/scribe_list.html:5 templates/print/scribe_list.html:45
 #: templates/print/scribe_list_by_schedule.html:5
-#: templates/print/scribe_list_by_schedule.html:44
+#: templates/print/scribe_list_by_schedule.html:45
 msgid "Ringschreiberlisten"
 msgstr "Ring scribe lists"
 
-#: blueprints/routes_print.py:414 templates/print/index.html:43
+#: blueprints/routes_print.py:433 templates/print/index.html:43
 msgid "Ringschreiberlisten (nach Zeitplan)"
 msgstr "Ring scribe lists (by schedule)"
 
-#: blueprints/routes_print.py:497
+#: blueprints/routes_print.py:587
 msgid "Keine Läufe für die Liste ausgewählt."
 msgstr "No runs selected for the list."
 
-#: blueprints/routes_print.py:659
+#: blueprints/routes_print.py:770
 msgid "Lizenzcheck-Export abgebrochen."
 msgstr "License check export cancelled."
 
-#: blueprints/routes_print.py:716
+#: blueprints/routes_print.py:827
 msgid "Bitte TKAMO-Ergebnis einfügen."
 msgstr "Please paste the TKAMO result."
-
-#: flask_env/Lib/site-packages/click/_termui_impl.py:600
-#: ring_env/Lib/site-packages/click/_termui_impl.py:693
-#, python-brace-format
-msgid "{editor}: Editing failed"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/_termui_impl.py:604
-#: ring_env/Lib/site-packages/click/_termui_impl.py:697
-#, python-brace-format
-msgid "{editor}: Editing failed: {e}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:1084
-#: flask_env/Lib/site-packages/click/core.py:1121
-#, python-brace-format
-msgid "{text} {deprecated_message}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:1140
-#: ring_env/Lib/site-packages/click/core.py:1209
-msgid "Options"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:1202
-#: ring_env/Lib/site-packages/click/core.py:1284
-#, python-brace-format
-msgid "Got unexpected extra argument ({args})"
-msgid_plural "Got unexpected extra arguments ({args})"
-msgstr[0] ""
-msgstr[1] ""
-
-#: flask_env/Lib/site-packages/click/core.py:1221
-#: ring_env/Lib/site-packages/click/core.py:1300
-#, python-brace-format
-msgid "DeprecationWarning: The command {name!r} is deprecated.{extra_message}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:1405
-#: ring_env/Lib/site-packages/click/core.py:1487
-msgid "Aborted!"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:1779
-#: ring_env/Lib/site-packages/click/core.py:1861
-msgid "Commands"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:1810
-#: ring_env/Lib/site-packages/click/core.py:1892
-msgid "Missing command."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:1888
-#: ring_env/Lib/site-packages/click/exceptions.py:265
-#, python-brace-format
-msgid "No such command {name!r}."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:2303
-#: ring_env/Lib/site-packages/click/core.py:2404
-msgid "Value must be an iterable."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:2324
-#: ring_env/Lib/site-packages/click/core.py:2427
-#, python-brace-format
-msgid "Takes {nargs} values but 1 was given."
-msgid_plural "Takes {nargs} values but {len} were given."
-msgstr[0] ""
-msgstr[1] ""
-
-#: flask_env/Lib/site-packages/click/core.py:2404
-#: ring_env/Lib/site-packages/click/core.py:2624
-#, python-brace-format
-msgid ""
-"DeprecationWarning: The {param_type} {name!r} is "
-"deprecated.{extra_message}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:2807
-#: ring_env/Lib/site-packages/click/core.py:3144
-#, python-brace-format
-msgid "env var: {var}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:2810
-#: ring_env/Lib/site-packages/click/core.py:3147
-#, python-brace-format
-msgid "default: {default}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:2814
-#: ring_env/Lib/site-packages/click/core.py:3151
-msgid "required"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/core.py:2870
-#: ring_env/Lib/site-packages/click/core.py:3211
-msgid "(dynamic)"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/decorators.py:465
-#: ring_env/Lib/site-packages/click/decorators.py:465
-#, python-format
-msgid "%(prog)s, version %(version)s"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/decorators.py:522
-#: ring_env/Lib/site-packages/click/decorators.py:522
-msgid "Show the version and exit."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/decorators.py:548
-#: ring_env/Lib/site-packages/click/decorators.py:548
-msgid "Show this message and exit."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:50
-#: flask_env/Lib/site-packages/click/exceptions.py:89
-#: ring_env/Lib/site-packages/click/exceptions.py:59
-#: ring_env/Lib/site-packages/click/exceptions.py:102
-#: ring_env/Lib/site-packages/click/termui.py:228
-#, python-brace-format
-msgid "Error: {message}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:81
-#: ring_env/Lib/site-packages/click/exceptions.py:93
-#, python-brace-format
-msgid "Try '{command} {option}' for help."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:130
-#: ring_env/Lib/site-packages/click/exceptions.py:143
-#, python-brace-format
-msgid "Invalid value: {message}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:132
-#: ring_env/Lib/site-packages/click/exceptions.py:145
-#, python-brace-format
-msgid "Invalid value for {param_hint}: {message}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:190
-#: ring_env/Lib/site-packages/click/exceptions.py:203
-msgid "Missing argument"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:192
-#: ring_env/Lib/site-packages/click/exceptions.py:205
-msgid "Missing option"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:194
-#: ring_env/Lib/site-packages/click/exceptions.py:207
-msgid "Missing parameter"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:196
-#: ring_env/Lib/site-packages/click/exceptions.py:209
-#, python-brace-format
-msgid "Missing {param_type}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:203
-#: ring_env/Lib/site-packages/click/exceptions.py:216
-#, python-brace-format
-msgid "Missing parameter: {param_name}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:223
-#, python-brace-format
-msgid "No such option: {name}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:235
-#: ring_env/Lib/site-packages/click/exceptions.py:29
-#, python-brace-format
-msgid "Did you mean {possibility}?"
-msgid_plural "(Possible options: {possibilities})"
-msgstr[0] ""
-msgstr[1] ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:282
-#: ring_env/Lib/site-packages/click/exceptions.py:321
-msgid "unknown error"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/exceptions.py:289
-#: ring_env/Lib/site-packages/click/exceptions.py:328
-#, python-brace-format
-msgid "Could not open file {filename!r}: {message}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/formatting.py:156
-#: ring_env/Lib/site-packages/click/formatting.py:162
-msgid "Usage:"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/parser.py:200
-#: ring_env/Lib/site-packages/click/parser.py:203
-#, python-brace-format
-msgid "Argument {name!r} takes {nargs} values."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/parser.py:383
-#: ring_env/Lib/site-packages/click/parser.py:382
-#, python-brace-format
-msgid "Option {name!r} does not take a value."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/parser.py:444
-#: ring_env/Lib/site-packages/click/parser.py:445
-#, python-brace-format
-msgid "Option {name!r} requires an argument."
-msgid_plural "Option {name!r} requires {nargs} arguments."
-msgstr[0] ""
-msgstr[1] ""
-
-#: flask_env/Lib/site-packages/click/shell_completion.py:326
-#: ring_env/Lib/site-packages/click/shell_completion.py:337
-msgid "Shell completion is not supported for Bash versions older than 4.4."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/shell_completion.py:333
-#: ring_env/Lib/site-packages/click/shell_completion.py:344
-msgid "Couldn't detect Bash version, shell completion is not supported."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/termui.py:162
-#: ring_env/Lib/site-packages/click/termui.py:212
-msgid "Repeat for confirmation"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/termui.py:178
-msgid "Error: The value you entered was invalid."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/termui.py:180
-#, python-brace-format
-msgid "Error: {e.message}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/termui.py:191
-#: ring_env/Lib/site-packages/click/termui.py:239
-msgid "Error: The two entered values do not match."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/termui.py:247
-#: ring_env/Lib/site-packages/click/termui.py:293
-msgid "Error: invalid input"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/termui.py:866
-#: ring_env/Lib/site-packages/click/termui.py:930
-msgid "Press any key to continue..."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:332
-#: ring_env/Lib/site-packages/click/types.py:364
-#, python-brace-format
-msgid ""
-"Choose from:\n"
-"\t{choices}"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:369
-#: ring_env/Lib/site-packages/click/types.py:401
-#, python-brace-format
-msgid "{value!r} is not {choice}."
-msgid_plural "{value!r} is not one of {choices}."
-msgstr[0] ""
-msgstr[1] ""
-
-#: flask_env/Lib/site-packages/click/types.py:460
-#: ring_env/Lib/site-packages/click/types.py:493
-#, python-brace-format
-msgid "{value!r} does not match the format {format}."
-msgid_plural "{value!r} does not match the formats {formats}."
-msgstr[0] ""
-msgstr[1] ""
-
-#: flask_env/Lib/site-packages/click/types.py:482
-#: ring_env/Lib/site-packages/click/types.py:515
-#, python-brace-format
-msgid "{value!r} is not a valid {number_type}."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:538
-#: ring_env/Lib/site-packages/click/types.py:580
-#, python-brace-format
-msgid "{value} is not in the range {range}."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:679
-#, python-brace-format
-msgid "{value!r} is not a valid boolean."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:703
-#: ring_env/Lib/site-packages/click/types.py:788
-#, python-brace-format
-msgid "{value!r} is not a valid UUID."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:893
-#: ring_env/Lib/site-packages/click/types.py:998
-#, fuzzy
-msgid "file"
-msgstr "Final"
-
-#: flask_env/Lib/site-packages/click/types.py:895
-#: ring_env/Lib/site-packages/click/types.py:1000
-msgid "directory"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:897
-#: ring_env/Lib/site-packages/click/types.py:1002
-msgid "path"
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:944
-#: ring_env/Lib/site-packages/click/types.py:1048
-#, python-brace-format
-msgid "{name} {filename!r} does not exist."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:953
-#: ring_env/Lib/site-packages/click/types.py:1057
-#, python-brace-format
-msgid "{name} {filename!r} is a file."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:961
-#: ring_env/Lib/site-packages/click/types.py:1065
-#, python-brace-format
-msgid "{name} {filename!r} is a directory."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:970
-#: ring_env/Lib/site-packages/click/types.py:1074
-#, python-brace-format
-msgid "{name} {filename!r} is not readable."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:979
-#: ring_env/Lib/site-packages/click/types.py:1083
-#, python-brace-format
-msgid "{name} {filename!r} is not writable."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:988
-#: ring_env/Lib/site-packages/click/types.py:1092
-#, python-brace-format
-msgid "{name} {filename!r} is not executable."
-msgstr ""
-
-#: flask_env/Lib/site-packages/click/types.py:1055
-#: ring_env/Lib/site-packages/click/types.py:1164
-#, python-brace-format
-msgid "{len_type} values are required, but {len_value} was given."
-msgid_plural "{len_type} values are required, but {len_value} were given."
-msgstr[0] ""
-msgstr[1] ""
-
-#: ring_env/Lib/site-packages/click/_termui_impl.py:191
-msgid "d"
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/_winconsole.py:156
-#: ring_env/Lib/site-packages/click/_winconsole.py:173
-#, python-brace-format
-msgid "Windows error: {error}"
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/core.py:98
-msgid "deprecated"
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/core.py:3025
-#, python-brace-format
-msgid "Name '{name}' defined twice"
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/core.py:3041
-#, python-brace-format
-msgid "Boolean option {decl!r} cannot use the same flag for true/false."
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/core.py:3060
-#, python-brace-format
-msgid "Could not determine name for option with declarations {decls!r}"
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/core.py:3067
-#, python-brace-format
-msgid ""
-"No options defined but a name was passed ({name}). Did you mean to "
-"declare an argument instead? Did you mean to pass '--{name}'?"
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/core.py:3503
-#, python-brace-format
-msgid "Arguments take exactly one parameter declaration, got {length}: {decls}."
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/decorators.py:399
-msgid "Do you want to continue?"
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/decorators.py:400
-msgid "Confirm the action without prompting."
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/exceptions.py:235
-#, python-brace-format
-msgid "No such option {name!r}."
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/parser.py:145
-#, python-brace-format
-msgid "Invalid start character for option ({option})"
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/termui.py:675
-#: ring_env/Lib/site-packages/click/termui.py:681
-#, python-brace-format
-msgid "Unknown color {colour!r}"
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/types.py:407
-#, python-brace-format
-msgid "Choice({choices})"
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/types.py:762
-#, python-brace-format
-msgid "{value!r} is not a valid boolean. Recognized values: {states}"
-msgstr ""
-
-#: ring_env/Lib/site-packages/click/utils.py:345
-#: ring_env/Lib/site-packages/click/utils.py:366
-#, python-brace-format
-msgid "Unknown standard stream '{name}'"
-msgstr ""
 
 # --- Event form ---
 #: templates/event_form.html:12
 msgid "Bezeichnung"
 msgstr "Name"
 
-#: templates/event_form.html:16
+#: templates/event_form.html:16 templates/print/vdh_formulaire.html:73
+#: templates/print/vdh_formulaire.html:98
 msgid "Datum"
 msgstr "Date"
 
@@ -779,12 +390,12 @@ msgid "Klassen:"
 msgstr "Classes:"
 
 #: templates/event_form.html:89 templates/live_run_entry.html:58
-#: templates/ring_pc_dashboard.html:149 templates/ring_pc_dashboard.html:168
+#: templates/ring_pc_dashboard.html:184 templates/ring_pc_dashboard.html:207
 msgid "Speichern"
 msgstr "Save"
 
 #: templates/event_form.html:90 templates/live_run_entry.html:57
-#: templates/ring_pc_dashboard.html:150 templates/ring_pc_dashboard.html:169
+#: templates/ring_pc_dashboard.html:185 templates/ring_pc_dashboard.html:208
 #: templates/select_dog_for_run.html:30
 msgid "Abbrechen"
 msgstr "Cancel"
@@ -846,7 +457,7 @@ msgstr "Start list JSON → Create test event"
 
 #: templates/events_list.html:74
 msgid "Unbenannte Veranstaltung (Alt-Schema – kann gelöscht werden)"
-msgstr ""
+msgstr "Unnamed event (legacy schema – can be deleted)"
 
 #: templates/events_list.html:93
 msgid "Keine Veranstaltungen gefunden."
@@ -862,12 +473,8 @@ msgid "Willkommen bei der AgilitySuite"
 msgstr "Welcome to AgilitySuite"
 
 #: templates/home.html:8
-msgid ""
-"Ihre web-basierte Lösung zur Verwaltung von Agility-Turnieren. Von der "
-"Erstellung der Veranstaltung bis zur Live-Anzeige der Resultate."
-msgstr ""
-"Your web-based solution for managing agility tournaments. From creating "
-"the event to the live display of results."
+msgid "Ihre web-basierte Lösung zur Verwaltung von Agility-Turnieren. Von der Erstellung der Veranstaltung bis zur Live-Anzeige der Resultate."
+msgstr "Your web-based solution for managing agility tournaments. From creating the event to the live display of results."
 
 #: templates/home.html:9
 msgid "Zu den Veranstaltungen"
@@ -887,12 +494,8 @@ msgid "Stammdaten"
 msgstr "Master data"
 
 #: templates/home.html:29
-msgid ""
-"Verwalten Sie hier zentral alle Richter, Vereine, Hundeführer und Hunde. "
-"Importieren Sie neue Daten einfach via CSV-Upload."
-msgstr ""
-"Centrally manage all judges, clubs, handlers and dogs here. Import new "
-"data easily via CSV upload."
+msgid "Verwalten Sie hier zentral alle Richter, Vereine, Hundeführer und Hunde. Importieren Sie neue Daten einfach via CSV-Upload."
+msgstr "Centrally manage all judges, clubs, handlers and dogs here. Import new data easily via CSV upload."
 
 #: templates/home.html:30
 msgid "Stammdaten verwalten"
@@ -904,12 +507,8 @@ msgid "Einstellungen"
 msgstr "Settings"
 
 #: templates/home.html:36
-msgid ""
-"Passen Sie globale Parameter wie Berechnungsfaktoren für SCT/MCT und die "
-"Standard-Startnummern-Schemata an Ihre Bedürfnisse an."
-msgstr ""
-"Adjust global parameters such as SCT/MCT calculation factors and the "
-"default start number schemes to your needs."
+msgid "Passen Sie globale Parameter wie Berechnungsfaktoren für SCT/MCT und die Standard-Startnummern-Schemata an Ihre Bedürfnisse an."
+msgstr "Adjust global parameters such as SCT/MCT calculation factors and the default start number schemes to your needs."
 
 #: templates/home.html:37
 msgid "Zu den Einstellungen"
@@ -920,192 +519,215 @@ msgid "KO-Final"
 msgstr "KO final"
 
 # --- Startlist print ---
-#: templates/ko_cup_print.html:38 templates/ko_cup_rings_print.html:30
-#: templates/print/_print_button.html:10 templates/print_award_list.html:132
-#: templates/print_stewardlists.html:7
+#: templates/ko_cup_print.html:40 templates/ko_cup_rings_print.html:30
+#: templates/ko_cup_scribe_print.html:38 templates/print/_print_button.html:10
+#: templates/print_award_list.html:132 templates/print_stewardlists.html:7
 msgid "Drucken"
 msgstr "Print"
 
-#: templates/ko_cup_print.html:39
+#: templates/ko_cup_print.html:41
 msgid "Ring-Startlisten (alle Kategorien)"
 msgstr "Ring start lists (all categories)"
 
 # --- Ranking ---
-#: templates/ko_cup_print.html:48
+#: templates/ko_cup_print.html:50
 msgid "Endrangliste"
 msgstr "Final ranking"
 
-#: templates/ko_cup_print.html:48
+#: templates/ko_cup_print.html:50
 msgid "Zwischenstand"
 msgstr "Interim standing"
 
-#: templates/ko_cup_print.html:51 templates/ranking.html:30
+#: templates/ko_cup_print.html:53 templates/ranking.html:30
 msgid "Rang"
 msgstr "Rank"
 
-#: templates/ko_cup_print.html:51 templates/ko_cup_print.html:132
-#: templates/ko_cup_rings_print.html:49 templates/live_run_entry.html:25
+#: templates/ko_cup_print.html:53 templates/ko_cup_print.html:143
+#: templates/ko_cup_rings_print.html:50 templates/live_run_entry.html:25
 #: templates/manage_event_participants.html:25
 #: templates/print/_steward_list_table.html:10 templates/print/all.html:168
-#: templates/print/all.html:203 templates/print/all.html:245
+#: templates/print/all.html:206 templates/print/all.html:245
 #: templates/print/briefing_groups.html:67
-#: templates/print/master_steward_list.html:70
-#: templates/print/master_steward_list_by_schedule.html:68
-#: templates/print/participant_list.html:31 templates/print/scribe_list.html:72
-#: templates/print/scribe_list_by_schedule.html:73
+#: templates/print/fr_formulaire_list.html:19
+#: templates/print/master_steward_list.html:73
+#: templates/print/master_steward_list_by_schedule.html:71
+#: templates/print/participant_list.html:31 templates/print/scribe_list.html:73
+#: templates/print/scribe_list_by_schedule.html:74
 #: templates/print/startlists_by_schedule.html:62
+#: templates/print/vdh_formulaire.html:46
+#: templates/print/vdh_formulaire_list.html:19
 #: templates/print_award_list.html:158 templates/print_ranking_pdf.html:207
 #: templates/print_ranking_single.html:38 templates/print_startlists.html:67
 #: templates/ranking.html:32
 msgid "Hund"
 msgstr "Dog"
 
-#: templates/ko_cup_print.html:51 templates/ko_cup_print.html:133
+#: templates/ko_cup_print.html:53 templates/ko_cup_print.html:144
 msgid "Führer"
 msgstr "Handler"
 
-#: templates/ko_cup_print.html:51 templates/ko_cup_print.html:82
-#: templates/ko_cup_print.html:131 templates/ko_cup_rings_print.html:48
-#: templates/print/all.html:166 templates/print/all.html:201
-#: templates/print/all.html:244 templates/print/briefing_groups.html:65
-#: templates/print/master_steward_list.html:68
-#: templates/print/master_steward_list_by_schedule.html:66
-#: templates/print/participant_list.html:33 templates/print/scribe_list.html:71
-#: templates/print/scribe_list_by_schedule.html:72
+#: templates/ko_cup_print.html:53 templates/ko_cup_print.html:85
+#: templates/ko_cup_print.html:142 templates/ko_cup_rings_print.html:49
+#: templates/ko_cup_scribe_print.html:60 templates/print/all.html:166
+#: templates/print/all.html:204 templates/print/all.html:244
+#: templates/print/briefing_groups.html:65
+#: templates/print/fr_formulaire_list.html:21
+#: templates/print/master_steward_list.html:71
+#: templates/print/master_steward_list_by_schedule.html:69
+#: templates/print/participant_list.html:33 templates/print/scribe_list.html:72
+#: templates/print/scribe_list_by_schedule.html:73
 #: templates/print/startlists_by_schedule.html:60
+#: templates/print/vdh_formulaire_list.html:21
 #: templates/print_ranking_single.html:36 templates/print_startlists.html:65
 msgid "Start-Nr."
 msgstr "Start no."
 
-#: templates/ko_cup_print.html:71
+#: templates/ko_cup_print.html:73
 msgid "Duell-Laufzettel"
 msgstr "Duel run sheet"
 
-#: templates/ko_cup_print.html:77 templates/ko_cup_rings_print.html:47
+#: templates/ko_cup_print.html:80 templates/ko_cup_rings_print.html:48
+#: templates/ko_cup_scribe_print.html:54
 msgid "Duell"
 msgstr "Duel"
 
-#: templates/ko_cup_print.html:81
+#: templates/ko_cup_print.html:84 templates/ko_cup_scribe_print.html:59
 msgid "Team"
 msgstr "Team"
 
-#: templates/ko_cup_print.html:83 templates/ko_cup_print.html:85
+#: templates/ko_cup_print.html:86 templates/ko_cup_print.html:88
+#: templates/ko_cup_scribe_print.html:61 templates/ko_cup_scribe_print.html:63
 #: templates/print/all.html:94 templates/print/all.html:102
 #: templates/print/schedule.html:44 templates/print/schedule.html:64
-#: templates/ring_pc_dashboard.html:22
+#: templates/print/vdh_formulaire.html:83 templates/ring_pc_dashboard.html:22
 msgid "Lauf"
 msgstr "Run"
 
-#: templates/ko_cup_print.html:83 templates/ko_cup_print.html:85
-#: templates/plan_schedule.html:73 templates/print/all.html:96
+#: templates/ko_cup_print.html:86 templates/ko_cup_print.html:88
+#: templates/ko_cup_scribe_print.html:61 templates/ko_cup_scribe_print.html:63
+#: templates/plan_schedule.html:80 templates/print/all.html:96
 #: templates/print/all.html:197 templates/print/all.html:231
 #: templates/print/all.html:313 templates/print/all.html:317
 #: templates/print/all.html:338 templates/print/all.html:342
 #: templates/print/briefing_groups.html:56
 #: templates/print/master_steward_list_by_schedule.html:62
 #: templates/print/schedule.html:58
-#: templates/print/scribe_list_by_schedule.html:58
+#: templates/print/scribe_list_by_schedule.html:59
 #: templates/print/startlists_by_schedule.html:55
 msgid "Ring"
 msgstr "Ring"
 
-#: templates/ko_cup_print.html:84 templates/ko_cup_print.html:86
+#: templates/ko_cup_print.html:87 templates/ko_cup_print.html:89
+#: templates/ko_cup_scribe_print.html:62 templates/ko_cup_scribe_print.html:64
 msgid "Zeit / F / V / DIS"
 msgstr "Time / F / R / DIS"
 
-#: templates/ko_cup_print.html:87 templates/print/_steward_list_table.html:14
+#: templates/ko_cup_print.html:90 templates/ko_cup_scribe_print.html:65
+#: templates/print/_steward_list_table.html:14
 msgid "Total"
 msgstr "Total"
 
-#: templates/ko_cup_print.html:97 templates/ko_cup_print.html:112
-#: templates/ko_cup_print.html:115
+#: templates/ko_cup_print.html:100 templates/ko_cup_print.html:123
+#: templates/ko_cup_print.html:126 templates/ko_cup_scribe_print.html:75
+#: templates/ko_cup_scribe_print.html:98 templates/ko_cup_scribe_print.html:101
 msgid "Sieger"
 msgstr "Winner"
 
-#: templates/ko_cup_print.html:97
+#: templates/ko_cup_print.html:100 templates/ko_cup_scribe_print.html:75
 msgid "Verlierer"
 msgstr "Loser"
 
-#: templates/ko_cup_print.html:97
+#: templates/ko_cup_print.html:100 templates/ko_cup_scribe_print.html:75
 msgid "Vorrunde"
 msgstr "Preliminary round"
 
-#: templates/ko_cup_print.html:97
+#: templates/ko_cup_print.html:100 templates/ko_cup_scribe_print.html:75
 msgid "Freilos"
 msgstr "Bye"
 
-#: templates/ko_cup_print.html:113
+#: templates/ko_cup_print.html:124 templates/ko_cup_scribe_print.html:99
 msgid "Gleichstand – manuell entscheiden"
 msgstr "Tie – decide manually"
 
-#: templates/ko_cup_print.html:114
+#: templates/ko_cup_print.html:125 templates/ko_cup_scribe_print.html:100
 msgid "Forfeit"
 msgstr "Forfeit"
 
-#: templates/ko_cup_print.html:117
+#: templates/ko_cup_print.html:128 templates/ko_cup_scribe_print.html:103
 msgid "F = Fehler (+2 s) · V = Verweigerung (+2 s) · DIS (+5 s)"
 msgstr "F = fault (+2 s) · R = refusal (+2 s) · DIS (+5 s)"
 
 # print templates
-#: templates/ko_cup_print.html:126
+#: templates/ko_cup_print.html:137
 msgid "Finalisten"
 msgstr "Finalists"
 
-#: templates/ko_cup_print.html:130
+#: templates/ko_cup_print.html:141
 msgid "Los"
 msgstr "Draw"
 
-#: templates/ko_cup_print.html:134
+#: templates/ko_cup_print.html:145
 msgid "Quelle"
 msgstr "Source"
 
-#: templates/ko_cup_print.html:147
+#: templates/ko_cup_print.html:158
 msgid "Noch keine Finalisten."
 msgstr "No finalists yet."
 
 # print templates
-#: templates/ko_cup_rings_print.html:5
+#: templates/ko_cup_rings_print.html:5 templates/ko_cup_scribe_print.html:39
 msgid "Ring-Startlisten"
 msgstr "Ring start lists"
 
-#: templates/ko_cup_rings_print.html:36
-msgid ""
-"Laufreihenfolge über alle Kategorien: frühe Runden zuerst, Finalrunden "
-"(Spiel um Platz 3, dann Final) aller Kategorien gemeinsam am Schluss in "
-"der Reihenfolge Small – Medium – Intermediate – Large. Nur Lauf 1 "
-"aufgelistet — bei Lauf 2 wechseln dieselben Teams intern den Ring."
-msgstr ""
-"Running order across all categories: early rounds first, final rounds "
-"(3rd place match, then final) of all categories together at the end, in "
-"the order Small – Medium – Intermediate – Large. Only run 1 is listed — "
-"for run 2 the same teams switch rings internally."
+#: templates/ko_cup_rings_print.html:31
+msgid "Ringschreiberliste (Ablauf)"
+msgstr "Scribe list (running order)"
+
+#: templates/ko_cup_rings_print.html:37
+msgid "Laufreihenfolge über alle Kategorien: frühe Runden zuerst, Finalrunden (Spiel um Platz 3, dann Final) aller Kategorien gemeinsam am Schluss in der Reihenfolge Small – Medium – Intermediate – Large. Nur Lauf 1 aufgelistet — bei Lauf 2 wechseln dieselben Teams intern den Ring."
+msgstr "Running order across all categories: early rounds first, final rounds (3rd place match, then final) of all categories together at the end, in the order Small – Medium – Intermediate – Large. Only run 1 is listed — for run 2 the same teams switch rings internally."
 
 # print templates
-#: templates/ko_cup_rings_print.html:41
+#: templates/ko_cup_rings_print.html:42
 msgid "Startliste Ring"
 msgstr "Start list Ring"
 
-#: templates/ko_cup_rings_print.html:46
+#: templates/ko_cup_rings_print.html:47
 msgid "Runde"
 msgstr "Round"
 
-#: templates/ko_cup_rings_print.html:50 templates/live_run_entry.html:25
+#: templates/ko_cup_rings_print.html:51 templates/live_run_entry.html:25
 #: templates/manage_event_participants.html:26 templates/master_data.html:17
-#: templates/print/_steward_list_table.html:10 templates/print/all.html:202
+#: templates/print/_steward_list_table.html:10 templates/print/all.html:205
 #: templates/print/all.html:245 templates/print/briefing_groups.html:66
-#: templates/print/master_steward_list.html:69
-#: templates/print/master_steward_list_by_schedule.html:67
-#: templates/print/participant_list.html:30 templates/print/scribe_list.html:72
-#: templates/print/scribe_list_by_schedule.html:73
+#: templates/print/fr_formulaire_list.html:18
+#: templates/print/master_steward_list.html:72
+#: templates/print/master_steward_list_by_schedule.html:70
+#: templates/print/participant_list.html:30 templates/print/scribe_list.html:73
+#: templates/print/scribe_list_by_schedule.html:74
 #: templates/print/startlists_by_schedule.html:61
+#: templates/print/vdh_formulaire.html:57
+#: templates/print/vdh_formulaire_list.html:18
 #: templates/print_award_list.html:157 templates/print_ranking_pdf.html:206
 #: templates/print_ranking_single.html:37 templates/ranking.html:32
 msgid "Hundeführer"
 msgstr "Handler"
 
-#: templates/ko_cup_rings_print.html:64
+#: templates/ko_cup_rings_print.html:65
 msgid "Noch keine Duelle mit Ring-Zuteilung."
 msgstr "No duels with ring assignment yet."
+
+#: templates/ko_cup_scribe_print.html:5 templates/ko_cup_scribe_print.html:44
+msgid "KO-Ringschreiberliste"
+msgstr "KO scribe list"
+
+#: templates/ko_cup_scribe_print.html:46
+msgid "Alle Duelle in Ablauf-Reihenfolge: frühe Runden aller Kategorien zuerst, Finalrunden zuletzt (Small – Medium – Intermediate – Large; Spiel um Platz 3 vor dem grossen Final)."
+msgstr "All duels in running order: early rounds of all categories first, final rounds last (Small – Medium – Intermediate – Large; third-place match before the grand final)."
+
+#: templates/ko_cup_scribe_print.html:107
+msgid "Noch keine Duelle mit Teilnehmern."
+msgstr "No duels with participants yet."
 
 # --- Live event dashboard ---
 #: templates/live_event_dashboard.html:2 templates/live_event_dashboard.html:7
@@ -1169,9 +791,7 @@ msgid "Für diesen Ring sind keine Läufe im Zeitplan eingetragen."
 msgstr "No runs are scheduled for this ring."
 
 #: templates/live_event_dashboard.html:102
-msgid ""
-"Für diese Veranstaltung wurden keine Läufe einem Ring zugewiesen. Bitte "
-"erstellen Sie zuerst einen"
+msgid "Für diese Veranstaltung wurden keine Läufe einem Ring zugewiesen. Bitte erstellen Sie zuerst einen"
 msgstr "No runs have been assigned to a ring for this event. Please first create a"
 
 #: templates/live_event_dashboard.html:102 templates/print/all.html:96
@@ -1190,8 +810,8 @@ msgstr "Result entry"
 msgid "Zurück zum Dashboard"
 msgstr "Back to dashboard"
 
-#: templates/live_run_entry.html:16 templates/manage_runs.html:101
-#: templates/manage_runs.html:131
+#: templates/live_run_entry.html:16 templates/manage_runs.html:103
+#: templates/manage_runs.html:133
 msgid "Laufdaten"
 msgstr "Run data"
 
@@ -1204,8 +824,8 @@ msgid "Für Sprecher-Anzeige aktivieren"
 msgstr "Activate for speaker display"
 
 #: templates/live_run_entry.html:25 templates/print/_steward_list_table.html:13
-#: templates/print/all.html:248 templates/print/scribe_list.html:75
-#: templates/print/scribe_list_by_schedule.html:76 templates/ranking.html:35
+#: templates/print/all.html:248 templates/print/scribe_list.html:76
+#: templates/print/scribe_list_by_schedule.html:77 templates/ranking.html:35
 msgid "Verw."
 msgstr "Ref."
 
@@ -1221,11 +841,11 @@ msgstr "Show full ranking"
 msgid "Zeit (s)"
 msgstr "Time (s)"
 
-#: templates/live_run_entry.html:51
+#: templates/live_run_entry.html:51 templates/ring_pc_dashboard.html:199
 msgid "Verweigerungen"
 msgstr "Refusals"
 
-#: templates/live_run_entry.html:52
+#: templates/live_run_entry.html:52 templates/ring_pc_dashboard.html:201
 msgid "Disqualifikation"
 msgstr "Disqualification"
 
@@ -1287,43 +907,52 @@ msgstr "Import participants"
 msgid "Alle Teilnehmer verwalten"
 msgstr "Manage all participants"
 
-#: templates/manage_runs.html:54
+#: templates/manage_runs.html:20 templates/print/fr_formulaire_list.html:2
+#: templates/print/fr_formulaire_list.html:6
+msgid "CNEAC-Ergebnisformulare"
+msgstr "CNEAC result forms"
+
+#: templates/manage_runs.html:21 templates/print/vdh_formulaire_list.html:2
+msgid "VDH-Auslandsergebnisse"
+msgstr "VDH foreign results"
+
+#: templates/manage_runs.html:56
 msgid "Event-Paket exportieren"
 msgstr "Export event package"
 
-#: templates/manage_runs.html:60
+#: templates/manage_runs.html:62
 msgid "Live-Dashboard öffnen"
 msgstr "Open live dashboard"
 
-#: templates/manage_runs.html:64
+#: templates/manage_runs.html:66
 msgid "Live beenden"
 msgstr "End live"
 
-#: templates/manage_runs.html:68
+#: templates/manage_runs.html:70
 msgid "Als Live setzen & starten"
 msgstr "Set as live & start"
 
-#: templates/manage_runs.html:81
+#: templates/manage_runs.html:83
 msgid "Läufe"
 msgstr "Runs"
 
 # --- Ranking ---
-#: templates/manage_runs.html:99 templates/manage_runs.html:129
+#: templates/manage_runs.html:101 templates/manage_runs.html:131
 #: templates/print_ranking_pdf.html:5 templates/print_ranking_pdf.html:166
 #: templates/print_ranking_single.html:5 templates/print_ranking_single.html:25
 #: templates/ranking.html:2 templates/ranking.html:7
 msgid "Rangliste"
 msgstr "Ranking"
 
-#: templates/manage_runs.html:100 templates/manage_runs.html:130
+#: templates/manage_runs.html:102 templates/manage_runs.html:132
 msgid "Teilnehmer"
 msgstr "Participants"
 
-#: templates/manage_runs.html:113
+#: templates/manage_runs.html:115
 msgid "Ohne Ringzuweisung"
 msgstr "Without ring assignment"
 
-#: templates/manage_runs.html:142
+#: templates/manage_runs.html:144
 msgid "Für diese Veranstaltung wurden noch keine Läufe erstellt."
 msgstr "No runs have been created for this event yet."
 
@@ -1403,67 +1032,101 @@ msgstr "Preparation documents"
 msgid "Zeitplan speichern"
 msgstr "Save schedule"
 
-#: templates/plan_schedule.html:56 templates/plan_schedule.html:205
+#: templates/plan_schedule.html:62 templates/plan_schedule.html:212
 msgid "Block hinzufügen"
 msgstr "Add block"
 
-#: templates/plan_schedule.html:65
+#: templates/plan_schedule.html:71
 msgid "Block-Typ"
 msgstr "Block type"
 
-#: templates/plan_schedule.html:82
+#: templates/plan_schedule.html:89
 msgid "Titel (optional)"
 msgstr "Title (optional)"
 
-#: templates/plan_schedule.html:161
+#: templates/plan_schedule.html:168
 msgid "Richter (run)"
 msgstr "Judge (run)"
 
-#: templates/plan_schedule.html:241
+#: templates/plan_schedule.html:248
 msgid "Entfernen"
 msgstr "Remove"
 
-#: templates/plan_schedule.html:266
+#: templates/plan_schedule.html:280
+msgid "Teilnehmer-Override (leer = automatisch)"
+msgstr "Participants override (empty = automatic)"
+
+#: templates/plan_schedule.html:286
+msgid "Umbau einrechnen"
+msgstr "Include course change"
+
+#: templates/plan_schedule.html:286 templates/print/all.html:94
+#: templates/print/schedule.html:44
+msgid "Umbau"
+msgstr "Changeover"
+
+#: templates/plan_schedule.html:290
+msgid "Briefing einrechnen"
+msgstr "Include briefing"
+
+#: templates/plan_schedule.html:290 templates/print/all.html:94
+#: templates/print/schedule.html:44
+msgid "Briefing"
+msgstr "Briefing"
+
+#: templates/plan_schedule.html:295
+msgid "Neue Gruppe erzwingen (eigener Umbau + eigenes Briefing)"
+msgstr "Force new group (own course change + own briefing)"
+
+#: templates/plan_schedule.html:295
+msgid "Split"
+msgstr "Split"
+
+#: templates/plan_schedule.html:306
+msgid "Finalteilnehmer"
+msgstr "Final participants"
+
+#: templates/plan_schedule.html:318
 msgid "Noch keine Blöcke geplant."
 msgstr "No blocks planned yet."
 
-#: templates/plan_schedule.html:276
+#: templates/plan_schedule.html:328
 msgid "Zeitplan-Vorschau (berechnete Timeline)"
 msgstr "Schedule preview (calculated timeline)"
 
-#: templates/plan_schedule.html:320
+#: templates/plan_schedule.html:372
 msgid "Startnummern-Schema"
 msgstr "Start number scheme"
 
-#: templates/plan_schedule.html:322
+#: templates/plan_schedule.html:374
 msgid "Vorlage laden"
 msgstr "Load template"
 
-#: templates/plan_schedule.html:333
+#: templates/plan_schedule.html:385
 msgid "Startnummer ab"
 msgstr "Start number from"
 
-#: templates/plan_schedule.html:366
+#: templates/plan_schedule.html:418
 msgid "Schema speichern"
 msgstr "Save scheme"
 
-#: templates/plan_schedule.html:374
+#: templates/plan_schedule.html:426
 msgid "Startnummern vergeben"
 msgstr "Assign start numbers"
 
-#: templates/plan_schedule.html:378
+#: templates/plan_schedule.html:430
 msgid "Abstand zwischen Hundeführern"
 msgstr "Gap between handlers"
 
-#: templates/plan_schedule.html:382
+#: templates/plan_schedule.html:434
 msgid "Startnummern generieren"
 msgstr "Generate start numbers"
 
-#: templates/plan_schedule.html:393
+#: templates/plan_schedule.html:445
 msgid "Vorschau – vergebene Startnummern"
 msgstr "Preview – assigned start numbers"
 
-#: templates/plan_schedule.html:415
+#: templates/plan_schedule.html:467
 msgid "Noch keine Startnummern vergeben."
 msgstr "No start numbers assigned yet."
 
@@ -1476,7 +1139,7 @@ msgstr "Winners list"
 msgid "Alle Ränge anzeigen"
 msgstr "Show all ranks"
 
-#: templates/print_award_list.html:136 templates/ring_pc_dashboard.html:39
+#: templates/print_award_list.html:136 templates/ring_pc_dashboard.html:54
 msgid "Zurück zum Live-Dashboard"
 msgstr "Back to live dashboard"
 
@@ -1524,13 +1187,16 @@ msgstr "Number of teams"
 msgid "Rasse"
 msgstr "Breed"
 
-#: templates/print/all.html:170 templates/print_startlists.html:69
+#: templates/print/all.html:170 templates/print/vdh_formulaire.html:74
+#: templates/print_startlists.html:69
 msgid "Verein"
 msgstr "Club"
 
 #: templates/print/all.html:180 templates/print/all.html:257
-#: templates/print/scribe_list.html:84
-#: templates/print/scribe_list_by_schedule.html:85
+#: templates/print/master_steward_list.html:87
+#: templates/print/master_steward_list_by_schedule.html:85
+#: templates/print/scribe_list.html:85
+#: templates/print/scribe_list_by_schedule.html:86
 #: templates/print_startlists.html:79
 msgid "Ausland"
 msgstr "Foreign"
@@ -1552,8 +1218,8 @@ msgstr "Printed"
 #: templates/print/briefing_groups.html:87
 #: templates/print/briefing_groups.html:92
 #: templates/print/master_steward_list_by_schedule.html:94
-#: templates/print/schedule.html:122 templates/print/scribe_list.html:97
-#: templates/print/scribe_list_by_schedule.html:98
+#: templates/print/schedule.html:122 templates/print/scribe_list.html:98
+#: templates/print/scribe_list_by_schedule.html:99
 #: templates/print/startlists_by_schedule.html:85
 #: templates/print_startlists.html:94
 msgid "Kein Zeitplan vorhanden"
@@ -1575,17 +1241,21 @@ msgstr "Time faults"
 msgid "Noch keine Resultate für die Rangliste erfasst."
 msgstr "No results have been entered for the ranking yet."
 
-#: templates/ring_monitor.html:2 templates/ring_monitor.html:14
+#: templates/ring_monitor.html:2 templates/ring_monitor.html:36
 msgid "Ring Monitor"
 msgstr "Ring Monitor"
 
-#: templates/ring_monitor.html:90 templates/ring_monitor.html:102
+#: templates/ring_monitor.html:116 templates/ring_monitor.html:128
 msgid "Bereit"
 msgstr "Ready"
 
-#: templates/ring_monitor.html:102
+#: templates/ring_monitor.html:128
 msgid "Aktuell"
 msgstr "Current"
+
+#: templates/ring_monitor.html:226
+msgid "weitere"
+msgstr "more"
 
 # --- Ring PC dashboard ---
 #: templates/ring_pc_dashboard.html:21
@@ -1596,57 +1266,85 @@ msgstr "No connection"
 msgid "Kein Lauf ausgewählt"
 msgstr "No run selected"
 
-#: templates/ring_pc_dashboard.html:44
+#: templates/ring_pc_dashboard.html:59
 msgid "Lauf auswählen & Steuerung"
 msgstr "Select run & control"
 
-#: templates/ring_pc_dashboard.html:48
+#: templates/ring_pc_dashboard.html:63
 msgid "Keine Läufe verfügbar"
 msgstr "No runs available"
 
-#: templates/ring_pc_dashboard.html:61
+#: templates/ring_pc_dashboard.html:76
 msgid "Verbinde mit Ring-Server..."
 msgstr "Connecting to ring server..."
 
-#: templates/ring_pc_dashboard.html:65
-msgid "Schnell speichern (Zeit/F/V)"
-msgstr "Quick save (Time/F/R)"
-
-#: templates/ring_pc_dashboard.html:72
+#: templates/ring_pc_dashboard.html:83
 msgid "Aktuellen Lauf zurücksetzen"
 msgstr "Reset current run"
 
-#: templates/ring_pc_dashboard.html:76
+#: templates/ring_pc_dashboard.html:86
+msgid "Nächsten Starter automatisch bereit setzen"
+msgstr "Automatically set next starter ready"
+
+#: templates/ring_pc_dashboard.html:91
 msgid "Portal-Export (PDF)"
 msgstr "Portal export (PDF)"
 
-#: templates/ring_pc_dashboard.html:94
+#: templates/ring_pc_dashboard.html:95
+msgid "Portal"
+msgstr "Portal"
+
+#: templates/ring_pc_dashboard.html:99
+msgid "Download"
+msgstr "Download"
+
+#: templates/ring_pc_dashboard.html:119
 msgid "Starterliste & Resultate"
 msgstr "Starter list & results"
 
-#: templates/ring_pc_dashboard.html:95
+#: templates/ring_pc_dashboard.html:120
 msgid "Bitte wählen Sie links einen Lauf aus."
 msgstr "Please select a run on the left."
 
-#: templates/ring_pc_dashboard.html:103
+#: templates/ring_pc_dashboard.html:128
 msgid "Laufdaten bearbeiten"
 msgstr "Edit run data"
 
-#: templates/ring_pc_dashboard.html:108
+#: templates/ring_pc_dashboard.html:133
 msgid "— kein Richter —"
 msgstr "— no judge —"
 
-#: templates/ring_pc_dashboard.html:116
+#: templates/ring_pc_dashboard.html:141
 msgid "Parcourslänge (m)"
 msgstr "Course length (m)"
 
-#: templates/ring_pc_dashboard.html:120
+#: templates/ring_pc_dashboard.html:145
 msgid "Anzahl Hindernisse"
 msgstr "Number of obstacles"
 
-#: templates/ring_pc_dashboard.html:158
+#: templates/ring_pc_dashboard.html:173
+msgid "Gültig bis Lauf"
+msgstr "Valid until run"
+
+#: templates/ring_pc_dashboard.html:175
+msgid "— nur dieser Lauf —"
+msgstr "— this run only —"
+
+#: templates/ring_pc_dashboard.html:180
+msgid "Übernimmt Richter/Parcours/Hindernisse/SCT für alle Läufe dieses Rings bis zum gewählten Lauf (z.B. bis zum nächsten Umbau/Briefing)."
+msgstr "Carries over judge/course/obstacles/SCT for all runs of this ring up to the selected run (e.g. until the next course change/briefing)."
+
+#: templates/ring_pc_dashboard.html:193
 msgid "Resultat bearbeiten"
 msgstr "Edit result"
+
+#: templates/ring_pc_dashboard.html:195
+msgid "Zeit (Sekunden)"
+msgstr "Time (seconds)"
+
+#: templates/ring_pc_dashboard.html:203
+msgid "Keine"
+msgstr "None"
 
 # --- Select dog for run ---
 #: templates/select_dog_for_run.html:2
@@ -1658,12 +1356,8 @@ msgid "Hund auswählen für"
 msgstr "Select dog for"
 
 #: templates/select_dog_for_run.html:10
-msgid ""
-"Dieser Hundeführer hat mehrere Hunde. Bitte wählen Sie aus, welcher Hund "
-"zum Lauf"
-msgstr ""
-"This handler has several dogs. Please select which dog should be added to"
-" the run"
+msgid "Dieser Hundeführer hat mehrere Hunde. Bitte wählen Sie aus, welcher Hund zum Lauf"
+msgstr "This handler has several dogs. Please select which dog should be added to the run"
 
 #: templates/select_dog_for_run.html:10
 msgid "hinzugefügt werden soll."
@@ -1699,12 +1393,8 @@ msgid "Vorlage für Startnummern-Schema"
 msgstr "Template for start number scheme"
 
 #: templates/settings.html:86
-msgid ""
-"Wenn aktiviert, werden Live-Ergebnisse automatisch an das AgilityPortal "
-"übertragen."
-msgstr ""
-"When enabled, live results are automatically transferred to the "
-"AgilityPortal."
+msgid "Wenn aktiviert, werden Live-Ergebnisse automatisch an das AgilityPortal übertragen."
+msgstr "When enabled, live results are automatically transferred to the AgilityPortal."
 
 #: templates/settings.html:87
 msgid "URL und API-Keys findest du im Portal unter"
@@ -1756,9 +1446,7 @@ msgid "Sprache für alle Ausdrucke"
 msgstr "Language for all printouts"
 
 #: templates/settings.html:204
-msgid ""
-"Gilt für Startlisten, Zeitplan, Ranglisten und alle weiteren "
-"Druckvorlagen."
+msgid "Gilt für Startlisten, Zeitplan, Ranglisten und alle weiteren Druckvorlagen."
 msgstr "Applies to start lists, schedule, rankings and all other print templates."
 
 #: templates/settings.html:209
@@ -1770,14 +1458,8 @@ msgid "Zielordner für Exporte (CSV, PDF, Event-Paket)"
 msgstr "Target folder for exports (CSV, PDF, event package)"
 
 #: templates/settings.html:215
-msgid ""
-"Leer lassen = beim Download fragen (Standard-Downloads-Ordner). Gültiger "
-"Pfad = Dateien werden ohne Nachfrage dorthin gespeichert. Gilt nur im "
-"App-Fenster, nicht im normalen Browser."
-msgstr ""
-"Leave empty = ask on download (default downloads folder). Valid path = "
-"files are saved there without prompting. Only applies within the app "
-"window, not in a regular browser."
+msgid "Leer lassen = beim Download fragen (Standard-Downloads-Ordner). Gültiger Pfad = Dateien werden ohne Nachfrage dorthin gespeichert. Gilt nur im App-Fenster, nicht im normalen Browser."
+msgstr "Leave empty = ask on download (default downloads folder). Valid path = files are saved there without prompting. Only applies within the app window, not in a regular browser."
 
 #: templates/settings.html:219
 msgid "Einstellungen speichern"
@@ -1808,6 +1490,7 @@ msgid "Bewertung"
 msgstr "Evaluation"
 
 #: templates/print/_steward_list_table.html:16
+#: templates/print/vdh_formulaire.html:99
 msgid "Unterschrift"
 msgstr "Signature"
 
@@ -1815,14 +1498,6 @@ msgstr "Signature"
 #: templates/print/all.html:5
 msgid "Sammeldruck"
 msgstr "Bulk print"
-
-#: templates/print/all.html:94 templates/print/schedule.html:44
-msgid "Umbau"
-msgstr "Changeover"
-
-#: templates/print/all.html:94 templates/print/schedule.html:44
-msgid "Briefing"
-msgstr "Briefing"
 
 #: templates/print/all.html:94 templates/print/schedule.html:44
 msgid "Prep-Pause"
@@ -1853,28 +1528,28 @@ msgstr "Categories"
 msgid "Klassen"
 msgstr "Classes"
 
-#: templates/print/all.html:236 templates/print/scribe_list.html:64
-#: templates/print/scribe_list_by_schedule.html:64
+#: templates/print/all.html:236 templates/print/scribe_list.html:65
+#: templates/print/scribe_list_by_schedule.html:65
 msgid "Anz. Geräte"
 msgstr "No. obstacles"
 
-#: templates/print/all.html:237 templates/print/scribe_list.html:65
-#: templates/print/scribe_list_by_schedule.html:65
+#: templates/print/all.html:237 templates/print/scribe_list.html:66
+#: templates/print/scribe_list_by_schedule.html:66
 msgid "Standardzeit (SCT)"
 msgstr "Standard time (SCT)"
 
-#: templates/print/all.html:238 templates/print/scribe_list.html:66
-#: templates/print/scribe_list_by_schedule.html:66
+#: templates/print/all.html:238 templates/print/scribe_list.html:67
+#: templates/print/scribe_list_by_schedule.html:67
 msgid "Maximalzeit (MCT)"
 msgstr "Maximum time (MCT)"
 
-#: templates/print/all.html:249 templates/print/scribe_list.html:76
-#: templates/print/scribe_list_by_schedule.html:77
+#: templates/print/all.html:249 templates/print/scribe_list.html:77
+#: templates/print/scribe_list_by_schedule.html:78
 msgid "DIS/ABR"
 msgstr "DIS/WD"
 
-#: templates/print/all.html:250 templates/print/scribe_list.html:77
-#: templates/print/scribe_list_by_schedule.html:78
+#: templates/print/all.html:250 templates/print/scribe_list.html:78
+#: templates/print/scribe_list_by_schedule.html:79
 msgid "Notizen"
 msgstr "Notes"
 
@@ -1929,6 +1604,33 @@ msgstr "Group sizes"
 msgid "Gruppe"
 msgstr "Group"
 
+#: templates/print/fr_formulaire_list.html:8
+msgid ""
+"Ausländische Teilnehmer (nach Lizenz-Präfix) dieses Events. Das PDF füllt das\n"
+"        offizielle CNEAC-Formular direkt auf der Originalvorlage mit den vorhandenen Daten aus\n"
+"        (Klasse 1/2/3 je Zeile Agility/Jumping); fehlende Felder (FAPAC, Territoriale/Pays,\n"
+"        Régionale, Sexe) bleiben leer."
+msgstr "Foreign participants (by license prefix) of this event. The PDF fills the official CNEAC form directly on the original template with the available data (class 1/2/3 per row Agility/Jumping); missing fields (FAPAC, Territoriale/Pays, Régionale, Sexe) stay blank."
+
+#: templates/print/fr_formulaire_list.html:17
+#: templates/print/vdh_formulaire.html:75
+#: templates/print/vdh_formulaire_list.html:17
+msgid "Land"
+msgstr "Country"
+
+#: templates/print/fr_formulaire_list.html:20
+#: templates/print/vdh_formulaire_list.html:20
+msgid "Lizenz"
+msgstr "License"
+
+#: templates/print/fr_formulaire_list.html:36
+msgid "PDF"
+msgstr "PDF"
+
+#: templates/print/fr_formulaire_list.html:41
+msgid "Keine ausländischen Teilnehmer gefunden."
+msgstr "No foreign participants found."
+
 #: templates/print/index.html:33
 msgid "Alles drucken (Sammeldruck)"
 msgstr "Print everything (bulk print)"
@@ -1963,7 +1665,7 @@ msgstr "Marshal list"
 #: templates/print/master_steward_list_by_schedule.html:5
 #: templates/print/master_steward_list_by_schedule.html:48
 #: templates/print/scribe_list_by_schedule.html:5
-#: templates/print/scribe_list_by_schedule.html:44
+#: templates/print/scribe_list_by_schedule.html:45
 #: templates/print/startlists_by_schedule.html:5
 #: templates/print/startlists_by_schedule.html:41
 msgid "nach Zeitplan"
@@ -1977,6 +1679,70 @@ msgstr "Participant list"
 #: templates/print/participant_list.html:45
 msgid "Keine Teilnehmer gefunden."
 msgstr "No participants found."
+
+#: templates/print/vdh_formulaire.html:5 templates/print/vdh_formulaire.html:42
+msgid "Bestätigung für Auslandsergebnisse"
+msgstr "Confirmation of foreign results"
+
+#: templates/print/vdh_formulaire.html:50
+msgid "Größenklasse"
+msgstr "Category"
+
+#: templates/print/vdh_formulaire.html:60
+msgid "Leistungsbuch Nr."
+msgstr "Performance book no."
+
+#: templates/print/vdh_formulaire.html:64
+msgid "Leistungsklasse"
+msgstr "Performance class"
+
+#: templates/print/vdh_formulaire.html:71
+msgid "Wettbewerb"
+msgstr "Competition"
+
+#: templates/print/vdh_formulaire.html:76
+msgid "Teilnehmer insgesamt"
+msgstr "Total competitors"
+
+#: templates/print/vdh_formulaire.html:81
+msgid "Ergebnis"
+msgstr "Result"
+
+#: templates/print/vdh_formulaire.html:87
+msgid "Platzierung"
+msgstr "Ranking"
+
+#: templates/print/vdh_formulaire.html:88
+msgid "Fehler insgesamt"
+msgstr "Total faults"
+
+#: templates/print/vdh_formulaire.html:102
+msgid "Der Richter bestätigt mit der Unterschrift, dass die eingetragenen Ergebnisse korrekt sind und der Wettbewerb (alle Leistungs- und Größenklassen zusammen) insgesamt mindestens 40 Teilnehmer hatte."
+msgstr "The judge confirms by signature that the entered results are correct and that the competition (all performance and size classes combined) had at least 40 participants in total."
+
+#: templates/print/vdh_formulaire.html:108
+msgid "Keine Läufe für diesen Starter gefunden."
+msgstr "No runs found for this starter."
+
+#: templates/print/vdh_formulaire_list.html:6
+msgid "VDH-Formular \"Bestätigung für Auslandsergebnisse\""
+msgstr "VDH form \"Confirmation of foreign results\""
+
+#: templates/print/vdh_formulaire_list.html:8
+msgid ""
+"Deutsche Starter (Lizenz-Ländercode DEU) dieses Events. Das Formular wird pro Lauf\n"
+"        mit den vorhandenen Daten vorbefüllt (Hund, Hundeführer, Lizenz, Ergebnis, Richter);\n"
+"        alle Felder sind optional und können handschriftlich ergänzt werden. Die\n"
+"        Richter-Unterschrift erfolgt auf dem Ausdruck."
+msgstr "German starters (license country code DEU) of this event. The form is pre-filled per run with the available data (dog, handler, license, result, judge); all fields are optional and can be completed by hand. The judge signs on the printout."
+
+#: templates/print/vdh_formulaire_list.html:36
+msgid "Formular"
+msgstr "Form"
+
+#: templates/print/vdh_formulaire_list.html:41
+msgid "Keine deutschen Teilnehmer gefunden."
+msgstr "No German participants found."
 
 #~ msgid "Gestartet"
 #~ msgstr "Started"
@@ -2022,4 +1788,257 @@ msgstr "No participants found."
 
 #~ msgid "Wildcard"
 #~ msgstr "Wildcard"
+
+#~ msgid "{editor}: Editing failed"
+#~ msgstr ""
+
+#~ msgid "{editor}: Editing failed: {e}"
+#~ msgstr ""
+
+#~ msgid "{text} {deprecated_message}"
+#~ msgstr ""
+
+#~ msgid "Options"
+#~ msgstr ""
+
+#~ msgid "Got unexpected extra argument ({args})"
+#~ msgid_plural "Got unexpected extra arguments ({args})"
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "DeprecationWarning: The command {name!r} is deprecated.{extra_message}"
+#~ msgstr ""
+
+#~ msgid "Aborted!"
+#~ msgstr ""
+
+#~ msgid "Commands"
+#~ msgstr ""
+
+#~ msgid "Missing command."
+#~ msgstr ""
+
+#~ msgid "No such command {name!r}."
+#~ msgstr ""
+
+#~ msgid "Value must be an iterable."
+#~ msgstr ""
+
+#~ msgid "Takes {nargs} values but 1 was given."
+#~ msgid_plural "Takes {nargs} values but {len} were given."
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "DeprecationWarning: The {param_type} {name!r} is deprecated.{extra_message}"
+#~ msgstr ""
+
+#~ msgid "env var: {var}"
+#~ msgstr ""
+
+#~ msgid "default: {default}"
+#~ msgstr ""
+
+#~ msgid "required"
+#~ msgstr ""
+
+#~ msgid "(dynamic)"
+#~ msgstr ""
+
+#~ msgid "%(prog)s, version %(version)s"
+#~ msgstr ""
+
+#~ msgid "Show the version and exit."
+#~ msgstr ""
+
+#~ msgid "Show this message and exit."
+#~ msgstr ""
+
+#~ msgid "Error: {message}"
+#~ msgstr ""
+
+#~ msgid "Try '{command} {option}' for help."
+#~ msgstr ""
+
+#~ msgid "Invalid value: {message}"
+#~ msgstr ""
+
+#~ msgid "Invalid value for {param_hint}: {message}"
+#~ msgstr ""
+
+#~ msgid "Missing argument"
+#~ msgstr ""
+
+#~ msgid "Missing option"
+#~ msgstr ""
+
+#~ msgid "Missing parameter"
+#~ msgstr ""
+
+#~ msgid "Missing {param_type}"
+#~ msgstr ""
+
+#~ msgid "Missing parameter: {param_name}"
+#~ msgstr ""
+
+#~ msgid "No such option: {name}"
+#~ msgstr ""
+
+#~ msgid "Did you mean {possibility}?"
+#~ msgid_plural "(Possible options: {possibilities})"
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "unknown error"
+#~ msgstr ""
+
+#~ msgid "Could not open file {filename!r}: {message}"
+#~ msgstr ""
+
+#~ msgid "Usage:"
+#~ msgstr ""
+
+#~ msgid "Argument {name!r} takes {nargs} values."
+#~ msgstr ""
+
+#~ msgid "Option {name!r} does not take a value."
+#~ msgstr ""
+
+#~ msgid "Option {name!r} requires an argument."
+#~ msgid_plural "Option {name!r} requires {nargs} arguments."
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "Shell completion is not supported for Bash versions older than 4.4."
+#~ msgstr ""
+
+#~ msgid "Couldn't detect Bash version, shell completion is not supported."
+#~ msgstr ""
+
+#~ msgid "Repeat for confirmation"
+#~ msgstr ""
+
+#~ msgid "Error: The value you entered was invalid."
+#~ msgstr ""
+
+#~ msgid "Error: {e.message}"
+#~ msgstr ""
+
+#~ msgid "Error: The two entered values do not match."
+#~ msgstr ""
+
+#~ msgid "Error: invalid input"
+#~ msgstr ""
+
+#~ msgid "Press any key to continue..."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Choose from:\n"
+#~ "\t{choices}"
+#~ msgstr ""
+
+#~ msgid "{value!r} is not {choice}."
+#~ msgid_plural "{value!r} is not one of {choices}."
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "{value!r} does not match the format {format}."
+#~ msgid_plural "{value!r} does not match the formats {formats}."
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "{value!r} is not a valid {number_type}."
+#~ msgstr ""
+
+#~ msgid "{value} is not in the range {range}."
+#~ msgstr ""
+
+#~ msgid "{value!r} is not a valid boolean."
+#~ msgstr ""
+
+#~ msgid "{value!r} is not a valid UUID."
+#~ msgstr ""
+
+#~ msgid "file"
+#~ msgstr "Final"
+
+#~ msgid "directory"
+#~ msgstr ""
+
+#~ msgid "path"
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} does not exist."
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} is a file."
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} is a directory."
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} is not readable."
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} is not writable."
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} is not executable."
+#~ msgstr ""
+
+#~ msgid "{len_type} values are required, but {len_value} was given."
+#~ msgid_plural "{len_type} values are required, but {len_value} were given."
+#~ msgstr[0] ""
+#~ msgstr[1] ""
+
+#~ msgid "d"
+#~ msgstr ""
+
+#~ msgid "Windows error: {error}"
+#~ msgstr ""
+
+#~ msgid "deprecated"
+#~ msgstr ""
+
+#~ msgid "Name '{name}' defined twice"
+#~ msgstr ""
+
+#~ msgid "Boolean option {decl!r} cannot use the same flag for true/false."
+#~ msgstr ""
+
+#~ msgid "Could not determine name for option with declarations {decls!r}"
+#~ msgstr ""
+
+#~ msgid "No options defined but a name was passed ({name}). Did you mean to declare an argument instead? Did you mean to pass '--{name}'?"
+#~ msgstr ""
+
+#~ msgid "Arguments take exactly one parameter declaration, got {length}: {decls}."
+#~ msgstr ""
+
+#~ msgid "Do you want to continue?"
+#~ msgstr ""
+
+#~ msgid "Confirm the action without prompting."
+#~ msgstr ""
+
+#~ msgid "No such option {name!r}."
+#~ msgstr ""
+
+#~ msgid "Invalid start character for option ({option})"
+#~ msgstr ""
+
+#~ msgid "Unknown color {colour!r}"
+#~ msgstr ""
+
+#~ msgid "Choice({choices})"
+#~ msgstr ""
+
+#~ msgid "{value!r} is not a valid boolean. Recognized values: {states}"
+#~ msgstr ""
+
+#~ msgid "Unknown standard stream '{name}'"
+#~ msgstr ""
+
+#~ msgid "Schnell speichern (Zeit/F/V)"
+#~ msgstr "Quick save (Time/F/R)"
 
