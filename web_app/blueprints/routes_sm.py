@@ -12,7 +12,9 @@ from sm_qualification import (
     calculate_sm_qualification, get_sm_runs,
     CATEGORIES, SM_RUN_TYPES,
 )
-from sm_import import build_sm_event_from_participants
+from sm_import import (
+    build_sm_event_from_participants, build_sm_event_from_csvs, apply_sm_startnumbers,
+)
 
 sm_bp = Blueprint('sm_bp', __name__, template_folder='../templates', url_prefix='/sm')
 
@@ -58,6 +60,81 @@ def sm_import_participants():
         return redirect(url_for('sm_bp.sm_dashboard', event_id=event_id))
 
     return render_template('sm_import.html')
+
+
+@sm_bp.route('/import-csv', methods=['GET', 'POST'])
+def sm_import_csv():
+    """Resultat-Import: Quali-CSV (+ optional Final-CSV, SportyDog-Export) → eigenständiges
+    SM-Event direkt aus den Resultaten (für Finalisten-Ableitung + Prozent-Kontrolle).
+
+    Baut bewusst ein SEPARATES Event von der Teilnehmer-Import-Route (andere Event-ID,
+    sm_import_participants) - die Resultat-CSV liefert nur eine schmale Entry-Struktur
+    (kein SHSB/Verein/Chip/Zuchtname), würde die reicheren Teilnehmer-Stammdaten also
+    überschreiben statt ergänzen. Gleiche ID überschreibt ein vorhandenes Event."""
+    if request.method == 'POST':
+        quali_file = request.files.get('quali_csv')
+        final_file = request.files.get('final_csv')
+        if not quali_file or not quali_file.filename:
+            flash('Keine Quali-Datei gewählt.', 'warning')
+            return redirect(url_for('sm_bp.sm_import_csv'))
+        event_id = (request.form.get('event_id') or '').strip() or 'SM_2026_RESULTS'
+        bezeichnung = (request.form.get('bezeichnung') or '').strip() or 'TKAMO-SM (Resultat-Import)'
+        datum = (request.form.get('datum') or '').strip()
+        try:
+            final_data = final_file.read() if (final_file and final_file.filename) else None
+            event = build_sm_event_from_csvs(
+                quali_file.read(), final_data,
+                event_id=event_id, bezeichnung=bezeichnung, datum=datum)
+        except Exception as exc:  # pragma: no cover - defensiver Pfad
+            flash(f'Import fehlgeschlagen: {exc}', 'danger')
+            return redirect(url_for('sm_bp.sm_import_csv'))
+
+        events = [e for e in _load_data(EVENTS_FILE) if e.get('id') != event_id]
+        events.append(event)
+        _save_data(EVENTS_FILE, events)
+
+        parts = ", ".join(
+            f"{r['kategorie']} {r['laufart']} ({'Final' if r['is_final'] else 'Quali'}): "
+            f"{len(r['entries'])} Starter"
+            for r in sorted(event['runs'], key=lambda r: (r['kategorie'], r['is_final'], r['laufart']))
+        )
+        flash(f"Import fertig — {parts}.", 'success')
+        return redirect(url_for('sm_bp.sm_dashboard', event_id=event_id))
+
+    default_event_id = request.args.get('event_id') or 'SM_2026_RESULTS'
+    return render_template('sm_import_csv.html', default_event_id=default_event_id)
+
+
+@sm_bp.route('/import-startnumbers/<event_id>', methods=['GET', 'POST'])
+def sm_import_startnumbers(event_id):
+    """Startnummern-Zuordnung: einfache CSV ``Lizenznummer;Startnummer`` hochladen,
+    wirkt event-weit auf alle Läufe (Quali + Final) der jeweiligen Lizenz."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+
+    if request.method == 'POST':
+        file = request.files.get('csv')
+        if not file or not file.filename:
+            flash('Keine Datei gewählt.', 'warning')
+            return redirect(url_for('sm_bp.sm_import_startnumbers', event_id=event_id))
+        try:
+            stats = apply_sm_startnumbers(event, file.read())
+        except Exception as exc:  # pragma: no cover - defensiver Pfad
+            flash(f'Import fehlgeschlagen: {exc}', 'danger')
+            return redirect(url_for('sm_bp.sm_import_startnumbers', event_id=event_id))
+
+        _save_data(EVENTS_FILE, events)
+
+        msg = f"{stats['matched']} Startnummern gesetzt."
+        if stats['unmatched_licenses']:
+            msg += f" {len(stats['unmatched_licenses'])} Lizenz(en) aus der Datei nicht im Event gefunden."
+        if stats['unknown_rows']:
+            msg += f" {stats['unknown_rows']} Zeile(n) ohne gültige Startnummer übersprungen."
+        flash(msg, 'success' if not stats['unmatched_licenses'] else 'warning')
+        return redirect(url_for('sm_bp.sm_dashboard', event_id=event_id))
+
+    return render_template('sm_import_startnumbers.html', event=event)
 
 
 @sm_bp.get('/dashboard/<event_id>')

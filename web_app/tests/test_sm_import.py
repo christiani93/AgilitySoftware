@@ -133,6 +133,49 @@ def test_build_event_from_participants_structure():
     assert e["Startnummer"] is None and "result" not in e
 
 
+# ── Startnummern-Zuordnung ──────────────────────────────────────────────────
+
+def _event_two_runs():
+    return {
+        "id": "E1",
+        "runs": [
+            {"id": "r1", "entries": [
+                {"Lizenznummer": "111", "Startnummer": None},
+                {"Lizenznummer": "222", "Startnummer": None},
+            ]},
+            {"id": "r2", "entries": [
+                {"Lizenznummer": "111", "Startnummer": None},
+            ]},
+        ],
+    }
+
+
+def test_apply_startnumbers_sets_event_wide():
+    ev = _event_two_runs()
+    stats = sm_import.apply_sm_startnumbers(ev, "Lizenznummer;Startnummer\n111;7\n222;8\n")
+    assert stats["matched"] == 2
+    assert stats["unmatched_licenses"] == []
+    # Lizenz 111 in BEIDEN Läufen gesetzt.
+    nrs = {e["Startnummer"] for run in ev["runs"] for e in run["entries"] if e["Lizenznummer"] == "111"}
+    assert nrs == {"7"}
+    r1 = ev["runs"][0]["entries"]
+    assert next(e for e in r1 if e["Lizenznummer"] == "222")["Startnummer"] == "8"
+
+
+def test_apply_startnumbers_reports_unmatched_and_comma_delimiter():
+    ev = _event_two_runs()
+    stats = sm_import.apply_sm_startnumbers(ev, "111,7\n999,99\n")
+    assert stats["matched"] == 1
+    assert stats["unmatched_licenses"] == ["999"]
+
+
+def test_apply_startnumbers_skips_invalid_rows():
+    ev = _event_two_runs()
+    stats = sm_import.apply_sm_startnumbers(ev, "111;abc\n222;8\n")
+    assert stats["unknown_rows"] == 1
+    assert stats["matched"] == 1
+
+
 def test_entries_are_independent_copies_per_run():
     text = _part_csv(_part_row("1", "A", "AA", "Large", "V", "N"))
     event, _ = sm_import.build_sm_event_from_participants(text)

@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}SM Einzel – Startnummern{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="mb-0">🏆 SM Einzel – Startnummern</h1>
+  <p class="text-muted mb-0">{{ event.Bezeichnung }}</p>
+  <p class="text-muted mb-0">CSV mit zwei Spalten <code>Lizenznummer;Startnummer</code>
+    hochladen (Kopfzeile optional). Wirkt event-weit — dieselbe Lizenz bekommt überall
+    (Quali + Final) dieselbe Startnummer.</p>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="card p-3" style="max-width: 500px;">
+  <div class="mb-3">
+    <label class="form-label">Startnummern-CSV</label>
+    <input type="file" name="csv" accept=".csv" class="form-control" required>
+  </div>
+  <div>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-file-import me-1"></i>Importieren
+    </button>
+    <a href="{{ url_for('sm_bp.sm_dashboard', event_id=event.id) }}" class="btn btn-outline-secondary ms-2">
+      Abbrechen
+    </a>
+  </div>
+</form>
+{% endblock %}

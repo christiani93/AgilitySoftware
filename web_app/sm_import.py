@@ -205,6 +205,58 @@ def _participant_entry(p):
     }
 
 
+def apply_sm_startnumbers(event: dict, data) -> dict:
+    """Setzt Startnummern an allen Entries eines SM-Events anhand einer einfachen
+    Zuordnungs-CSV ``Lizenznummer;Startnummer`` (optionale Kopfzeile wird erkannt
+    und übersprungen, Trenner ';' oder ','). Wirkt event-weit (alle Läufe), damit
+    dieselbe Lizenz überall dieselbe Startnummer trägt.
+
+    Mutiert `event["runs"][*]["entries"][*]["Startnummer"]` in-place. Returns Stats
+    ``{"matched": n, "unmatched_licenses": [...], "unknown_rows": n}``.
+    """
+    text = _decode(data)
+    delimiter = ";" if text.count(";") >= text.count(",") else ","
+    rows = list(csv.reader(text.splitlines(), delimiter=delimiter))
+
+    mapping: dict[str, str] = {}
+    unknown_rows = 0
+    for row in rows:
+        if len(row) < 2:
+            continue
+        lic, start_no = row[0].strip(), row[1].strip()
+        if not lic or not start_no:
+            continue
+        if lic.lower() in ("lizenznummer", "lizenz", "license"):
+            continue  # Kopfzeile
+        if not start_no.lstrip("-").isdigit():
+            unknown_rows += 1
+            continue
+        mapping[lic] = start_no
+
+    event_licenses = {
+        str(e.get("Lizenznummer") or "")
+        for run in event.get("runs", []) or []
+        for e in run.get("entries", []) or []
+    }
+
+    matched = 0
+    for run in event.get("runs", []) or []:
+        for entry in run.get("entries", []) or []:
+            lic = str(entry.get("Lizenznummer") or "")
+            if lic in mapping:
+                entry["Startnummer"] = mapping[lic]
+
+    matched_licenses = event_licenses & set(mapping)
+    matched = len(matched_licenses)
+    unmatched_licenses = sorted(set(mapping) - event_licenses)
+
+    return {
+        "matched": matched,
+        "unmatched_licenses": unmatched_licenses,
+        "unknown_rows": unknown_rows,
+    }
+
+
 def build_sm_event_from_participants(data, *, event_id="SM_2026",
                                      bezeichnung="TKAMO-SM (Teilnehmer-Import)",
                                      datum=None) -> tuple[dict, dict]:

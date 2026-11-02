@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block title %}SM Einzel – Resultat-Import{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <h1 class="mb-0">🏆 SM Einzel – Resultat-Import</h1>
+  <p class="text-muted mb-0">SportyDog-Resultat-Export (CSV) hochladen — Samstag = Quali
+    (volles Feld), Sonntag = Final (nur Qualifizierte). Baut daraus ein eigenständiges Event
+    zur Finalisten-Ableitung inkl. Prozent-Cutoff-Kontrolle auf dem Dashboard.</p>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="card p-3" style="max-width: 640px;">
+  <div class="mb-3">
+    <label class="form-label">Quali-CSV (Samstag)</label>
+    <input type="file" name="quali_csv" accept=".csv" class="form-control" required>
+    <div class="form-text">Pflicht. Format: ';'-getrennt, cp1252, 25 Spalten
+      (Turniernummer, Lizenznummer, Hundename, … Lauf, …).</div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Final-CSV (Sonntag, optional)</label>
+    <input type="file" name="final_csv" accept=".csv" class="form-control">
+    <div class="form-text">Falls noch nicht verfügbar, leer lassen — kann später per
+      erneutem Import (gleiche Event-ID) nachgereicht werden.</div>
+  </div>
+  <div class="row g-2">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Bezeichnung</label>
+      <input type="text" name="bezeichnung" class="form-control"
+             value="TKAMO-SM (Resultat-Import)">
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Datum</label>
+      <input type="date" name="datum" class="form-control">
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Event-ID</label>
+      <input type="text" name="event_id" class="form-control" value="{{ default_event_id }}">
+      <div class="form-text">Gleiche ID überschreibt. Bewusst separat vom
+        Teilnehmer-Import (SM_2026).</div>
+    </div>
+  </div>
+  <div>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-file-import me-1"></i>Importieren
+    </button>
+  </div>
+</form>
+{% endblock %}
