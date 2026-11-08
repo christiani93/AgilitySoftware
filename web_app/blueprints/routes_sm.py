@@ -15,6 +15,9 @@ from sm_qualification import (
 from sm_import import (
     build_sm_event_from_participants, build_sm_event_from_csvs, apply_sm_startnumbers,
 )
+from sm_final import (
+    calculate_sm_final, derive_final_run2_startorder, live_run2_board, get_final_runs,
+)
 
 sm_bp = Blueprint('sm_bp', __name__, template_folder='../templates', url_prefix='/sm')
 
@@ -231,6 +234,108 @@ def sm_final_list(event_id, category):
         event=event,
         category=category,
         cat_data=cat_data,
+    )
+
+
+def _recalc_sm_runs(event):
+    """Alle SM-Läufe (Quali + Final) neu rechnen, damit platz/fehler_total/zeit_total
+    auf den Entries aktuell sind (Rechenkern liest diese zurückgeschriebenen Felder)."""
+    settings = _load_settings()
+    for run in event.get('runs', []):
+        if run.get('sm_run_type'):
+            recalc_and_store(run, settings)
+
+
+@sm_bp.get('/final/<event_id>')
+def sm_final_overview(event_id):
+    """Final-Übersicht aller Kategorien: Einzel-Ranglisten der zwei Finalläufe,
+    Final-Kombirangliste (titelrelevant → Schweizermeister) und die aus §3.5
+    abgeleitete Startreihenfolge des 2. Finallaufs."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+    _recalc_sm_runs(event)
+    _save_data(EVENTS_FILE, events)
+
+    final_data = calculate_sm_final(event)
+    run2_order = {cat: derive_final_run2_startorder(event, cat) for cat in final_data}
+    return render_template(
+        'sm_final.html',
+        event=event,
+        final_data=final_data,
+        run2_order=run2_order,
+        categories=[c for c in CATEGORIES if c in final_data],
+    )
+
+
+@sm_bp.post('/final-generate-run2/<event_id>/<category>')
+def sm_final_generate_run2(event_id, category):
+    """Erzeugt die Startliste des 2. Finallaufs (Agility) aus der Rangliste des 1. Laufs
+    (§3.5: umgekehrte Reihenfolge). Befüllt den final_agility-Lauf mit den Finalisten in
+    dieser Startreihenfolge OHNE Resultate (Startnummer = Startposition im 2. Lauf), damit
+    die Ergebnisse live erfasst werden können. Überschreibt vorhandene final_agility-Entries."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+    _recalc_sm_runs(event)
+
+    order = derive_final_run2_startorder(event, category)
+    if not order:
+        flash(f'Kein 1. Finallauf (Jumping) mit Rangliste für {category} vorhanden.', 'warning')
+        return redirect(url_for('sm_bp.sm_final_overview', event_id=event_id))
+
+    # Stammdaten der Finalisten aus dem 1.-Lauf-Entry (Namen/Verein/…) übernehmen.
+    run1 = get_final_runs(event).get(category, {}).get('final_jumping')
+    run2 = get_final_runs(event).get(category, {}).get('final_agility')
+    if run2 is None:
+        flash(f'Kein 2. Finallauf (Agility) für {category} vorhanden.', 'warning')
+        return redirect(url_for('sm_bp.sm_final_overview', event_id=event_id))
+
+    base_by_lic = {str(e.get('Lizenznummer')): e for e in (run1.get('entries', []) if run1 else [])}
+    new_entries = []
+    for row in order:
+        lic = str(row['license'])
+        base = base_by_lic.get(lic, {})
+        new_entries.append({
+            'Startnummer':  row['start_pos'],
+            'Lizenznummer': lic,
+            'Hundename':    base.get('Hundename') or row.get('dog_name', ''),
+            'Zuchtname':    base.get('Zuchtname', ''),
+            'Vorname':      base.get('Vorname', ''),
+            'Nachname':     base.get('Nachname', ''),
+            'Kategorie':    category,
+            'Klasse':       base.get('Klasse', '3'),
+            'Verein':       base.get('Verein', ''),
+            'result': {'zeit': None, 'fehler': 0, 'verweigerungen': 0, 'disqualifikation': None},
+        })
+    run2['entries'] = new_entries
+    # KEINE Parcoursdaten von Lauf 1 (Jumping) übernehmen — der Agility-Lauf 2 hat eine
+    # andere Parcourslänge/SCT. Die echte Agility-SCT kommt beim Erfassen der Laufdaten;
+    # bis dahin zeigt das Live-Board die Zeit-Vorgabe als „–" (die Fehlerpunkt-Vorgabe gilt).
+    _save_data(EVENTS_FILE, events)
+    flash(f'2.-Finallauf-Startliste {category} aus Lauf 1 erzeugt ({len(new_entries)} Starter, '
+          f'umgekehrte Reihenfolge). Resultate können jetzt erfasst werden.', 'success')
+    return redirect(url_for('sm_bp.sm_final_live', event_id=event_id, category=category))
+
+
+@sm_bp.get('/final-live/<event_id>/<category>')
+def sm_final_live(event_id, category):
+    """Live-Board für den 2. Finallauf (Agility) einer Kategorie: zeigt für den aktuell
+    startenden Läufer die Vorgabe zur Übernahme von Platz 1 der Kombinationswertung
+    (aus seinem 1.-Lauf-Resultat + aktuellem Führenden) sowie die Reststarter."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+    _recalc_sm_runs(event)
+    _save_data(EVENTS_FILE, events)
+
+    board = live_run2_board(event, category)
+    return render_template(
+        'sm_final_live.html',
+        event=event,
+        category=category,
+        board=board,
+        categories=[c for c in CATEGORIES if c in calculate_sm_final(event)],
     )
 
 

@@ -1,0 +1,153 @@
+{% extends "layout.html" %}
+{% block title %}SM Final – {{ event.Bezeichnung }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    body { font-size: 11pt; }
+    .card { border: 1px solid #aaa !important; break-inside: avoid; }
+    .page-break { page-break-before: always; }
+  }
+  .champion-banner { background: linear-gradient(90deg,#fff3cd,#ffe69c); border:1px solid #ffda6a; }
+</style>
+{% endblock %}
+
+{% block content %}
+{# ── Makro: Einzel-Lauf-Rangliste ──────────────────────────────────── #}
+{% macro run_table(ranking) %}
+<div class="table-responsive">
+  <table class="table table-sm table-bordered mb-3">
+    <thead class="table-light"><tr>
+      <th style="width:40px">Rg</th><th>Hund</th><th>Lizenz</th><th class="text-center">Fp</th><th class="text-center">Zeit</th>
+    </tr></thead>
+    <tbody>
+      {% for r in ranking %}
+      <tr>
+        <td>{% if r.dis %}<span class="badge bg-secondary">DIS</span>{% elif not r.done %}–{% else %}{{ r.rang }}{% endif %}</td>
+        <td>{{ r.dog_name }}</td><td><small>{{ r.license }}</small></td>
+        <td class="text-center">{% if r.dis %}DIS{% elif not r.done %}<span class="text-muted">offen</span>{% else %}{{ r.fehler_total | round(1) }}{% endif %}</td>
+        <td class="text-center">{% if r.dis or not r.done %}–{% else %}{{ r.zeit | round(2) }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endmacro %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+  <h1 class="h3 mb-0">SM Final – {{ event.Bezeichnung }}</h1>
+  <div>
+    <button onclick="window.print()" class="btn btn-outline-secondary me-2"><i class="fas fa-print me-1"></i>Drucken</button>
+    <a href="{{ url_for('sm_bp.sm_dashboard', event_id=event.id) }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Dashboard</a>
+  </div>
+</div>
+
+{% if not categories %}
+  <div class="alert alert-info">Noch keine Finalläufe mit Daten vorhanden. Importiere die Final-Resultate (Resultat-Import, Final-CSV).</div>
+{% endif %}
+
+{% for cat in categories %}
+{% set cd = final_data[cat] %}
+<div class="card shadow-sm mb-4 {% if not loop.first %}page-break{% endif %}">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong>SM Einzel {{ cat }} · Final</strong>
+    <a class="btn btn-sm btn-primary no-print" href="{{ url_for('sm_bp.sm_final_live', event_id=event.id, category=cat) }}">
+      <i class="fas fa-tv me-1"></i>Live-Board 2. Lauf
+    </a>
+  </div>
+  <div class="card-body">
+
+    {# ── Schweizermeister (Krone nur bei vollständigem Final) ──────── #}
+    {% if cd.champion and cd.complete %}
+    <div class="champion-banner rounded p-3 mb-3 d-flex align-items-center">
+      <i class="fas fa-crown text-warning fa-2x me-3"></i>
+      <div>
+        <div class="text-uppercase small text-muted">Schweizermeister {{ cat }}</div>
+        <div class="h5 mb-0">{{ cd.champion.dog_name }} · {{ cd.champion.handler_name }}
+          <span class="text-muted">({{ cd.champion.license }})</span></div>
+        <div class="small">Kombi {{ cd.champion.kombi_fehler | round(1) }} Fp / {{ cd.champion.kombi_zeit | round(2) }}s</div>
+      </div>
+    </div>
+    {% elif cd.champion %}
+    <div class="alert alert-info py-2 d-flex align-items-center no-print">
+      <i class="fas fa-hourglass-half me-2"></i>
+      <div><strong>Zwischenführung (provisorisch):</strong> {{ cd.champion.dog_name }} · {{ cd.champion.handler_name }}
+        – {{ cd.champion.kombi_fehler | round(1) }} Fp / {{ cd.champion.kombi_zeit | round(2) }}s.
+        Final noch nicht vollständig.</div>
+    </div>
+    {% elif not cd.complete %}
+    <div class="alert alert-warning py-2 small no-print">Final noch nicht vollständig – Kombirangliste ist provisorisch.</div>
+    {% endif %}
+
+    {# ── Final-Kombirangliste (Gesamtrangliste, titelrelevant) ─────── #}
+    <h2 class="h6 mt-2">Final-Kombinationsrangliste <span class="text-muted small">(Gesamtrangliste, §3.5)</span></h2>
+    <div class="table-responsive mb-3">
+      <table class="table table-sm table-bordered align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width:40px">Rg</th><th>Hund</th><th>Hundeführer/in</th><th>Lizenz</th>
+            <th class="text-center">Jumping<br><small>Fp / Zeit</small></th>
+            <th class="text-center">Agility<br><small>Fp / Zeit</small></th>
+            <th class="text-center">Kombi<br><small>Fp / Zeit</small></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in cd.combined %}
+          <tr class="{% if r.kombi_rang == 1 %}table-warning{% endif %}">
+            <td>{% if r.kombi_rang %}{{ r.kombi_rang }}{% else %}–{% endif %}</td>
+            <td>{{ r.dog_name }}{% if r.kombi_rang == 1 and cd.complete %}<i class="fas fa-crown text-warning ms-1"></i>{% endif %}</td>
+            <td>{{ r.handler_name }}</td>
+            <td><small>{{ r.license }}</small></td>
+            <td class="text-center">{% if r.ju_dis %}DIS{% elif r.ju_fehler >= 998 %}–{% else %}{{ r.ju_fehler | round(1) }} / {{ r.ju_zeit | round(2) }}{% endif %}</td>
+            <td class="text-center">{% if r.ag_dis %}DIS{% elif r.ag_fehler >= 998 %}–{% else %}{{ r.ag_fehler | round(1) }} / {{ r.ag_zeit | round(2) }}{% endif %}</td>
+            <td class="text-center">{% if r.kombi_dis %}DIS{% elif not r.both_done %}<span class="text-muted">offen</span>{% else %}<strong>{{ r.kombi_fehler | round(1) }}</strong> / {{ r.kombi_zeit | round(2) }}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ── Einzel-Ranglisten der beiden Finalläufe ──────────────────── #}
+    <div class="row">
+      <div class="col-md-6">
+        <h3 class="h6">1. Finallauf – Jumping</h3>
+        {{ run_table(cd.run1_ranking) }}
+      </div>
+      <div class="col-md-6">
+        <h3 class="h6">2. Finallauf – Agility</h3>
+        {{ run_table(cd.run2_ranking) }}
+      </div>
+    </div>
+
+    {# ── §3.5 Startreihenfolge 2. Finallauf (umgekehrt) ───────────── #}
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <h3 class="h6 mb-0">Startreihenfolge 2. Finallauf (Agility) <span class="text-muted small">– §3.5: umgekehrt zur Rangliste Lauf 1</span></h3>
+      <form method="post" action="{{ url_for('sm_bp.sm_final_generate_run2', event_id=event.id, category=cat) }}" class="no-print"
+            onsubmit="return confirm('2.-Finallauf-Startliste {{ cat }} aus Lauf 1 erzeugen? Vorhandene Agility-Final-Einträge werden überschrieben.');">
+        <button class="btn btn-sm btn-outline-primary"><i class="fas fa-wand-magic-sparkles me-1"></i>Startliste erzeugen &amp; Ergebnisse erfassen</button>
+      </form>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered mb-0">
+        <thead class="table-light"><tr>
+          <th style="width:40px">Start</th><th>Hund</th><th>Hundeführer/in</th><th>Lizenz</th>
+          <th class="text-center">Rang Lauf 1</th><th class="text-center">Lauf 1 (Fp/Zeit)</th>
+        </tr></thead>
+        <tbody>
+          {% for r in run2_order[cat] %}
+          <tr>
+            <td>{{ r.start_pos }}</td><td>{{ r.dog_name }}</td><td>{{ r.handler_name }}</td>
+            <td><small>{{ r.license }}</small></td>
+            <td class="text-center">{% if r.run1_dis %}<span class="badge bg-secondary">DIS</span>{% else %}{{ r.run1_rang }}{% endif %}</td>
+            <td class="text-center">{% if r.run1_dis %}DIS{% else %}{{ r.run1_fehler | round(1) }} / {{ r.run1_zeit | round(2) }}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

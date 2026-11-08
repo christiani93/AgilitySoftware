@@ -26,6 +26,7 @@ COL = {
     "fehler": 10, "verweigerungen": 11, "zeitfehler": 12, "gesamtfehler": 13,
     "dis": 14, "lauf": 15, "richter": 16, "parcours": 17, "geraete": 18,
     "sct": 19, "mct": 20, "datum": 21,
+    # Hinweis: `gesamtfehler` ist bereits die Summe (Fehler + Verweigerungen + Zeitfehler).
 }
 
 CATEGORIES = ["Large", "Intermediate", "Medium", "Small"]
@@ -53,9 +54,20 @@ def _cell(row, key):
 
 
 def _decode(data) -> str:
-    if isinstance(data, bytes):
+    """Dekodiert hochgeladene CSV-Bytes encoding-robust.
+
+    Die Anmeldeliste (AOA-/Portal-Export) kommt als UTF-8 mit BOM, der SportyDog-
+    Resultat-Export als cp1252. ``utf-8-sig`` entfernt ein etwaiges BOM und liest
+    gültiges UTF-8; schlägt das fehl (cp1252-Umlaute sind kein gültiges UTF-8),
+    fällt es sauber auf cp1252 zurück. Ohne das verfälscht ein BOM den Spaltenkopf
+    (``Lizenznummer`` → ``﻿Lizenznummer``) und der DictReader-Import liefert 0 Zeilen.
+    """
+    if not isinstance(data, bytes):
+        return data
+    try:
+        return data.decode("utf-8-sig")
+    except UnicodeDecodeError:
         return data.decode("cp1252")
-    return data
 
 
 def _entry(row, start_no):
@@ -74,6 +86,8 @@ def _entry(row, start_no):
             "zeit":             _num(_cell(row, "laufzeit")) or None,
             "fehler":           int(_num(_cell(row, "fehler")) // 5),          # Punkte → Anzahl
             "verweigerungen":   int(_num(_cell(row, "verweigerungen")) // 5),
+            "zeitfehler":       int(_num(_cell(row, "zeitfehler"))),          # Punkte (direkt, nicht 5er)
+            "gesamtfehler":     int(_num(_cell(row, "gesamtfehler"))),        # Summe in Punkten
             "disqualifikation": dis,
         },
     }
@@ -305,5 +319,10 @@ def build_sm_event_from_participants(data, *, event_id="SM_2026",
         "Veranstaltungsart": "SM Einzel",
         "runs":              runs,
         "sm_config":         {},
+        # Angemeldete Läufer je Kategorie (Roster). Der Rechenkern bezieht die 40 %-
+        # Finalplätze auf die ANGEMELDETEN (inkl. später DNS), nicht auf die effektiv
+        # Gestarteten — darum hier aus dem Teilnehmer-Import festhalten.
+        "sm_registered":     {cat: by_cat[cat] and len(by_cat[cat]) or 0
+                              for cat in CATEGORIES if by_cat.get(cat)},
     }
     return event, stats

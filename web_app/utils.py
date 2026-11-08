@@ -964,6 +964,13 @@ def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_r
     judges = _load_data("judges.json")
     run_block = run_block or _find_schedule_block_for_run(event, run)
     judge_name_value = resolve_judge_name(event, run, judges, run_block)
+    # SCT/MCT live „mitrechnen": _calculate_run_results leitet die Standardzeit aus
+    # Parcourslänge + Klasse (2/3) ab und schreibt standardzeit_sct_gerundet etc. auf
+    # run["laufdaten"] zurück. Darum ZUERST rechnen, DANN laufdaten lesen — sonst zeigt
+    # der Ringmonitor „—", obwohl die SCT berechenbar ist (nur gelesen = alter Stand).
+    # (In-Memory-Mutation, wird nicht gespeichert; dasselbe `results` nutzt die Rangliste.)
+    settings = _load_settings()
+    results = _calculate_run_results(run, settings)
     laufdaten = run.get("laufdaten", {}) or {}
     sct = laufdaten.get("standardzeit_sct_gerundet") or laufdaten.get("standardzeit_sct_berechnet") or laufdaten.get("standardzeit_sct")
     mct = laufdaten.get("maximalzeit_mct_gerundet") or laufdaten.get("maximalzeit_mct_berechnet") or laufdaten.get("maximalzeit_mct")
@@ -992,8 +999,7 @@ def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_r
     ]
     view["startlist"] = unfinished_entries[:max_startlist]
 
-    settings = _load_settings()
-    results = _calculate_run_results(run, settings)
+    # `results` wurde oben bereits berechnet (SCT/MCT live) — hier wiederverwenden.
     ranking = [r for r in results if r.get("platz")]
     ranking.sort(key=lambda r: _to_int(r.get("platz"), default=999999))
     view["ranking"] = [

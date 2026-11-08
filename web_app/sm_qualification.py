@@ -120,19 +120,28 @@ def calculate_sm_qualification(event: dict) -> dict:
         qa_results = _get_results_from_run(qa_run) if qa_run else []
         qj_results = _get_results_from_run(qj_run) if qj_run else []
 
-        # Starters = alle GESTARTETEN Teams über beide Läufe (inkl. DIS/ABR — die sind
-        # angetreten); nur DNS (nicht angetreten) zählt nicht. Reglement 3.1: die 16 %-
-        # Direktquote und final_spots (40 %) beziehen sich auf die Gestarteten, nicht nur
-        # auf die fehlerfreien (an TKAMO-SM-2024-Echtdaten verifiziert: 0.4·Gestartete
-        # reproduziert das reale Finalfeld L46/I16/M28+TV/S19+TV exakt).
-        all_licenses = set(
+        # Zwei VERSCHIEDENE Bezugsgrößen (Reglement, vom Veranstalter 2026 bestätigt):
+        #  • 16 %-Direktquote: pro Lauf die in DIESEM Lauf GESTARTETEN (DIS/ABR zählen mit —
+        #    sie sind angetreten; nur DNS nicht). Agility und Jumping GETRENNT, da die
+        #    Laufstärken differieren können (unterschiedliche DNS je Lauf). Der Resultat-
+        #    Export enthält keine DNS-Zeilen → eine Laufzeile = ein Gestarteter dieses Laufs.
+        #  • 40 %-Finalplätze: die ANGEMELDETEN Läufer der Kategorie (inkl. DNS). Quelle ist
+        #    der Roster/die Startliste (event['sm_registered'][cat]). Fehlt sie (reiner
+        #    Resultat-Import ohne Roster), Fallback = Gestartete-Union über beide Läufe.
+        # (An TKAMO-SM-2026-Echtdaten verifiziert: reproduziert L34/I14/M26/S24 exakt.)
+        qa_starters = sum(1 for r in qa_results if not r.get("dns"))
+        qj_starters = sum(1 for r in qj_results if not r.get("dns"))
+        started_union = len(set(
             r["license"] for r in (qa_results + qj_results) if not r.get("dns")
-        )
-        starters = len(all_licenses)
+        ))
+        registered = (event.get("sm_registered") or {}).get(cat) or started_union
+        starters = started_union   # Anzeige ("x Starter") — effektiv Gestartete
 
-        # Finale Platzzahl und direkte Qualifier-Quota
-        final_spots    = max(10, math.ceil(starters * 0.40))
-        direct_per_run = math.ceil(starters * 0.16)
+        # Finale Platzzahl (40 % der Angemeldeten) + direkte Qualifier-Quota je Lauf (16 %).
+        final_spots       = max(10, math.ceil(registered * 0.40))
+        direct_per_run_qa = math.ceil(qa_starters * 0.16)
+        direct_per_run_qj = math.ceil(qj_starters * 0.16)
+        direct_per_run    = max(direct_per_run_qa, direct_per_run_qj)  # Anzeige-Zusammenfassung
 
         # Direkte Qualifier sammeln
         direct_set: set = set()
@@ -146,9 +155,9 @@ def calculate_sm_qualification(event: dict) -> dict:
             )
             return [r["license"] for r in valid[:n]]
 
-        for lic in _top_n_licenses(qa_results, direct_per_run):
+        for lic in _top_n_licenses(qa_results, direct_per_run_qa):
             direct_set.add(lic)
-        for lic in _top_n_licenses(qj_results, direct_per_run):
+        for lic in _top_n_licenses(qj_results, direct_per_run_qj):
             direct_set.add(lic)
 
         # Teilnehmer-Index aufbauen (über beide Läufe)
@@ -198,7 +207,10 @@ def calculate_sm_qualification(event: dict) -> dict:
             combined.append({
                 **data,
                 "kombi_fehler":    kombi_fehler,
-                "kombi_parcours":  data.get("qa_parcours", 0) + data.get("qj_parcours", 0),
+                # `or 0`: qa_/qj_parcours stammen aus `fehler_parcours`, das vor der
+                # Resultateingabe (reiner Teilnehmer-Import) None ist — ein Default via
+                # .get(key, 0) greift NICHT, da der Key existiert (Wert None) → None+None crasht.
+                "kombi_parcours":  (data.get("qa_parcours") or 0) + (data.get("qj_parcours") or 0),
                 "kombi_zeit":      kombi_zeit,
                 "kombi_qa_fehler": qa_f,
                 "kombi_qj_fehler": qj_f,
@@ -246,8 +258,11 @@ def calculate_sm_qualification(event: dict) -> dict:
 
         output[cat] = {
             "starters":          starters,
+            "registered":        registered,
             "final_spots":       final_spots,
             "direct_per_run":    direct_per_run,
+            "direct_per_run_qa": direct_per_run_qa,
+            "direct_per_run_qj": direct_per_run_qj,
             "has_qa":            qa_run is not None,
             "has_qj":            qj_run is not None,
             "qa_results":        qa_results,

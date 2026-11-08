@@ -97,8 +97,8 @@
     </table>
   </div>
   <div class="card-footer text-muted small">
-    Direktqualifikation: Top {{ cat_data.direct_per_run }} (16%) pro Qualifikationslauf ·
-    Total Finalplätze: max(10, {{ cat_data.starters }} × 40%) = {{ cat_data.final_spots }}
+    Direktqualifikation: Top {{ cat_data.direct_per_run_qa }} Agility / {{ cat_data.direct_per_run_qj }} Jumping (16% der Gestarteten pro Lauf) ·
+    Total Finalplätze: max(10, {{ cat_data.registered }} Angemeldete × 40%) = {{ cat_data.final_spots }}
   </div>
 </div>
 {% endblock %}

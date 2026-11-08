@@ -126,16 +126,16 @@ def _combine(r_ag, r_ju):
 
 
 def _kombi_sort_key(r):
-    """§3.5 Tiebreaker: Gesamtfehler → Laufzeit → Parcoursfehler → Agility → Jumping.
+    """§3.4 Tiebreaker: Gesamtfehler → Parcoursfehler → Laufzeit → Agility → Jumping.
     Teams ohne gültige, vollständige Kombination (DIS in einem Lauf ODER ein Lauf noch
     offen) werden ans Ende sortiert und erhalten keinen Kombi-Rang."""
     return (
         0 if (r.get("both_done") and not r["kombi_dis"]) else 1,
         r["kombi_fehler"],
-        r["kombi_zeit"],
-        r.get("kombi_parcours", 0),
-        r.get("ag_zeit", 999.99),   # besseres Agility-Resultat
-        r.get("ju_zeit", 999.99),   # besseres Jumping-Resultat
+        r.get("kombi_parcours", 0),   # 2. Parcoursfehler (VOR Zeit!)
+        r["kombi_zeit"],              # 3. Laufzeit
+        r.get("ag_zeit", 999.99),     # 4. besseres Agility-Resultat
+        r.get("ju_zeit", 999.99),     # 5. besseres Jumping-Resultat
     )
 
 

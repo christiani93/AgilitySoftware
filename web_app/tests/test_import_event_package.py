@@ -3,6 +3,42 @@ import json
 import zipfile
 
 
+def test_merge_eventexport_dogs_propagates_extra_fields():
+    """Portal-Event-Paket liefert Zusatzfelder (SHSB/Leistungsbuch/FAPAC/Sexe/
+    Chip) in entities.dogs[] — der Import muss sie auf die Software-Keys mappen."""
+    from web_app.blueprints.routes_events import _merge_eventexport_dogs
+
+    dogs = []
+    entities = {
+        "dogs": [
+            {
+                "external_id": "dog_ext1",
+                "license_no": "12345",
+                "name": "Rex",
+                "breed": "Border Collie",
+                "sexe": "M",
+                "shsb": "SHSB-99887",
+                "chip": "756098100000001",
+            },
+            {
+                "external_id": "dog_ext2",
+                "license_no": "DEU-77",
+                "name": "Bello",
+                "sexe": "F",
+                "leistungsbuch": "K-33333",
+            },
+        ]
+    }
+    _merge_eventexport_dogs(dogs, entities, handler_external_map={})
+
+    by_lic = {d["Lizenznummer"]: d for d in dogs}
+    assert by_lic["12345"]["SHSB"] == "SHSB-99887"
+    assert by_lic["12345"]["Sexe"] == "M"
+    assert by_lic["12345"]["Chip"] == "756098100000001"
+    assert by_lic["DEU-77"]["Leistungsbuch"] == "K-33333"
+    assert by_lic["DEU-77"]["Sexe"] == "F"
+
+
 def _build_eventexport_zip(with_logo: bool = True) -> bytes:
     manifest = {"schema": "agility.exchange.eventexport.v1"}
     event = {"event": {"Bezeichnung": "Testevent", "Datum": "2026-10-11"}}

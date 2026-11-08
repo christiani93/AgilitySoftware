@@ -11,6 +11,9 @@
     <a href="{{ url_for('sm_bp.sm_config', event_id=event.id) }}" class="btn btn-outline-secondary">
       <i class="fas fa-cog me-1"></i>Konfiguration
     </a>
+    <a href="{{ url_for('sm_bp.sm_final_overview', event_id=event.id) }}" class="btn btn-warning">
+      <i class="fas fa-crown me-1"></i>Final / Schweizermeister
+    </a>
     <a href="{{ url_for('sm_bp.sm_export_csv', event_id=event.id) }}" class="btn btn-outline-success">
       <i class="fas fa-file-csv me-1"></i>CSV Export
     </a>
@@ -42,9 +45,9 @@
     <h5 class="mb-0">
       <span class="badge bg-primary me-2">{{ cat }}</span>
       <span class="text-muted small">
-        {{ cd.starters }} Starter ·
-        {{ cd.final_spots }} Finalplätze ·
-        {{ cd.direct_per_run }} direkte Qualifier/Lauf (16%)
+        {{ cd.starters }} Starter / {{ cd.registered }} angemeldet ·
+        {{ cd.final_spots }} Finalplätze (40%) ·
+        16% direkt: {{ cd.direct_per_run_qa }} Agility / {{ cd.direct_per_run_qj }} Jumping
       </span>
     </h5>
     <a href="{{ url_for('sm_bp.sm_final_list', event_id=event.id, category=cat) }}"

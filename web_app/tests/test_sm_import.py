@@ -113,6 +113,27 @@ def test_parse_participants_fields_and_dedup():
     assert p["Kategorie"] == "Large"
 
 
+def test_parse_participants_utf8_bom_bytes():
+    """Regression: Die Anmeldeliste kommt als UTF-8 MIT BOM. Hart-cp1252-Dekodieren
+    verfälschte den Spaltenkopf (ï»¿Lizenznummer) → 0 Zeilen importiert. _decode muss
+    das BOM schlucken und Umlaute korrekt lesen."""
+    text = _part_csv(_part_row("14848", "Hope", "Honolulu", "Intermediate", "Petra", "Häusermann"))
+    raw = b"\xef\xbb\xbf" + text.encode("utf-8")
+    parts = sm_import.parse_sm_participants(raw)
+    assert len(parts) == 1
+    assert parts[0]["Lizenznummer"] == "14848"
+    assert parts[0]["Nachname"] == "Häusermann"
+
+
+def test_parse_participants_cp1252_bytes_fallback():
+    """SportyDog-/Alt-Export in cp1252 (kein gültiges UTF-8 bei Umlauten) muss weiter gehen."""
+    text = _part_csv(_part_row("222", "Zoom", "Zuchtname", "Large", "Jürg", "Müller"))
+    raw = text.encode("cp1252")
+    parts = sm_import.parse_sm_participants(raw)
+    assert len(parts) == 1
+    assert parts[0]["Vorname"] == "Jürg" and parts[0]["Nachname"] == "Müller"
+
+
 def test_build_event_from_participants_structure():
     text = _part_csv(
         _part_row("1", "A", "AA", "Large", "V", "N"),
@@ -131,6 +152,24 @@ def test_build_event_from_participants_structure():
     # Entries ohne Startnummer/Ergebnis.
     e = large_quali[0]["entries"][0]
     assert e["Startnummer"] is None and "result" not in e
+
+
+def test_qualification_no_results_does_not_crash():
+    """Regression: Nach reinem Teilnehmer-Import (noch KEINE Resultate) leitet die
+    Import-Route direkt aufs SM-Dashboard weiter → calculate_sm_qualification lief in
+    None+None (kombi_parcours aus leerem fehler_parcours). Darf nicht mehr crashen,
+    und ein gesetzter Titelverteidiger muss als is_defending markiert sein."""
+    from sm_qualification import calculate_sm_qualification
+    text = _part_csv(
+        _part_row("16046", "Pete", "Feel the difference", "Large", "Yannick", "Boutellier"),
+        _part_row("777", "Zoom", "ZZ", "Large", "Bea", "Keller"),
+    )
+    event, _ = sm_import.build_sm_event_from_participants(text)
+    event["sm_config"] = {"Large": {"defending_champion": {"license": "16046"}}}
+    sm_data = calculate_sm_qualification(event)   # darf NICHT werfen
+    large = sm_data["Large"]
+    champ = next(r for r in large["final_list"] if r["license"] == "16046")
+    assert champ["is_defending"] is True
 
 
 # ── Startnummern-Zuordnung ──────────────────────────────────────────────────
