@@ -669,23 +669,45 @@ def tkamo_export(event_id):
         for res in results:
             if not res.get('result'): continue
                 
+            # Nicht gestartete Teams (DNS) dürfen gemäss Weisung Resultatmeldung
+            # Ziff. 2 nicht in die Resultatdatei (sonst Upload-Rückweisung).
+            if res.get('qualifikation') == 'DNS':
+                continue
+
             dog_info = dogs_map.get(res['Lizenznummer'], {})
             handler_info = handler_map.get(dog_info.get('Hundefuehrer_ID'), {})
-            
+
+            # Ausländische Lizenz = nicht rein numerisch (intern "AAA-12345").
+            raw_lic = str(res.get('Lizenznummer', '') or '').strip()
+            is_foreign = bool(raw_lic) and not raw_lic.isdigit()
+            if is_foreign:
+                # Weisung Ziff. 3.1: IOC-Ländercode voranstellen OHNE Trenner
+                # ("FIN54321"); intern gespeichert als "FIN-54321".
+                lizenznummer_col = raw_lic.replace('-', '')
+                # Club bei ausländischen Lizenzen: kein Wert (Weisung Ziff. 3.1).
+                club_col = ''
+            else:
+                lizenznummer_col = raw_lic
+                club_col = handler_info.get('Vereinsnummer', '')
+
             # Disqualifikation-Feld gemäss Reglement (leer oder Kürzel)
             disq_value = res.get('qualifikation', '') if res.get('qualifikation') in ['DIS', 'ABR'] else ''
 
-            # Bei DIS/ABR sind Zeit/Fehler-Werte nur interne Sortier-Sentinels
-            # (z.B. zeit_total=999.99, Fehler/Verweigerung aus dem Teillauf) –
-            # im TKAMO-Export müssen diese Spalten gemäss Reglement leer/0 sein.
+            # Bei DIS/ABR sind Rang, Laufzeit, Geschwindigkeit und sämtliche
+            # Fehlerspalten gemäss Weisung Resultatmeldung Ziff. 3.1 "Kein Wert"
+            # (leer). Die intern nur zur Sortierung genutzten Sentinel-Werte
+            # (zeit_total=999.99, fehler_total=999 …) dürfen NICHT exportiert
+            # werden – sonst weist der TKAMO-Upload die Datei zurück.
             if disq_value:
-                laufzeit_col = "0,00"
-                geschwindigkeit_col = "0,00"
-                fehler_col = 0
-                verweigerung_col = 0
-                zeitfehler_col = "0,00"
-                gesamtfehler_col = "0,00"
+                rang_col = ''
+                laufzeit_col = ''
+                geschwindigkeit_col = ''
+                fehler_col = ''
+                verweigerung_col = ''
+                zeitfehler_col = ''
+                gesamtfehler_col = ''
             else:
+                rang_col = res.get('platz', '')
                 laufzeit_col = f"{res.get('zeit_total', 0):.2f}".replace('.',',')
                 geschwindigkeit_col = f"{(float(run['laufdaten'].get('parcours_laenge', 1)) / res.get('zeit_total', 1)):.2f}".replace('.',',') if res.get('zeit_total') else ''
                 fehler_col = res.get('fehler_parcours_anzahl', 0) * 5
@@ -695,13 +717,13 @@ def tkamo_export(event_id):
 
             row = [
                 event.get('Turniernummer', ''),
-                res.get('Lizenznummer', ''),
+                lizenznummer_col,
                 res.get('Hundename', ''),
                 res.get('Hundefuehrer', ''),
-                handler_info.get('Vereinsnummer', ''), # Vereinsnummer des Hundeführers
+                club_col,
                 run.get('kategorie', ''),
                 run.get('klasse', ''),
-                res.get('platz', ''),
+                rang_col,
                 laufzeit_col,
                 geschwindigkeit_col,
                 fehler_col,
