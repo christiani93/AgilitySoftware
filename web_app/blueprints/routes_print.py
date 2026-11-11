@@ -1,5 +1,5 @@
 # blueprints/routes_print.py
-from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, Response, jsonify
+from flask import Blueprint, render_template, render_template_string, abort, request, redirect, url_for, flash, Response, jsonify
 from flask_babel import gettext as _
 from datetime import datetime
 import csv
@@ -640,12 +640,76 @@ def print_award_list(event_id):
                            award_data=award_data, event_id=event_id,
                            event_logo_data=logos['event'], club_logo_data=logos['club'])
 
+# Laufarten, die an das TKAMO-System gemeldet werden (Agility/Jumping/Open).
+_TKAMO_MELDEPFLICHTIGE_LAUFARTEN = ['Agility', 'Jumping', 'Open', 'Open-Agility']
+
+# Qualifikations-Codes, die ein abgeschlossenes (meldbares) Resultat markieren.
+# 'N/A' = gestartet/gemeldet, aber noch kein Resultat erfasst (vergessen); 'DNS'
+# = nicht gestartet (wird ohnehin nicht gemeldet).
+_TKAMO_DONE_QUALIS = {'V0', 'V', 'SG', 'G', 'NB', 'DIS', 'ABR'}
+
+
+def _tkamo_run_status(run, settings):
+    """Vollständigkeits-Status eines Laufs für den TKAMO-Export (SWG-R-12).
+
+    Rückgabe (status, missing):
+      'skip'        – nicht meldepflichtige Laufart (kein Resultat-Upload)
+      'not_started' – kein Team hat Resultat/DIS → Lauf noch nicht gelaufen
+      'incomplete'  – mind. ein Team klassiert/DIS, aber mind. ein gestartetes
+                      Team ohne Resultat und ohne DIS/ABR → Export dieser
+                      Kategorie/Klasse gemäss Weisung gesperrt
+      'complete'    – alle gestarteten Teams haben Resultat oder DIS/ABR
+    """
+    if run.get('laufart') not in _TKAMO_MELDEPFLICHTIGE_LAUFARTEN:
+        return ('skip', 0)
+    done = 0
+    missing = 0
+    for res in _calculate_run_results(run, settings):
+        qual = res.get('qualifikation')
+        if qual == 'DNS':
+            continue  # nicht gestartet – wird ohnehin nicht gemeldet
+        if qual in _TKAMO_DONE_QUALIS:
+            done += 1
+        else:
+            missing += 1  # 'N/A' = gestartet, aber kein Resultat erfasst
+    if done == 0:
+        return ('not_started', missing)
+    return ('incomplete', missing) if missing > 0 else ('complete', 0)
+
+
+# Interstitial-Seite, wenn unvollständige Läufe den Export blockieren (SWG-R-12).
+_TKAMO_INCOMPLETE_HTML = """<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<title>TKAMO-Export – unvollständig</title>
+<style>
+ body{font-family:system-ui,sans-serif;max-width:720px;margin:2rem auto;padding:0 1rem;color:#222}
+ .warn{background:#fff3cd;border:1px solid #ffe69c;padding:1rem;border-radius:6px}
+ table{border-collapse:collapse;width:100%;margin:1.2rem 0}
+ td,th{border:1px solid #ccc;padding:.4rem .6rem;text-align:left}
+ th{background:#f5f5f5}
+ a.btn{display:inline-block;background:#0d6efd;color:#fff;padding:.55rem 1rem;border-radius:6px;text-decoration:none}
+ a.back{margin-left:1rem;color:#555}
+</style></head><body>
+<h1>TKAMO-Export nicht möglich</h1>
+<div class="warn"><p>Folgende Läufe sind <strong>unvollständig</strong>: mindestens ein
+gestartetes Team hat weder ein Resultat noch einen DIS/ABR-Vermerk. Gemäss TKAMO-Weisung
+(SWG-R-12) dürfen nur vollständige Kategorien/Klassen hochgeladen werden.</p></div>
+<table><thead><tr><th>Kategorie</th><th>Klasse</th><th>Lauf</th><th>Fehlende Resultate</th></tr></thead>
+<tbody>
+{% for r in incomplete %}<tr><td>{{ r.kategorie }}</td><td>{{ r.klasse }}</td><td>{{ r.laufart }}</td><td>{{ r.missing }}</td></tr>
+{% endfor %}</tbody></table>
+<p>Erfasse für diese Teams ein Resultat oder DIS/ABR – oder exportiere jetzt nur die
+bereits vollständigen Läufe:</p>
+<p><a class="btn" href="{{ export_url }}">Nur vollständige Läufe exportieren</a></p>
+</body></html>"""
+
+
 @print_bp.route('/print/tkamo_export/<event_id>')
 def tkamo_export(event_id):
     """Erstellt eine reglementskonforme CSV-Datei für den TKAMO-Upload."""
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
-    
+
     settings = _load_settings()
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';')
@@ -654,16 +718,38 @@ def tkamo_export(event_id):
     writer.writerow(header)
     
     all_runs = event.get('runs', [])
+
+    # SWG-R-12: Kategorien/Klassen mit vergessenen Resultaten dürfen nicht
+    # exportiert werden. Status je Lauf bestimmen; unvollständige Läufe blockieren
+    # den Export, bis die Resultate erfasst sind – oder der Veranstalter bewusst
+    # nur die bereits vollständigen Läufe exportiert (?only_complete=1).
+    run_statuses = [_tkamo_run_status(run, settings) for run in all_runs]
+    incomplete = [
+        {'kategorie': run.get('kategorie', ''), 'klasse': run.get('klasse', ''),
+         'laufart': run.get('laufart', ''), 'missing': missing}
+        for run, (status, missing) in zip(all_runs, run_statuses)
+        if status == 'incomplete'
+    ]
+    if incomplete and request.args.get('only_complete') != '1':
+        return render_template_string(
+            _TKAMO_INCOMPLETE_HTML,
+            incomplete=incomplete,
+            export_url=url_for('print_bp.tkamo_export', event_id=event_id, only_complete=1),
+        )
+
     judges = _load_data('judges.json')
-    
+
     # Lade Hundeführer- und Hundedaten für den Export
     handlers_data = _load_data('handlers.json')
     dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
     handler_map = {h['id']: h for h in handlers_data}
 
-    for run in all_runs:
-        if run.get('laufart') not in ['Agility', 'Jumping', 'Open', 'Open-Agility']: continue
-            
+    for run, (status, _missing) in zip(all_runs, run_statuses):
+        # Nur vollständige Läufe exportieren (SWG-R-12). 'skip'/'not_started'/
+        # 'incomplete' werden übersprungen.
+        if status != 'complete':
+            continue
+
         results = _calculate_run_results(run, settings)
         
         for res in results:
