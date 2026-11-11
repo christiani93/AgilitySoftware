@@ -25,6 +25,8 @@ from planner.briefing_groups import (
     split_into_groups,
 )
 
+from ioc_codes import extract_country_code, is_valid_ioc_code
+
 print_bp = Blueprint('print_bp', __name__, template_folder='../templates')
 
 
@@ -704,6 +706,58 @@ bereits vollständigen Läufe:</p>
 </body></html>"""
 
 
+def _invalid_ioc_licenses(all_runs, run_statuses, settings):
+    """Ausländische Lizenzen mit ungültigem IOC-Ländercode in den zu
+    exportierenden (vollständigen) Läufen (SWG-R-10). Dedupliziert nach Lizenz."""
+    seen = {}
+    for run, (status, _missing) in zip(all_runs, run_statuses):
+        if status != 'complete':
+            continue
+        for res in _calculate_run_results(run, settings):
+            if res.get('qualifikation') == 'DNS':
+                continue
+            raw_lic = str(res.get('Lizenznummer', '') or '').strip()
+            if not raw_lic or raw_lic.isdigit():
+                continue  # keine ausländische Lizenz (CH = rein numerisch)
+            code = extract_country_code(raw_lic)
+            if not is_valid_ioc_code(code):
+                seen[raw_lic] = {
+                    'lizenz': raw_lic,
+                    'code': code or '—',
+                    'hund': res.get('Hundename', ''),
+                    'fuehrer': res.get('Hundefuehrer', ''),
+                }
+    return list(seen.values())
+
+
+# Interstitial-Seite, wenn ausländische Lizenzen einen ungültigen IOC-Code tragen.
+_TKAMO_IOC_HTML = """<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<title>TKAMO-Export – ungültiger Ländercode</title>
+<style>
+ body{font-family:system-ui,sans-serif;max-width:720px;margin:2rem auto;padding:0 1rem;color:#222}
+ .warn{background:#f8d7da;border:1px solid #f1aeb5;padding:1rem;border-radius:6px}
+ table{border-collapse:collapse;width:100%;margin:1.2rem 0}
+ td,th{border:1px solid #ccc;padding:.4rem .6rem;text-align:left}
+ th{background:#f5f5f5}
+ a.btn{display:inline-block;background:#dc3545;color:#fff;padding:.55rem 1rem;border-radius:6px;text-decoration:none}
+ code{background:#eee;padding:.1rem .3rem;border-radius:3px}
+</style></head><body>
+<h1>Ungültiger IOC-Ländercode</h1>
+<div class="warn"><p>Folgende ausländische Lizenzen tragen <strong>keinen gültigen
+IOC-Ländercode</strong>. Die TKAMO verlangt IOC-Codes (z.&nbsp;B. Deutschland =
+<code>GER</code>, nicht <code>DEU</code>). Die fehlende/falsche Kennzeichnung ist
+einer der häufigsten Fehler bei der Resultatmeldung (SWG-R-10).</p></div>
+<table><thead><tr><th>Lizenz</th><th>Code</th><th>Hund</th><th>Hundeführer</th></tr></thead>
+<tbody>
+{% for r in invalid %}<tr><td>{{ r.lizenz }}</td><td>{{ r.code }}</td><td>{{ r.hund }}</td><td>{{ r.fuehrer }}</td></tr>
+{% endfor %}</tbody></table>
+<p>Korrigiere die Ländercodes in den Hundedaten – oder exportiere trotzdem
+(nur wenn du sicher bist, dass die Codes stimmen):</p>
+<p><a class="btn" href="{{ export_url }}">Trotzdem exportieren</a></p>
+</body></html>"""
+
+
 @print_bp.route('/print/tkamo_export/<event_id>')
 def tkamo_export(event_id):
     """Erstellt eine reglementskonforme CSV-Datei für den TKAMO-Upload."""
@@ -735,6 +789,20 @@ def tkamo_export(event_id):
             _TKAMO_INCOMPLETE_HTML,
             incomplete=incomplete,
             export_url=url_for('print_bp.tkamo_export', event_id=event_id, only_complete=1),
+        )
+
+    # SWG-R-10: Vor dem Export prüfen, dass jede ausländische Lizenz einen
+    # gültigen IOC-Ländercode trägt. Override via ?force_ioc=1 (falls die eigene
+    # Codeliste unvollständig ist), only_complete bleibt dabei erhalten.
+    invalid_ioc = _invalid_ioc_licenses(all_runs, run_statuses, settings)
+    if invalid_ioc and request.args.get('force_ioc') != '1':
+        export_kwargs = {'event_id': event_id, 'force_ioc': 1}
+        if request.args.get('only_complete') == '1':
+            export_kwargs['only_complete'] = 1
+        return render_template_string(
+            _TKAMO_IOC_HTML,
+            invalid=invalid_ioc,
+            export_url=url_for('print_bp.tkamo_export', **export_kwargs),
         )
 
     judges = _load_data('judges.json')
