@@ -571,12 +571,30 @@ def _calculate_run_results(run, settings):
 
         results.append(res)
 
-    results.sort(key=lambda x: (x.get('fehler_total', 999), x.get('zeit_total', 999)))
-    rank = 1
+    # SWG-W-09 / Reglement Agility §5: Klassierung nach (1) Gesamtfehlerpunkten,
+    # (2) weniger Parcoursfehlern (Abwürfe+Verweigerungen, OHNE Zeitfehler),
+    # (3) besserer Laufzeit. Sind alle drei Werte gleich → gleicher Rang, die
+    # folgenden Ränge werden übersprungen (z.B. 1, 2, 2, 4). `fehler_parcours`
+    # ist die ×5-Summe aus Abwürfen+Verweigerungen — konsistent mit
+    # combination_ranking._sort_key (dort an SM-Echtdaten validiert).
+    def _rank_key(x):
+        return (x.get('fehler_total', 999),
+                x.get('fehler_parcours', 999),
+                x.get('zeit_total', 999))
+
+    results.sort(key=_rank_key)
+    position = 0
+    rank = 0
+    prev_key = None
     for res in results:
-        if res.get('fehler_total', 999) < 998:
-            res['platz'] = rank
-            rank += 1
+        if res.get('fehler_total', 999) >= 998:
+            continue  # DIS/ABR/kein Resultat → kein Platz
+        position += 1
+        key = _rank_key(res)
+        if key != prev_key:
+            rank = position  # neuer Rang = laufende Position (überspringt bei ex aequo)
+            prev_key = key
+        res['platz'] = rank
     return results
 
 
