@@ -369,7 +369,9 @@ def _normalise_entry(entry: dict) -> dict:
         "dog_name":        entry.get("Hundename") or entry.get("dog_name") or "",
         "handler_name":    (
             (entry.get("Vorname", "") + " " + entry.get("Nachname", "")).strip()
-            or entry.get("handler_name") or ""
+            # Portal-/eventexport-importierte Entries tragen den Hundeführer als
+            # Vollname-Feld "Hundefuehrer" (nicht Vorname/Nachname) → sonst leer.
+            or entry.get("Hundefuehrer") or entry.get("handler_name") or ""
         ),
         "fehler_total":    float(fehler_total) if not is_dis else DIS_SENTINEL_FEHLER,
         "fehler_parcours": int(entry.get("fehler_parcours", 0) or 0),

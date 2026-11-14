@@ -100,6 +100,73 @@ def bccs_sm_final_startorder(event_id):
     return redirect(url_for('bccs_sm_bp.bccs_sm_dashboard', event_id=event_id))
 
 
+@bccs_sm_bp.post('/populate-finals/<event_id>')
+def bccs_sm_populate_finals(event_id):
+    """Überträgt die abgeleiteten Finalisten als Startplätze in die Finalläufe
+    (is_final): jeder Finalist kommt in BEIDE Finalläufe (Jumping + Agility) seiner
+    Kategorie + Division-Klasse. Idempotent (kein Doppel-Eintrag). Danach kann man
+    die Final-Resultate erfassen und die Final-Rangierung rechnen."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+    settings = _load_settings()
+    _recalc(event, settings)
+    data = calculate_bccs_sm_qualification(
+        event, recalc_fn=lambda r: recalc_and_store(r, settings))
+
+    # Hundeführer je Lizenz aus den Quali-Läufen (Fallback, falls Finalist keinen trägt)
+    handler_by_lic = {}
+    for run in event.get('runs', []):
+        if run.get('is_final'):
+            continue
+        for en in run.get('entries', []):
+            lic = str(en.get('Lizenznummer') or '')
+            if lic and lic not in handler_by_lic:
+                handler_by_lic[lic] = en.get('Hundefuehrer') or ''
+
+    # Index der Finalläufe: (Kategorie, Laufart, Klasse) → run
+    final_runs = {}
+    for run in event.get('runs', []):
+        if run.get('is_final'):
+            final_runs[(run.get('kategorie'), run.get('laufart'), str(run.get('klasse')))] = run
+
+    added = 0
+    for key, div in data['divisions'].items():
+        category, div_key = key.split('/')
+        classes = [str(c) for c in DIVISIONS[div_key]['classes']]
+        for f in div.get('finalists', []):
+            lic = str(f.get('license') or '')
+            if not lic:
+                continue
+            tgt_cls = str(f.get('from_class') or classes[0])
+            for la in QUALI_RUN_TYPES:   # Agility, Jumping
+                run = final_runs.get((category, la, tgt_cls))
+                if not run:              # Fallback: Final dieser Kat/Disziplin in Div-Klassen
+                    for c in classes:
+                        run = final_runs.get((category, la, c))
+                        if run:
+                            break
+                if not run:
+                    continue
+                entries = run.setdefault('entries', [])
+                if any(str(e.get('Lizenznummer') or '') == lic for e in entries):
+                    continue
+                entries.append({
+                    'Lizenznummer': lic,
+                    'Hundename':    f.get('dog_name') or '',
+                    'Hundefuehrer': f.get('handler_name') or handler_by_lic.get(lic) or '',
+                    'Kategorie':    category,
+                    'Klasse':       tgt_cls,
+                    'Startnummer':  0,
+                    'bccs_sm':      True,
+                })
+                added += 1
+
+    _save_data(EVENTS_FILE, events)
+    flash(f'{added} Final-Startplätze aus den Finalisten übernommen.', 'success')
+    return redirect(url_for('bccs_sm_bp.bccs_sm_dashboard', event_id=event_id))
+
+
 @bccs_sm_bp.route('/config/<event_id>', methods=['GET', 'POST'])
 def bccs_sm_config(event_id):
     """BCCS-SM-Konfiguration: bis zu 4 Titelverteidiger (Kategorie × Division)."""
