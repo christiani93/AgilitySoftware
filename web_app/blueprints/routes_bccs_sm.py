@@ -10,6 +10,7 @@ Siehe bccs_sm_qualification.py und Reglement BCCS 2023.
 """
 import csv
 import io
+import random
 from functools import partial
 
 from flask import (Blueprint, render_template, request, redirect,
@@ -167,6 +168,53 @@ def bccs_sm_populate_finals(event_id):
     return redirect(url_for('bccs_sm_bp.bccs_sm_dashboard', event_id=event_id))
 
 
+@bccs_sm_bp.post('/assign-final-startnumbers/<event_id>')
+def bccs_sm_assign_final_startnumbers(event_id):
+    """Vergibt Startnummern NUR für die Finalisten in den Final-Läufen (is_final).
+    Final-Startnummern werden erst am Eventtag ausgelost (nicht vorab wie die Quali-
+    Nummern) — daher eigener Button statt Übernahme der Quali-Startnummer. Pro
+    (Kategorie, Klasse) wird eine zufällige Reihenfolge ausgelost und durchnummeriert
+    (fortlaufend über alle Gruppen); dasselbe Team erhält in Jumping UND Agility
+    dieselbe Nummer. Betrifft nur Final-Entries, Quali-Startnummern bleiben unberührt."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+
+    groups: dict[tuple, set] = {}
+    for run in event.get('runs', []):
+        if not run.get('is_final'):
+            continue
+        key = (run.get('kategorie'), str(run.get('klasse') or ''))
+        licenses = groups.setdefault(key, set())
+        for e in run.get('entries', []):
+            lic = str(e.get('Lizenznummer') or '')
+            if lic:
+                licenses.add(lic)
+
+    number_map: dict[str, int] = {}
+    counter = 1
+    for licenses in groups.values():
+        ordered = list(licenses)
+        random.shuffle(ordered)
+        for lic in ordered:
+            number_map[lic] = counter
+            counter += 1
+
+    updated = 0
+    for run in event.get('runs', []):
+        if not run.get('is_final'):
+            continue
+        for e in run.get('entries', []):
+            lic = str(e.get('Lizenznummer') or '')
+            if lic in number_map:
+                e['Startnummer'] = number_map[lic]
+                updated += 1
+
+    _save_data(EVENTS_FILE, events)
+    flash(f'{len(number_map)} Final-Startnummern ausgelost ({updated} Einträge aktualisiert).', 'success')
+    return redirect(url_for('bccs_sm_bp.bccs_sm_dashboard', event_id=event_id))
+
+
 @bccs_sm_bp.route('/config/<event_id>', methods=['GET', 'POST'])
 def bccs_sm_config(event_id):
     """BCCS-SM-Konfiguration: bis zu 4 Titelverteidiger (Kategorie × Division)."""
@@ -256,4 +304,87 @@ def bccs_sm_export_csv(event_id):
         output.getvalue().encode('utf-8-sig'),
         mimetype='text/csv',
         headers={'Content-Disposition': f'attachment; filename="{filename}"'},
+    )
+
+
+@bccs_sm_bp.get('/startlisten/<event_id>')
+def bccs_sm_startlisten(event_id):
+    """Startlisten-Übersicht: nur BCCS-Finalisten pro Lauf, zur Verifikation gemeldeter Teilnehmer."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+
+    settings = _load_settings()
+    _recalc(event, settings)
+    recalc_fn = partial(recalc_and_store, settings=settings)
+    bccs_data = calculate_bccs_sm_qualification(event, recalc_fn=recalc_fn)
+
+    all_finalists = {}
+    for key, div in bccs_data.get('divisions', {}).items():
+        for f in div.get('finalists', []):
+            lic = f.get('license', '')
+            if lic:
+                all_finalists[lic] = f
+
+    final_runs_by_cat = {}
+    for run in event.get('runs', []):
+        if not run.get('is_final'):
+            continue
+        cat = run.get('kategorie')
+        final_runs_by_cat.setdefault(cat, []).append(run)
+
+    startlisten = {}
+    for cat, runs in final_runs_by_cat.items():
+        startlisten[cat] = {}
+        for run in runs:
+            laufart = run.get('laufart', 'Unknown')
+            bccs_entries = [e for e in run.get('entries', [])
+                           if e.get('bccs_sm') or e.get('Lizenznummer') in all_finalists]
+            startlisten[cat][laufart] = sorted(
+                bccs_entries,
+                key=lambda e: (int(e.get('Startnummer') or 0), e.get('Hundename', ''))
+            )
+
+    return render_template(
+        'bccs_sm_startlisten.html',
+        event=event,
+        startlisten=startlisten,
+        finalists=all_finalists,
+        categories=CATEGORIES,
+    )
+
+
+@bccs_sm_bp.get('/ranking/<event_id>')
+def bccs_sm_ranking_combined(event_id):
+    """Kombirangliste der Finalläufe: nur BCCS-Teilnehmer, pro Kategorie gruppiert."""
+    events, event = _get_event(event_id)
+    if not event:
+        abort(404)
+
+    settings = _load_settings()
+    _recalc(event, settings)
+    recalc_fn = partial(recalc_and_store, settings=settings)
+    final_ranking = rank_final_bccs(event, recalc_fn=recalc_fn)
+
+    combined_ranking = {}
+    for key, ranking_list in final_ranking.items():
+        cat = key.split('/')[0] if '/' in key else key
+        combined_ranking.setdefault(cat, []).extend(ranking_list)
+
+    for cat in combined_ranking:
+        combined_ranking[cat].sort(
+            key=lambda r: (
+                r.get('sum_fehler') if r.get('sum_fehler') is not None else 999,
+                r.get('sum_parcours') if r.get('sum_parcours') is not None else 999,
+                r.get('sum_zeit') if r.get('sum_zeit') is not None else 999,
+            )
+        )
+        for idx, r in enumerate(combined_ranking[cat], 1):
+            r['final_rang'] = idx
+
+    return render_template(
+        'bccs_sm_ranking.html',
+        event=event,
+        combined_ranking=combined_ranking,
+        categories=CATEGORIES,
     )

@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+{% block title %}BCCS-SM Kombirangliste – {{ event.Bezeichnung }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="mb-0">🏆 BCCS-SM Kombirangliste</h1>
+    <p class="text-muted fs-5">{{ event.Bezeichnung }}</p>
+  </div>
+  <div>
+    <button onclick="window.print()" class="btn btn-outline-secondary me-2">
+      <i class="fas fa-print me-1"></i>Drucken
+    </button>
+    <a href="{{ url_for('bccs_sm_bp.bccs_sm_dashboard', event_id=event.id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Zurück
+    </a>
+  </div>
+</div>
+
+{% if not combined_ranking %}
+<div class="alert alert-info">
+  <i class="fas fa-info-circle me-2"></i>Keine Final-Ergebnisse vorhanden. Bitte zuerst Finalläufe durchführen.
+</div>
+{% endif %}
+
+{% for cat, entries in combined_ranking.items() %}
+<div class="card mb-4 shadow-sm">
+  <div class="card-header">
+    <h5 class="mb-0">
+      <span class="badge bg-primary">{{ cat }}</span>
+      <span class="text-muted small ms-2">Kategorie – Finale Rangierung</span>
+    </h5>
+  </div>
+  <div class="card-body">
+    <table class="table table-sm align-middle">
+      <thead class="table-light">
+        <tr>
+          <th style="width: 50px; text-align: center;">Platz</th>
+          <th>Lizenz</th>
+          <th>Hund</th>
+          <th>Hundeführer/in</th>
+          <th style="text-align: right;">∑ Fehler</th>
+          <th style="text-align: right;">∑ Parcours</th>
+          <th style="text-align: right;">∑ Zeit (s)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+        <tr {% if entry.get('final_rang') == 1 %}class="table-success fw-bold"{% endif %}>
+          <td style="text-align: center; font-weight: bold;">
+            {% if entry.get('sum_fehler') == 999 %}DIS{% else %}{{ entry.get('final_rang') }}{% endif %}
+          </td>
+          <td>{{ entry.get('license') }}</td>
+          <td>{{ entry.get('dog_name') }}</td>
+          <td>{{ entry.get('handler_name') }}</td>
+          <td style="text-align: right;">
+            {% if entry.get('sum_fehler') == 999 %}DIS{% else %}{{ entry.get('sum_fehler') }}{% endif %}
+          </td>
+          <td style="text-align: right;">
+            {% if entry.get('sum_parcours') == 999 %}—{% else %}{{ entry.get('sum_parcours') }}{% endif %}
+          </td>
+          <td style="text-align: right;">
+            {% if entry.get('sum_zeit') == 999.99 %}—{% else %}{{ "%.2f"|format(entry.get('sum_zeit', 0)) }}{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endfor %}
+
+<div class="alert alert-secondary small">
+  <i class="fas fa-info-circle me-1"></i>
+  Kombirangliste: nur BCCS-Finalisten, Summation aus Jumping + Agility. Rangierung nach Gesamtfehlerpunkten, dann Parcoursfehler, dann Zeit.
+</div>
+
+<style media="print">
+  .btn, .alert { display: none; }
+  .card { page-break-inside: avoid; }
+</style>
+{% endblock %}

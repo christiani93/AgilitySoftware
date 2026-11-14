@@ -10,61 +10,6 @@
     </div>
 </div>
 
-{% if debug_tools %}
-<hr>
-<h3>Debug / Test</h3>
-
-<div class="mb-3" style="max-width: 900px;">
-    <p class="text-muted mb-2">{{ _('Schnell-Generatoren für FMBB-/SKBS-Tests:') }}</p>
-    <a href="{{ url_for('debug_bp.generate_aaretaler_demo_event') }}"
-       class="btn btn-info me-2"
-       onclick="return confirm('Demo-Event mit echten Aaretaler-Startlisten (20.06.2026) + Resultaten erstellen?');">
-        <i class="fas fa-flag-checkered me-1"></i>{{ _('Aaretaler-Demo (echte Startlisten)') }}
-    </a>
-    <a href="{{ url_for('debug_bp.generate_fmbb_test_event') }}"
-       class="btn btn-outline-info"
-       onclick="return confirm('Synthetisches FMBB-Test-Event (zufällige Teilnehmer) erstellen?');">
-        <i class="fas fa-flask me-1"></i>{{ _('FMBB-Test-Event (zufällig)') }}
-    </a>
-</div>
-
-<p class="text-muted" style="max-width: 900px;">
-    {{ _('Startlisten-JSON hochladen und daraus ein neues Test-Event erstellen.') }}
-</p>
-<form method="post"
-      action="{{ url_for('events_bp.debug_import_create_event') }}"
-      enctype="multipart/form-data"
-      style="border: 1px solid #ddd; padding: 12px; border-radius: 8px; max-width: 900px;">
-    <div class="mb-2">
-        <label class="form-label"><b>startlist_all_combined.json</b></label>
-        <input type="file" name="startlist_file" accept=".json" required class="form-control">
-    </div>
-    <div class="mb-2">
-        <label class="form-label">{{ _('Event-Name (optional)') }}</label>
-        <input type="text" name="event_name" class="form-control" placeholder="TEST-Import 2025-01-01 10:00">
-    </div>
-    <div class="form-check mb-1">
-        <input class="form-check-input" type="checkbox" name="create_participants" value="1" checked id="debug-create-participants">
-        <label class="form-check-label" for="debug-create-participants">{{ _('Teilnehmer anlegen (dogs + handlers)') }}</label>
-    </div>
-    <div class="form-check mb-1">
-        <input class="form-check-input" type="checkbox" name="create_runs" value="1" checked id="debug-create-runs">
-        <label class="form-check-label" for="debug-create-runs">{{ _('Läufe anlegen (Agility/Jumping pro Klasse/Kategorie)') }}</label>
-    </div>
-    <div class="form-check mb-1">
-        <input class="form-check-input" type="checkbox" name="add_entries" value="1" checked id="debug-add-entries">
-        <label class="form-check-label" for="debug-add-entries">{{ _('Entries hinzufügen') }}</label>
-    </div>
-    <div class="form-check mb-3">
-        <input class="form-check-input" type="checkbox" name="sort_entries" value="1" id="debug-sort-entries">
-        <label class="form-check-label" for="debug-sort-entries">{{ _('Entries nach offizieller Startnummer sortieren') }}</label>
-    </div>
-    <button type="submit" class="btn btn-warning">
-        {{ _('Startlisten-JSON → Test-Event erstellen') }}
-    </button>
-</form>
-{% endif %}
-
 <ul class="list-group">
     {% for event in events %}
     <li class="list-group-item d-flex justify-content-between align-items-center">

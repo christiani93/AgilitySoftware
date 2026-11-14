@@ -962,18 +962,38 @@ def _format_sum_errors(val):
     return f"{val:g}"
 
 
-def _name_html_from_row(d):
-    """Einzeiliger Name aus einer Kombi-Ranglisten-Zeile (handler_name/dog_name)."""
+def _name_html_from_row(d, show_startnummer=False, muted_cls="text-muted"):
+    """Einzeiliger Name aus einer Kombi-Ranglisten-Zeile (handler_name/dog_name),
+    optional mit Startnummer-Badge (z.B. fuer die "Fuehrend"-Zeile der Platz-1-
+    Projektion, wo die Startnummer am Ring direkt zuordenbar sein soll). `muted_cls`
+    auf 'text-white-50' setzen, wenn auf dunklem Hintergrund eingebettet."""
     handler = d.get("handler_name") or ""
     dog = d.get("dog_name") or ""
-    name_html = f"<strong>{handler}</strong>" if handler else ""
+    name_html = ""
+    if show_startnummer and d.get("startnummer") is not None:
+        name_html += f"<span class='small {muted_cls} fw-normal'>#{d.get('startnummer')}</span> "
+    name_html += f"<strong>{handler}</strong>" if handler else ""
     if dog:
-        name_html += f" <span class='small text-muted fw-normal'>{dog}</span>"
+        name_html += f" <span class='small {muted_cls} fw-normal'>{dog}</span>"
     return name_html
 
 
+_BCCS_MONITOR_TOP_N = 4
+
+
 def _render_bccs_combined_table(rows, cat_label, div_label):
-    """A2: kombinierte Final-Rangliste (Summe beider Finalläufe) als Karte."""
+    """A2: kombinierte Final-Rangliste (Summe beider Finalläufe) als Karte.
+
+    Zeigt nur die ersten `_BCCS_MONITOR_TOP_N` KLASSIERTEN Plätze (Monitor-Platzgrund:
+    gleiche Grössenordnung wie die anderen Listen/Karten des Ring-Monitors) — nicht
+    klassierte (DIS/noch nicht gelaufen) Teams werden hier ausgeblendet, nicht nur
+    ans Ende sortiert."""
+    top_rows = [d for d in rows if not d.get("dis")][:_BCCS_MONITOR_TOP_N]
+    if not top_rows:
+        # Noch kein einziges Team in beiden Finalläufen klassiert (typisch waehrend
+        # des 1. Finallaufs/Jumping, solange niemand den 2. Lauf/Agility beendet hat)
+        # — dann lieber gar keine (leere) Tabelle zeigen statt eines nutzlosen Rahmens.
+        return ""
     title = f"{_('Kombinierte Rangliste')} – {cat_label} {div_label}"
     parts = [
         "<div class='card shadow-sm mt-3'>",
@@ -984,11 +1004,8 @@ def _render_bccs_combined_table(rows, cat_label, div_label):
         f"<th>{_('Gesamtfehler')}</th><th>{_('Zeit')}</th></tr></thead>",
         "<tbody>",
     ]
-    for d in rows:
-        if d.get("dis"):
-            platz = f"<span class='text-muted small'>{_('n. kl.')}</span>"
-        else:
-            platz = d.get("final_rang")
+    for d in top_rows:
+        platz = d.get("final_rang")
         parts.append(
             "<tr>"
             f"<td>{platz}</td>"
@@ -1001,7 +1018,7 @@ def _render_bccs_combined_table(rows, cat_label, div_label):
     return ''.join(parts)
 
 
-def _render_bccs_platz1_projection(rows, view):
+def _render_bccs_platz1_projection(rows, view, embedded=False):
     """A3: „Was darf sich der Läufer erlauben, um Platz 1 zu erreichen" — Live-Projektion
     für den aktuellen Starter im 2. Finallauf (Agility).
 
@@ -1018,7 +1035,13 @@ def _render_bccs_platz1_projection(rows, view):
     bei exaktem Gesamtfehler-Gleichstand entscheidet offiziell zuerst die Parcoursfehler-Summe,
     erst dann die Zeit. Für die Live-Anzeige bewusst auf Fehler→Zeit vereinfacht.
     Liefert leeren String, wenn nicht anwendbar (kein Agility-Final, kein aktueller Starter,
-    Starter im Jumping disqualifiziert → keine Kombination mehr möglich)."""
+    Starter im Jumping disqualifiziert → keine Kombination mehr möglich).
+
+    `embedded=True`: liefert nur den Inhalt OHNE eigene Card-Huelle, OHNE Titel/Trennlinie
+    und OHNE „Führend"-Zeile (zum nahtlosen Einbetten in die dunkle „Aktueller Starter"-
+    Karte direkt unter Name/Hund — die Führend-Info steht ohnehin in der Kombi-Rangliste-
+    Karte darunter, Platz 1). Text läuft in hellen Farben (text-white-50) statt text-muted
+    auf dem dunklen Hintergrund."""
     current_run = view.get("current_run") or {}
     # Nur im 2. Finallauf (Agility) sinnvoll — im 1. Finallauf (Jumping) gibt es noch keine Kombi.
     if current_run.get("laufart") != "Agility":
@@ -1031,17 +1054,24 @@ def _render_bccs_platz1_projection(rows, view):
     starter_row = next((d for d in rows if str(d.get("license") or "").strip() == lic), None)
     jump = (starter_row or {}).get("runs", {}).get("Jumping") if starter_row else None
 
-    header = f"<div class='card-header bg-dark text-white fw-semibold'>🎯 {_('Für Platz 1')}</div>"
+    muted_cls = "text-white-50" if embedded else "text-muted"
+    if embedded:
+        def _box(body_html):
+            # Steht jetzt als eigene Spalte neben Name/Hund (statt darunter gestapelt)
+            # -> keine Extra-Margin noetig, row align-items-center uebernimmt das.
+            return body_html
+    else:
+        header = f"<div class='card-header bg-dark text-white fw-semibold'>🎯 {_('Für Platz 1')}</div>"
 
-    def _box(body_html):
-        return ("<div class='card shadow-sm mt-3 border-dark'>"
-                f"{header}<div class='card-body py-2'>{body_html}</div></div>")
+        def _box(body_html):
+            return ("<div class='card shadow-sm mt-3 border-dark'>"
+                    f"{header}<div class='card-body py-2'>{body_html}</div></div>")
 
     if jump is None:
         # Starter hat (noch) kein Jumping-Final-Ergebnis in der Wertung.
         return ""
     if jump.get("dis"):
-        return _box(f"<div class='text-muted'>{_('Keine Kombination möglich (Jumping disqualifiziert).')}</div>")
+        return _box(f"<div class='{muted_cls}'>{_('Keine Kombination möglich (Jumping disqualifiziert).')}</div>")
 
     # Bester bereits klassierter Gegner (beide Läufe sauber), nicht der Starter selbst.
     classified = [d for d in rows
@@ -1055,45 +1085,110 @@ def _render_bccs_platz1_projection(rows, view):
     fehler_budget = round((leader.get("sum_fehler") or 0) - j_f, 3)
     zeit_budget = round((leader.get("sum_zeit") or 0) - j_t, 3)
 
-    leader_name = _name_html_from_row(leader)
+    # "Führend"-Zeile nur in der eigenstaendigen (nicht eingebetteten) Variante — im
+    # eingebetteten Monitor-Layout steht der Führende ohnehin auf Platz 1 der Kombi-
+    # Rangliste-Karte direkt darunter.
+    leader_line = ""
+    if not embedded:
+        leader_name = _name_html_from_row(leader, show_startnummer=True, muted_cls=muted_cls)
+        leader_line = (f"<div class='small {muted_cls}'>{_('Führend')}: {leader_name} "
+                        f"({_format_sum_errors(leader.get('sum_fehler'))} {_('Fehler')}, "
+                        f"{_format_time(leader.get('sum_zeit'))} s)</div>")
+
     if fehler_budget < 0:
-        body = (f"<div class='text-muted'>{_('Platz 1 nicht mehr erreichbar.')}</div>"
-                f"<div class='small text-muted'>{_('Führend')}: {leader_name} "
-                f"({_format_sum_errors(leader.get('sum_fehler'))} {_('Fehler')}, "
-                f"{_format_time(leader.get('sum_zeit'))} s)</div>")
+        body = f"<div class='{muted_cls}'>{_('Platz 1 nicht mehr erreichbar.')}</div>" + leader_line
         return _box(body)
 
     body = (
         f"<div class='fs-5'>{_('Höchstens')} <strong>{_format_sum_errors(fehler_budget)}</strong> "
         f"{_('Fehlerpunkte im Agility')}</div>"
         f"<div>{_('Bei Null Fehlern: Agility-Zeit unter')} <strong>{_format_time(zeit_budget)} s</strong></div>"
-        f"<div class='small text-muted mt-1'>{_('Führend')}: {leader_name} "
-        f"({_format_sum_errors(leader.get('sum_fehler'))} {_('Fehler')}, "
-        f"{_format_time(leader.get('sum_zeit'))} s)</div>"
+        + leader_line
     )
     return _box(body)
 
 
-def _render_bccs_monitor_extras(event, view):
-    """Zuschauer-Monitor-Zusätze bei BCCS-SM-Finalläufen: A3-Platz-1-Projektion (nur
-    Agility-Final) + A2-Kombi-Rangliste. Leerer String ausserhalb BCCS-SM/Final.
-    Read-only: `rank_final_bccs` arbeitet auf Kopien (kein Save)."""
+def _bccs_monitor_rows(event, view):
+    """Gemeinsame Datenbeschaffung fuer A2 (Kombi-Rangliste) + A3 (Platz-1-Projektion):
+    liefert (rows, cat_label, div_label) oder None, wenn ausserhalb BCCS-SM/Final oder
+    ohne Finalisten. Read-only: `rank_final_bccs` arbeitet auf Kopien (kein Save)."""
     current_run = view.get("current_run") or {}
     if (event.get("Veranstaltungsart") != "BCCS-SM") or not current_run.get("is_final"):
-        return ""
+        return None
     div = _bccs_division_for_run(current_run)
     if not div:
-        return ""
+        return None
     category, div_key, div_label = div
     try:
         settings = _load_settings()
         ranking = rank_final_bccs(event, recalc_fn=partial(recalc_and_store, settings=settings))
     except Exception:
-        return ""
+        return None
     rows = ranking.get(f"{category}/{div_key}") or []
     if not rows:
-        return ""
+        return None
     cat_label = _('Intermediate') if category == 'Intermediate' else _('Large')
+    return rows, cat_label, div_label
+
+
+def _render_bccs_previous_run_line(event, view):
+    """Zeigt Platz + Resultat des aktuellen Starters aus dem VORANGEHENDEN Finallauf
+    (Jumping, vor dem 2. Finallauf Agility) — Einordnung für Sprecher/Publikum, bevor
+    der Agility-Lauf dieses Teams beginnt. Leerer String, wenn nicht anwendbar (kein
+    Agility-Final, kein aktueller Starter, noch kein Jumping-Ergebnis vorhanden)."""
+    current_run = view.get("current_run") or {}
+    if current_run.get("laufart") != "Agility":
+        return ""
+    data = _bccs_monitor_rows(event, view)
+    if not data:
+        return ""
+    rows, _cat_label, _div_label = data
+    starter = view.get("current_starter") or {}
+    lic = (starter.get("Lizenznummer") or "").strip()
+    if not lic:
+        return ""
+    starter_row = next((d for d in rows if str(d.get("license") or "").strip() == lic), None)
+    jump = (starter_row or {}).get("runs", {}).get("Jumping") if starter_row else None
+    if jump is None:
+        return ""
+
+    if jump.get("dis"):
+        result_text = _("nicht klassiert")
+    else:
+        platz = jump.get("rang")
+        platz_text = f"{_('Platz')} {platz} · " if platz else ""
+        result_text = (f"{platz_text}{_format_total_errors(jump)} {_('Fehler')} · "
+                        f"{_format_time(jump.get('zeit'))} s")
+    return f"<div class='small text-white-50'>{_('Jumping')}: {result_text}</div>"
+
+
+def _render_bccs_platz1_inner(event, view):
+    """A3-Inhalt OHNE eigene Card-Huelle, zum Einbetten in die „Aktueller Starter"-Karte."""
+    data = _bccs_monitor_rows(event, view)
+    if not data:
+        return ""
+    rows, _cat_label, _div_label = data
+    return _render_bccs_platz1_projection(rows, view, embedded=True)
+
+
+def _render_bccs_combined_section(event, view):
+    """A2-Kombi-Ranglisten-Karte (eigenstaendig, Top-4 Plätze)."""
+    data = _bccs_monitor_rows(event, view)
+    if not data:
+        return ""
+    rows, cat_label, div_label = data
+    return _render_bccs_combined_table(rows, cat_label, div_label)
+
+
+def _render_bccs_monitor_extras(event, view):
+    """Zuschauer-Monitor-Zusätze bei BCCS-SM-Finalläufen: A3-Platz-1-Projektion (nur
+    Agility-Final, eigene Card) + A2-Kombi-Rangliste. Leerer String ausserhalb BCCS-SM/
+    Final. Nur noch für Tests/Altcode mit eigener A3-Card — die Live-Route bettet A3
+    stattdessen in die „Aktueller Starter"-Karte ein (siehe `_render_bccs_platz1_inner`)."""
+    data = _bccs_monitor_rows(event, view)
+    if not data:
+        return ""
+    rows, cat_label, div_label = data
     return (_render_bccs_platz1_projection(rows, view)
             + _render_bccs_combined_table(rows, cat_label, div_label))
 
@@ -1125,8 +1220,6 @@ def render_ring_monitor_content(ring_number: int):
 
     current_starter = view.get("current_starter") or {}
     current_handler, current_dog = format_ring_name_parts(current_starter)
-    current_startno = current_starter.get("Startnummer")
-    current_startno_display = f"#{current_startno}" if current_startno else ""
 
     parts = [
         "<div class='ring-monitor'>",
@@ -1157,7 +1250,7 @@ def render_ring_monitor_content(ring_number: int):
     if start_entries:
         for entry in start_entries:
             startno = entry.get("Startnummer")
-            startno_display = f"#{startno}" if startno else ""
+            startno_display = f"#{startno}" if startno is not None else ""
             parts.append(
                 "<li class='list-group-item d-flex justify-content-between align-items-center'>"
                 f"<span>{format_ring_name_html(entry)}</span>"
@@ -1226,22 +1319,43 @@ def render_ring_monitor_content(ring_number: int):
     else:
         parts.append(f"<div class='text-muted'>{_('Noch keine Ergebnisse.')}</div>")
 
+    # BCCS-SM: Platz/Resultat aus dem vorangehenden Finallauf (Jumping) + Platz-1-
+    # Projektion (Agility-Final) werden in die Aktueller-Starter-Karte eingebettet
+    # statt eigene Karten zu belegen (spart Monitor-Platz). Wenn vorhanden, links/
+    # rechts neben Name+Hund gesetzt (3-Spalten) statt darunter gestapelt — haelt die
+    # Karte flach, egal wie viel BCCS-Zusatzinfo dazukommt.
+    bccs_previous_run_html = _render_bccs_previous_run_line(event, view)
+    bccs_platz1_html = _render_bccs_platz1_inner(event, view)
+
+    core_info = f"<div class='h3 fw-semibold mb-0'>{current_handler or '—'}</div>"
+    if current_dog:
+        core_info += f"<div class='text-white-50'>{current_dog}</div>"
+
+    if bccs_previous_run_html or bccs_platz1_html:
+        starter_body = (
+            "<div class='row align-items-center text-center g-2'>"
+            f"<div class='col-4'>{bccs_previous_run_html}</div>"
+            f"<div class='col-4'>{core_info}</div>"
+            f"<div class='col-4'>{bccs_platz1_html}</div>"
+            "</div>"
+        )
+    else:
+        starter_body = core_info
+
     parts.extend([
         "</div>",   # card-body
         "</div>",   # card
-        # Aktueller Starter – gleiche Hoehe via .ring-band
+        # Aktueller Starter – gleiche Hoehe via .ring-band (min-height)
         "<div class='card bg-dark text-white mt-3 ring-band'>",
         "<div class='card-body text-center py-2 d-flex flex-column justify-content-center'>",
         f"<div class='text-uppercase small text-white-50'>{_('Aktueller Starter')}</div>",
-        f"<div class='h3 fw-semibold mb-0'>{current_handler or '—'}</div>",
-    ] + ([f"<div class='text-white-50'>{current_dog}</div>"] if current_dog else []) + [
-        f"<div class='small text-white-50'>{current_startno_display}</div>",
+        starter_body,
         "</div>",   # card-body
         "</div>",   # card
     ])
 
-    # BCCS-SM: Platz-1-Projektion (Agility-Final) + kombinierte Final-Rangliste
-    parts.append(_render_bccs_monitor_extras(event, view))
+    # BCCS-SM: kombinierte Final-Rangliste (A2, Top 4) als eigene Karte
+    parts.append(_render_bccs_combined_section(event, view))
 
     parts.append("</div>")   # .ring-monitor
 

@@ -3,7 +3,48 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-11-02
+Stand: 2026-11-11
+
+## Session 2026-11-11 — TKAMO SW-Guide v0.2 Gap-Analyse + Umsetzung
+
+Vollständige Gap-Analyse der 45 SW-Guide-Anforderungen (SWG-A/K/M/W/R) gegen Code
+in Memory `reference_sw_guide_compliance_matrix`. Das meiste ist erfüllt.
+
+- [x] **SWG-R-12 Vollständigkeitsprüfung GEBAUT** (`22bbc1b`, `routes_print.py`,
+      8 Tests, 109 web_app grün): TKAMO-Export blockiert Kat/Klasse, wenn ein
+      gestartetes Team weder Resultat noch DIS/ABR hat (Interstitial), optional
+      nur vollständige Läufe exportieren (`?only_complete=1`). EXE-Rebuild offen.
+- [x] **SWG-W-09 Rangfolge-Bug GEFIXT** (`ad05c78`, `utils.py`): Einzellauf-Rangliste
+      jetzt mit Parcoursfehler-Tiebreaker (`fehler_parcours`, vor Zeit) + Ex-aequo-
+      Rängen (1,2,2,4), konsistent mit `combination_ranking._sort_key`. 5 Tests,
+      120 web_app grün. OFFEN: **EXE-Rebuild** + Wochenend-Realtest.
+- [ ] **SWG-R-10 teilw.**: IOC-Code wird vorangestellt, aber keine Gültigkeitsprüfung
+      vor Export (migrationsfrei nachrüstbar; braucht IOC-Codeliste SWG-K-14).
+- [ ] **SWG-W-03/W-04 teilw.**: „Faktor der höchsten Klasse bei gemeinsamem Parcours"
+      + Auto-Erkennung Quali-Läufe (AWC/EO/JAO/SAO) fehlen.
+- [ ] **SWG-A-02**: Richter-Stammdaten ohne explizites AIS-Feld (judges.json-id wird
+      faktisch als AIS-Nr. exportiert → niedrige Prio).
+- [ ] **ASMV (W-16/17, R-07) = N/A** (keine ASMV-Mannschaftsturniere). Obedience = N/A.
+
+## Session 2026-11-10 — TKAMO-Export-Korrektheit (Weisung Resultatmeldung 2026)
+
+- [x] **TKAMO-Export-Fixes committet** (`dacb025`, `web_app/blueprints/routes_print.py`,
+      End-to-End verifiziert gegen echte Route): DIS/ABR → Rang/Laufzeit/Geschwindigkeit/
+      Fehler/Verweigerung/Zeitfehler/Gesamtfehler **leer** (statt `0,00`/`0`); **DNS-Teams
+      raus** (nicht gestartete Teams gehören nicht in die Datei); ausländische Lizenz →
+      IOC-Code **ohne Trenner** (`FRA-105002`→`FRA105002`) + Feld **Club leer**.
+- [ ] **EXE-Rebuild** nötig, damit `dacb025` auf den Turnier-Laptop kommt (reiht sich zu den
+      anderen offenen Rebuilds).
+- [ ] **`Lauf`→„Open"-Mapping im Export:** TKAMO-System kennt nur Agility/Jumping/Open (alles
+      andere = Open, max 3 Läufe). Export schreibt aktuell rohe `laufart` (inkl. „Open-Agility").
+      Non-Agility/Jumping im `Lauf`-Feld auf „Open" mappen — **erst wenn präzisierte Weisung da**.
+- [ ] **Dezimaltrennzeichen klären:** Export schreibt Komma (`34,23`), Weisung-Beispiele zeigen
+      Punkt (`34.23`). Vor nächstem Real-Upload prüfen, ob Importer Punkt erwartet (ggf.
+      `.replace('.',',')` entfernen). Als Feedback an TKAMO gemeldet.
+- [ ] **SM-Realtest:** gegenprüfen, dass **keine Rassen-SM-spezifischen Läufe** in die
+      TKAMO-Export-CSV rutschen (SM-Ranglisten gehen nicht an tkamo.ch).
+- [ ] **Toter SCT-Faktor-Code** (`_apply_sct_mct_factors` + Settings-UI `sct_factors`) bewusst
+      aufgehoben bis SWG-A-01 (jahresbasierte Konfig) — **nicht** als Dead-Code entfernen.
 
 ## Session 2026-11-02 — BCCS A3-Semantik, i18n-Sweep, EXE-Rebuild
 
