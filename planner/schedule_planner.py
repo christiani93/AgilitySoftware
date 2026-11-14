@@ -204,6 +204,12 @@ def collect_participants_by_class(event_runs, block):
 
 
 def _match_run_to_block(run_item, block):
+    # Siehe web_app/utils.py::_match_run_to_block — Final-Läufe (is_final) duerfen
+    # nie einen Quali-Block uebernehmen (und umgekehrt), auch bei identischer
+    # Kategorie/Klasse/Laufart (z.B. BCCS-SM Kl.3-Quali vs. Kl.3-Final).
+    if bool(run_item.get("is_final")) != bool(block.get("is_final")):
+        return False
+
     laufart = normalize_size(run_item.get("laufart"))
     block_laufart = (block.get("timing_run_type") or "").strip().lower()
     if block_laufart and block_laufart != "other" and laufart != block_laufart:
