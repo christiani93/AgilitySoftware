@@ -360,9 +360,13 @@ def _normalise_entry(entry: dict) -> dict:
     dis_val = (entry.get("disqualifikation") or "").strip()
     fehler_total = entry.get("fehler_total", DIS_SENTINEL_FEHLER)
     is_dns = dis_val == "DNS"
+    # utils._calculate_run_results setzt fehler_total=998 (nicht 999!) fuer "noch kein
+    # Resultat" (kein zeit/result vorhanden) — Schwelle muss daher bei 998 liegen, sonst
+    # werden noch nicht gelaufene Teams faelschlich als klassiert (mit 998 Fehlerpunkten)
+    # statt als "nicht klassiert" gewertet. Siehe auch sm_qualification.py (>= 998).
     is_dis = (
         dis_val in ("DIS", "ABR", "DNS")
-        or float(fehler_total) >= DIS_SENTINEL_FEHLER
+        or float(fehler_total) >= 998
     )
     return {
         "license":         license_no,
@@ -379,6 +383,7 @@ def _normalise_entry(entry: dict) -> dict:
         "rang":            entry.get("platz"),
         "dis":             is_dis,
         "dns":             is_dns,
+        "startnummer":     entry.get("Startnummer"),
     }
 
 
@@ -589,6 +594,8 @@ def _rank_division_final(final_pools: dict) -> list[dict]:
                 "runs":         {},
             })
             d["runs"][la] = e
+            if e.get("startnummer") is not None:
+                d["startnummer"] = e.get("startnummer")
 
     results: list[dict] = []
     for d in by_lic.values():

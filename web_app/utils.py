@@ -315,6 +315,13 @@ def _get_concrete_run_list(event):
 
 
 def _match_run_to_block(run_item, block):
+    # Final-Läufe (is_final) duerfen NIE einen regulaeren Quali-Block uebernehmen
+    # und umgekehrt, auch wenn Kategorie/Klasse/Laufart identisch sind (z.B. BCCS-SM
+    # Kl.3-Quali vs. Kl.3-Final) — sonst rutscht der Final-Lauf unsortiert in den
+    # Quali-Zeitslot. Blocks ohne explizites is_final gelten als Quali-Block.
+    if bool(run_item.get('is_final')) != bool(block.get('is_final')):
+        return False
+
     laufart = (_norm(run_item.get('laufart')) or '').lower()
     block_laufart = (block.get('timing_run_type') or '').lower()
     if block_laufart and block_laufart != 'other' and laufart != block_laufart:

@@ -76,7 +76,20 @@ def test_combined_table_rendered_and_ordered(app):
     assert "Kombinierte Rangliste" in html
     assert "Large" in html and "SM" in html
     assert html.index("Fly") < html.index("Zoom")   # Summe 0 vor Summe 5
-    assert "Dash" in html and "n. kl." in html        # DIS = nicht klassiert
+    assert "Dash" not in html  # DIS = nicht klassiert -> auf dem Monitor ausgeblendet
+
+
+def test_combined_table_limited_to_top4(app):
+    jump_entries = [_entry(str(100 + i), f"H{i}", f"Dog{i}", i, 0, 30.0 + i) for i in range(6)]
+    agi_entries = [_entry(str(100 + i), f"H{i}", f"Dog{i}", 0, 0, 40.0 + i) for i in range(6)]
+    event = _event(jump_entries=jump_entries, agi_entries=agi_entries)
+    with app.test_request_context():
+        html = rl._render_bccs_monitor_extras(event, _view(laufart="Jumping"))
+    # 6 klassierte Teams insgesamt, Monitor zeigt nur die ersten 4 Plaetze.
+    for i in range(4):
+        assert f"Dog{i}" in html
+    for i in range(4, 6):
+        assert f"Dog{i}" not in html
 
 
 def test_no_extras_outside_bccs(app):
@@ -92,6 +105,37 @@ def test_no_extras_for_non_final(app):
                    [_entry("100", "Anna", "Fly", 0, 0, 40.0)])
     with app.test_request_context():
         assert rl._render_bccs_monitor_extras(event, _view(is_final=False)) == ""
+
+
+# ── Vorlauf-Zeile (Platz/Resultat aus dem Jumping-Final) ───────────────────
+
+def test_previous_run_line_shows_jumping_result(app):
+    jump = _entry("100", "Anna", "Fly", 2, 1, 32.00)
+    jump["platz"] = 1
+    event = _event(jump_entries=[jump], agi_entries=[_entry("100", "Anna", "Fly", 0, 0, 40.00)])
+    with app.test_request_context():
+        html = rl._render_bccs_previous_run_line(event, _view(starter_lic="100"))
+    assert "Jumping" in html
+    assert "Platz 1" in html
+    assert "32.00" in html
+
+
+def test_previous_run_line_absent_during_jumping(app):
+    jump = _entry("100", "Anna", "Fly", 2, 1, 32.00)
+    jump["platz"] = 1
+    event = _event(jump_entries=[jump], agi_entries=[_entry("100", "Anna", "Fly", 0, 0, 40.00)])
+    with app.test_request_context():
+        html = rl._render_bccs_previous_run_line(event, _view(laufart="Jumping", starter_lic="100"))
+    assert html == ""
+
+
+def test_previous_run_line_shows_dis(app):
+    jump = _entry("100", "Anna", "Fly", 999.0, 0, 999.99, dis="DIS")
+    event = _event(jump_entries=[jump], agi_entries=[_entry("100", "Anna", "Fly", 0, 0, 40.00)])
+    with app.test_request_context():
+        html = rl._render_bccs_previous_run_line(event, _view(starter_lic="100"))
+    assert "Jumping" in html
+    assert "nicht klassiert" in html
 
 
 # ── A3: Platz-1-Projektion ─────────────────────────────────────────────────

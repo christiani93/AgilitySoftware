@@ -132,6 +132,11 @@
                 </div>
               {% endfor %}
             </div>
+            <div class="form-check mt-1">
+              <input class="form-check-input" type="checkbox" id="is_final_block" name="is_final" value="1">
+              <label class="form-check-label" for="is_final_block">Final-Lauf (is_final)</label>
+              <div class="form-text">Nur für SM-Finalläufe (is_final=True) — darf nicht mit Quali-Läufen derselben Kategorie/Klasse vermischt werden.</div>
+            </div>
           </div>
 
           <div class="col-12 col-md-3">
@@ -251,7 +256,9 @@
               </div>
               <div class="card-body py-2 px-3">
                 {% if block.type == 'run' %}
-                  <div class="small text-muted">Format: {{ block.run_format or 'normal' }} | Laufart: {{ block.timing_run_type }}</div>
+                  <div class="small text-muted">Format: {{ block.run_format or 'normal' }} | Laufart: {{ block.timing_run_type }}
+                    {% if block.is_final %}<span class="badge bg-warning text-dark ms-1">Final</span>{% endif %}
+                  </div>
                   {% set size_list = block.size_categories or [] %}
                   {% set size_display = size_list|join(', ') if size_list else block.size_category %}
                   <div class="small text-muted">Kategorie: {{ size_display }} | Klassen: {{ (block.classes or [])|join(', ') }}</div>

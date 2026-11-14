@@ -24,31 +24,38 @@ ABGEHAKT (Dezember):
 
 ---
 
-## Session 2026-11-14 (DEZEMBER ZIELE) — IN ARBEIT
+## Session 2026-11-14 (DEZEMBER ZIELE) — FORTSCHRITT
 
-### ⭐ NÄCHSTE EVENTS: FMBB + SKBS (Priorität!)
+### ⭐ NÄCHSTE EVENTS: FMBB + SKBS (05.-06.12.2026 Münsingen, Doppelnutzung)
 
-**Dezember 2026 — Prioritäten:**
+**Heute erledigt:**
+- [x] **FMBB-Quali-Modul als FERTIG entdeckt** (~95%, war schon gebaut):
+      `fmbb_quali.py` + `routes_fmbb.py` + 2 Templates + 11 Tests grün, in
+      `app.py` registriert, Button in `manage_runs.html`. KEIN Neubau nötig.
+- [x] **SW-Guide-Fixes R-12/W-09/R-10 im Code verifiziert** (routes_print.py +
+      utils.py `_rank_key` + ioc_codes.py) — alle committed, jetzt im EXE.
+- [x] **EXE-Rebuild** (58.3 MB) → `.\dist\AgilitySoftware.exe` (Quirks in Memory
+      `reference_exe_build_mechanics`).
+- [x] **Commit `362c22a`** Planner-Fix (Final-Läufe ≠ Quali-Block-Mapping) gepusht.
 
-1. **🔴 FMBB-Quali Münsingen** (05.-06.12) — NÄCHSTES EVENT
-   - [ ] Quali-Lizenzcheck-Implementierung
-   - [ ] Export-Format + TKAMO-Resultatmeldung
-   - [ ] Seed-Season-Events (Reservation-Gate SKBS/FMBB)
-   - [ ] EXE-Build mit Fixes
-
-2. **🔴 SKBS-SM vorbereiten** (Datum?)
-   - [ ] SM-Module Phase 2/3 fertigstellen
-   - [ ] Finalisten-Ableitung Portal-API
-   - [ ] Export-Format
-
-3. **🟡 SW-Guide Compliance-Fixes** (Sammeln für EXE-Rebuild)
-   - R-12: Vollständigkeitsprüfung GEBAUT, Tests grün
-   - W-09: Rangfolge-Bug GEFIXT, Tests grün
-   - R-10: IOC-Code (teilweise)
-
-4. **🟢 KO-Cup nach HCS**
-   - feature/ko-cup → main mergen
-   - Finalisten-Sync mit Startnummern
+**OFFEN Dezember:**
+1. **🔴 FMBB-Quali** (05.-06.12)
+   - [ ] Live-Browser-Test Dashboard/Config/CSV-Export (nur noch Verifikation)
+   - [ ] EXE auf Turnier-Rechner verteilen
+2. **🔴 SKBS-SM**
+   - [x] Rechenkern + Dashboard + CSV-Export (SW) — FERTIG, validiert
+   - [ ] **Portal Phase 3-Validierung** (`app/services/skbs_sm.py` existiert NICHT;
+         EventFinalist-Model da, Schema resultexport.v1.6). Unblocked, aber
+         post-Realtest ok.
+3. **🟡 Portal-Deploy OFFEN** — BCCS-Live-Ranking `5dcf079` Code ready, aber SSH
+   timeout (Schweizer Netz, port 22 zu 5.102.151.155). **User muss manuell
+   deployen** (git fetch origin && git reset --hard origin/main && supervisorctl
+   -c ~/.services/supervisord/hostpoint.conf restart agilityportal).
+4. **🟡 AdminPortal Reservation + AIS** (User, bis 4.12) — Events 37/38 warten auf
+   Reservation→Auto-Link via `flask seed-season-events`.
+5. **🟢 Oldie-Lizenzcheck (M-04)** — blockiert (keine Oldie-Datenquelle im Portal),
+   Januar.
+6. **🟢 KO-Cup nach HCS** — feature/ko-cup → main mergen
 
 ## Session 2026-11-11 — TKAMO SW-Guide v0.2 Gap-Analyse + Umsetzung
 
