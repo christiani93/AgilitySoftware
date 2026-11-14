@@ -374,6 +374,73 @@ def _normalize_timing_run_type(value: str) -> str:
     return "other"
 
 
+# Portal-Event-Typ (events.json "type") → lokale Veranstaltungsart. Ohne diese
+# Ableitung bliebe ein importiertes BCCS-SM-Event typlos → kein BCCS-Dashboard,
+# keine is_final-/SM-UI. Siehe event_types-Liste in edit_event.
+_PORTAL_TYPE_VERANSTALTUNGSART = {
+    "bccs_sm":  "BCCS-SM",
+    "skbs_sm":  "SKBS-SM",
+    "tkamo_sm": "SM Einzel",
+    "sm":       "SM Einzel",
+}
+_VERANSTALTUNGSARTEN = ("Meeting", "Meisterschaft", "SM Einzel", "SKBS-SM",
+                        "BCCS-SM", "Team-Challenge")
+
+
+def _portal_type_to_veranstaltungsart(value: str) -> str:
+    raw = _norm(value)
+    if not raw:
+        return "Meeting"
+    low = raw.lower()
+    if low in _PORTAL_TYPE_VERANSTALTUNGSART:
+        return _PORTAL_TYPE_VERANSTALTUNGSART[low]
+    # Bereits ein lokaler Veranstaltungsart-Wert (z.B. direkt "BCCS-SM")?
+    for sw in _VERANSTALTUNGSARTEN:
+        if raw == sw:
+            return sw
+    return "Meeting"
+
+
+def _apply_eventexport_final_runs(event: dict, runs_payload) -> dict:
+    """Materialisiert FINAL-Läufe (is_final) aus runs.json. Quali-Läufe entstehen
+    bereits aus den Registrierungen; Final-Läufe haben keine Anmeldungen (Teilnehmer
+    werden abgeleitet) und werden nur über runs.json übertragen. Dedup über
+    (laufart, kategorie, klasse, is_final)."""
+    if isinstance(runs_payload, dict):
+        rows = runs_payload.get("runs") or runs_payload.get("items") or []
+    elif isinstance(runs_payload, list):
+        rows = runs_payload
+    else:
+        rows = []
+    existing = event.setdefault("runs", [])
+    have = {(r.get("laufart"), r.get("kategorie"), str(r.get("klasse") or ""),
+             bool(r.get("is_final"))) for r in existing}
+    added = 0
+    for row in rows or []:
+        if not isinstance(row, dict) or not row.get("is_final"):
+            continue
+        laufart = _normalize_discipline(
+            _get_first_value(row, ("discipline", "laufart", "run_type"), ""))
+        kategorie = _get_first_value(row, ("category_code", "kategorie", "Kategorie"), "")
+        klasse = str(_get_first_value(row, ("class_level", "klasse", "Klasse"), ""))
+        key = (laufart, kategorie, klasse, True)
+        if key in have:
+            continue
+        existing.append({
+            "id": str(uuid.uuid4()),
+            "name": f"{laufart} {kategorie} {klasse} Final".strip(),
+            "laufart": laufart,
+            "kategorie": kategorie,
+            "klasse": klasse,
+            "is_final": True,
+            "entries": [],
+            "laufdaten": {},
+        })
+        have.add(key)
+        added += 1
+    return {"final_runs_added": added}
+
+
 def _eventexport_registration_list(payload) -> list:
     if isinstance(payload, list):
         return payload
@@ -719,13 +786,19 @@ def _ensure_portal_judge(judges: list, judge_ais_id, judge_name: str):
     Fehlt der Eintrag lokal (kein manueller CSV-Import), wird er hier angelegt, damit
     der Name im Zeitplan erscheint statt "Unbekannt".
     """
+    name = (judge_name or "").strip()
+    # Ohne AIS-ID (z.B. Portal-Richter ohne hinterlegte AIS-Nummer) über den Namen
+    # anlegen, damit der Richter nicht verloren geht ("nicht vorhanden"). Synthetische,
+    # stabile id aus dem Namen.
     if not judge_ais_id:
-        return None
-    jid = str(judge_ais_id)
+        if not name:
+            return None
+        jid = "name:" + name.lower()
+    else:
+        jid = str(judge_ais_id)
     for j in judges:
         if str(j.get('id')) == jid:
             return jid
-    name = (judge_name or "").strip()
     first, _, last = name.partition(" ")
     judges.append({"id": jid, "firstname": first, "lastname": last})
     return jid
@@ -807,6 +880,7 @@ def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -
             # Finalteilnehmerzahl (final_participants); als Override übernehmen,
             # damit die SW-Engine dieselbe Dauer wie das Portal berechnet.
             fp_total = _get_first_value(block, ("final_participants",), None)
+            fin_disc = _normalize_discipline(_get_first_value(block, ("discipline", "laufart"), ""))
             schedule_block = {
                 "id":                        schedule_planner.generate_block_id(),
                 "type":                      "final",
@@ -814,6 +888,10 @@ def _apply_eventexport_schedule(event: dict, schedule_payload, settings: dict) -
                 "participant_count_override": int(fp_total) if fp_total is not None else None,
                 "notes":                     _get_first_value(block, ("notes", "note"), ""),
             }
+            # Disziplin nur bei echtem BCCS-Finale (Jumping/Agility) ablegen → normale
+            # Disziplin-Zeit im Zeitplan. Ohne (KO/American) bleibt der 'final'-Satz.
+            if fin_disc in ("Agility", "Jumping"):
+                schedule_block["discipline"] = fin_disc.lower()
         else:
             discipline  = _normalize_discipline(_get_first_value(block, ("discipline", "laufart"), ""))
             category    = _get_first_value(block, ("category_code", "kategorie", "Kategorie"), "")
@@ -2500,6 +2578,10 @@ def import_event_package():
                         "Datum": event_date,
                         "VeranstalterClubNr": _get_first_value(event_block or {}, ("VeranstalterClubNr", "club_number", "club"), ""),
                         "Turniernummer": _get_first_value(event_block or {}, ("Turniernummer", "event_number"), ""),
+                        # Event-Typ aus dem Portal → Veranstaltungsart (BCCS-SM-Dashboard,
+                        # is_final-Läufe, SM-Flag). Ohne dies bliebe das Event typlos.
+                        "Veranstaltungsart": _portal_type_to_veranstaltungsart(
+                            _get_first_value(event_block or {}, ("type", "event_type", "Veranstaltungsart"), "")),
                         "num_rings": 1,
                         "runs": [],
                         "run_order": [],
@@ -2511,6 +2593,11 @@ def import_event_package():
 
                     registrations = _eventexport_registration_list(registrations_payload)
                     apply_info = _apply_eventexport_registrations(event, registrations, entities_payload)
+
+                    # Final-Läufe (is_final) aus runs.json materialisieren — nach den
+                    # Quali-Läufen aus den Registrierungen (die event["runs"] setzen).
+                    runs_payload = _read_zip_json(zip_file, 'runs.json') or {}
+                    final_runs_info = _apply_eventexport_final_runs(event, runs_payload)
 
                     settings = _load_settings()
                     schedule_info = _apply_eventexport_schedule(event, schedule_payload, settings)

@@ -762,7 +762,9 @@ def compute_timeline(blocks_by_ring: Dict[str, List[Dict]], ring_start_times: Di
             elif gtype == "final":
                 block = content
                 count = portal_participant_count(block, event_runs)
-                secs = _portal_secs_per_starter("final", run_time_config)
+                # Final-Block mit gesetzter Disziplin (BCCS Jumping/Agility-Finale) rechnet
+                # mit der normalen Disziplin-Zeit; ohne Disziplin (KO/American) gilt 'final'.
+                secs = _portal_secs_per_starter(_blk_discipline(block) or "final", run_time_config)
                 run_s = max(count * secs, 60)
                 s, e, current = _portal_advance(current, run_s, round_minutes)
                 items.append({
@@ -854,7 +856,9 @@ def compute_detailed_segments(blocks_by_ring: Dict[str, List[Dict]], ring_start_
             elif gtype == "final":
                 block = content
                 count = portal_participant_count(block, event_runs)
-                secs = _portal_secs_per_starter("final", run_time_config)
+                # Final-Block mit gesetzter Disziplin (BCCS Jumping/Agility-Finale) rechnet
+                # mit der normalen Disziplin-Zeit; ohne Disziplin (KO/American) gilt 'final'.
+                secs = _portal_secs_per_starter(_blk_discipline(block) or "final", run_time_config)
                 run_s = max(count * secs, 60)
                 s, e, current = _portal_advance(current, run_s, round_minutes)
                 items.append({
