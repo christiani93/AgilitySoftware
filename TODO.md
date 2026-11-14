@@ -3,7 +3,24 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-11-11
+Stand: 2026-11-14
+
+## Session 2026-11-14 — BCCS-SM Realtest-Vorbereitung FERTIG ✅
+
+- [x] **BCCS-Startlisten** (`/bccs-sm/startlisten`) — Verifikation gemeldeter Teilnehmer
+- [x] **BCCS-Kombirangliste** (`/bccs-sm/ranking`) — nur BCCS-Finalisten, pro Kategorie
+- [x] **Portal BCCS-Live-Ranglisten** — API + Template, auto-refresh alle 15s
+- [x] **Debug/Test-Formular entfernt** — sauberer Code, keine Generator mehr
+- [x] **Code committed** — Software + Portal
+- [x] **Portal deployed** — BCCS-Features live auf z-b.tech
+- [x] **EXE-Rebuild** — AgilitySoftware.exe (82.85 MB) gebaut + `dist/` kopiert
+
+**BCCS-Realtest 21./22.11.2026 ready!** 🐕
+
+OFFEN (nicht kritisch):
+- [ ] Ring-Monitor-Pixel-Fix: `python app.py` Server-Restart (optional, Sub-Pixel-Fix ausliefern)
+- [ ] Software auf GitHub pushen (Commits lokal, aber nicht auf origin/main)
+- [ ] EXE auf Ring-PCs verteilen
 
 ## Session 2026-11-11 — TKAMO SW-Guide v0.2 Gap-Analyse + Umsetzung
 
