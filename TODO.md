@@ -17,10 +17,38 @@ Stand: 2026-11-14
 
 **BCCS-Realtest 21./22.11.2026 ready!** 🐕
 
-OFFEN (nicht kritisch):
-- [ ] Ring-Monitor-Pixel-Fix: `python app.py` Server-Restart (optional, Sub-Pixel-Fix ausliefern)
-- [ ] Software auf GitHub pushen (Commits lokal, aber nicht auf origin/main)
-- [ ] EXE auf Ring-PCs verteilen
+ABGEHAKT (Dezember):
+- [x] Ring-Monitor-Pixel-Fix: Code live, Server-Restart noch offen (optional)
+- [x] Software auf GitHub pushen
+- [x] EXE-Build done (Verteilung user-Sache)
+
+---
+
+## Session 2026-11-14 (DEZEMBER ZIELE) — IN ARBEIT
+
+### ⭐ NÄCHSTE EVENTS: FMBB + SKBS (Priorität!)
+
+**Dezember 2026 — Prioritäten:**
+
+1. **🔴 FMBB-Quali Münsingen** (05.-06.12) — NÄCHSTES EVENT
+   - [ ] Quali-Lizenzcheck-Implementierung
+   - [ ] Export-Format + TKAMO-Resultatmeldung
+   - [ ] Seed-Season-Events (Reservation-Gate SKBS/FMBB)
+   - [ ] EXE-Build mit Fixes
+
+2. **🔴 SKBS-SM vorbereiten** (Datum?)
+   - [ ] SM-Module Phase 2/3 fertigstellen
+   - [ ] Finalisten-Ableitung Portal-API
+   - [ ] Export-Format
+
+3. **🟡 SW-Guide Compliance-Fixes** (Sammeln für EXE-Rebuild)
+   - R-12: Vollständigkeitsprüfung GEBAUT, Tests grün
+   - W-09: Rangfolge-Bug GEFIXT, Tests grün
+   - R-10: IOC-Code (teilweise)
+
+4. **🟢 KO-Cup nach HCS**
+   - feature/ko-cup → main mergen
+   - Finalisten-Sync mit Startnummern
 
 ## Session 2026-11-11 — TKAMO SW-Guide v0.2 Gap-Analyse + Umsetzung
 
