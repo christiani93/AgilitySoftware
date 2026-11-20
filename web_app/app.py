@@ -18,6 +18,9 @@ app = Flask(
 )
 from extensions import socketio
 from flask_socketio import join_room
+# Statischer Import, damit PyInstaller den dynamisch (importlib) geladenen
+# engineio-Treiber sieht und mitbuendelt (siehe Kommentar in extensions.py).
+import engineio.async_drivers.threading  # noqa: F401
 app.config['DATA_DIR'] = data_dir()
 app.config['SOFTWARE_VERSION'] = APP_VERSION
 app.config['SECRET_KEY'] = 'dein_super_geheimer_schluessel'
