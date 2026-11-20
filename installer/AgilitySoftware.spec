@@ -51,8 +51,15 @@ hiddenimports = [
 # dynamischen Submodulen) vollständig einbinden – sonst schlägt die
 # Ranglisten-PDF-Erstellung im EXE mit "xhtml2pdf nicht installiert" fehl.
 binaries = []
+# Hinweis: ``from xhtml2pdf import pisa`` importiert EAGER einen grossen
+# pyhanko/pyhanko_certvalidator-Baum samt dessen Krypto-Abhaengigkeiten
+# (oscrypto/asn1crypto) und CSS-Parser (tinycss2/cssselect2). Diese muessen
+# ebenfalls vollstaendig mit – sonst scheitert bereits der Import von pisa im
+# EXE mit ImportError (Symptom: "xhtml2pdf nicht verfuegbar" im Live-PDF).
 for _pkg in ("xhtml2pdf", "reportlab", "html5lib", "svglib", "pypdf",
-             "arabic_reshaper", "bidi", "pyhanko", "pyhanko_certvalidator"):
+             "arabic_reshaper", "bidi", "pyhanko", "pyhanko_certvalidator",
+             "oscrypto", "asn1crypto", "cssselect2", "tinycss2",
+             "webencodings", "tzlocal", "uritools", "certifi"):
     try:
         _d, _b, _h = collect_all(_pkg)
         datas += _d

@@ -2,16 +2,16 @@
    eingebettet UND von /api/render_einweiser_content/<ring> fuer die
    Live-Aktualisierung zurueckgegeben. Rein lesend (Phase 1). #}
 {% if not model %}
-  <div class="ew-empty">Kein aktives Event.</div>
+  <div class="ew-empty">{{ _('Kein aktives Event.') }}</div>
 {% elif model.mode == 'ko' %}
   <div class="ew-mode-banner ew-mode-ko">
-    KO-Modus · nur Anzeige{% if model.hide_finished %} · abgeschlossene Duelle ausgeblendet{% endif %}
+    {{ _('KO-Modus · nur Anzeige') }}{% if model.hide_finished %} · {{ _('abgeschlossene Duelle ausgeblendet') }}{% endif %}
   </div>
   {% if model.ko_rows %}
     <div class="ew-run">
       <div class="ew-run-head">
-        <span class="ew-run-title">Duelle {{ model.ring_label }}</span>
-        <span class="ew-count">{{ model.ko_rows|length }} offen</span>
+        <span class="ew-run-title">{{ _('Duelle') }} {{ model.ring_label }}</span>
+        <span class="ew-count">{{ model.ko_rows|length }} {{ _('offen') }}</span>
       </div>
       <ul class="ew-list">
         {% for r in model.ko_rows %}
@@ -19,31 +19,31 @@
             <span class="ew-no">{{ r.startnummer if r.startnummer is not none else '–' }}</span>
             <span class="ew-name"><strong>{{ r.handler or '—' }}</strong>
               {% if r.dog %}<span class="ew-dog">{{ r.dog }}</span>{% endif %}</span>
-            <span class="ew-meta">{{ r.category }} · {{ r.round_label }} · Duell {{ r.matchup_no }}</span>
-            {% if r.decided %}<span class="ew-badge ew-badge-done">entschieden</span>{% endif %}
+            <span class="ew-meta">{{ r.category }} · {{ r.round_label }} · {{ _('Duell') }} {{ r.matchup_no }}</span>
+            {% if r.decided %}<span class="ew-badge ew-badge-done">{{ _('entschieden') }}</span>{% endif %}
           </li>
         {% endfor %}
       </ul>
     </div>
   {% else %}
-    <div class="ew-empty">Keine offenen Duelle für {{ model.ring_label }}.</div>
+    <div class="ew-empty">{{ _('Keine offenen Duelle für %(ring)s.', ring=model.ring_label) }}</div>
   {% endif %}
 {% else %}
   {# --- Normalmodus: Ganztags-Laufliste --- #}
   {% if model.hide_finished %}
-    <div class="ew-mode-banner">Abgeschlossene Teilnehmer ausgeblendet</div>
+    <div class="ew-mode-banner">{{ _('Abgeschlossene Teilnehmer ausgeblendet') }}</div>
   {% endif %}
   {% if model.runs %}
     {% for run in model.runs %}
       <div class="ew-run{% if run.is_active %} ew-run-active{% endif %}">
         <div class="ew-run-head">
           <span class="ew-run-title">
-            {% if run.is_active %}<span class="ew-badge ew-badge-active">AKTIV</span>{% endif %}
-            {{ run.laufart or '' }} {{ run.kategorie or '' }}{% if run.klasse %} · Kl. {{ run.klasse }}{% endif %}
+            {% if run.is_active %}<span class="ew-badge ew-badge-active">{{ _('AKTIV') }}</span>{% endif %}
+            {{ run.laufart or '' }} {{ run.kategorie or '' }}{% if run.klasse %} · {{ _('Kl.') }} {{ run.klasse }}{% endif %}
           </span>
-          <span class="ew-count">{{ run.counts.pending }}/{{ run.counts.total }} offen</span>
+          <span class="ew-count">{{ run.counts.pending }}/{{ run.counts.total }} {{ _('offen') }}</span>
         </div>
-        {% if run.judge %}<div class="ew-run-sub">Richter: {{ run.judge }}</div>{% endif %}
+        {% if run.judge %}<div class="ew-run-sub">{{ _('Richter:') }} {{ run.judge }}</div>{% endif %}
         {% if run.entries %}
           <ul class="ew-list" data-run-id="{{ run.id }}">
             {% for e in run.entries %}
@@ -52,32 +52,32 @@
                 <span class="ew-no">{{ e.startnummer if e.startnummer is not none else '–' }}</span>
                 <span class="ew-name"><strong>{{ e.handler or '—' }}</strong>
                   {% if e.dog %}<span class="ew-dog">{{ e.dog }}</span>{% endif %}</span>
-                {% if e.mark == 'ready' %}<span class="ew-badge ew-badge-ready">bereit</span>
-                {% elif e.mark == 'present' %}<span class="ew-badge ew-badge-present">anwesend</span>
-                {% elif e.mark == 'absent' %}<span class="ew-badge ew-badge-absent">fehlt</span>{% endif %}
-                {% if e.is_current %}<span class="ew-badge ew-badge-current">am Start</span>
-                {% elif e.is_next %}<span class="ew-badge ew-badge-next">nächste/r</span>{% endif %}
-                {% if e.starts_at_end %}<span class="ew-badge ew-badge-end">→ Ende</span>{% endif %}
+                {% if e.mark == 'ready' %}<span class="ew-badge ew-badge-ready">{{ _('bereit') }}</span>
+                {% elif e.mark == 'present' %}<span class="ew-badge ew-badge-present">{{ _('anwesend') }}</span>
+                {% elif e.mark == 'absent' %}<span class="ew-badge ew-badge-absent">{{ _('fehlt') }}</span>{% endif %}
+                {% if e.is_current %}<span class="ew-badge ew-badge-current">{{ _('am Start') }}</span>
+                {% elif e.is_next %}<span class="ew-badge ew-badge-next">{{ _('nächste/r') }}</span>{% endif %}
+                {% if e.starts_at_end %}<span class="ew-badge ew-badge-end">{{ _('→ Ende') }}</span>{% endif %}
                 {% if e.status == 'disq' %}<span class="ew-badge ew-badge-done">{{ e.status_label }}</span>
                 {% elif e.status == 'done' %}<span class="ew-badge ew-badge-done">✓</span>{% endif %}
                 {% if not model.read_only %}
                   <span class="ew-actions">
-                    <button type="button" class="ew-mark-btn ew-mb-present" data-set-mark="present" title="anwesend">✓</button>
-                    <button type="button" class="ew-mark-btn ew-mb-absent" data-set-mark="absent" title="fehlt">✗</button>
-                    <button type="button" class="ew-mark-btn ew-mb-ready" data-set-mark="ready" title="bereit / am Gate">▶</button>
-                    <button type="button" class="ew-mark-btn ew-reorder" data-reorder="up" title="nach oben">▲</button>
-                    <button type="button" class="ew-mark-btn ew-reorder" data-reorder="down" title="nach unten">▼</button>
+                    <button type="button" class="ew-mark-btn ew-mb-present" data-set-mark="present" title="{{ _('anwesend') }}">✓</button>
+                    <button type="button" class="ew-mark-btn ew-mb-absent" data-set-mark="absent" title="{{ _('fehlt') }}">✗</button>
+                    <button type="button" class="ew-mark-btn ew-mb-ready" data-set-mark="ready" title="{{ _('bereit / am Gate') }}">▶</button>
+                    <button type="button" class="ew-mark-btn ew-reorder" data-reorder="up" title="{{ _('nach oben') }}">▲</button>
+                    <button type="button" class="ew-mark-btn ew-reorder" data-reorder="down" title="{{ _('nach unten') }}">▼</button>
                   </span>
                 {% endif %}
               </li>
             {% endfor %}
           </ul>
         {% else %}
-          <div class="ew-empty-sm">{% if model.hide_finished %}Alle Teilnehmer abgeschlossen.{% else %}Keine Teilnehmer.{% endif %}</div>
+          <div class="ew-empty-sm">{% if model.hide_finished %}{{ _('Alle Teilnehmer abgeschlossen.') }}{% else %}{{ _('Keine Teilnehmer.') }}{% endif %}</div>
         {% endif %}
       </div>
     {% endfor %}
   {% else %}
-    <div class="ew-empty">Keine Läufe für {{ model.ring_label }} im Zeitplan gefunden.</div>
+    <div class="ew-empty">{{ _('Keine Läufe für %(ring)s im Zeitplan gefunden.', ring=model.ring_label) }}</div>
   {% endif %}
 {% endif %}

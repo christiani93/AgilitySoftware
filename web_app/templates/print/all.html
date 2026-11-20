@@ -267,6 +267,7 @@
 
 {% include 'print/_print_button.html' %}
 
+{% if show_teilnehmer %}
 {# ───── Bündel 1: Teilnehmerinfo (Alle Ringe) ───── #}
 <div class="bundle-cover">
     <div class="bundle-cover__kicker">{{ _('Drucksachen') }}</div>
@@ -302,6 +303,9 @@
     </table>
 </div>
 
+{% endif %}{# /Bündel 1 Teilnehmerinfo #}
+
+{% if show_einweiser %}
 {# ───── Bündel 2: Einweiser (pro Ring) ───── #}
 <div class="bundle-cover">
     <div class="bundle-cover__kicker">{{ _('Drucksachen') }}</div>
@@ -327,6 +331,9 @@
 </table>
 {% endfor %}
 
+{% endif %}{# /Bündel 2 Einweiser #}
+
+{% if show_ringbuero %}
 {# ───── Bündel 3: Ringbüro (pro Ring) ───── #}
 <div class="bundle-cover">
     <div class="bundle-cover__kicker">{{ _('Drucksachen') }}</div>
@@ -351,6 +358,7 @@
     </td></tr></tbody>
 </table>
 {% endfor %}
+{% endif %}{# /Bündel 3 Ringbüro #}
 
 </body>
 </html>

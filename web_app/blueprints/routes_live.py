@@ -165,6 +165,20 @@ def _infer_ring_number(event, run, fallback=1):
     return fallback
 
 
+def _format_last_result_detail(res):
+    """Rechter Teil einer „Letzte Ergebnisse"-Zeile am Ring-Monitor.
+
+    Platzierte Läufe: ``Fehler X · Zeit Y s``. DIS/ABR (Hund war im Parcours,
+    hat aber keinen Platz): stattdessen der Disqualifikations-Code, sonst
+    stünde dort sinnloses ``Fehler 999.00 · Zeit 999.99 s``."""
+    res = res or {}
+    disq = res.get("disqualifikation")
+    if disq in ("DIS", "ABR") and not res.get("platz"):
+        return disq
+    return (f"{_('Fehler')} {_format_total_errors(res)} · "
+            f"{_('Zeit')} {_format_time(res.get('zeit_total') or res.get('zeit'))} s")
+
+
 def _build_ring_payload(event, ring_number):
     view = build_ring_view_model(event, ring_number)
     current_run = view.get("current_run") or {}
@@ -905,7 +919,7 @@ def render_speaker_panel_content(event_id, ring_name):
             parts.append(
                 "<div class='d-flex justify-content-between align-items-center'>"
                 f"<span>{platz} – {format_ring_name(res)}</span>"
-                f"<span class='text-muted small'>Fehler {_format_total_errors(res)} · Zeit {_format_time(res.get('zeit_total') or res.get('zeit'))} s</span>"
+                f"<span class='text-muted small'>{_format_last_result_detail(res)}</span>"
                 "</div>"
             )
         parts.append("</div>")
@@ -1312,7 +1326,7 @@ def render_ring_monitor_content(ring_number: int):
             parts.append(
                 "<div class='d-flex justify-content-between align-items-start'>"
                 f"<span>{name_html}</span>"
-                f"<span class='text-muted small'>{_('Fehler')} {_format_total_errors(res)} · {_('Zeit')} {_format_time(res.get('zeit_total') or res.get('zeit'))} s</span>"
+                f"<span class='text-muted small'>{_format_last_result_detail(res)}</span>"
                 "</div>"
             )
         parts.append("</div>")
@@ -1669,8 +1683,8 @@ def preview_ranking_pdf(event_id, run_id):
     try:
         from xhtml2pdf import pisa
         import io as _io
-    except ImportError:
-        return "xhtml2pdf nicht installiert.", 500
+    except Exception as _e:
+        return f"xhtml2pdf nicht verfügbar: {type(_e).__name__}: {_e}", 500
 
     events = _load_data('events.json')
     event  = next((e for e in events if e.get('id') == event_id), None)
@@ -1728,8 +1742,8 @@ def upload_ranking_pdf(event_id, run_id):
     try:
         from xhtml2pdf import pisa
         import io as _io
-    except ImportError:
-        return jsonify({"error": "xhtml2pdf nicht installiert. Bitte 'pip install xhtml2pdf' ausführen."}), 500
+    except Exception as _e:
+        return jsonify({"error": f"xhtml2pdf nicht verfügbar: {type(_e).__name__}: {_e}"}), 500
 
     settings = _load_settings()
     events   = _load_data('events.json')

@@ -5,7 +5,8 @@ from datetime import datetime
 import csv
 import io
 from utils import (_load_data, _save_data, _calculate_run_results, _load_settings,
-                   _calculate_timelines, get_category_sort_key, resolve_judge_id, resolve_judge_name,
+                   _calculate_timelines, get_category_sort_key, get_run_award_sort_key,
+                   resolve_judge_id, resolve_judge_name,
                    get_event_logo_data_uris, _starts_at_end)
 from planner.print_order import get_ordered_runs_for_print
 from planner.print_schedule_order import (
@@ -68,6 +69,17 @@ def print_all(event_id):
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
 
+    # Auswahl, welche Bündel gedruckt werden (Checkboxen auf der Übersichtsseite).
+    # Ohne ``parts``-Parameter (z.B. direkter Aufruf der URL) alle drei drucken –
+    # abwärtskompatibel zum bisherigen Verhalten.
+    parts = request.args.getlist('parts')
+    if parts:
+        show_teilnehmer = 'teilnehmer' in parts
+        show_einweiser  = 'einweiser' in parts
+        show_ringbuero  = 'ringbuero' in parts
+    else:
+        show_teilnehmer = show_einweiser = show_ringbuero = True
+
     judges = _load_data('judges.json')
     judges_map = {j['id']: f"{j.get('firstname', '')} {j.get('lastname', '')}".strip() for j in judges}
     logos = get_event_logo_data_uris(event)
@@ -113,6 +125,9 @@ def print_all(event_id):
         startlist_groups=startlist_groups,
         einweiser_by_ring=einweiser_by_ring,
         ringbuero_by_ring=ringbuero_by_ring,
+        show_teilnehmer=show_teilnehmer,
+        show_einweiser=show_einweiser,
+        show_ringbuero=show_ringbuero,
         now_str=now_str,
     )
 
@@ -628,7 +643,7 @@ def print_award_list(event_id):
     settings, event = _load_settings(), next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     award_data, runs_to_print = [], [r for r in event.get('runs', []) if r.get('id') in run_ids]
-    runs_to_print.sort(key=lambda r: get_category_sort_key(r.get('kategorie')))
+    runs_to_print.sort(key=get_run_award_sort_key)  # Lauf → Kategorie → Klasse
     judges = _load_data('judges.json')
     for run in runs_to_print:
         results = _calculate_run_results(run, settings)

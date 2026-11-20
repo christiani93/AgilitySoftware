@@ -32,6 +32,24 @@ def get_category_sort_key(category_name):
     return CATEGORY_SORT_ORDER.get(category_name, 99)
 
 
+def get_run_award_sort_key(run):
+    """Sortierschlüssel für Läufe nach **Lauf → Kategorie → Klasse**.
+
+    Für Rangverkündigungs-/Siegerehrungslisten: zuerst nach Laufart
+    (``laufart``: Agility/Jumping/Open…, alphabetisch), dann nach Kategorie
+    (Large→Intermediate→Medium→Small via CATEGORY_SORT_ORDER), dann nach
+    Klasse (1/2/3 numerisch; nicht-numerische Klassen ans Ende, alphabetisch).
+    """
+    laufart = (run.get('laufart') or '').strip().lower()
+    kategorie = get_category_sort_key(run.get('kategorie'))
+    klasse_raw = str(run.get('klasse') or '').strip()
+    try:
+        klasse = (0, int(klasse_raw))
+    except (ValueError, TypeError):
+        klasse = (1, klasse_raw.lower())
+    return (laufart, kategorie, klasse)
+
+
 def _starts_at_end(entry: dict) -> bool:
     """
     Gemeinsames Prädikat für "ans Ende starten": läufig aus dem Portal-Sync
@@ -1032,8 +1050,14 @@ def build_ring_view_model(event: dict, ring_number: int, max_startlist=10, max_r
         for r in ranking[:max_ranking]
     ]
 
+    # „Letzte Ergebnisse" am Ring-Monitor: platzierte Läufe PLUS DIS/ABR
+    # (Hund war im Parcours, hat aber keinen Platz → früher komplett unsichtbar).
+    # DNS (nicht gestartet) bleibt draußen. Alle berücksichtigten Einträge haben
+    # beim Speichern einen ``timestamp`` bekommen (routes_live.save_result),
+    # daher mischt die Sortierung keine int/str-Timestamps.
     last_results = sorted(
-        [res for res in results if res.get("platz")],
+        [res for res in results
+         if res.get("platz") or res.get("disqualifikation") in ("DIS", "ABR")],
         key=lambda x: x.get("timestamp", 0),
         reverse=True,
     )[:max_last_results]

@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Einweiser – {{ model.ring_label if model else ('Ring ' ~ ring_number) }}{% endblock %}
+{% block title %}{{ _('Einweiser') }} – {{ model.ring_label if model else ('Ring ' ~ ring_number) }}{% endblock %}
 
 {% block content %}
 <style>
@@ -60,10 +60,10 @@
 
 <div class="ew-wrap">
   {% if not event %}
-    <div class="ew-empty">Kein aktives Event. (Im Hauptprogramm ein Event als „aktiv" setzen.)</div>
+    <div class="ew-empty">{{ _('Kein aktives Event. (Im Hauptprogramm ein Event als „aktiv“ setzen.)') }}</div>
   {% else %}
   <div class="ew-topbar">
-    <h4>Einweiser · {{ model.ring_label }} <span id="ew-conn" class="ew-conn">○</span></h4>
+    <h4>{{ _('Einweiser') }} · {{ model.ring_label }} <span id="ew-conn" class="ew-conn">○</span></h4>
     <div class="ew-rings">
       {% set num_rings = (event.num_rings or 1) %}
       {% for i in range(1, num_rings + 1) %}
@@ -73,7 +73,7 @@
       {% if model.mode != 'ko' %}
         <a class="btn btn-outline-dark" id="ew-toggle-finished"
            href="{{ url_for('einweiser_bp.einweiser_ring', ring_number=ring_number) }}{{ '' if model.hide_finished else '?hide_finished=1' }}">
-          {{ 'Alle zeigen' if model.hide_finished else 'Offene' }}
+          {{ _('Alle zeigen') if model.hide_finished else _('Offene') }}
         </a>
       {% endif %}
     </div>

@@ -34,8 +34,11 @@ def _select_locale():
 
     Neben /print/* zählen dazu die Rangliste-PDF-Routen unter /live/ (dort
     wird das für den Portal-Upload bzw. die Vorschau gerenderte PDF erzeugt),
-    die KO-Cup-Druckseiten unter /ko-cup/ (Endrangliste, Ring-Listen) sowie
-    der Ring-Monitor (externe Anzeige, gleiche Sprache wie die Drucksachen)."""
+    die KO-Cup-Druckseiten unter /ko-cup/ (Endrangliste, Ring-Listen), der
+    Ring-Monitor (externe Anzeige, gleiche Sprache wie die Drucksachen) sowie
+    der elektronische Einweiser auf den Ring-Tablets (/einweiser/*) — Helfer
+    sind oft frz./engl.-sprachig, daher folgt die Tablet-Oberfläche derselben
+    print_language-Einstellung."""
     path = request.path
     is_print_route = (
         path.startswith('/print/')
@@ -44,6 +47,8 @@ def _select_locale():
         or path.startswith('/ko-cup/rings_print/')
         or path.startswith('/live/ring_monitor/')
         or path.startswith('/api/render_ring_monitor_content/')
+        or path.startswith('/einweiser')
+        or path.startswith('/api/render_einweiser_content/')
         or path.endswith('/print')
     )
     if is_print_route:
@@ -141,10 +146,14 @@ def settings():
         current_settings['portal_device_id']       = request.form.get('portal_device_id', '').strip() or 'agility-software'
         # Drucksprache
         print_language = request.form.get('print_language', 'de')
-        if print_language in ('de', 'fr'):
+        if print_language in ('de', 'fr', 'en'):
             current_settings['print_language'] = print_language
         # Download-Zielordner (leer = System-Downloads + Speichern-Dialog)
         current_settings['download_dir'] = request.form.get('download_dir', '').strip()
+        # ALGE D-Line RS232 Einstellungen
+        current_settings['alge_rs232_enabled'] = request.form.get('alge_rs232_enabled') == 'on'
+        current_settings['alge_rs232_port'] = request.form.get('alge_rs232_port', 'COM3').strip()
+        current_settings['alge_rs232_baudrate'] = int(request.form.get('alge_rs232_baudrate', 9600))
         _save_data('settings.json', current_settings)
         flash(_('Einstellungen erfolgreich gespeichert.'), 'success')
         return redirect(url_for('settings'))
@@ -374,13 +383,20 @@ def _open_app_window(port=5000):
 
 if __name__ == '__main__':
     try:
+        # Port ist standardmäßig 5000; nur für parallele Test-/Zweitinstanzen
+        # per Env ``AGILITY_PORT`` überschreibbar (z.B. um einen laufenden
+        # Event-Server auf 5000 nicht zu stören).
+        try:
+            _port = int(os.environ.get("AGILITY_PORT", "5000") or "5000")
+        except ValueError:
+            _port = 5000
         initialize_files()
         try:
             from data_backup import start_backup_thread
             start_backup_thread()
         except Exception:
             pass  # Backup ist eine Absicherung, darf den Start nie blockieren
-        _print_startup_banner(port=5000)
+        _print_startup_banner(port=_port)
         try:
             from updater import check_and_print
             check_and_print(APP_VERSION, component="AgilitySoftware")
@@ -391,17 +407,17 @@ if __name__ == '__main__':
 
         if os.environ.get("AGILITY_NO_WINDOW"):
             # Headless: Flask im Main-Thread (Standard-Verhalten)
-            _run_socketio(port=5000, debug=debug_mode)
+            _run_socketio(port=_port, debug=debug_mode)
         else:
             # Fenster-Modus: Flask im Background, pywebview im Main-Thread
             import threading
             threading.Thread(target=_run_socketio,
-                             kwargs={"port": 5000, "debug": False},
+                             kwargs={"port": _port, "debug": False},
                              daemon=True).start()
-            opened = _open_app_window(port=5000)
+            opened = _open_app_window(port=_port)
             if not opened:
                 # Kein pywebview verfügbar – Server soll trotzdem laufen
-                print("[INFO] Server läuft – im Browser http://127.0.0.1:5000 öffnen.")
+                print(f"[INFO] Server läuft – im Browser http://127.0.0.1:{_port} öffnen.")
                 # Hauptthread aktiv halten
                 import time
                 while True:
