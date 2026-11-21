@@ -441,6 +441,39 @@ def _apply_eventexport_final_runs(event: dict, runs_payload) -> dict:
     return {"final_runs_added": added}
 
 
+def _apply_eventexport_title_defenders(event: dict, payload) -> dict:
+    """Übernimmt Titelverteidiger aus title_defenders.json (Portal-EventFinalist-
+    Register, source='title_defender') in die lokale BCCS-SM-Config
+    (event["bccs_sm_config"]["defending_champions"]), die
+    calculate_bccs_sm_qualification direkt liest (s. bccs_sm_qualification.py).
+    Fehlendes/leeres title_defenders.json ist kein Fehler (nicht jede
+    Veranstaltungsart hat Titelverteidiger)."""
+    if isinstance(payload, dict):
+        rows = payload.get("title_defenders") or payload.get("items") or []
+    elif isinstance(payload, list):
+        rows = payload
+    else:
+        rows = []
+    defenders = []
+    for row in rows or []:
+        if not isinstance(row, dict):
+            continue
+        lic = str(_get_first_value(row, ("license", "license_no", "Lizenznummer"), "") or "").strip()
+        if not lic:
+            continue
+        defenders.append({
+            "license":      lic,
+            "dog_name":     _get_first_value(row, ("dog_name", "Hundename"), ""),
+            "handler_name": _get_first_value(row, ("handler_name", "Hundefuehrer"), ""),
+            "category":     _get_first_value(row, ("category", "category_code", "Kategorie"), ""),
+            "division":     _get_first_value(row, ("division",), ""),
+        })
+    if defenders:
+        cfg = event.setdefault("bccs_sm_config", {})
+        cfg["defending_champions"] = defenders
+    return {"title_defenders_count": len(defenders)}
+
+
 def _eventexport_registration_list(payload) -> list:
     if isinstance(payload, list):
         return payload
@@ -2344,6 +2377,9 @@ def import_event_package():
                     runs_payload = _read_zip_json(zip_file, 'runs.json') or {}
                     final_runs_info = _apply_eventexport_final_runs(event, runs_payload)
 
+                    title_defenders_payload = _read_zip_json(zip_file, 'title_defenders.json') or {}
+                    title_defenders_info = _apply_eventexport_title_defenders(event, title_defenders_payload)
+
                     settings = _load_settings()
                     schedule_info = _apply_eventexport_schedule(event, schedule_payload, settings)
                     start_numbers_info = _apply_eventexport_start_numbers(event, start_numbers_payload)
@@ -2397,6 +2433,11 @@ def import_event_package():
                     if apply_info.get("runs_count"):
                         flash(
                             f"Läufe importiert: {apply_info['runs_count']} (Entries: {apply_info['entries_added']}).",
+                            "info"
+                        )
+                    if title_defenders_info.get("title_defenders_count"):
+                        flash(
+                            f"Titelverteidiger übernommen: {title_defenders_info['title_defenders_count']}.",
                             "info"
                         )
                     return redirect(url_for('events_bp.events_list'))

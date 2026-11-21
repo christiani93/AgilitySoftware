@@ -3,7 +3,137 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-11-14
+Stand: 2026-11-21
+
+## Session 2026-11-21 (3) — BCCS-SM Live-Event, Nachrücker-Bug + Portal-TV-Transfer
+
+**Dringend vor morgen (22.11., Nachwuchs-Event):**
+- [ ] **Portal→Software Titelverteidiger-Transfer bauen.** Aktuell 2 getrennte
+      Systeme ohne Verbindung: Portal-Register (`EventFinalist(source='title_defender')`,
+      MySQL) vs. lokale Software-Config (`event["bccs_sm_config"]["defending_champions"]`,
+      JSON). Heute für SM-Division (Kl.3) von Hand in die JSON geschrieben (Tease/16214
+      Large, Less/15866 Intermediate) — siehe Memory `project_bccs_sm_live_event_20261121`.
+      Für morgen Nachwuchs (Win/16790 Large, Beany/16480 Intermediate) bräuchte es
+      denselben manuellen Schritt, ODER besser: Transfer über den bestehenden
+      eventexport-Mechanismus (Portal→Software, wie Teilnehmer/Startlisten) automatisieren,
+      damit `bccs_sm_config` sich automatisch befüllt. Reine Nacharbeit, nicht in der
+      Nacht fertig bauen — für morgen notfalls wieder manuell eintragen.
+- [ ] Zusammenhang mit offenem Punkt unten prüfen: Nachwuchs-`bccs_sm`-Flag ist bei
+      ALLEN Kl.1/Kl.2-Startern `False` (siehe Session darunter) — wenn das bis morgen
+      nicht geklärt ist, zählt KEIN Nachwuchs-Hund als SM-Teilnehmer, TV oder nicht.
+
+**Code-Bug gefunden (kein Live-Fix, Rebuild nötig — nach dem Event):**
+- [ ] **Nachrücker werden verfrüht markiert.** `bccs_sm_qualification.py::_compute_class`
+      berechnet die Nachrücker-Alternierung sofort pro Lauf, nicht erst nach Abschluss
+      BEIDER Quali-Läufe einer Klasse (wie im eigenen Docstring beschrieben). Ist der
+      2. Quali-Lauf (z.B. Jumping) noch komplett ungelaufen, gilt sein Pool als leer/
+      "exhausted" → alle Nachrücker-Plätze werden fälschlich vorzeitig aus dem fertigen
+      1. Lauf vergeben. Reproduziert am Live-Event: Kl.3 Agility fertig (27/27 bzw.
+      10/85), Jumping 0/27 bzw. 0/85 — Nachrücker schon markiert. Betrifft nur die
+      Zwischenanzeige (Ring-Monitor/Dashboard); `bccs_sm_populate_finals` final korrekt,
+      SOLANGE erst nach beiden fertigen Quali-Läufen geklickt wird. Workaround bis Fix:
+      Nachrücker-Labels ignorieren, bis beide Läufe einer Klasse fertig sind.
+
+## Session 2026-11-21 (2) — Event-Tag-Fixes, Rebuild-ohne-Swap OFFEN
+
+6 Commits auf `main` (noch NICHT in Live-EXE getauscht, KEIN Swap — User explizit):
+`7103bc2` Startlisten-Umbruch/Logos + Briefing-Zeitplanreihenfolge + Sprecher=Monitor ·
+`e9150c6` Einweiser nur-1-bereit + Sprecher-Rangliste Top4 + Ring-Dashboard-Nummernlücke ·
+`5e87c62` **Portal** Finals mit Umbau+Briefing (NICHT gepusht/deployed) ·
+`e5e7916` Einweiser ▲/▼ ausgeblendet · `6ead74c` Final-Ringschreiberdruck + Monitor-Dedupe ·
+`25d616c` Monitor-Flicker-Hauptfix (serverseitig-initial). Details Memory
+`reference_print_pagebreak_and_dashboard_builder`.
+
+**OFFEN:**
+- [ ] **EXE `--clean`-Rebuild fertigstellen + Smoke-Test** (nach `AppData\Local\AgilityBuild\dist_test`,
+      Port 5097, Daten-Kopie). 1. Build hatte Cache-Bug (stale `routes_live.py` →
+      `/ring_monitor` 500); `--clean`-Rebuild lief beim Session-Rollover noch/abgebrochen.
+      Testen: `/ring_monitor/1`→200 (Server-Inhalt, Quali-Rangliste direkt da),
+      PDF-Route `%PDF-`, `/print/final_stewardlists/<eid>`, Startlisten. SHA von
+      `dist\AgilitySoftware.exe` muss unverändert bleiben (`37cf2f7…`). Siehe
+      `reference_exe_build_mechanics`.
+- [ ] **KEIN Swap** der Live-EXE ohne explizite Freigabe. Danach entscheidet Chris.
+- [ ] **Portal `5e87c62` pushen + deployen** (nach dem Event-Wochenende): Finals mit
+      Umbau+Briefing. `git push` + `git fetch/reset` + supervisorctl restart agilityportal.
+- [ ] **Läufigkeit BCCS:** Event-Option „Läufige Hündinnen starten am Schluss"
+      (`bitches_in_season_start_last`) ist AUS → Olive(14908)/Yuna(17088) nicht ans Ende.
+      Mit Chris: Option einschalten+neu exportieren ODER in SW manuell „Schluss" setzen.
+      Nebenbefund: `exchange_service.build_event_export_zip` (Admin-Export) lässt
+      `is_in_season` ganz weg → angleichen an `club.event_export_zip`.
+
+## Session 2026-11-21 — BCCS-SM Live-Event (21.11.) Nachbereitung
+
+BCCS-SM Quali-Rangliste gebaut (druckbar + Ring-Monitor), EXE neu gebaut+getauscht,
+alles committed+gepusht (`2a6c7b2`/`e269dd5`/`abcad41`). Details in Memory
+`project_bccs_sm_live_event_20261121`.
+
+**OFFEN / zu klären:**
+- [ ] **Nachwuchs-bccs_sm-Flag prüfen (heutiges Event 0d10c9c7):** ALLE Starter in
+      Kl.1+Kl.2 (Int+Large) haben `bccs_sm=False` — kein einziger Nachwuchs-SM-Hund
+      markiert. SM-Division (Kl.3) ist korrekt markiert. Mit Chris klären: wirklich
+      keine Nachwuchs-SM-Meldungen, oder beim Portal-Import das Flag übersehen?
+      (ggf. Portal `registrations.bccs_sm` als Quelle prüfen.)
+- [ ] **Hinweis Startliste leer = kein Bug:** `bccs_sm_startlisten` zeigt nur
+      Finalisten; Finalläufe leer solange keine Quali-Resultate. Nach Quali füllt
+      sich die Liste (+ „Finalisten in Finalläufe übernehmen").
+
+## Session 2026-11-16 — SKBS-SM + FMBB 05.+06.12 Readiness-Kontrolle
+
+## Session 2026-11-16 — SKBS-SM + FMBB 05.+06.12 Readiness-Kontrolle
+
+Beide Module gebaut/getestet/committed (im EXE `ab5e22a`), Infra steht. Details +
+Prod-Stand in Memory `project_skbs_fmbb_dec2026_readiness`. **Tag-Struktur
+autoritativ (Chris):** Sa 05.12 = SKBS-SM (Quali+Final) + FMBB Tag 1 (Overlay,
+dieselben Läufe); So 06.12 = NUR FMBB Tag 2 (kein SKBS-SM) **+ neu: Open Best of Day**.
+
+**OFFEN vor Event:**
+- [ ] **Open Best of Day (So)** klären — alle Klassen gemischt, 1 Rangliste. Kern
+      (`utils.py:_calculate_run_results`) rangiert einen Lauf schon als 1 Liste ohne
+      Kat/Klasse-Gruppierung; „open" ist Disziplin. Wenn 1 gemeinsamer Parcours →
+      reines Setup, kein Bau. Wenn Kombi über mehrere Läufe/Klassen → kleines Modul.
+      3 Rückfragen offen (Memory `project_open_best_of_day_sunday`).
+- [ ] **Event taggen:** Sa `Veranstaltungsart='SKBS-SM'` + `fmbb_quali_active=True`;
+      So NUR `fmbb_quali_active=True` (NICHT SKBS-SM).
+- [ ] **FMBB-Lizenzliste** von SKBS besorgen → `mark_fmbb_by_licenses`.
+- [ ] **Manueller End-to-End-Durchlauf** Dashboards + CSV (nur Logik-Tests vorhanden).
+- [ ] **Arbeitsbaum committen/stashen** (app.py, ring_server.py, alge_manager.py dirty)
+      vor Event für reproduzierbaren Live-Stand.
+- [ ] **AdminPortal (auf Chris' Go):** Rechnung für Reservation 64 aus Auftrag 46
+      (CHF 500, kombiniert); Portal-Events 37/38 an Reservation knüpfen
+      (`seed-season-events`); evtl. Event 38 `type=skbs_sm`→`fmbb_quali`.
+
+## Session 2026-11-14 — ALGE D-Line RS232 Anzeigetafel (IN ARBEIT, NICHT committed)
+
+Externe ALGE-Anzeigetafeln fürs Publikum, angesteuert vom **Ring-Server** (kennt
+die Zeit bereits via TIMY). 2 Tafeln: A=Startnummer+Laufzeit, B=Fehler/Verweigerung.
+Protokoll aus `Reglemente_Nützliches/Alge/D-LINE-BD.pdf` extrahiert (2400 Baud 8N1,
+`A{sn:04d}.{MMSScc}\r` / `B{sn:04d}{rank:02d}\r`, `J`=Tafel-ID, `\r`=0D).
+
+**Erledigt (Code vorhanden, NICHT getestet, NICHT committed):**
+- [x] `web_app/ring_server/alge_manager.py` — AlgeBoard + AlgeManager (Dual-Tafel,
+      Singleton, pyserial async Queue + Worker-Thread, Port-Autodetect via list_ports)
+- [x] `web_app/tools/alge_d_line_driver.py` — Basis-Treiber (Referenz)
+- [x] `ring_server.py` — C0-Hook (Startnr→Tafel A) + C1-Hook (Final-Zeit→Tafel A)
+- [x] Ring-Server API: `GET /api/alge-ports`, `GET/POST /api/alge-config`, `POST /api/alge-test`
+- [x] `app.py` + `settings.html` — ALGE-Settings-UI
+
+**OFFEN:**
+- [ ] **INKONSISTENZ beheben**: `app.py`/`settings.html` haben nur `alge_rs232_port`
+      (singular), aber `alge_manager` erwartet `port_time` + `port_errors` (2 Tafeln).
+      Settings-UI auf 2 Ports erweitern + Verdrahtung Settings→Manager.
+- [ ] **Tafel B Fehler/Verweigerung-Codes verifizieren** — aktuell EIGENE Konvention
+      (Fehler=Rang 99, Verweigerung=Rang 98). Mit Handbuch/echtem Gerät prüfen.
+- [ ] **Live-Zeit während Lauf** — aktuell nur Start 00:00 + Final-Zeit. Kontinuierliches
+      Update (laufende Zeit, `.` an 4. Stelle) fehlt noch.
+- [ ] **Manager-Init beim Ring-Server-Start** verdrahten (Config aus settings.json laden
+      → `manager.init_boards()` beim Boot).
+- [ ] **Hardware-Test** mit echter ALGE D-Line Tafel (Protokoll-Interpretation teils Annahme).
+- [ ] **Commit** (Attribution-Zeile je aktuellem system-reminder) + EXE-Rebuild.
+
+Details/Protokoll: Memory `reference_alge_d_line_rs232`. PDF-Read nur via
+`web_app/flask_env/Scripts/python.exe` + pdfplumber (poppler/python3 fehlen im PATH).
+
+---
 
 ## Session 2026-11-14 — BCCS-SM Realtest-Vorbereitung FERTIG ✅
 

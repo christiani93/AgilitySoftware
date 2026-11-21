@@ -95,6 +95,65 @@ def test_import_zip_without_logo_still_works(client, tmp_path, monkeypatch):
     assert len(events) == 1
 
 
+def test_import_zip_with_title_defenders_fills_bccs_sm_config(client, tmp_path, monkeypatch):
+    """Portal-Export liefert title_defenders.json (EventFinalist source=
+    'title_defender') → muss in event['bccs_sm_config']['defending_champions']
+    landen (von bccs_sm_qualification.py._find_defender gelesen)."""
+    monkeypatch.setenv("AGILITY_DATA_DIR", str(tmp_path))
+    manifest = {"schema": "agility.exchange.eventexport.v1"}
+    event = {"event": {"Bezeichnung": "BCCS-TV-Import-Test", "Datum": "2026-11-22"}}
+    entities = {"persons": [], "dogs": []}
+    registrations = {"registrations": []}
+    title_defenders = {"title_defenders": [
+        {"license": "16790", "dog_name": "Win", "handler_name": "Jeannine Gloor",
+         "category": "Large", "division": "nachwuchs"},
+        {"license": "16480", "dog_name": "Beany", "handler_name": "Anita Leonardi",
+         "category": "Intermediate", "division": "nachwuchs"},
+    ]}
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("manifest.json", json.dumps(manifest))
+        zf.writestr("event.json", json.dumps(event))
+        zf.writestr("entities.json", json.dumps(entities))
+        zf.writestr("registrations.json", json.dumps(registrations))
+        zf.writestr("start_numbers.json", json.dumps([]))
+        zf.writestr("schedule.json", json.dumps([]))
+        zf.writestr("title_defenders.json", json.dumps(title_defenders))
+    zip_bytes = buf.getvalue()
+
+    resp = client.post(
+        "/events/import_package",
+        data={"package_file": (io.BytesIO(zip_bytes), "event_export.zip")},
+        content_type="multipart/form-data",
+    )
+    assert resp.status_code in (302, 200)
+
+    events = json.loads((tmp_path / "events.json").read_text(encoding="utf-8"))
+    assert len(events) == 1
+    defenders = events[0]["bccs_sm_config"]["defending_champions"]
+    assert {d["license"] for d in defenders} == {"16790", "16480"}
+    win = next(d for d in defenders if d["license"] == "16790")
+    assert win["dog_name"] == "Win"
+    assert win["division"] == "nachwuchs"
+
+
+def test_import_zip_without_title_defenders_leaves_config_empty(client, tmp_path, monkeypatch):
+    """Kein title_defenders.json im ZIP (ältere Exporte/andere Veranstaltungsart)
+    darf den Import nicht brechen und darf keine leere Config erzwingen."""
+    monkeypatch.setenv("AGILITY_DATA_DIR", str(tmp_path))
+    zip_bytes = _build_eventexport_zip(with_logo=False)
+
+    resp = client.post(
+        "/events/import_package",
+        data={"package_file": (io.BytesIO(zip_bytes), "event_export.zip")},
+        content_type="multipart/form-data",
+    )
+    assert resp.status_code in (302, 200)
+    events = json.loads((tmp_path / "events.json").read_text(encoding="utf-8"))
+    assert "bccs_sm_config" not in events[0] or not events[0]["bccs_sm_config"].get("defending_champions")
+
+
 def _build_eventexport_zip_with_final_block() -> bytes:
     """Portal-Export eines Finalblocks (American/KO) auf Ring 3, Portal-Pendant
     routes.py:2426 (block_type='final', final_participants=Gesamtzahl, kein
