@@ -54,7 +54,8 @@
                   {% if e.dog %}<span class="ew-dog">{{ e.dog }}</span>{% endif %}</span>
                 {% if e.mark == 'ready' %}<span class="ew-badge ew-badge-ready">{{ _('bereit') }}</span>
                 {% elif e.mark == 'present' %}<span class="ew-badge ew-badge-present">{{ _('anwesend') }}</span>
-                {% elif e.mark == 'absent' %}<span class="ew-badge ew-badge-absent">{{ _('fehlt') }}</span>{% endif %}
+                {% elif e.mark == 'absent' %}<span class="ew-badge ew-badge-absent">{{ _('fehlt') }}</span>
+                {% elif e.mark == 'later' %}<span class="ew-badge ew-badge-later">{{ _('kommt später') }}</span>{% endif %}
                 {% if e.is_current %}<span class="ew-badge ew-badge-current">{{ _('am Start') }}</span>
                 {% elif e.is_next %}<span class="ew-badge ew-badge-next">{{ _('nächste/r') }}</span>{% endif %}
                 {% if e.starts_at_end %}<span class="ew-badge ew-badge-end">{{ _('→ Ende') }}</span>{% endif %}
@@ -65,6 +66,7 @@
                     <button type="button" class="ew-mark-btn ew-mb-present" data-set-mark="present" title="{{ _('anwesend') }}">✓</button>
                     <button type="button" class="ew-mark-btn ew-mb-absent" data-set-mark="absent" title="{{ _('fehlt') }}">✗</button>
                     <button type="button" class="ew-mark-btn ew-mb-ready" data-set-mark="ready" title="{{ _('bereit / am Gate') }}">▶</button>
+                    <button type="button" class="ew-mark-btn ew-mb-later" data-set-mark="later" title="{{ _('kommt später (am Ring-PC ausgeblendet)') }}">⏳</button>
                     <button type="button" class="ew-mark-btn ew-reorder" data-reorder="up" title="{{ _('nach oben') }}">▲</button>
                     <button type="button" class="ew-mark-btn ew-reorder" data-reorder="down" title="{{ _('nach unten') }}">▼</button>
                   </span>

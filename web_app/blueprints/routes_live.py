@@ -627,7 +627,8 @@ def reassign_current_starter():
     ]
     run['current_starter'] = entry
     remaining = [e for e in unfinished if e.get('Lizenznummer') != license_nr]
-    run['next_starter'] = remaining[0] if remaining else {}
+    remaining_eligible = [e for e in remaining if not _is_later_marked(e)]
+    run['next_starter'] = (remaining_eligible or remaining)[0] if remaining else {}
 
     ring_no = re.sub(r"[^0-9]", "", str(run.get('assigned_ring') or "")) or "1"
     ring_state_all = event.setdefault("ring_entry_state", {})
@@ -709,8 +710,22 @@ def find_run_ring_number(event, run):
     return "1"
 
 
+def _is_later_marked(entry):
+    """True, wenn der Einweiser den Eintrag als 'kommt spaeter' markiert hat —
+    aus der Ring-PC-Auto-Auswahl ausgeschlossen, ohne ihn umzureihen oder aus
+    dem Lauf zu nehmen (Wunsch Chris 2026-11-21)."""
+    return str(entry.get('einweiser_mark') or '').lower() == 'later'
+
+
 def _pick_auto_starter(unfinished):
     """Waehlt current/next aus den noch offenen (unfinished) Eintraegen.
+
+    Mit 'later' markierte Eintraege werden fuer current/next uebersprungen
+    (der Ring-PC soll sie nicht aufrufen), ausser es blieben sonst GAR KEINE
+    Kandidaten mehr — dann faellt die Auswahl auf sie zurueck, damit der Lauf
+    nicht blockiert. Sobald der Einweiser die Markierung wieder entfernt, ist
+    der Eintrag ohne weiteres Zutun wieder an seiner urspruenglichen Position
+    in der Reihenfolge (es wurde nirgends umsortiert).
 
     'current' = strikt naechster offener nach Startlisten-Reihenfolge, NIE vom
     Einweiser ueberschrieben (Ring-PC bleibt alleiniger Besitzer des aktuellen
@@ -720,8 +735,10 @@ def _pick_auto_starter(unfinished):
     """
     if not unfinished:
         return {}, {}
-    current = unfinished[0]
-    rest = [e for e in unfinished if e is not current]
+    eligible = [e for e in unfinished if not _is_later_marked(e)]
+    pool = eligible or unfinished
+    current = pool[0]
+    rest = [e for e in pool if e is not current]
     if not rest:
         return current, {}
     ready = [e for e in rest if str(e.get('einweiser_mark') or '').lower() == 'ready']

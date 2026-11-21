@@ -227,6 +227,26 @@ def test_mark_does_not_write_result(content_app, data_dir):
     assert run["current_starter"].get("Lizenznummer") == "L1"  # unveraendert
 
 
+def test_mark_later_set_and_toggle_clear(content_app, data_dir):
+    """'kommt später' (Chris 2026-11-21): gueltige Markierung, keine
+    Exklusivitaet wie bei 'ready' (mehrere gleichzeitig moeglich)."""
+    _write_event(data_dir, _normal_event())
+    c = content_app.test_client()
+
+    r = c.post("/einweiser/api/mark/EVT1/run_a", json={"license_number": "L1", "mark": "later"})
+    assert r.status_code == 200 and r.get_json()["mark"] == "later"
+    assert _read_entry(data_dir, "run_a", "L1").get("einweiser_mark") == "later"
+
+    r = c.post("/einweiser/api/mark/EVT1/run_a", json={"license_number": "L2", "mark": "later"})
+    assert r.status_code == 200 and r.get_json()["mark"] == "later"
+    # Im Gegensatz zu 'ready' bleibt L1 unberuehrt - mehrere 'later' gleichzeitig erlaubt.
+    assert _read_entry(data_dir, "run_a", "L1").get("einweiser_mark") == "later"
+
+    r = c.post("/einweiser/api/mark/EVT1/run_a", json={"license_number": "L1", "mark": "none"})
+    assert r.status_code == 200
+    assert "einweiser_mark" not in _read_entry(data_dir, "run_a", "L1")
+
+
 def test_mark_invalid_rejected(content_app, data_dir):
     _write_event(data_dir, _normal_event())
     r = content_app.test_client().post(
@@ -254,12 +274,16 @@ def test_sort_backward_compatible_without_start_order():
 
 
 def test_sort_manual_order_wins():
+    """Regression 21.11.: läufig muss auch unter manueller Reihenfolge am
+    Ende bleiben - vorher gewann start_order sogar gegen läufig (Bug)."""
     from utils import sort_entries_for_startlist
     a = {"Lizenznummer": "A", "Startnummer": 1, "start_order": 2}
     b = {"Lizenznummer": "B", "Startnummer": 2, "start_order": 0, "is_in_season": True}
     c = {"Lizenznummer": "C", "Startnummer": 3, "start_order": 1}
     order = [e["Lizenznummer"] for e in sort_entries_for_startlist([a, b, c])]
-    assert order == ["B", "C", "A"]  # manuelle Reihenfolge schlaegt Startnr + läufig
+    # Unter den Nicht-läufigen gewinnt start_order (C=1 vor A=2); läufig (B)
+    # bleibt trotz niedrigstem start_order=0 ganz hinten.
+    assert order == ["C", "A", "B"]
 
 
 def test_reorder_moves_and_assigns_all(content_app, data_dir):

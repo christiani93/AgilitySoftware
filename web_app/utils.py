@@ -63,21 +63,24 @@ def _starts_at_end(entry: dict) -> bool:
 def sort_entries_for_startlist(entries: list) -> list:
     """
     Sortiert Entries für die Startliste:
-      0. Manuelle Reihenfolge (``start_order``, vom elektronischen Einweiser
-         gesetzt) hat Vorrang — sobald EIN Eintrag des Laufs sie trägt, vergibt
-         der Reorder-Endpoint sie an ALLE, die Liste ist dann vollständig explizit
-         (die Läufig-Regel ist darin bereits eingearbeitet).
-      1. Sonst nach Startnummer aufsteigend
-      2. Läufige/"am Schluss starten"-Einträge immer ans Ende
+      0. Läufige/"am Schluss starten"-Einträge immer ans Ende — gilt IMMER,
+         auch unter manueller Reihenfolge (Regression 21.11.: wurde verloren,
+         sobald start_order gesetzt war, weil die Läufig-Prüfung nur im
+         Fallback-Zweig lief; der Reorder-Endpoint vergibt start_order aber rein
+         nach Swap-Position, ohne Läufigkeit erneut durchzusetzen).
+      1. Innerhalb der jeweiligen Gruppe: manuelle Reihenfolge (``start_order``,
+         vom elektronischen Einweiser gesetzt) hat Vorrang, sonst Startnummer
+         aufsteigend.
 
-    Strikt abwärtskompatibel: ohne ``start_order`` identisch zum alten Verhalten.
+    Strikt abwärtskompatibel: ohne ``start_order`` identisch zum alten Verhalten
+    (at_end war vorher schon der erste Sortierschlüssel im Fallback-Zweig).
     """
     def _key(e):
+        at_end = 1 if _starts_at_end(e) else 0
         so = e.get("start_order")
         if so is not None and str(so) != "":
-            # Gleichlange 3-Tupel, damit nie int mit bool verglichen wird.
-            return (0, _to_int(so, default=999999), 0)
-        return (1, 1 if _starts_at_end(e) else 0, _to_int(e.get("Startnummer"), default=999999))
+            return (at_end, 0, _to_int(so, default=999999))
+        return (at_end, 1, _to_int(e.get("Startnummer"), default=999999))
     return sorted(entries or [], key=_key)
 
 

@@ -32,9 +32,19 @@ einweiser_bp = Blueprint('einweiser_bp', __name__, template_folder='../templates
 
 # Nicht-autoritative Einweiser-Markierungen pro Teilnehmer (Phase 2/3). Bewusst
 # OHNE Resultat-/DNS-/current_starter-Wirkung — der Einweiser MARKIERT nur
-# (present/absent = Anwesenheit, ready = "bereit/am Gate"), der Ring-PC behaelt
-# die Hoheit ueber Wertung und aktiven Starter. 'none' loescht die Markierung.
-_VALID_MARKS = {'present', 'absent', 'ready'}
+# (present/absent = Anwesenheit, ready = "bereit/am Gate", later = "kommt
+# spaeter"), der Ring-PC behaelt die Hoheit ueber Wertung und aktiven Starter.
+# 'none' loescht die Markierung.
+#
+# 'later' (Wunsch Chris 2026-11-21): Teilnehmer ist kurzfristig nicht am Gate
+# (z.B. anderer Ring gerade dran). Statt ihn durch die ganze Liste nach hinten
+# zu schieben (start_order-Umreihung), wird er per Markierung nur aus der
+# Ring-PC-Auto-Auswahl UND -Anzeige ausgeblendet (routes_live._pick_auto_starter,
+# ring_pc_dashboard.html fetchRunDetails) — der Einweiser sieht ihn weiterhin
+# auf seinem Tablet. Entfernt der Einweiser die Markierung wieder (erneuter
+# Tap = 'none'), taucht der Eintrag ohne jede Umsortierung automatisch wieder
+# an seiner urspruenglichen Position auf.
+_VALID_MARKS = {'present', 'absent', 'ready', 'later'}
 
 
 def _is_ko_event(event: dict) -> bool:

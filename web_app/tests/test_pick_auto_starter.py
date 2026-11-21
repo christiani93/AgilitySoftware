@@ -40,3 +40,39 @@ def test_single_unfinished_entry_has_no_next():
 
 def test_empty_unfinished_returns_empty_dicts():
     assert _pick_auto_starter([]) == ({}, {})
+
+
+def test_later_marked_entry_is_skipped_for_current_and_next():
+    """'kommt später' (Chris 2026-11-21): Ring-PC soll den Teilnehmer komplett
+    uebergehen, ohne ihn umzureihen."""
+    unfinished = [
+        {"Lizenznummer": "A", "einweiser_mark": "later"},
+        {"Lizenznummer": "B"},
+        {"Lizenznummer": "C"},
+    ]
+    current, next_ = _pick_auto_starter(unfinished)
+    assert current["Lizenznummer"] == "B"
+    assert next_["Lizenznummer"] == "C"
+
+
+def test_later_and_ready_combine_current_strict_next_ready():
+    unfinished = [
+        {"Lizenznummer": "A", "einweiser_mark": "later"},
+        {"Lizenznummer": "B"},
+        {"Lizenznummer": "C", "einweiser_mark": "ready"},
+    ]
+    current, next_ = _pick_auto_starter(unfinished)
+    assert current["Lizenznummer"] == "B"
+    assert next_["Lizenznummer"] == "C"
+
+
+def test_all_later_falls_back_instead_of_blocking_run():
+    """Sind ALLE verbliebenen Starter 'later' markiert, darf der Lauf nicht
+    komplett ohne current_starter haengen bleiben."""
+    unfinished = [
+        {"Lizenznummer": "A", "einweiser_mark": "later"},
+        {"Lizenznummer": "B", "einweiser_mark": "later"},
+    ]
+    current, next_ = _pick_auto_starter(unfinished)
+    assert current["Lizenznummer"] == "A"
+    assert next_["Lizenznummer"] == "B"
