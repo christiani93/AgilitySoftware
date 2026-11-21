@@ -521,6 +521,33 @@ def print_final_stewardlists(event_id):
     )
 
 
+@print_bp.route('/print/final_startlists/<event_id>')
+def print_final_startlists(event_id):
+    """Startlisten NUR für die Finalläufe (is_final) — analog
+    print_final_stewardlists, aber als Teilnehmer-/Announcer-Startliste statt
+    Ringschreiber-Wertungsblatt. Eigener Druck aus demselben Grund: Finalläufe
+    stehen nicht im regulären Zeitplan-Run (`get_ordered_runs_for_print` findet
+    nur `type=='run'`-Blöcke) und sind erst NACH „Finalisten übernehmen"
+    sinnvoll befüllt."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+    final_runs = [
+        dict(r, entries=sort_entries_for_startlist(r.get('entries') or []))
+        for r in event.get('runs', []) or [] if r.get('is_final')
+    ]
+    final_runs.sort(key=lambda r: (
+        (r.get('laufart') or ''),
+        get_category_sort_key(r.get('kategorie', '')),
+        str(r.get('klasse') or ''),
+    ))
+    ordered_runs = _enrich_entries_rasse_verein(final_runs)
+    now_str = datetime.now().strftime('%d.%m.%Y %H:%M')
+    logos = get_event_logo_data_uris(event)
+    return render_template('print_startlists.html', event=event, ordered_runs=ordered_runs, now_str=now_str,
+                           event_logo_data=logos['event'], club_logo_data=logos['club'])
+
+
 @print_bp.route('/print/master_steward_list/<event_id>')
 def print_master_steward_list(event_id):
     """Erstellt eine Master-Einweiserliste: 1 Zeile pro Teilnehmer, 1 Spalte pro Lauf."""
