@@ -150,6 +150,61 @@ def calculate_bccs_sm_qualification(event: dict, recalc_fn=None) -> dict:
     return {"divisions": divisions, "finalists": all_finalists}
 
 
+def quali_ranking_for_run(event: dict, run: dict, recalc_fn=None) -> dict | None:
+    """
+    Volle SM-only Quali-Rangliste EINES Quali-Laufs (Kategorie × Klasse × Laufart),
+    inkl. Qualifikationsstatus je Team ("agility"/"jumping" = direkt in diesem/dem
+    anderen Lauf der Klasse qualifiziert, "nachruecker", "title_defender", oder
+    None = nicht qualifiziert) — für Druck (print_bp) und Live-Monitor (Ring-Monitor
+    unter „Aktueller Starter" während der Quali, analog zur Final-Kombirangliste).
+
+    Nutzt dieselbe Berechnung wie `calculate_bccs_sm_qualification` (inkl. Titel-
+    verteidiger + Nachrücken), zeigt aber die KOMPLETTE Rangliste des Laufs (nicht
+    nur die Finalisten).
+
+    Returns None, wenn `run` keiner BCCS-SM-Quali-Division zugeordnet werden kann
+    (falsche Kategorie/Klasse/Laufart oder Final-Lauf).
+    """
+    category = run.get("kategorie")
+    laufart = run.get("laufart")
+    cls = str(run.get("klasse") or "")
+    if run.get("is_final") or category not in CATEGORIES or laufart not in QUALI_RUN_TYPES:
+        return None
+    div_key = next((dk for dk, ddef in DIVISIONS.items() if cls in ddef["classes"]), None)
+    if div_key is None:
+        return None
+
+    sm_filter = _build_sm_predicate(event)
+    data = calculate_bccs_sm_qualification(event, recalc_fn=recalc_fn)
+    division = data["divisions"].get(f"{category}/{div_key}") or {}
+    status_by_license = {f["license"]: f["source"] for f in division.get("finalists", [])}
+
+    pool = _collect_class(event, category, cls, sm_filter, recalc_fn).get(laufart, [])
+    placed = _performance_sorted(pool)
+    not_placed = sorted(
+        (e for e in pool if e["dis"]),
+        key=lambda e: (e.get("startnummer") is None, e.get("startnummer")),
+    )
+
+    ranking = [
+        {**e, "rang": idx, "qualified_source": status_by_license.get(e["license"])}
+        for idx, e in enumerate(placed, start=1)
+    ]
+    ranking.extend(
+        {**e, "rang": None, "qualified_source": status_by_license.get(e["license"])}
+        for e in not_placed
+    )
+
+    return {
+        "ranking":        ranking,
+        "quota":          division.get("quota", {}).get(laufart, 0),
+        "division_label": DIVISIONS[div_key]["label"],
+        "category":       category,
+        "klasse":         cls,
+        "laufart":        laufart,
+    }
+
+
 def rank_final_bccs(event: dict, recalc_fn=None) -> dict:
     """
     Berechnet die Final-Rangierung je Division aus den 2 Finalläufen (Jumping + Agility),

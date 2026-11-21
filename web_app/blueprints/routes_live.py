@@ -17,7 +17,8 @@ from utils import (_load_data, _save_data, _get_active_event,
                    format_ring_name_html, format_ring_name_parts,
                    _format_time, _format_total_errors, get_ring_state,
                    sort_entries_for_startlist, recalc_and_store)
-from bccs_sm_qualification import rank_final_bccs, CATEGORIES as _BCCS_CATEGORIES, DIVISIONS as _BCCS_DIVISIONS
+from bccs_sm_qualification import (rank_final_bccs, quali_ranking_for_run,
+                                   CATEGORIES as _BCCS_CATEGORIES, DIVISIONS as _BCCS_DIVISIONS)
 import planner.schedule_planner as schedule_planner
 from web_app.live.ring_state import apply_start_impulse, apply_result_saved, apply_manual_reassign, init_ring_entry_state
 
@@ -1194,6 +1195,72 @@ def _render_bccs_combined_section(event, view):
     return _render_bccs_combined_table(rows, cat_label, div_label)
 
 
+def _bccs_quali_rows(event, view):
+    """Datenbeschaffung für die Quali-Rangliste im Ring-Monitor (Analogon zu
+    `_bccs_monitor_rows` für den Final): liefert `data` (s. `quali_ranking_for_run`)
+    oder None, wenn ausserhalb BCCS-SM, im Final oder ohne SM-Starter im Lauf.
+    Read-only: `quali_ranking_for_run` arbeitet auf Kopien (kein Save)."""
+    current_run = view.get("current_run") or {}
+    if event.get("Veranstaltungsart") != "BCCS-SM" or current_run.get("is_final"):
+        return None
+    try:
+        settings = _load_settings()
+        data = quali_ranking_for_run(event, current_run,
+                                      recalc_fn=partial(recalc_and_store, settings=settings))
+    except Exception:
+        return None
+    if not data or not data["ranking"]:
+        return None
+    return data
+
+
+def _render_bccs_quali_ranking_table(data):
+    """Volle BCCS-SM-Quali-Rangliste EINES Laufs (Top-`_BCCS_MONITOR_TOP_N` + Quote-
+    Zeile) als Karte — Analogon zu `_render_bccs_combined_table` für den Final.
+    Qualifizierte Teams (direkt oder Nachrücker) grün hervorgehoben."""
+    rows = [r for r in data["ranking"] if not r.get("dis")][:_BCCS_MONITOR_TOP_N]
+    if not rows:
+        return ""
+    title = (f"{_('Quali-Rangliste')} – {data['category']} {data['division_label']} "
+             f"Kl.{data['klasse']} {_(data['laufart'])}")
+    parts = [
+        "<div class='card shadow-sm mt-3'>",
+        f"<div class='card-header bg-light fw-semibold'>📋 {title}</div>",
+        "<div class='table-responsive'>",
+        "<table class='table table-sm mb-0'>",
+        f"<thead><tr><th>{_('Platz')}</th><th>{_('Name')}</th>"
+        f"<th>{_('Fehler')}</th><th>{_('Zeit')}</th></tr></thead>",
+        "<tbody>",
+    ]
+    for d in rows:
+        row_cls = " class='table-success'" if d.get("qualified_source") else ""
+        parts.append(
+            f"<tr{row_cls}>"
+            f"<td>{d.get('rang')}</td>"
+            f"<td>{_name_html_from_row(d)}</td>"
+            f"<td>{_format_sum_errors(d.get('fehler_total'))}</td>"
+            f"<td>{_format_time(d.get('zeit'))}</td>"
+            "</tr>"
+        )
+    parts.extend([
+        "</tbody>", "</table>",
+        f"<div class='px-2 py-1 small text-muted'>{_('Quote')}: {data['quota']}</div>",
+        "</div>", "</div>",
+    ])
+    return ''.join(parts)
+
+
+def _render_bccs_quali_ranking_section(event, view):
+    """BCCS-SM: volle Quali-Rangliste des aktuellen Laufs als eigene Monitor-Karte
+    unter „Aktueller Starter" — Analogon zur Final-Kombirangliste
+    (`_render_bccs_combined_section`), aber während der Qualifikation (Kl. 1–3,
+    Agility/Jumping, kein Final)."""
+    data = _bccs_quali_rows(event, view)
+    if not data:
+        return ""
+    return _render_bccs_quali_ranking_table(data)
+
+
 def _render_bccs_monitor_extras(event, view):
     """Zuschauer-Monitor-Zusätze bei BCCS-SM-Finalläufen: A3-Platz-1-Projektion (nur
     Agility-Final, eigene Card) + A2-Kombi-Rangliste. Leerer String ausserhalb BCCS-SM/
@@ -1370,6 +1437,8 @@ def render_ring_monitor_content(ring_number: int):
 
     # BCCS-SM: kombinierte Final-Rangliste (A2, Top 4) als eigene Karte
     parts.append(_render_bccs_combined_section(event, view))
+    # BCCS-SM: volle Quali-Rangliste während der Qualifikation (Top 4 + Quote)
+    parts.append(_render_bccs_quali_ranking_section(event, view))
 
     parts.append("</div>")   # .ring-monitor
 

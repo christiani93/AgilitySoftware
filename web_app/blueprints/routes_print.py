@@ -2,12 +2,14 @@
 from flask import Blueprint, render_template, render_template_string, abort, request, redirect, url_for, flash, Response, jsonify
 from flask_babel import gettext as _
 from datetime import datetime
+from functools import partial
 import csv
 import io
 from utils import (_load_data, _save_data, _calculate_run_results, _load_settings,
                    _calculate_timelines, get_category_sort_key, get_run_award_sort_key,
-                   resolve_judge_id, resolve_judge_name,
+                   resolve_judge_id, resolve_judge_name, recalc_and_store,
                    get_event_logo_data_uris, _starts_at_end)
+from bccs_sm_qualification import quali_ranking_for_run
 from planner.print_order import get_ordered_runs_for_print
 from planner.print_schedule_order import (
     build_schedule_print_sections,
@@ -614,6 +616,20 @@ def print_ranking_single(event_id, run_id):
     judges = _load_data('judges.json')
     judge_display = resolve_judge_name(event, run, judges)
     return render_template('print_ranking_single.html', event=event, run=run, results=results, judges=judges, judge_display=judge_display)
+
+@print_bp.route('/print/bccs_sm_quali_ranking/<event_id>/<run_id>')
+def print_bccs_sm_quali_ranking(event_id, run_id):
+    """BCCS-SM: Quali-Rangliste eines Laufs (nur SM-Hunde, mit Qualifikationsstatus)."""
+    run_id = str(run_id)
+    settings, event = _load_settings(), next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+    run = next((r for r in event.get('runs', []) if r.get('id') == run_id), None)
+    if not run: abort(404)
+    data = quali_ranking_for_run(event, run, recalc_fn=partial(recalc_and_store, settings=settings))
+    if not data: abort(404)
+    judges = _load_data('judges.json')
+    judge_display = resolve_judge_name(event, run, judges)
+    return render_template('print_bccs_sm_quali_ranking.html', event=event, run=run, data=data, judges=judges, judge_display=judge_display)
 
 @print_bp.route('/print/select_award_list/<event_id>', methods=['GET', 'POST'])
 def select_award_list(event_id):

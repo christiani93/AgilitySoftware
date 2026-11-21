@@ -22,6 +22,7 @@ if WEB_APP_PATH not in sys.path:
 from bccs_sm_qualification import (   # noqa: E402
     calculate_bccs_sm_qualification,
     rank_final_bccs,
+    quali_ranking_for_run,
     final_run2_start_order,
     apply_final_start_order,
     _quota,
@@ -420,6 +421,71 @@ def test_ohne_markierung_zaehlen_alle_abwaertskompatibel():
     ]}
     large = calculate_bccs_sm_qualification(event)["divisions"]["Large/sm"]
     assert large["quota"] == {"Agility": 3, "Jumping": 3}
+
+
+# ---------------------------------------------------------------------------
+# quali_ranking_for_run: volle Quali-Rangliste eines Laufs (Druck + Live-Monitor)
+# ---------------------------------------------------------------------------
+
+def test_quali_ranking_enthaelt_alle_starter_mit_rang_und_status():
+    """7 Starter/Lauf → Quote 2; die volle Rangliste (nicht nur Finalisten) wird
+    zurückgegeben, mit Rang 1..7 und Qualifikationsstatus nur für die Top 2."""
+    agility = _seq("A", 7)
+    jumping = _seq("J", 7)
+    event = {"runs": [
+        _run("Large", "3", "Agility", agility),
+        _run("Large", "3", "Jumping", jumping),
+    ]}
+    run = event["runs"][0]
+    data = quali_ranking_for_run(event, run)
+    assert data["category"] == "Large" and data["klasse"] == "3" and data["laufart"] == "Agility"
+    assert data["division_label"] == "SM"
+    assert data["quota"] == 2
+    assert [r["rang"] for r in data["ranking"]] == [1, 2, 3, 4, 5, 6, 7]
+    assert [r["license"] for r in data["ranking"][:2]] == ["A0", "A1"]
+    assert data["ranking"][0]["qualified_source"] == "agility"
+    assert data["ranking"][1]["qualified_source"] == "agility"
+    assert all(r["qualified_source"] is None for r in data["ranking"][2:])
+
+
+def test_quali_ranking_markiert_nachruecker_auch_im_anderen_lauf():
+    """Nachrücker aus dem Jumping-Lauf (X) muss auch in der Agility-Ranking-Ausgabe
+    als qualifiziert erscheinen (Status ist division-weit, nicht lauf-lokal)."""
+    agility = [_entry("A", 0), _entry("B", 1), _entry("C", 2), _entry("D", 3),
+               _entry("E", 4), _entry("F", 5), _entry("G", 6)]
+    jumping = [_entry("A", 0), _entry("B", 1), _entry("X", 2), _entry("Y", 3),
+               _entry("Z", 4), _entry("W", 5), _entry("V", 6)]
+    event = {"runs": [
+        _run("Large", "3", "Agility", agility),
+        _run("Large", "3", "Jumping", jumping),
+    ]}
+    data = quali_ranking_for_run(event, event["runs"][1])  # Jumping-Lauf
+    by_lic = {r["license"]: r["qualified_source"] for r in data["ranking"]}
+    assert by_lic["A"] == "agility"      # direkt qualifiziert ueber Agility
+    assert by_lic["X"] == "nachruecker"  # Nachruecker, sichtbar im Jumping-Ranking
+    assert by_lic["Y"] is None
+
+
+def test_quali_ranking_dis_hinten_ohne_rang():
+    """DIS-Teams erscheinen am Ende der Liste ohne Rang (None), nicht qualifiziert."""
+    entries = [_entry("A", 0), _entry("B", 1), _entry("D", dis="DIS")]
+    event = {"runs": [
+        _run("Large", "3", "Agility", entries),
+        _run("Large", "3", "Jumping", [dict(e) for e in entries]),
+    ]}
+    data = quali_ranking_for_run(event, event["runs"][0])
+    assert data["ranking"][-1]["license"] == "D"
+    assert data["ranking"][-1]["rang"] is None
+    assert data["ranking"][-1]["qualified_source"] is None
+
+
+def test_quali_ranking_none_fuer_final_oder_falsche_kategorie():
+    final_run = _run("Large", "3", "Jumping", [], is_final=True)
+    event = {"runs": [final_run]}
+    assert quali_ranking_for_run(event, final_run) is None
+
+    other_run = _run("Border Terrier", "3", "Agility", [])
+    assert quali_ranking_for_run({"runs": [other_run]}, other_run) is None
 
 
 def test_final_filtert_nicht_sm_hunde():

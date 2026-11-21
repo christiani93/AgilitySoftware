@@ -57,6 +57,19 @@ def _recalc(event, settings):
 
 # ── Routen ────────────────────────────────────────────────────────────────────
 
+def _quali_runs_for_division(event: dict, category: str, div_classes: list[str]) -> list[dict]:
+    """Quali-Läufe (nicht Final) einer Division, sortiert nach Klasse/Laufart —
+    für die Druck-Links der Quali-Rangliste im Dashboard."""
+    runs = [
+        {'klasse': str(r.get('klasse')), 'laufart': r.get('laufart'), 'id': r.get('id'), 'name': r.get('name')}
+        for r in event.get('runs', [])
+        if r.get('kategorie') == category and not r.get('is_final')
+        and str(r.get('klasse') or '') in div_classes and r.get('laufart') in QUALI_RUN_TYPES
+    ]
+    runs.sort(key=lambda r: (r['klasse'], r['laufart']))
+    return runs
+
+
 @bccs_sm_bp.get('/dashboard/<event_id>')
 def bccs_sm_dashboard(event_id):
     """BCCS-SM-Übersicht: pro Division (I/L × SM/Nachwuchs) Quoten, Finalisten, Final."""
@@ -71,12 +84,17 @@ def bccs_sm_dashboard(event_id):
     recalc_fn = partial(recalc_and_store, settings=settings)
     bccs_data = calculate_bccs_sm_qualification(event, recalc_fn=recalc_fn)
     final_ranking = rank_final_bccs(event, recalc_fn=recalc_fn)
+    quali_runs = {
+        key: _quali_runs_for_division(event, div['category'], DIVISIONS[div['division']]['classes'])
+        for key, div in bccs_data['divisions'].items()
+    }
 
     return render_template(
         'bccs_sm_dashboard.html',
         event=event,
         bccs_data=bccs_data,
         final_ranking=final_ranking,
+        quali_runs=quali_runs,
         categories=CATEGORIES,
         divisions=DIVISIONS,
     )
