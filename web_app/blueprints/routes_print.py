@@ -794,6 +794,11 @@ def _tkamo_run_status(run, settings):
                       Kategorie/Klasse gemäss Weisung gesperrt
       'complete'    – alle gestarteten Teams haben Resultat oder DIS/ABR
     """
+    # SM-/Rassen-SM-Finalläufe werden NICHT an die TKAMO gemeldet (nur die
+    # regulären Quali-Läufe). Finals generell überspringen – sonst würden sie
+    # nach der Wertung fälschlich in die Resultatdatei wandern.
+    if run.get('is_final'):
+        return ('skip', 0)
     if run.get('laufart') not in _TKAMO_MELDEPFLICHTIGE_LAUFARTEN:
         return ('skip', 0)
     done = 0

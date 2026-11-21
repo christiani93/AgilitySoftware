@@ -595,7 +595,11 @@ def _calculate_run_results(run, settings):
                 'disqualifikation': dis_abr,
             })
         else:
-            res.update({'fehler_total': 998, 'zeit_total': 998.99, 'qualifikation': 'N/A', 'disqualifikation': dis_abr})
+            # Kein Resultat (und nicht DIS): Platzhalter setzen – auch fehler_parcours,
+            # sonst schreibt recalc_and_store None zurück und _rank_key/sort crasht
+            # (int < None), sobald im selben Lauf ein bewerteter Eintrag existiert.
+            res.update({'fehler_total': 998, 'zeit_total': 998.99, 'fehler_parcours': 999,
+                        'qualifikation': 'N/A', 'disqualifikation': dis_abr})
 
         results.append(res)
 
@@ -606,9 +610,12 @@ def _calculate_run_results(run, settings):
     # ist die ×5-Summe aus Abwürfen+Verweigerungen — konsistent mit
     # combination_ranking._sort_key (dort an SM-Echtdaten validiert).
     def _rank_key(x):
-        return (x.get('fehler_total', 999),
-                x.get('fehler_parcours', 999),
-                x.get('zeit_total', 999))
+        # None-fest: ein vorhandener Key mit Wert None (z.B. alt zurückgeschriebenes
+        # fehler_parcours) würde sonst beim Sortieren int<None werfen.
+        ft = x.get('fehler_total'); fp = x.get('fehler_parcours'); zt = x.get('zeit_total')
+        return (ft if ft is not None else 999,
+                fp if fp is not None else 999,
+                zt if zt is not None else 999)
 
     results.sort(key=_rank_key)
     position = 0

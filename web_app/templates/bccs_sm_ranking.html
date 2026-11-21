@@ -48,19 +48,19 @@
         {% for entry in entries %}
         <tr {% if entry.get('final_rang') == 1 %}class="table-success fw-bold"{% endif %}>
           <td style="text-align: center; font-weight: bold;">
-            {% if entry.get('sum_fehler') == 999 %}DIS{% else %}{{ entry.get('final_rang') }}{% endif %}
+            {% if entry.get('sum_fehler') is none or entry.get('sum_fehler') == 999 %}DIS{% else %}{{ entry.get('final_rang') }}{% endif %}
           </td>
           <td>{{ entry.get('license') }}</td>
           <td>{{ entry.get('dog_name') }}</td>
           <td>{{ entry.get('handler_name') }}</td>
           <td style="text-align: right;">
-            {% if entry.get('sum_fehler') == 999 %}DIS{% else %}{{ entry.get('sum_fehler') }}{% endif %}
+            {% if entry.get('sum_fehler') is none or entry.get('sum_fehler') == 999 %}DIS{% else %}{{ entry.get('sum_fehler') }}{% endif %}
           </td>
           <td style="text-align: right;">
-            {% if entry.get('sum_parcours') == 999 %}—{% else %}{{ entry.get('sum_parcours') }}{% endif %}
+            {% if entry.get('sum_parcours') is none or entry.get('sum_parcours') == 999 %}—{% else %}{{ entry.get('sum_parcours') }}{% endif %}
           </td>
           <td style="text-align: right;">
-            {% if entry.get('sum_zeit') == 999.99 %}—{% else %}{{ "%.2f"|format(entry.get('sum_zeit', 0)) }}{% endif %}
+            {% if entry.get('sum_zeit') is none or entry.get('sum_zeit') == 999.99 %}—{% else %}{{ "%.2f"|format(entry.get('sum_zeit')) }}{% endif %}
           </td>
         </tr>
         {% endfor %}
