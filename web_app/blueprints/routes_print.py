@@ -26,6 +26,8 @@ from planner.briefing_groups import (
     session_title_from_run_blocks,
     sort_participants,
     split_into_groups,
+    _match_run_to_block,
+    _startnummer_key,
 )
 
 from ioc_codes import extract_country_code, is_valid_ioc_code
@@ -162,6 +164,27 @@ def print_schedule(event_id):
     return render_template('print/schedule.html', event=event, timelines_by_ring=timelines_by_ring, judges_map=judges_map,
                            event_logo_data=logos['event'], club_logo_data=logos['club'])
 
+def _collect_session_participants_schedule_order(session, event, run_pos):
+    """Teilnehmer einer Begehungssession in ZEITPLAN-Reihenfolge sammeln:
+    Lauf für Lauf in der Reihenfolge des Zeitplans (``run_pos`` = Position aus
+    ``get_ordered_runs_for_print``), innerhalb eines Laufs nach Startreihenfolge
+    (Startnummer, „ans Ende"-Starter hinten). So landen die Begehungsgruppen in
+    der Reihenfolge, in der die Hunde tatsächlich laufen – statt wie früher nur
+    global nach Startnummer über alle Läufe gemischt. Dedup je Lizenz behält das
+    erste (früheste) Vorkommen. """
+    runs = event.get("runs", []) or []
+    collected = []
+    for block in session.get("run_blocks", []) or []:
+        matching = [r for r in runs if isinstance(r, dict) and _match_run_to_block(r, block)]
+        matching.sort(key=lambda r: run_pos.get(r.get("id"), 10 ** 9))
+        for r in matching:
+            sched_pos = run_pos.get(r.get("id"), 10 ** 9)
+            for entry in r.get("entries", []) or []:
+                collected.append((sched_pos, _startnummer_key(entry), entry))
+    collected.sort(key=lambda t: (t[0], t[1]))
+    return [t[2] for t in collected]
+
+
 @print_bp.route('/print/briefing_groups')
 @print_bp.route('/print/briefing_groups/<event_id>')
 def print_briefing_groups(event_id=None):
@@ -199,6 +222,9 @@ def print_briefing_groups(event_id=None):
     schedule_blocks_count = 0
     briefing_blocks_count = 0
     dogs_map = {d['Lizenznummer']: d for d in _load_data('dogs.json')}
+    # Laufposition im Zeitplan → Teilnehmer der Begehungsgruppen in echter
+    # Zeitplanreihenfolge sortieren (statt global nach Startnummer).
+    run_pos = {r.get('id'): i for i, r in enumerate(get_ordered_runs_for_print(event))}
     sessions_by_ring = []
     for ring_key in sorted(timelines_by_ring.keys(), key=lambda x: int(x) if str(x).isdigit() else str(x)):
         timeline_items = timelines_by_ring.get(ring_key) or []
@@ -209,13 +235,14 @@ def print_briefing_groups(event_id=None):
         for index, session in enumerate(sessions, start=1):
             run_blocks = session.get("run_blocks", [])
             sort_settings, raw_sort_block = get_sort_settings_from_run_blocks(run_blocks)
-            participants = collect_participants_for_session(session, event)
+            # Teilnehmer in Zeitplanreihenfolge (Lauf für Lauf, je Lauf in
+            # Startreihenfolge) statt global nach Startnummer gemischt.
+            participants = _collect_session_participants_schedule_order(session, event, run_pos)
             for entry in participants:
                 dog_info = dogs_map.get(entry.get('Lizenznummer'), {})
                 entry.setdefault('Kategorie', dog_info.get('Kategorie'))
                 entry.setdefault('Klasse', dog_info.get('Klasse'))
-            participants = dedup_preserve_order(participants)
-            participants_sorted = sort_participants(participants, sort_settings)
+            participants_sorted = dedup_preserve_order(participants)
             groups = split_into_groups(participants_sorted, group_size, group_count)
             apply_group_summaries(groups)
             group_sizes = [len(group.get("participants", []) or []) for group in groups]

@@ -7,29 +7,28 @@
         body { font-family: sans-serif; }
         @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
 
-        .page-table { width: 100%; border-collapse: collapse; }
-        .page-table thead { display: table-header-group; }
-        .page-table tbody { display: table-row-group; }
-        .page-table > tbody > tr > td { padding: 0; }
-        .page-table thead td { border-bottom: none; }
-
         .print-header { position: static !important; display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: none; }
         .print-header__logo { width: 2.5cm; display: flex; align-items: center; justify-content: center; }
         .print-header__logo-box { width: 2.2cm; height: 2.2cm; border: 1px solid #999; background: #f5f5f5; color: #666; font-size: 9pt; display: flex; align-items: center; justify-content: center; text-align: center; }
         .print-header__titles { text-align: center; flex: 1; font-size: 10pt; }
         .print-header__title { font-size: 1.1em; font-weight: 600; }
         .print-header__subtitle { font-size: 0.95em; color: #555; margin-bottom: 2px; }
-        .print-header__meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 9pt; color: #444; }
 
-        .group-container { page-break-after: always; }
-        .group-container:last-child { page-break-after: auto; }
+        .section-title { background-color: #e9ecef; font-size: 14pt; font-weight: 600; padding: 8px; text-align: left; margin: 0 0 6px 0; }
 
-        table { width: 100%; border-collapse: collapse; font-size: 10pt; page-break-inside: auto; }
-        th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        thead { display: table-header-group; }
-        tr { page-break-inside: avoid; page-break-after: auto; }
-        h3 { background-color: #e9ecef; font-size: 14pt; padding: 8px; text-align: left; margin-top: 1cm; margin-bottom: 5px;}
+        /* Eine eigene Tabelle pro Zeitplan-Block. Der Seitenumbruch sitzt auf einem
+           Block-Element (Tabelle) statt auf einem <div> INNERHALB einer Tabellen-
+           zelle – nur so beachten alle Druck-Engines `page-break-after` zuverlässig
+           (früher lief alles „fortlaufend" durch). Event-Header mit Logos +
+           Spaltenüberschriften stehen im <thead> und werden bei langen Blöcken sauber
+           OBEN auf jeder Folgeseite wiederholt – nie mehr mitten in der Liste. */
+        .startlist-table { width: 100%; border-collapse: collapse; font-size: 10pt; page-break-after: always; }
+        .startlist-table:last-of-type { page-break-after: auto; }
+        .startlist-table thead { display: table-header-group; }
+        .startlist-table thead .hdr-cell { border: none; padding: 0 0 4px 0; }
+        .startlist-table thead .col-head th { border: 1px solid #ccc; padding: 4px; text-align: left; font-weight: 700; background-color: #f2f2f2; }
+        .startlist-table tbody td { border: 1px solid #ccc; padding: 4px; text-align: left; }
+        .startlist-table tbody tr { page-break-inside: avoid; }
 
         @media print {
             body { margin: 0; }
@@ -39,55 +38,41 @@
 <body>
     {% include 'print/_print_button.html' %}
     {% set title = _('Startliste') ~ ' (' ~ _('nach Zeitplan') ~ ')' %}
-    <table class="page-table">
-        <thead>
-            <tr>
-                <td>
-                    {% include 'print/_print_header.html' %}
-                </td>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-        {% for section in sections %}
-            <div class="group-container">
-                <h3>{{ _('Ring') }} {{ section.ring }} – {{ section.title }}</h3>
+    {% for section in sections %}
+        <table class="startlist-table">
+            <thead>
+                <tr><td class="hdr-cell" colspan="5">{% include 'print/_print_header.html' %}</td></tr>
+                <tr><td class="hdr-cell" colspan="5">
+                    <div class="section-title">{{ _('Ring') }} {{ section.ring }} – {{ section.title }}</div>
+                </td></tr>
+                <tr class="col-head">
+                    <th style="width:10%;">{{ _('Start-Nr.') }}</th>
+                    <th style="width:35%;">{{ _('Hundeführer') }}</th>
+                    <th style="width:35%;">{{ _('Hund') }}</th>
+                    <th style="width:10%;">{{ _('Kategorie') }}</th>
+                    <th style="width:10%;">{{ _('Klasse') }}</th>
+                </tr>
+            </thead>
+            <tbody>
                 {% if section.participants %}
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width:10%;">{{ _('Start-Nr.') }}</th>
-                                <th style="width:35%;">{{ _('Hundeführer') }}</th>
-                                <th style="width:35%;">{{ _('Hund') }}</th>
-                                <th style="width:10%;">{{ _('Kategorie') }}</th>
-                                <th style="width:10%;">{{ _('Klasse') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for entry in section.participants %}
-                                <tr>
-                                    <td><strong>{{ entry.Startnummer }}</strong></td>
-                                    <td>{{ entry.Hundefuehrer }}</td>
-                                    <td>{{ entry.Hundename }} ({{ entry.Lizenznummer }})</td>
-                                    <td>{{ entry.Kategorie or '' }}</td>
-                                    <td>{{ entry.Klasse or '' }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    {% for entry in section.participants %}
+                        <tr>
+                            <td><strong>{{ entry.Startnummer }}</strong></td>
+                            <td>{{ entry.Hundefuehrer }}</td>
+                            <td>{{ entry.Hundename }} ({{ entry.Lizenznummer }})</td>
+                            <td>{{ entry.Kategorie or '' }}</td>
+                            <td>{{ entry.Klasse or '' }}</td>
+                        </tr>
+                    {% endfor %}
                 {% else %}
-                    <p>{{ _('Keine Startenden für diesen Block.') }}</p>
+                    <tr><td colspan="5">{{ _('Keine Startenden für diesen Block.') }}</td></tr>
                 {% endif %}
-            </div>
-        {% else %}
-            <p style="text-align: center; font-weight: bold; margin-top: 2cm;">
-                {{ _('Kein Zeitplan vorhanden') }}
-            </p>
-        {% endfor %}
-                </td>
-            </tr>
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    {% else %}
+        <p style="text-align: center; font-weight: bold; margin-top: 2cm;">
+            {{ _('Kein Zeitplan vorhanden') }}
+        </p>
+    {% endfor %}
 </body>
 </html>

@@ -457,8 +457,10 @@ def announcer_dashboard(event_id):
     event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
     if not event: abort(404)
     ring_numbers = collect_ring_numbers(event)
-    ring_views = {ring_no: build_ring_view_model(event, ring_no) for ring_no in ring_numbers}
-    return render_template('announcer_dashboard.html', event=event, ring_numbers=ring_numbers, ring_views=ring_views, kiosk_mode=True)
+    # Pro Ring gleich den Ring-Monitor-Inhalt vorrendern, damit das Sprecherdashboard
+    # designtechnisch identisch zum Ringmonitor aussieht (gleicher Builder).
+    ring_content = {ring_no: build_ring_monitor_content_html(event, ring_no) for ring_no in ring_numbers}
+    return render_template('announcer_dashboard.html', event=event, ring_numbers=ring_numbers, ring_content=ring_content, kiosk_mode=True)
 @live_bp.route('/live/set_active_announcer_run/<event_id>/<run_id>')
 def set_active_announcer_run(event_id, run_id):
     # Setzt den aktiven Lauf für Sprecher/Monitore.
@@ -861,74 +863,17 @@ def render_announcer_schedule(event_id):
 
 @live_bp.route('/api/render_speaker_panel_content/<event_id>/<ring_name>')
 def render_speaker_panel_content(event_id, ring_name):
+    """Inhalt einer Ring-Karte im Sprecherdashboard. Nutzt denselben Builder wie der
+    Ring-Monitor (`build_ring_monitor_content_html`), damit Sprecherdisplay und
+    Ringmonitor designtechnisch identisch aussehen."""
     events = _load_data('events.json')
     event = next((e for e in events if isinstance(e, dict) and e.get('id') == event_id), None)
     digits = re.sub(r"[^0-9]", "", str(ring_name))
     ring_number = int(digits) if digits else 1
-    ring_label = _ring_label_for_display(ring_number=ring_number)
     if not event:
-        return Response(f"<div class='speaker-panel'><h2>{ring_label}</h2><p>Event nicht gefunden.</p></div>", mimetype='text/html')
-
-    view = build_ring_view_model(event, ring_number, max_last_results=3)
-    current_run = view.get("current_run")
-    if not current_run:
-        html = (
-            "<div class='card shadow-sm'>"
-            "<div class='card-body text-center'>"
-            f"<h5 class='mb-1'>{ring_label}</h5>"
-            "<div class='text-muted'>Kein Lauf aktiv.</div>"
-            "</div></div>"
-        )
-        return Response(html, mimetype='text/html')
-
-    meta_bits = []
-    if current_run.get("klasse"):
-        meta_bits.append(f"Klasse: {current_run.get('klasse')}")
-    if current_run.get("kategorie"):
-        meta_bits.append(f"Kategorie: {current_run.get('kategorie')}")
-    if current_run.get("laufart"):
-        meta_bits.append(f"Laufart: {current_run.get('laufart')}")
-    meta_line = " | ".join(meta_bits) if meta_bits else "—"
-
-    current_starter = view.get("current_starter") or {}
-    next_starter = view.get("next_starter") or {}
-
-    parts = [
-        "<div class='card shadow-sm h-100'>",
-        "<div class='card-body'>",
-        f"<h5 class='mb-1'>{ring_label} – {current_run.get('title','')}</h5>",
-        f"<div class='text-muted small mb-2'><strong>Richter:</strong> {current_run.get('judge_name','—')}</div>",
-        "<div class='small text-muted mb-2'>",
-        f"SCT {current_run.get('sct','—')} s · MCT {current_run.get('mct','—')} s · {current_run.get('parcours_laenge','—')} m · {current_run.get('hindernisse','—')} Geräte",
-        "</div>",
-        f"<div class='small text-muted mb-3'>{meta_line}</div>",
-        "<div class='text-uppercase small text-muted'>Aktueller Starter</div>",
-        f"<div class='h4 fw-semibold mb-1'>{format_ring_name(current_starter)}</div>",
-        "<div class='small text-muted mb-3'>",
-        f"Am Start: {format_ring_name(current_starter)}",
-        "<br>",
-        f"Bereit: {format_ring_name(next_starter)}",
-        "</div>",
-        "<div class='fw-semibold mb-2'>Letzte 3 Ergebnisse</div>",
-    ]
-
-    last_results = view.get("last_results") or []
-    if last_results:
-        parts.append("<div class='d-flex flex-column gap-1'>")
-        for res in last_results:
-            platz = res.get("platz") or "—"
-            parts.append(
-                "<div class='d-flex justify-content-between align-items-center'>"
-                f"<span>{platz} – {format_ring_name(res)}</span>"
-                f"<span class='text-muted small'>{_format_last_result_detail(res)}</span>"
-                "</div>"
-            )
-        parts.append("</div>")
-    else:
-        parts.append("<div class='text-muted'>Noch keine Ergebnisse.</div>")
-
-    parts.extend(["</div>", "</div>"])
-    return Response(''.join(parts), mimetype='text/html')
+        ring_label = _ring_label_for_display(ring_number=ring_number)
+        return Response(f"<div class='ring-monitor'><h2>{ring_label}</h2><p>Event nicht gefunden.</p></div>", mimetype='text/html')
+    return Response(build_ring_monitor_content_html(event, ring_number), mimetype='text/html')
 def _ring_label_for_display(ring=None, ring_number=None):
     """Gibt ein robustes Label 'Ring X' zurück und akzeptiert sowohl 'ring' als auch 'ring_number'.
     Normalisiert auch Werte wie 'ring_1', 'Ring 1', '1'."""
@@ -1274,12 +1219,14 @@ def _render_bccs_monitor_extras(event, view):
             + _render_bccs_combined_table(rows, cat_label, div_label))
 
 
-@live_bp.route('/api/render_ring_monitor_content/<int:ring_number>')
-def render_ring_monitor_content(ring_number: int):
+def build_ring_monitor_content_html(event, ring_number: int):
+    """Baut das Ring-Monitor-Inhalts-HTML (ohne Response-Wrapper), damit es sowohl
+    der Ring-Monitor (`/api/render_ring_monitor_content`) als AUCH das
+    Sprecherdashboard (`/api/render_speaker_panel_content`) identisch nutzen –
+    so sehen Sprecherdisplay und Ringmonitor designtechnisch gleich aus."""
     ring_label = _ring_label_for_display(ring_number=ring_number)
-    event = _get_active_event()
     if not event:
-        return Response(f"<div class='ring-monitor'><p>{_('Kein aktives Event.')}</p></div>", mimetype='text/html')
+        return f"<div class='ring-monitor'><p>{_('Kein aktives Event.')}</p></div>"
     view = build_ring_view_model(event, ring_number)
     current_run = view.get("current_run")
     if not current_run:
@@ -1289,7 +1236,7 @@ def render_ring_monitor_content(ring_number: int):
             f"<a href='/print/schedule/{event.get('id')}' target='_blank' "
             f"class='btn btn-outline-primary'>📅 {_('Zeitplan anzeigen')}</a></div>"
         )
-        return Response(html, mimetype='text/html')
+        return html
     meta_bits = []
     if current_run.get("klasse"):
         meta_bits.append(f"{_('Klasse')}: {current_run.get('klasse')}")
@@ -1442,7 +1389,13 @@ def render_ring_monitor_content(ring_number: int):
 
     parts.append("</div>")   # .ring-monitor
 
-    return Response(''.join(parts), mimetype='text/html')
+    return ''.join(parts)
+
+
+@live_bp.route('/api/render_ring_monitor_content/<int:ring_number>')
+def render_ring_monitor_content(ring_number: int):
+    event = _get_active_event()
+    return Response(build_ring_monitor_content_html(event, ring_number), mimetype='text/html')
 
 
 def _apply_laufdaten_to_run(run, data, settings):

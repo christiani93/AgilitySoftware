@@ -4,139 +4,83 @@
 {% block content %}
 {% set ring_numbers = ring_numbers or [] %}
 <style>
-  body { overflow: hidden; }
-  .announcer-fullpage { height: calc(100vh - 56px); display: flex; flex-direction: column; }
-  #dashboard-container { flex: 1; overflow-y: auto; }
-  #dashboard-container .card { height: 100%; }
+  /* Sprecherdashboard nutzt denselben Ring-Monitor-Inhalt (build_ring_monitor_content_html)
+     wie der Ringmonitor – hier nur das Grid + Karten-Rahmen drumherum, damit mehrere
+     Ringe nebeneinander passen. Keine Kiosk-Skalierung (das macht nur der Einzel-Monitor). */
+  .announcer-fullpage { min-height: calc(100vh - 56px); }
+  .speaker-ring-card > .card-header { font-size: 1.15rem; }
+  /* Laufvorgaben / Letzte Ergebnisse / Aktueller Starter auf gleiche Mindesthöhe –
+     identisch zum Ringmonitor (.ring-band). */
+  .speaker-ring-body .ring-band { min-height: 3rem; }
+  .speaker-ring-body .ring-monitor > div:first-child h2 { font-size: 1.4rem; }
 </style>
 <div class="container-fluid py-2 announcer-fullpage">
-    <div class="mb-2 text-center">
+    <div class="mb-3 text-center">
         <h2 class="fw-bold mb-0">Sprecherdisplay</h2>
         <div class="text-muted small">{{ event.Bezeichnung }}{% if event.Datum %} · {{ event.Datum }}{% endif %}</div>
     </div>
-    <div id="dashboard-container" class="row g-3"></div>
+
+    {% if not ring_numbers %}
+        <div class="alert alert-warning">Keine Ringe für dieses Event konfiguriert.</div>
+    {% else %}
+        <div id="dashboard-container" class="row g-3">
+            {% for num in ring_numbers %}
+                {% set col_class = 'col-12' if ring_numbers|length <= 1 else ('col-12 col-xl-6' if ring_numbers|length == 2 else 'col-12 col-lg-6 col-xxl-4') %}
+                <div class="{{ col_class }}" id="speaker-ring-col-{{ num }}">
+                    <div class="card shadow-sm h-100 speaker-ring-card">
+                        <div class="card-header bg-dark text-white">
+                            <h4 class="mb-0">Ring {{ num }}</h4>
+                        </div>
+                        <div class="card-body speaker-ring-body" id="speaker-ring-body-{{ num }}">
+                            {{ ring_content.get(num)|safe }}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const dashboardContainer = document.getElementById('dashboard-container');
     const eventId = '{{ event.id }}';
-    const socket = io();
     const ringNumbers = {{ ring_numbers | list | tojson }};
-    const initialViews = {{ ring_views | tojson }};
+    const socket = io();
 
-    function ringColClass(count) {
-        if (count <= 1) return 'col-12';
-        if (count === 2) return 'col-12 col-md-6';
-        return 'col-12 col-md-4';
-    }
-
-    function renderRingCard(viewModel) {
-        if (!viewModel || !viewModel.run_meta || !viewModel.run_meta.title) {
-            return `
-                <div class="card shadow-sm h-100">
-                    <div class="card-body text-center">
-                        <h5 class="mb-1">Ring ${viewModel?.ring_no ?? "?"}</h5>
-                        <div class="text-muted">Kein Lauf aktiv.</div>
-                    </div>
-                </div>`;
-        }
-        const meta = viewModel.run_meta || {};
-        const metaBits = [];
-        if (meta.klasse) metaBits.push(`Klasse: ${meta.klasse}`);
-        if (meta.kategorie) metaBits.push(`Kategorie: ${meta.kategorie}`);
-        if (meta.laufart) metaBits.push(`Laufart: ${meta.laufart}`);
-        const metaLine = metaBits.length ? metaBits.join(" | ") : "—";
-        const lastResults = (viewModel.last_results || []).map(res => `
-            <div class="d-flex justify-content-between align-items-center">
-                <span>${res.platz || "—"} – ${res.name || "—"}</span>
-                <span class="text-muted small">Fehler ${res.fehler_total ?? res.fehler_total_gerundet ?? "—"} · Zeit ${res.zeit_total ?? res.zeit ?? "—"} s</span>
-            </div>
-        `).join("");
-        return `
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="mb-1">Ring ${viewModel.ring_no} – ${meta.title || ""}</h5>
-                    <div class="text-muted small mb-2"><strong>Richter:</strong> ${meta.judge_name || "—"}</div>
-                    <div class="small text-muted mb-2">
-                        SCT ${meta.sct || "—"} s · MCT ${meta.mct || "—"} s · ${meta.parcours_laenge || "—"} m · ${meta.hindernisse || "—"} Geräte
-                    </div>
-                    <div class="small text-muted mb-3">${metaLine}</div>
-                    <div class="text-uppercase small text-muted">Aktueller Starter</div>
-                    <div class="h4 fw-semibold mb-1">${viewModel.current?.name || "—"}</div>
-                    <div class="small text-muted mb-3">
-                        Am Start: ${viewModel.current?.name || "—"}<br>
-                        Bereit: ${viewModel.ready?.name || "—"}
-                    </div>
-                    <div class="fw-semibold mb-2">Letzte 3 Ergebnisse</div>
-                    ${lastResults ? `<div class="d-flex flex-column gap-1">${lastResults}</div>` : `<div class="text-muted">Noch keine Ergebnisse.</div>`}
-                </div>
-            </div>`;
-    }
-
-    function renderRing(viewModel) {
-        if (!viewModel) return false;
-        const ringName = `Ring ${viewModel.ring_no}`;
-        const colId = `ring-col-${ringName.replace(' ', '-')}`;
-        let col = document.getElementById(colId);
-        if (!col) {
-            col = document.createElement('div');
-            col.className = `${ringColClass(ringNumbers.length)} mb-2`;
-            col.id = colId;
-            dashboardContainer.appendChild(col);
-        }
-        col.innerHTML = renderRingCard(viewModel);
-        return true;
-    }
-    
-    function initialLoad() {
-        dashboardContainer.innerHTML = '';
-
-        if (!ringNumbers.length) {
-            dashboardContainer.innerHTML = '<div class="col-12 alert alert-warning">Keine Ringe für dieses Event konfiguriert.</div>';
-            return;
-        }
-
-        ringNumbers.forEach(num => {
-            const viewModel = initialViews[num] || { ring_no: num, run_meta: {} };
-            renderRing(viewModel);
-        });
-    }
-
-    socket.on('connect', function() {
-        socket.emit('join_room', {room: `event:${eventId}`});
-        console.log('Socket.IO connected!');
-    });
-
-    function refreshRingCard(ringNo) {
-        const ringName = `Ring ${ringNo}`;
-        const colId = `ring-col-${ringName.replace(' ', '-')}`;
-        const col = document.getElementById(colId);
-        if (!col) return;
-        fetch(`/api/render_speaker_panel_content/${eventId}/${encodeURIComponent(ringName)}`, {cache: 'no-store'})
+    function refreshRingBody(ringNo) {
+        const body = document.getElementById(`speaker-ring-body-${ringNo}`);
+        if (!body) return;
+        fetch(`/api/render_speaker_panel_content/${eventId}/Ring%20${ringNo}`, {cache: 'no-store'})
             .then(r => r.text())
-            .then(html => { col.innerHTML = html; })
+            .then(html => { body.innerHTML = html; })
             .catch(() => {});
     }
 
     function refreshAllRings() {
-        ringNumbers.forEach(num => refreshRingCard(num));
+        ringNumbers.forEach(num => refreshRingBody(num));
     }
 
-    socket.on('announcer_update', function(data) {
+    socket.on('connect', function () {
+        socket.emit('join_room', {room: `event:${eventId}`});
+        // Nach (Re-)Connect alles synchronisieren (verpasste Events aufholen).
+        refreshAllRings();
+    });
+
+    socket.on('announcer_update', function (data) {
         if (data.event_id === eventId && data.ring_name) {
-            const ringNo = String(data.ring_name).replace("Ring ", "");
-            refreshRingCard(ringNo);
+            const ringNo = String(data.ring_name).replace(/[^0-9]/g, '');
+            refreshRingBody(ringNo);
         }
     });
-    socket.on('current_run_changed', function(data) { if (data.event_id === eventId) refreshAllRings(); });
-    socket.on('ring_result_saved',   function(data) { if (data.event_id === eventId) refreshAllRings(); });
-    socket.on('ring_ready_changed',  function(data) { if (data.event_id === eventId) refreshAllRings(); });
-    socket.on('ring_run_changed',    function(data) { if (data.event_id === eventId) refreshAllRings(); });
+    socket.on('current_run_changed', function (data) { if (data.event_id === eventId) refreshAllRings(); });
+    socket.on('ring_result_saved',   function (data) { if (data.event_id === eventId) refreshAllRings(); });
+    socket.on('ring_ready_changed',  function (data) { if (data.event_id === eventId) refreshAllRings(); });
+    socket.on('ring_run_changed',    function (data) { if (data.event_id === eventId) refreshAllRings(); });
 
-    initialLoad();
+    // Polling-Fallback, falls Socket-Events verloren gehen.
+    setInterval(refreshAllRings, 20000);
 });
 </script>
 {% endblock %}
