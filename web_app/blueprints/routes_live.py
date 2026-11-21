@@ -712,17 +712,20 @@ def find_run_ring_number(event, run):
 def _pick_auto_starter(unfinished):
     """Waehlt current/next aus den noch offenen (unfinished) Eintraegen.
 
-    Ein vom Einweiser als 'ready' (bereit/am Gate) markierter Eintrag hat Vorrang
-    vor der reinen Startlisten-Reihenfolge: die Auto-Reihenfolge springt auf den,
-    den der Einweiser bereitgestellt hat, statt stur auf die naechste offene
-    Startnummer (Wunsch #6). 'next' = naechster offener in Startlisten-Reihenfolge.
+    'current' = strikt naechster offener nach Startlisten-Reihenfolge, NIE vom
+    Einweiser ueberschrieben (Ring-PC bleibt alleiniger Besitzer des aktuellen
+    Starters). Ein vom Einweiser als 'ready' (bereit/am Gate) markierter Eintrag
+    hat nur Vorrang fuer die 'next'-Anzeige (Wunsch Chris 2026-11-21, loest die
+    aeltere Wunsch-#6-Fassung ab, die 'ready' noch auf current gesetzt hat).
     """
     if not unfinished:
         return {}, {}
-    ready = [e for e in unfinished if str(e.get('einweiser_mark') or '').lower() == 'ready']
-    current = ready[0] if ready else unfinished[0]
+    current = unfinished[0]
     rest = [e for e in unfinished if e is not current]
-    return current, (rest[0] if rest else {})
+    if not rest:
+        return current, {}
+    ready = [e for e in rest if str(e.get('einweiser_mark') or '').lower() == 'ready']
+    return current, (ready[0] if ready else rest[0])
 
 
 # ---------------------------------------------------------------------------

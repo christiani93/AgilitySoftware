@@ -8,19 +8,28 @@ Stand: 2026-11-21
 ## Session 2026-11-21 (3) — BCCS-SM Live-Event, Nachrücker-Bug + Portal-TV-Transfer
 
 **Dringend vor morgen (22.11., Nachwuchs-Event):**
-- [ ] **Portal→Software Titelverteidiger-Transfer bauen.** Aktuell 2 getrennte
-      Systeme ohne Verbindung: Portal-Register (`EventFinalist(source='title_defender')`,
-      MySQL) vs. lokale Software-Config (`event["bccs_sm_config"]["defending_champions"]`,
-      JSON). Heute für SM-Division (Kl.3) von Hand in die JSON geschrieben (Tease/16214
-      Large, Less/15866 Intermediate) — siehe Memory `project_bccs_sm_live_event_20261121`.
-      Für morgen Nachwuchs (Win/16790 Large, Beany/16480 Intermediate) bräuchte es
-      denselben manuellen Schritt, ODER besser: Transfer über den bestehenden
-      eventexport-Mechanismus (Portal→Software, wie Teilnehmer/Startlisten) automatisieren,
-      damit `bccs_sm_config` sich automatisch befüllt. Reine Nacharbeit, nicht in der
-      Nacht fertig bauen — für morgen notfalls wieder manuell eintragen.
+- [x] **Portal→Software Titelverteidiger-Transfer gebaut** (Commit `9ae4fb8`,
+      Portal-Gegenstück `ab77426`/deployed): `title_defenders.json` neu im
+      eventexport-ZIP (Portal `club.event_export_zip`, Query auf
+      `EventFinalist(source='title_defender')`); Software übernimmt es per
+      `_apply_eventexport_title_defenders` automatisch in `bccs_sm_config`.
+      Getestet (6/6 `test_import_event_package.py`). **NOCH OFFEN:** Software-
+      EXE-Rebuild+Swap steht noch aus (kein Swap während heute noch Kl.3 läuft) —
+      für morgen früh VOR dem Nachwuchs-Import einplanen, sonst greift die
+      Automatik nicht und TV müssen wieder von Hand eingetragen werden wie heute
+      (Tease/16214 Large, Less/15866 Intermediate — siehe Memory
+      `project_bccs_sm_live_event_20261121`).
 - [ ] Zusammenhang mit offenem Punkt unten prüfen: Nachwuchs-`bccs_sm`-Flag ist bei
       ALLEN Kl.1/Kl.2-Startern `False` (siehe Session darunter) — wenn das bis morgen
       nicht geklärt ist, zählt KEIN Nachwuchs-Hund als SM-Teilnehmer, TV oder nicht.
+- [x] **Einweiser „Bereit" treibt nur noch „Nächster", nicht mehr „current"**
+      (Commit folgt, Datei `routes_live.py::_pick_auto_starter`). Löst die ältere
+      Wunsch-#6-Fassung vom 01.11. ab (die liess „Bereit" direkt current_starter
+      überschreiben) — Chris' Klarstellung 21.11.: Bereit-Flag war für die
+      „Nächster"-Bezeichnung gedacht, current folgt weiter strikt der
+      Startlisten-Reihenfolge. Getestet (`test_pick_auto_starter.py`, 5/5).
+      **NOCH OFFEN:** braucht ebenfalls den EXE-Rebuild+Swap von oben, damit es
+      morgen für Nachwuchs wirkt — bis dahin läuft die alte (Current-)Fassung live.
 
 **Code-Bug gefunden (kein Live-Fix, Rebuild nötig — nach dem Event):**
 - [ ] **Nachrücker werden verfrüht markiert.** `bccs_sm_qualification.py::_compute_class`
