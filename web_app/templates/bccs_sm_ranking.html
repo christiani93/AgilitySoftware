@@ -2,7 +2,7 @@
 {% block title %}BCCS-SM Kombirangliste – {{ event.Bezeichnung }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 screen-header">
   <div>
     <h1 class="mb-0">🏆 BCCS-SM Kombirangliste</h1>
     <p class="text-muted fs-5">{{ event.Bezeichnung }}</p>
@@ -24,6 +24,11 @@
 {% endif %}
 
 {% for cat, entries in combined_ranking.items() %}
+<section class="ranking-section">
+<div class="cat-print-header">
+  <h1 class="mb-0">🏆 BCCS-SM Kombirangliste</h1>
+  <p class="text-muted fs-5">{{ event.Bezeichnung }}</p>
+</div>
 <div class="card mb-4 shadow-sm">
   <div class="card-header">
     <h5 class="mb-0">
@@ -32,42 +37,63 @@
     </h5>
   </div>
   <div class="card-body">
-    <table class="table table-sm align-middle">
+    <div class="table-responsive">
+    <table class="table table-sm align-middle" style="white-space: nowrap;">
       <thead class="table-light">
         <tr>
-          <th style="width: 50px; text-align: center;">Platz</th>
-          <th>Lizenz</th>
-          <th>Hund</th>
-          <th>Hundeführer/in</th>
-          <th style="text-align: right;">∑ Fehler</th>
-          <th style="text-align: right;">∑ Parcours</th>
+          <th rowspan="2" style="width: 50px; text-align: center; vertical-align: bottom;">Platz</th>
+          <th rowspan="2" style="vertical-align: bottom;">Lizenz</th>
+          <th rowspan="2" style="vertical-align: bottom;">Hund</th>
+          <th rowspan="2" style="vertical-align: bottom;">Hundeführer/in</th>
+          <th colspan="3" style="text-align: center; border-left: 2px solid #bbb;">Jumping (1. Lauf)</th>
+          <th colspan="3" style="text-align: center; border-left: 2px solid #bbb;">Agility (2. Lauf)</th>
+          <th colspan="2" style="text-align: center; border-left: 2px solid #bbb;">Kombination</th>
+        </tr>
+        <tr>
+          <th style="text-align: right; border-left: 2px solid #bbb;">Parcoursf.</th>
+          <th style="text-align: right;">Zeitf.</th>
+          <th style="text-align: right;">Zeit (s)</th>
+          <th style="text-align: right; border-left: 2px solid #bbb;">Parcoursf.</th>
+          <th style="text-align: right;">Zeitf.</th>
+          <th style="text-align: right;">Zeit (s)</th>
+          <th style="text-align: right; border-left: 2px solid #bbb;">∑ Fehler</th>
           <th style="text-align: right;">∑ Zeit (s)</th>
         </tr>
       </thead>
       <tbody>
         {% for entry in entries %}
-        <tr {% if entry.get('final_rang') == 1 %}class="table-success fw-bold"{% endif %}>
+        {% set rj = entry.runs.get('Jumping') if entry.runs else none %}
+        {% set ra = entry.runs.get('Agility') if entry.runs else none %}
+        <tr {% if entry.get('final_rang') == 1 and not entry.get('dis') %}class="table-success fw-bold"{% endif %}>
           <td style="text-align: center; font-weight: bold;">
-            {% if entry.get('sum_fehler') is none or entry.get('sum_fehler') == 999 %}DIS{% else %}{{ entry.get('final_rang') }}{% endif %}
+            {% if entry.get('sum_fehler') is none %}DIS{% else %}{{ entry.get('final_rang') }}{% endif %}
           </td>
           <td>{{ entry.get('license') }}</td>
           <td>{{ entry.get('dog_name') }}</td>
           <td>{{ entry.get('handler_name') }}</td>
-          <td style="text-align: right;">
-            {% if entry.get('sum_fehler') is none or entry.get('sum_fehler') == 999 %}DIS{% else %}{{ entry.get('sum_fehler') }}{% endif %}
+          {# Jumping #}
+          <td style="text-align: right; border-left: 2px solid #bbb;">{% if rj and not rj.dis %}{{ rj.fehler_parcours }}{% else %}—{% endif %}</td>
+          <td style="text-align: right;">{% if rj and not rj.dis %}{{ "%.2f"|format(rj.fehler_total - rj.fehler_parcours) }}{% else %}—{% endif %}</td>
+          <td style="text-align: right;">{% if rj and not rj.dis %}{{ "%.2f"|format(rj.zeit) }}{% else %}—{% endif %}</td>
+          {# Agility #}
+          <td style="text-align: right; border-left: 2px solid #bbb;">{% if ra and not ra.dis %}{{ ra.fehler_parcours }}{% else %}—{% endif %}</td>
+          <td style="text-align: right;">{% if ra and not ra.dis %}{{ "%.2f"|format(ra.fehler_total - ra.fehler_parcours) }}{% else %}—{% endif %}</td>
+          <td style="text-align: right;">{% if ra and not ra.dis %}{{ "%.2f"|format(ra.zeit) }}{% else %}—{% endif %}</td>
+          {# Kombination #}
+          <td style="text-align: right; font-weight: bold; border-left: 2px solid #bbb;">
+            {% if entry.get('sum_fehler') is none %}DIS{% else %}{{ "%.2f"|format(entry.get('sum_fehler')) }}{% endif %}
           </td>
-          <td style="text-align: right;">
-            {% if entry.get('sum_parcours') is none or entry.get('sum_parcours') == 999 %}—{% else %}{{ entry.get('sum_parcours') }}{% endif %}
-          </td>
-          <td style="text-align: right;">
-            {% if entry.get('sum_zeit') is none or entry.get('sum_zeit') == 999.99 %}—{% else %}{{ "%.2f"|format(entry.get('sum_zeit')) }}{% endif %}
+          <td style="text-align: right; font-weight: bold;">
+            {% if entry.get('sum_zeit') is none %}—{% else %}{{ "%.2f"|format(entry.get('sum_zeit')) }}{% endif %}
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+    </div>
   </div>
 </div>
+</section>
 {% endfor %}
 
 <div class="alert alert-secondary small">
@@ -75,8 +101,29 @@
   Kombirangliste: nur BCCS-Finalisten, Summation aus Jumping + Agility. Rangierung nach Gesamtfehlerpunkten, dann Parcoursfehler, dann Zeit.
 </div>
 
+<style media="screen">
+  /* Pro-Kategorie-Kopf nur im Druck zeigen */
+  .cat-print-header { display: none; }
+</style>
 <style media="print">
+  /* Querformat: die Tabelle hat viele Spalten (Einzelläufe + Kombination). */
+  @page { size: landscape; margin: 9mm; }
   .btn, .alert { display: none; }
-  .card { page-break-inside: avoid; }
+  /* Oberen Bildschirm-Kopf im Druck ausblenden – jede Kategorie bekommt ihren eigenen.
+     !important nötig, weil Bootstrap .d-flex display:flex !important setzt. */
+  .screen-header { display: none !important; }
+  /* Kopf bleibt mit der folgenden Tabelle zusammen (nicht verwaist) */
+  .cat-print-header { display: block; margin-bottom: 1rem; page-break-after: avoid; }
+  /* Jede Kategorie beginnt auf einer eigenen Seite, analog zur ersten */
+  .ranking-section { page-break-before: always; }
+  .ranking-section:first-of-type { page-break-before: avoid; }
+  /* KEIN page-break-inside:avoid auf der Card — lange Ranglisten dürfen über
+     Seiten umbrechen (thead/Spaltenköpfe wiederholen sich dabei automatisch). */
+  /* Scroll-Wrapper im Druck NICHT abschneiden, Karte randlos, kompakte Tabelle. */
+  .table-responsive { overflow: visible !important; }
+  .card { border: none !important; box-shadow: none !important; }
+  .card-body { padding: 0 !important; }
+  .table { font-size: 9.5px !important; width: 100% !important; }
+  .table td, .table th { padding: 2px 4px !important; }
 </style>
 {% endblock %}

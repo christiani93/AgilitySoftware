@@ -333,6 +333,11 @@ def push_live_update(settings: dict, event: dict, run: dict,
     Aufrufer den Ring aus der Zeitplan-Zuordnung kennt — der Lauf selbst traegt
     bei genutztem Zeitplan-Modul kein ``assigned_ring`` (sonst Default "Ring 1").
     """
+    # Finalläufe werden nicht ans Portal gemeldet (würden die Quali-Anzeige
+    # überschreiben, siehe build_result_export_zip).
+    if run.get("is_final"):
+        return
+
     portal_url = (settings.get("portal_url") or "").rstrip("/")
     api_key    = settings.get("portal_live_api_key") or ""
     device_id  = settings.get("portal_device_id") or "agility-software"
@@ -350,6 +355,10 @@ def push_live_update(settings: dict, event: dict, run: dict,
 
 def push_run_changed(settings: dict, event: dict, run: dict) -> None:
     """Schickt einen Lauf-Wechsel-Update asynchron ans Portal (kein Ergebnis, nur Startliste)."""
+    # Finalläufe nicht melden (würden die Quali-Anzeige auf dem Portal überschreiben).
+    if run.get("is_final"):
+        return
+
     portal_url = (settings.get("portal_url") or "").rstrip("/")
     api_key    = settings.get("portal_live_api_key") or ""
     device_id  = settings.get("portal_device_id") or "agility-software"
@@ -616,6 +625,12 @@ def build_result_export_zip(event: dict, final: bool = False) -> bytes:
 
     classes = []
     for run in event.get("runs") or []:
+        # SM-/Rassen-SM-Finalläufe NICHT ans Portal exportieren: sie teilen
+        # (discipline, category, class) mit dem gleichnamigen Quali-Lauf und
+        # würden dessen Live-/Ergebnis-Anzeige auf dem Portal überschreiben
+        # (Portal gruppiert ohne is_final). Finals laufen offline in der Software.
+        if run.get("is_final"):
+            continue
         run_id_for_log = run.get("id") or ""
         try:
             results_all = recalc_and_store(run, settings)
