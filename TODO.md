@@ -30,6 +30,17 @@ Stand: 2026-11-21
       Startlisten-Reihenfolge. Getestet (`test_pick_auto_starter.py`, 5/5).
       **NOCH OFFEN:** braucht ebenfalls den EXE-Rebuild+Swap von oben, damit es
       morgen für Nachwuchs wirkt — bis dahin läuft die alte (Current-)Fassung live.
+- [x] **Einweiser „kommt später"-Button** (Commit `683c518`): neue Markierung
+      `later` — Ring-PC blendet den Teilnehmer komplett aus (Auto-Auswahl +
+      Anzeige), ohne ihn umzureihen; Einweiser-Tablet sieht ihn weiter (Badge
+      ⏳). Entfernen der Markierung bringt ihn ohne Zutun an seine alte Stelle
+      zurück. Dabei **Regression gefunden+gefixt:** Läufig-"ans Ende"-Regel
+      ging komplett verloren, sobald irgendein Eintrag `start_order` trug
+      (Einweiser-Umreihung) — betraf `sort_entries_for_startlist` (Python) UND
+      `byStartnummer` (JS-Pendant in `ring_pc_dashboard.html`), beide jetzt
+      läufig-first gefixt. 418/418 Tests grün (inkl. 1 korrigierter Alt-Test,
+      der den Bug bisher als Soll-Verhalten festschrieb). **NOCH OFFEN:**
+      ebenfalls erst mit dem Rebuild+Swap live.
 
 **Code-Bug gefunden (kein Live-Fix, Rebuild nötig — nach dem Event):**
 - [ ] **Nachrücker werden verfrüht markiert.** `bccs_sm_qualification.py::_compute_class`
