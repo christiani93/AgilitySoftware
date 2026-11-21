@@ -276,12 +276,22 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(fitMonitor, 250);
     }
 
+    // Letztes gerendertes Content-HTML – gegen unnötige Neuaufbauten (Flackern).
+    let lastMonitorHtml = null;
     function refreshMonitor() {
         fetch(`/api/render_ring_monitor_content/${ringNumber}`, {cache: 'no-store'})
             .then(r => r.text())
             .then(html => {
+                // Hat sich nichts geändert (z.B. 20-Sek-Polling ohne neues Resultat),
+                // NICHT neu einsetzen: sonst läuft fitMonitor jedes Mal neu und die
+                // Grössen-Skalierung flackert sichtbar. Nur bei echter Änderung swap+fit.
+                if (html === lastMonitorHtml) return;
+                lastMonitorHtml = html;
                 const c = document.getElementById('monitor-container');
                 if (c) c.innerHTML = html;
+                // Sofort synchron fitten (gleiche Frame wie der Swap → kein kurzer
+                // Moment mit alter/falscher Skalierung), danach Nachjustierung.
+                fitMonitor();
                 scheduleFit();
             })
             .catch(() => window.location.reload());

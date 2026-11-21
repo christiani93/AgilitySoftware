@@ -49,12 +49,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const ringNumbers = {{ ring_numbers | list | tojson }};
     const socket = io();
 
+    // Letztes Content-HTML je Ring – gegen unnötige Neuaufbauten (Flackern beim
+    // 20-Sek-Polling, wenn sich nichts geändert hat).
+    const lastRingHtml = {};
     function refreshRingBody(ringNo) {
         const body = document.getElementById(`speaker-ring-body-${ringNo}`);
         if (!body) return;
         fetch(`/api/render_speaker_panel_content/${eventId}/Ring%20${ringNo}`, {cache: 'no-store'})
             .then(r => r.text())
-            .then(html => { body.innerHTML = html; })
+            .then(html => {
+                if (lastRingHtml[ringNo] === html) return;  // nichts geändert → kein Swap
+                lastRingHtml[ringNo] = html;
+                body.innerHTML = html;
+            })
             .catch(() => {});
     }
 

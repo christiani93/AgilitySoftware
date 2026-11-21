@@ -8,7 +8,7 @@ import io
 from utils import (_load_data, _save_data, _calculate_run_results, _load_settings,
                    _calculate_timelines, get_category_sort_key, get_run_award_sort_key,
                    resolve_judge_id, resolve_judge_name, recalc_and_store,
-                   get_event_logo_data_uris, _starts_at_end)
+                   get_event_logo_data_uris, _starts_at_end, sort_entries_for_startlist)
 from bccs_sm_qualification import quali_ranking_for_run, sm_participants
 from planner.print_order import get_ordered_runs_for_print
 from planner.print_schedule_order import (
@@ -482,6 +482,44 @@ def print_stewardlists_by_schedule_view(event_id):
         event_logo_data=logos['event'],
         club_logo_data=logos['club'],
     )
+
+@print_bp.route('/print/final_stewardlists/<event_id>')
+def print_final_stewardlists(event_id):
+    """Ringschreiberlisten NUR für die Finalläufe (is_final).
+
+    Eigener Druck, weil die Finalläufe nicht im regulären Zeitplan-Run-Liste
+    stehen (dort nur `type=='run'`-Blöcke) und erst NACH dem Ableiten/Übernehmen
+    der Finalisten sinnvoll sind. Reihenfolge der Einträge via
+    sort_entries_for_startlist (respektiert die Final-Startreihenfolge
+    `start_order`, z.B. 2. Finallauf aus dem 1. abgeleitet)."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event:
+        abort(404)
+    final_runs = [
+        dict(r, entries=sort_entries_for_startlist(r.get('entries') or []))
+        for r in event.get('runs', []) or [] if r.get('is_final')
+    ]
+    # Reihenfolge: Disziplin, dann Kategorie (L→I→M→S), dann Klasse.
+    final_runs.sort(key=lambda r: (
+        (r.get('laufart') or ''),
+        get_category_sort_key(r.get('kategorie', '')),
+        str(r.get('klasse') or ''),
+    ))
+    ordered_runs = _enrich_entries_rasse_verein(final_runs)
+    judges = _load_data('judges.json')
+    for run in ordered_runs:
+        run["judge_display"] = resolve_judge_name(event, run, judges)
+    logos = get_event_logo_data_uris(event)
+    return render_template(
+        'print/scribe_list.html',
+        event=event,
+        title=_("Ringschreiberlisten Finale"),
+        ordered_runs=ordered_runs,
+        judges=judges,
+        event_logo_data=logos['event'],
+        club_logo_data=logos['club'],
+    )
+
 
 @print_bp.route('/print/master_steward_list/<event_id>')
 def print_master_steward_list(event_id):

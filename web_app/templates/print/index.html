@@ -52,6 +52,7 @@
             <li><a href="{{ url_for('print_bp.print_master_steward_list_by_schedule', event_id=event.id) }}" target="_blank"><span>{{ _('Einweiserliste (nach Zeitplan)') }}</span></a></li>
             <li><a href="{{ url_for('print_bp.print_stewardlists', event_id=event.id) }}" target="_blank"><span>{{ _('Ringschreiberlisten') }}</span></a></li>
             <li><a href="{{ url_for('print_bp.print_stewardlists_by_schedule_view', event_id=event.id) }}" target="_blank"><span>{{ _('Ringschreiberlisten (nach Zeitplan)') }}</span></a></li>
+            <li><a href="{{ url_for('print_bp.print_final_stewardlists', event_id=event.id) }}" target="_blank"><span>{{ _('Ringschreiberlisten Finale') }}</span></a></li>
             <li><a href="{{ url_for('print_bp.print_schedule', event_id=event.id) }}" target="_blank"><span>{{ _('Zeitplan') }}</span></a></li>
             <li><a href="{{ url_for('print_bp.print_briefing_groups', event_id=event.id) }}" target="_blank"><span>{{ _('Briefing-Gruppen') }}</span></a></li>
         </ul>
