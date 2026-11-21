@@ -459,7 +459,7 @@ def announcer_dashboard(event_id):
     ring_numbers = collect_ring_numbers(event)
     # Pro Ring gleich den Ring-Monitor-Inhalt vorrendern, damit das Sprecherdashboard
     # designtechnisch identisch zum Ringmonitor aussieht (gleicher Builder).
-    ring_content = {ring_no: build_ring_monitor_content_html(event, ring_no) for ring_no in ring_numbers}
+    ring_content = {ring_no: build_ring_monitor_content_html(event, ring_no, max_ranking=4) for ring_no in ring_numbers}
     return render_template('announcer_dashboard.html', event=event, ring_numbers=ring_numbers, ring_content=ring_content, kiosk_mode=True)
 @live_bp.route('/live/set_active_announcer_run/<event_id>/<run_id>')
 def set_active_announcer_run(event_id, run_id):
@@ -873,7 +873,7 @@ def render_speaker_panel_content(event_id, ring_name):
     if not event:
         ring_label = _ring_label_for_display(ring_number=ring_number)
         return Response(f"<div class='ring-monitor'><h2>{ring_label}</h2><p>Event nicht gefunden.</p></div>", mimetype='text/html')
-    return Response(build_ring_monitor_content_html(event, ring_number), mimetype='text/html')
+    return Response(build_ring_monitor_content_html(event, ring_number, max_ranking=4), mimetype='text/html')
 def _ring_label_for_display(ring=None, ring_number=None):
     """Gibt ein robustes Label 'Ring X' zurück und akzeptiert sowohl 'ring' als auch 'ring_number'.
     Normalisiert auch Werte wie 'ring_1', 'Ring 1', '1'."""
@@ -1219,15 +1219,16 @@ def _render_bccs_monitor_extras(event, view):
             + _render_bccs_combined_table(rows, cat_label, div_label))
 
 
-def build_ring_monitor_content_html(event, ring_number: int):
+def build_ring_monitor_content_html(event, ring_number: int, max_ranking: int = 10):
     """Baut das Ring-Monitor-Inhalts-HTML (ohne Response-Wrapper), damit es sowohl
     der Ring-Monitor (`/api/render_ring_monitor_content`) als AUCH das
     Sprecherdashboard (`/api/render_speaker_panel_content`) identisch nutzen –
-    so sehen Sprecherdisplay und Ringmonitor designtechnisch gleich aus."""
+    so sehen Sprecherdisplay und Ringmonitor designtechnisch gleich aus.
+    `max_ranking` begrenzt die „Aktuelle Rangliste" (Sprecherdashboard: Top 4)."""
     ring_label = _ring_label_for_display(ring_number=ring_number)
     if not event:
         return f"<div class='ring-monitor'><p>{_('Kein aktives Event.')}</p></div>"
-    view = build_ring_view_model(event, ring_number)
+    view = build_ring_view_model(event, ring_number, max_ranking=max_ranking)
     current_run = view.get("current_run")
     if not current_run:
         html = (

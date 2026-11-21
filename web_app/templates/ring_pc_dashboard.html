@@ -521,7 +521,36 @@
       const manualOrder = state.allEntries.some(hasStartOrder);
       const assignedLicense = state.currentEntryToEdit ? state.currentEntryToEdit.Lizenznummer : null;
       let prevNr = null;
-      ui.starterList.innerHTML = entries.map(entry => {
+
+      // Fehlende Startnummern bestimmen (unabhängig von der Anzeige-Reihenfolge).
+      // Bei manueller Einweiser-Reihenfolge ist die Liste nicht mehr nach Nummer
+      // sortiert -> der zeilenweise Lücken-Marker unten wird unterdrückt. Damit die
+      // Nummernlücken-Info (z.B. Rückzug nach Startlisten-Druck) trotzdem sichtbar
+      // bleibt, zeigen wir sie dann als Banner oben.
+      // WICHTIG: Startnummern sind event-weit/global, ein Lauf enthält also nur eine
+      // dünn besetzte Teilmenge (z.B. 2102 + 2201..2207). Nur KLEINE Sprünge sind
+      // echte Lücken (Rückzug); grosse Sprünge sind Nummernblock-Grenzen (andere
+      // Kategorie/Klasse) und werden ignoriert. (Läufige behalten ihre Nummer.)
+      const GAP_MAX = 10;
+      const _nrs = state.allEntries
+        .map(e => parseInt(e.Startnummer, 10)).filter(n => !isNaN(n))
+        .sort((a, b) => a - b);
+      const missingNrs = [];
+      for (let i = 1; i < _nrs.length; i++) {
+        const d = _nrs[i] - _nrs[i - 1];
+        if (d >= 2 && d <= GAP_MAX) {
+          for (let n = _nrs[i - 1] + 1; n < _nrs[i]; n++) missingNrs.push(n);
+        }
+      }
+      const gapBanner = (manualOrder && missingNrs.length)
+        ? `<div class="flex items-center gap-2 my-2 text-amber-700" title="Fehlende Startnummern (Nummernlücke) trotz manueller Reihenfolge">
+             <span class="flex-1 border-t-2 border-dashed border-amber-400"></span>
+             <span class="text-xs font-semibold whitespace-nowrap">⚠ Nummernlücke: ${missingNrs.join(', ')} fehlt${missingNrs.length > 1 ? 'en' : ''}</span>
+             <span class="flex-1 border-t-2 border-dashed border-amber-400"></span>
+           </div>`
+        : '';
+
+      ui.starterList.innerHTML = gapBanner + entries.map(entry => {
         const hasResult = entry.result && (entry.result.zeit || entry.result.disqualifikation);
         const isAssigned = !hasResult && entry.Lizenznummer === assignedLicense;
         const statusText = hasResult

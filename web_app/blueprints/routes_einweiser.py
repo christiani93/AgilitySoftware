@@ -323,6 +323,15 @@ def api_set_mark(event_id, run_id):
         if mark == 'none':
             entry.pop('einweiser_mark', None)
         else:
+            if mark == 'ready':
+                # Es darf immer nur EIN Teilnehmer "bereit / am Gate" sein: ein
+                # zuvor als "bereit" markierter Hund im selben Lauf wird gelöscht
+                # (present/absent bleiben unberührt, da einweiser_mark nur EINEN
+                # Wert je Eintrag trägt). Der Client lädt bei einweiser_mark_changed
+                # die ganze Liste neu → der alte "bereit"-Badge verschwindet sofort.
+                for other in run.get('entries', []) or []:
+                    if other is not entry and other.get('einweiser_mark') == 'ready':
+                        other.pop('einweiser_mark', None)
             entry['einweiser_mark'] = mark
         _save_data('events.json', events)
 
