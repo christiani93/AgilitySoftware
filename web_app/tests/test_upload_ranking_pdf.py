@@ -2,10 +2,7 @@ import json
 import os
 
 
-def _write_test_event(event_id="E_PDF", run_id="R_PDF", external_id=None):
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(base_dir)
-    data_dir = os.path.join(project_root, "data")
+def _write_test_event(data_dir, event_id="E_PDF", run_id="R_PDF", external_id=None):
     os.makedirs(data_dir, exist_ok=True)
 
     events_path = os.path.join(data_dir, "events.json")
@@ -42,7 +39,8 @@ def _write_test_event(event_id="E_PDF", run_id="R_PDF", external_id=None):
 
 
 def test_upload_ranking_pdf_download_only(client, monkeypatch, tmp_path):
-    event_id, run_id = _write_test_event(external_id=None)
+    monkeypatch.setenv("AGILITY_DATA_DIR", str(tmp_path))
+    event_id, run_id = _write_test_event(str(tmp_path), external_id=None)
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.setenv("HOME", str(tmp_path))
     (tmp_path / "Downloads").mkdir()
@@ -59,8 +57,9 @@ def test_upload_ranking_pdf_download_only(client, monkeypatch, tmp_path):
     assert str(tmp_path) in data["download_path"]
 
 
-def test_upload_ranking_pdf_portal_only(client, monkeypatch):
-    event_id, run_id = _write_test_event(external_id="EXT123")
+def test_upload_ranking_pdf_portal_only(client, monkeypatch, tmp_path):
+    monkeypatch.setenv("AGILITY_DATA_DIR", str(tmp_path))
+    event_id, run_id = _write_test_event(str(tmp_path), external_id="EXT123")
 
     class _FakeResp:
         ok = True
@@ -80,7 +79,8 @@ def test_upload_ranking_pdf_portal_only(client, monkeypatch):
 
 
 def test_upload_ranking_pdf_both_destinations(client, monkeypatch, tmp_path):
-    event_id, run_id = _write_test_event(external_id="EXT123")
+    monkeypatch.setenv("AGILITY_DATA_DIR", str(tmp_path))
+    event_id, run_id = _write_test_event(str(tmp_path), external_id="EXT123")
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.setenv("HOME", str(tmp_path))
     (tmp_path / "Downloads").mkdir()
@@ -103,8 +103,9 @@ def test_upload_ranking_pdf_both_destinations(client, monkeypatch, tmp_path):
     assert data["download"] == "ok"
 
 
-def test_upload_ranking_pdf_neither_destination_selected(client):
-    event_id, run_id = _write_test_event(external_id="EXT123")
+def test_upload_ranking_pdf_neither_destination_selected(client, monkeypatch, tmp_path):
+    monkeypatch.setenv("AGILITY_DATA_DIR", str(tmp_path))
+    event_id, run_id = _write_test_event(str(tmp_path), external_id="EXT123")
 
     resp = client.post(f"/live/upload_ranking_pdf/{event_id}/{run_id}", data={
         "is_final": "false",
@@ -114,8 +115,9 @@ def test_upload_ranking_pdf_neither_destination_selected(client):
     assert resp.status_code == 400
 
 
-def test_upload_ranking_pdf_portal_without_external_id_errors(client):
-    event_id, run_id = _write_test_event(external_id=None)
+def test_upload_ranking_pdf_portal_without_external_id_errors(client, monkeypatch, tmp_path):
+    monkeypatch.setenv("AGILITY_DATA_DIR", str(tmp_path))
+    event_id, run_id = _write_test_event(str(tmp_path), external_id=None)
 
     resp = client.post(f"/live/upload_ranking_pdf/{event_id}/{run_id}", data={
         "is_final": "false",

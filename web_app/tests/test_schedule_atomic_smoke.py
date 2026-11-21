@@ -16,10 +16,21 @@ import utils
 import planner.schedule_planner as sp
 
 
+@pytest.fixture(autouse=True)
+def _isolated_data_dir(monkeypatch, tmp_path):
+    """Isoliert JEDEN Test dieser Datei in ein eigenes Datenverzeichnis — sonst
+    teilen sich alle Tests (SMOKE/EDIT/LIVE) die echte web_app/data/events.json,
+    was sowohl zu Test-Interferenz als auch (bei Dev-Nutzung parallel zu
+    Testläufen) zu echtem Datenverlust führt."""
+    monkeypatch.setenv("AGILITY_DATA_DIR", str(tmp_path))
+
+
 def _data_dir():
-    base = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(base)      # web_app/
-    d = os.path.join(project_root, "data")
+    d = os.environ.get("AGILITY_DATA_DIR")
+    if not d:
+        base = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(base)      # web_app/
+        d = os.path.join(project_root, "data")
     os.makedirs(d, exist_ok=True)
     return d
 

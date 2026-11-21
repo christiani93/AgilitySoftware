@@ -2,17 +2,15 @@ import json
 import os
 
 
-def test_run_entry_sct_mct_display(client):
+def test_run_entry_sct_mct_display(client, monkeypatch, tmp_path):
     """
     Integrationstest:
-    - schreibt ein Testevent in data/events.json
+    - schreibt ein Testevent in ein isoliertes Testverzeichnis (AGILITY_DATA_DIR)
     - ruft /live/run_entry/E1/R1 auf
     - prüft, ob die gerundeten SCT/MCT im HTML auftauchen
     """
-
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(base_dir)
-    data_dir = os.path.join(project_root, "data")
+    monkeypatch.setenv("AGILITY_DATA_DIR", str(tmp_path))
+    data_dir = str(tmp_path)
     os.makedirs(data_dir, exist_ok=True)
 
     events_path = os.path.join(data_dir, "events.json")
