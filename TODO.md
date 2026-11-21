@@ -13,12 +13,10 @@ Stand: 2026-11-21
       eventexport-ZIP (Portal `club.event_export_zip`, Query auf
       `EventFinalist(source='title_defender')`); Software übernimmt es per
       `_apply_eventexport_title_defenders` automatisch in `bccs_sm_config`.
-      Getestet (6/6 `test_import_event_package.py`). **NOCH OFFEN:** Software-
-      EXE-Rebuild+Swap steht noch aus (kein Swap während heute noch Kl.3 läuft) —
-      für morgen früh VOR dem Nachwuchs-Import einplanen, sonst greift die
-      Automatik nicht und TV müssen wieder von Hand eingetragen werden wie heute
-      (Tease/16214 Large, Less/15866 Intermediate — siehe Memory
-      `project_bccs_sm_live_event_20261121`).
+      Getestet (6/6 `test_import_event_package.py`). **LIVE seit 21.11. 14:16**
+      (EXE-Rebuild+Swap in der Event-Pause, SHA `24c38ecb…`, Rollback
+      `AgilitySoftware_prev.exe` = `37cf2f73…`). Für morgen Nachwuchs greift
+      die Automatik jetzt direkt beim Import.
 - [ ] Zusammenhang mit offenem Punkt unten prüfen: Nachwuchs-`bccs_sm`-Flag ist bei
       ALLEN Kl.1/Kl.2-Startern `False` (siehe Session darunter) — wenn das bis morgen
       nicht geklärt ist, zählt KEIN Nachwuchs-Hund als SM-Teilnehmer, TV oder nicht.
@@ -28,8 +26,7 @@ Stand: 2026-11-21
       überschreiben) — Chris' Klarstellung 21.11.: Bereit-Flag war für die
       „Nächster"-Bezeichnung gedacht, current folgt weiter strikt der
       Startlisten-Reihenfolge. Getestet (`test_pick_auto_starter.py`, 5/5).
-      **NOCH OFFEN:** braucht ebenfalls den EXE-Rebuild+Swap von oben, damit es
-      morgen für Nachwuchs wirkt — bis dahin läuft die alte (Current-)Fassung live.
+      **LIVE seit 21.11. 14:16** (siehe Rebuild-Swap oben).
 - [x] **Einweiser „kommt später"-Button** (Commit `683c518`): neue Markierung
       `later` — Ring-PC blendet den Teilnehmer komplett aus (Auto-Auswahl +
       Anzeige), ohne ihn umzureihen; Einweiser-Tablet sieht ihn weiter (Badge
@@ -39,8 +36,8 @@ Stand: 2026-11-21
       (Einweiser-Umreihung) — betraf `sort_entries_for_startlist` (Python) UND
       `byStartnummer` (JS-Pendant in `ring_pc_dashboard.html`), beide jetzt
       läufig-first gefixt. 418/418 Tests grün (inkl. 1 korrigierter Alt-Test,
-      der den Bug bisher als Soll-Verhalten festschrieb). **NOCH OFFEN:**
-      ebenfalls erst mit dem Rebuild+Swap live.
+      der den Bug bisher als Soll-Verhalten festschrieb). **LIVE seit 21.11.
+      14:16** (siehe Rebuild-Swap oben).
 
 **Code-Bug gefunden (kein Live-Fix, Rebuild nötig — nach dem Event):**
 - [ ] **Nachrücker werden verfrüht markiert.** `bccs_sm_qualification.py::_compute_class`
@@ -65,14 +62,16 @@ Stand: 2026-11-21
 `reference_print_pagebreak_and_dashboard_builder`.
 
 **OFFEN:**
-- [ ] **EXE `--clean`-Rebuild fertigstellen + Smoke-Test** (nach `AppData\Local\AgilityBuild\dist_test`,
-      Port 5097, Daten-Kopie). 1. Build hatte Cache-Bug (stale `routes_live.py` →
-      `/ring_monitor` 500); `--clean`-Rebuild lief beim Session-Rollover noch/abgebrochen.
-      Testen: `/ring_monitor/1`→200 (Server-Inhalt, Quali-Rangliste direkt da),
-      PDF-Route `%PDF-`, `/print/final_stewardlists/<eid>`, Startlisten. SHA von
-      `dist\AgilitySoftware.exe` muss unverändert bleiben (`37cf2f7…`). Siehe
-      `reference_exe_build_mechanics`.
-- [ ] **KEIN Swap** der Live-EXE ohne explizite Freigabe. Danach entscheidet Chris.
+- [x] **EXE `--clean`-Rebuild + Smoke-Test + SWAP erledigt (21.11. 14:16, in
+      Event-Pause, Chris' Freigabe).** Dieser Build enthält alle Commits bis
+      inkl. `6fac954` (die 6 Startlisten/Einweiser/Monitor-Fixes von oben UND
+      die späteren TV-Transfer/Bereit→Nächster/kommt-später/Läufig-Fixes).
+      Smoke-Test auf Port 5097 gegen Daten-Kopie grün (`/ring_pc_dashboard/1`,
+      `/ring_pc_dashboard/1?run_id=<final>`, `/einweiser/1`,
+      `/bccs-sm/dashboard`, `/ring_monitor/1`, PDF-Route `%PDF-1.4`), danach
+      live auf Port 5000 erneut verifiziert. Neue SHA `24c38ecb…`, Rollback
+      `dist\AgilitySoftware_prev.exe` = alte SHA `37cf2f73…`. Portal-Live-Sync
+      lief direkt nach dem Neustart weiter (kein Datenverlust).
 - [ ] **Portal `5e87c62` pushen + deployen** (nach dem Event-Wochenende): Finals mit
       Umbau+Briefing. `git push` + `git fetch/reset` + supervisorctl restart agilityportal.
 - [ ] **Läufigkeit BCCS:** Event-Option „Läufige Hündinnen starten am Schluss"
