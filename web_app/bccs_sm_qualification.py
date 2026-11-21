@@ -205,6 +205,78 @@ def quali_ranking_for_run(event: dict, run: dict, recalc_fn=None) -> dict | None
     }
 
 
+def sm_participants(event: dict) -> dict:
+    """Teilnehmerliste der gemeldeten SM-Hunde je Division (Kategorie × SM/Nachwuchs),
+    aus den Quali-Läufen abgeleitet — **unabhängig von Resultaten** (für Druck VOR dem
+    Turnier, wenn noch keine Ergebnisse erfasst sind und die Final-Startlisten daher leer
+    sind).
+
+    Nur SM-Hunde zählen (Reglement P.2, s. `_build_sm_predicate`): Per-Entry-Flag
+    `bccs_sm` bzw. Lizenz-Liste; ohne beides zählt das ganze Feld (reine Border-Events).
+    Dedupliziert je Lizenz über die beiden Quali-Läufe (Agility+Jumping haben identische
+    Teilnehmer) und sortiert nach Startnummer. Gibt KEINE Ergebnisfelder zurück.
+
+    Returns:
+      {"divisions": [ {category, division, division_label, participants:[...]}, ... ],
+       "total": int}   — Divisionen in fester Reihenfolge (CATEGORIES × DIVISIONS).
+    participant: {license, dog_name, handler_name, from_class, startnummer}
+    """
+    sm_pred = _build_sm_predicate(event)
+    out_divisions: list[dict] = []
+    total = 0
+    for category in CATEGORIES:
+        for div_key, div_def in DIVISIONS.items():
+            by_lic: dict[str, dict] = {}
+            for run in event.get("runs", []):
+                if run.get("kategorie") != category or run.get("is_final"):
+                    continue
+                cls = str(run.get("klasse") or "")
+                if cls not in div_def["classes"]:
+                    continue
+                if run.get("laufart") not in QUALI_RUN_TYPES:
+                    continue
+                for e in run.get("entries", []):
+                    if not _is_sm_participant(e, sm_pred):
+                        continue
+                    lic = (e.get("Lizenznummer") or "").strip()
+                    if not lic or lic in by_lic:
+                        continue
+                    by_lic[lic] = _participant_identity(e, cls)
+            participants = sorted(
+                by_lic.values(),
+                key=lambda p: (p["startnummer"] is None, p["startnummer"] or 0, p["dog_name"]),
+            )
+            total += len(participants)
+            out_divisions.append({
+                "category": category,
+                "division": div_key,
+                "division_label": div_def["label"],
+                "participants": participants,
+            })
+    return {"divisions": out_divisions, "total": total}
+
+
+def _participant_identity(entry: dict, cls: str) -> dict:
+    """Reine Identitäts-Felder eines Teilnehmers (ohne Ergebnis), für `sm_participants`.
+    Handler-Extraktion identisch zu `_normalise_entry` (Vorname/Nachname bzw.
+    Portal-/eventexport-Feld `Hundefuehrer`)."""
+    sn = entry.get("Startnummer")
+    try:
+        sn = int(sn)
+    except (TypeError, ValueError):
+        sn = None
+    return {
+        "license":      (entry.get("Lizenznummer") or "").strip(),
+        "dog_name":     entry.get("Hundename") or entry.get("dog_name") or "",
+        "handler_name": (
+            (entry.get("Vorname", "") + " " + entry.get("Nachname", "")).strip()
+            or entry.get("Hundefuehrer") or entry.get("handler_name") or ""
+        ),
+        "from_class":   int(cls) if cls.isdigit() else None,
+        "startnummer":  sn,
+    }
+
+
 def rank_final_bccs(event: dict, recalc_fn=None) -> dict:
     """
     Berechnet die Final-Rangierung je Division aus den 2 Finalläufen (Jumping + Agility),

@@ -9,7 +9,7 @@ from utils import (_load_data, _save_data, _calculate_run_results, _load_setting
                    _calculate_timelines, get_category_sort_key, get_run_award_sort_key,
                    resolve_judge_id, resolve_judge_name, recalc_and_store,
                    get_event_logo_data_uris, _starts_at_end)
-from bccs_sm_qualification import quali_ranking_for_run
+from bccs_sm_qualification import quali_ranking_for_run, sm_participants
 from planner.print_order import get_ordered_runs_for_print
 from planner.print_schedule_order import (
     build_schedule_print_sections,
@@ -630,6 +630,15 @@ def print_bccs_sm_quali_ranking(event_id, run_id):
     judges = _load_data('judges.json')
     judge_display = resolve_judge_name(event, run, judges)
     return render_template('print_bccs_sm_quali_ranking.html', event=event, run=run, data=data, judges=judges, judge_display=judge_display)
+
+@print_bp.route('/print/bccs_sm_participants/<event_id>')
+def print_bccs_sm_participants(event_id):
+    """BCCS-SM: Teilnehmerliste der gemeldeten SM-Hunde je Division (aus der Quali,
+    ohne Resultate). Für Druck VOR dem Turnier, wenn die Final-Startlisten noch leer sind."""
+    event = next((e for e in _load_data('events.json') if e.get('id') == event_id), None)
+    if not event: abort(404)
+    data = sm_participants(event)
+    return render_template('print_bccs_sm_participants.html', event=event, data=data)
 
 @print_bp.route('/print/select_award_list/<event_id>', methods=['GET', 'POST'])
 def select_award_list(event_id):

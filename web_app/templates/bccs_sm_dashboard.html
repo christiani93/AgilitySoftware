@@ -11,6 +11,9 @@
     <a href="{{ url_for('bccs_sm_bp.bccs_sm_config', event_id=event.id) }}" class="btn btn-outline-secondary">
       <i class="fas fa-cog me-1"></i>Konfiguration
     </a>
+    <a href="{{ url_for('print_bp.print_bccs_sm_participants', event_id=event.id) }}" target="_blank" class="btn btn-outline-primary">
+      <i class="fas fa-print me-1"></i>Teilnehmerliste SM drucken
+    </a>
     <a href="{{ url_for('bccs_sm_bp.bccs_sm_startlisten', event_id=event.id) }}" class="btn btn-outline-info">
       <i class="fas fa-list me-1"></i>Startlisten-Prüfung
     </a>
