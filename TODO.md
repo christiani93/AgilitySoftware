@@ -7,6 +7,13 @@ Stand: 2026-11-21
 
 ## Session 2026-11-21 (3) — BCCS-SM Live-Event, Nachrücker-Bug + Portal-TV-Transfer
 
+- [x] **Startlisten Finale druckbar** (Commit `76528f4`): neue Route
+      `/print/final_startlists/<event_id>` + Button im BCCS-SM-Dashboard
+      (analog `print_final_stewardlists`, aber Teilnehmer- statt
+      Ringschreiber-Liste). **LIVE seit 21.11. 16:58** (2. Rebuild+Swap der
+      Pause, SHA `0b0f02dc…`, Rollback `AgilitySoftware_prev.exe` = `24c38ecb…`
+      vom 1. Swap). Smoke-Test grün, Portal-Sync lief sofort weiter.
+
 **Dringend vor morgen (22.11., Nachwuchs-Event):**
 - [x] **Portal→Software Titelverteidiger-Transfer gebaut** (Commit `9ae4fb8`,
       Portal-Gegenstück `ab77426`/deployed): `title_defenders.json` neu im
