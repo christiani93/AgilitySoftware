@@ -655,7 +655,13 @@ def display_ring_monitor(ring_number):
     event = _get_active_event()
     if not event: return "Kein aktives Event."
     view_model = build_ring_view_model(event, ring_number)
-    return render_template('ring_monitor.html', event=event, ring_name=f"Ring {ring_number}", view_model=view_model, kiosk_mode=True)
+    # Initialinhalt gleich serverseitig rendern (identisch zu /api/render_ring_monitor_content),
+    # damit beim Laden NICHT erst eine JS-Variante OHNE BCCS-Quali-Rangliste erscheint und
+    # dann per Fetch die Server-Variante MIT Rangliste – genau dieses Mit/Ohne-Toggle war das
+    # sichtbare Flackern. Der erste Socket-/Poll-Refresh liefert dasselbe HTML -> Dedupe greift.
+    content_html = build_ring_monitor_content_html(event, ring_number)
+    return render_template('ring_monitor.html', event=event, ring_name=f"Ring {ring_number}",
+                           view_model=view_model, content_html=content_html, kiosk_mode=True)
 
 def _resolve_runs_for_ring(event, ring_number):
     """Liefert die Läufe eines Rings in Anzeige-Reihenfolge (gleiche Quelle wie
