@@ -486,6 +486,10 @@ def _calculate_run_results(run, settings):
         mct_limit = math.ceil(mct_seconds) if mct_seconds is not None else None
         best_candidate = None
         for entry in run.get("entries", []):
+            # Weisser Hund (ausser Konkurrenz, z.B. L2 läuft bei L3 für die FMBB-Quali
+            # mit): zählt NICHT für die Standardzeit-Basis der normalen Lauf-Rangliste.
+            if entry.get("ausser_konkurrenz"):
+                continue
             result_data = entry.get("result") or {
                 "zeit": entry.get("zeit"),
                 "fehler": entry.get("fehler"),
@@ -622,6 +626,11 @@ def _calculate_run_results(run, settings):
     rank = 0
     prev_key = None
     for res in results:
+        if res.get('ausser_konkurrenz'):
+            # Weisser Hund: läuft mit und wird gemessen, erhält aber KEINEN Platz in
+            # der Normalrangliste und verschiebt die Nummerierung der Gewerteten nicht.
+            res['platz'] = None
+            continue
         if res.get('fehler_total', 999) >= 998:
             continue  # DIS/ABR/kein Resultat → kein Platz
         position += 1
