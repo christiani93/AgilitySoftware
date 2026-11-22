@@ -80,6 +80,32 @@ def test_import_zip_with_logo_does_not_crash(client, tmp_path, monkeypatch):
     assert events[0].get("event_logo_filename") == "event_logo.png"
 
 
+def test_eventexport_registration_carries_is_fmbb_and_class(tmp_path, monkeypatch):
+    """Portal-Export liefert pro Registration das is_fmbb-Flag → der Import muss es
+    als entry["is_fmbb"] übernehmen (zusammen mit der gemeldeten Klasse), damit die
+    FMBB-Auswertung + die L2-bei-L3-Automatik greifen."""
+    monkeypatch.setenv("AGILITY_DATA_DIR", str(tmp_path))
+    from web_app.blueprints.routes_events import _apply_eventexport_registrations
+
+    event = {"id": "E1", "Bezeichnung": "FMBB", "runs": []}
+    registrations = [
+        {"registration_external_id": "r1_Agility", "license_no": "40001",
+         "dog_name": "Malik", "handler_first_name": "Max", "handler_last_name": "M",
+         "discipline": "Agility", "category_code": "Large", "class_level": "2",
+         "is_fmbb": True},
+        {"registration_external_id": "r2_Agility", "license_no": "40002",
+         "dog_name": "Rex", "handler_first_name": "Eva", "handler_last_name": "R",
+         "discipline": "Agility", "category_code": "Large", "class_level": "3",
+         "is_fmbb": False},
+    ]
+    _apply_eventexport_registrations(event, registrations, {"persons": [], "dogs": []})
+
+    by_lic = {e["Lizenznummer"]: e for r in event["runs"] for e in r.get("entries", [])}
+    assert by_lic["40001"]["is_fmbb"] is True
+    assert by_lic["40001"]["Klasse"] == "2"
+    assert by_lic["40002"]["is_fmbb"] is False
+
+
 def test_import_zip_without_logo_still_works(client, tmp_path, monkeypatch):
     monkeypatch.setenv("AGILITY_DATA_DIR", str(tmp_path))
     zip_bytes = _build_eventexport_zip(with_logo=False)

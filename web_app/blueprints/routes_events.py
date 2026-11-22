@@ -741,6 +741,12 @@ def _apply_eventexport_registrations(event: dict, registrations: list, entities:
         _sm_keys = ("bccs_sm", "sm_angemeldet", "sm", "laeuft_sm")
         if any(k in reg for k in _sm_keys):
             entry["bccs_sm"] = bool(_get_first_value(reg, _sm_keys, False))
+        # FMBB-Quali-Teilnahme: nur gesetzt, wenn das Portal das Feld liefert (Alt-
+        # Exporte → Key weg). Die FMBB-Auswertung nutzt entry["is_fmbb"] + entry["Klasse"]
+        # (L2 läuft bei L3 automatisch ausser Konkurrenz, s. utils._is_ausser_konkurrenz).
+        _fmbb_keys = ("is_fmbb", "fmbb", "fmbb_quali")
+        if any(k in reg for k in _fmbb_keys):
+            entry["is_fmbb"] = bool(_get_first_value(reg, _fmbb_keys, False))
         if license_no and not any(p.get("Lizenznummer") == license_no for p in run.get("entries", [])):
             run.setdefault("entries", []).append(entry)
             entries_added += 1
