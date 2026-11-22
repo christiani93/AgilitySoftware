@@ -3,7 +3,24 @@
 > Persistente ToDo-Liste fuer dieses Projekt. Wird beim Wechsel ins Projekt von
 > Claude gelesen. Bei Aenderungen manuell aktuell halten.
 
-Stand: 2026-11-21
+Stand: 2026-11-22
+
+## Session 2026-11-22 — Nachwuchs-Event, Meldeliste + Final-Ring-Zuordnung
+
+- [x] **BCCS-SM Meldeliste SM (Registrierungen)** (Commit `52d6c5e`): neue Funktion
+      `sm_registrations()` sammelt angemeldete SM-Hunde je Kategorie (nicht Quali-Läufe),
+      Route `/print/bccs_sm_registrations/<event_id>`, Template + Dashboard-Button.
+      Gebraucht für Kontrolle/Druck VOR der Veranstaltung.
+- [x] **Finalläufe Ring 1 zuordnung — Code-Fix** (Commit folgt): `routes_live.py`
+      `_schedule_runs_for_ring` + `_find_run_block_for_run` übersprangen alle
+      `type="final"`-Blöcke (hart `block_type != "run"` → skip). Jetzt erlaubt:
+      `block_type not in ("run", "final")`. Damit Finalläufe ins Ring-Dropdown kommen
+      (vorher Workaround `?run_id=<id>` nötig).
+- [ ] **Final-Struktur überprüfen:** BCCS-SM braucht pro Kategorie genau 1 Agility-Final +
+      1 Jumping-Final (nicht pro Klasse 1+2+3, NUR 1 pro Kategorie). Kombi-Final auch nur 1
+      pro Kategorie. Bei Umbau/Neuerstellung: Schedule-Blöcke mit `type=run`/`type=final`,
+      `ring_assignments=['1']` setzen, damit `_match_run_to_block` (Python) + JS-Dropdown
+      sie finden.
 
 ## Session 2026-11-21 (3) — BCCS-SM Live-Event, Nachrücker-Bug + Portal-TV-Transfer
 

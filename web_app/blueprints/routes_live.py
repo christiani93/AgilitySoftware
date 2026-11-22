@@ -94,7 +94,7 @@ def _schedule_runs_for_ring(event, ring_key):
     seen_ids = set()
     for block in blocks:
         block_type = (block.get("type") or block.get("block_type") or "").lower()
-        if block_type != "run":
+        if block_type not in ("run", "final"):
             debug.append(f"skip:{block_type or 'unknown'}")
             continue
         matched = [
@@ -122,7 +122,7 @@ def _find_run_block_for_run(event, run, ring_key: str | None = None):
         ring_data = rings.get(str(key)) or {}
         for block in ring_data.get("blocks") or []:
             block_type = (block.get("type") or block.get("block_type") or "").lower()
-            if block_type != "run":
+            if block_type not in ("run", "final"):
                 continue
             if schedule_planner._match_run_to_block(run, block):
                 return block, str(key)
