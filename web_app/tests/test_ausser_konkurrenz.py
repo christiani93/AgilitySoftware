@@ -67,6 +67,46 @@ def test_weisser_hund_zaehlt_nicht_fuer_sct_basis():
     assert res["W"]["zeit_total"] == 20.0
 
 
+def test_fmbb_l2_in_l3_automatisch_ausser_konkurrenz():
+    # FMBB-Automatik: is_fmbb-Hund mit gemeldeter Klasse 2 läuft im L3-Lauf mit →
+    # automatisch weisser Hund (kein Flag nötig). Trotz schnellster Zeit kein Platz
+    # und keine SCT-Basis für die L3-Normalrangliste.
+    run = {
+        "klasse": "3",
+        "laufart": "Agility",
+        "laufdaten": {"parcours_laenge": "100"},   # MCT_agi = 40
+        "entries": [
+            {"lizenz": "N1", "Klasse": "3", "zeit": "30.0"},
+            {"lizenz": "N2", "Klasse": "3", "zeit": "32.0"},
+            {"lizenz": "L2", "Klasse": "2", "zeit": "20.0", "is_fmbb": True},
+        ],
+    }
+    results = _calculate_run_results(run, {})
+    res = {r["lizenz"]: r for r in results}
+    assert run["laufdaten"]["standardzeit_sct_berechnet"] == 39   # aus 30s, nicht 20s
+    assert res["N1"]["platz"] == 1
+    assert res["N2"]["platz"] == 2
+    assert res["L2"]["platz"] is None
+    assert res["L2"]["zeit_total"] == 20.0
+
+
+def test_fmbb_gleiche_klasse_zaehlt_normal():
+    # is_fmbb-Hund in SEINER Klasse (L3 in L3) wird normal gewertet.
+    run = {
+        "klasse": "3",
+        "laufart": "Agility",
+        "laufdaten": {"parcours_laenge": "100"},
+        "entries": [
+            {"lizenz": "F3", "Klasse": "3", "zeit": "25.0", "is_fmbb": True},
+            {"lizenz": "N1", "Klasse": "3", "zeit": "30.0"},
+        ],
+    }
+    results = _calculate_run_results(run, {})
+    res = {r["lizenz"]: r for r in results}
+    assert res["F3"]["platz"] == 1   # schnellster, zählt normal
+    assert res["N1"]["platz"] == 2
+
+
 def test_ohne_flag_unveraendertes_verhalten():
     # Regression: ohne ausser_konkurrenz zählt der schnellste Hund normal.
     run = {

@@ -30,7 +30,7 @@ from fmbb_quali import (   # noqa: E402
 # ---------------------------------------------------------------------------
 
 def _entry(license_no, zeit=None, fehler=0, verweigerungen=0, dis=None,
-           is_fmbb=None, ausser_konkurrenz=None):
+           is_fmbb=None, ausser_konkurrenz=None, klasse=None):
     """Entry im AgilitySoftware-Format mit Roh-result (so wie am Event erfasst)."""
     e = {
         "Lizenznummer": license_no,
@@ -48,6 +48,8 @@ def _entry(license_no, zeit=None, fehler=0, verweigerungen=0, dis=None,
         e["is_fmbb"] = is_fmbb
     if ausser_konkurrenz is not None:
         e["ausser_konkurrenz"] = ausser_konkurrenz
+    if klasse is not None:
+        e["Klasse"] = klasse
     return e
 
 
@@ -222,6 +224,25 @@ def test_l2_und_l3_gemeinsame_rangliste_und_sct_basis():
     r = _by_license(agi["rankings"])
     assert r["L2a"]["klasse"] == "2"
     assert r["L3a"]["klasse"] == "3"
+
+
+def test_l2_hund_als_entry_im_l3_lauf():
+    """Alternatives Setup: der L2-Hund steht als Entry (Klasse 2) direkt im L3-Lauf.
+    Die FMBB-Wertung weist ihn als Klasse 2 aus und nimmt ihn in die gemeinsame
+    Rangliste; die Disziplin-Klasse wird „2+3"."""
+    event = {"fmbb_quali_active": True, "runs": [
+        _run("3", "Agility", [
+            _entry("L3a", zeit=30, is_fmbb=True, klasse="3"),
+            _entry("L2a", zeit=28, is_fmbb=True, klasse="2"),   # weisser Hund im L3-Lauf
+        ]),
+    ]}
+    agi = calculate_fmbb_quali(event)["runs"][0]
+    assert agi["klasse"] == "2+3"
+    r = _by_license(agi["rankings"])
+    assert r["L2a"]["klasse"] == "2"
+    assert r["L3a"]["klasse"] == "3"
+    assert r["L2a"]["rang"] == 1   # 28s schnellster → SCT-Basis
+    assert agi["sct"] == 33        # ceil(28*1.15)
 
 
 def test_ab_15_parcoursfehler_halbe_punkte():

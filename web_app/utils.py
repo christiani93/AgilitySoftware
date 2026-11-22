@@ -435,6 +435,25 @@ def _place_entries_with_distance(entries, distance):
     final_order.extend(start_at_end_entries)
     return final_order
 
+def _is_ausser_konkurrenz(entry, run_klasse):
+    """Läuft dieser Hund in diesem Lauf „ausser Konkurrenz" (weisser Hund)?
+
+    Zwei Quellen:
+    - explizites Flag ``entry['ausser_konkurrenz']`` (manueller Override), oder
+    - FMBB-Automatik: ein FMBB-markierter Hund (``is_fmbb``), dessen gemeldete
+      Klasse NIEDRIGER ist als die Lauf-Klasse (z.B. L2 läuft bei L3 mit). Er zählt
+      dann nur für die FMBB-Quali, nicht in der normalen Lauf-Rangliste.
+    """
+    if entry.get('ausser_konkurrenz'):
+        return True
+    if entry.get('is_fmbb'):
+        entry_kl = _to_int(entry.get('Klasse'), None)
+        run_kl = _to_int(run_klasse, None)
+        if entry_kl is not None and run_kl is not None and entry_kl < run_kl:
+            return True
+    return False
+
+
 def _calculate_run_results(run, settings):
     """
     Berechnet Ranglisten-Ergebnisse inkl. SCT/MCT gemäß aktueller Fachlogik.
@@ -488,7 +507,7 @@ def _calculate_run_results(run, settings):
         for entry in run.get("entries", []):
             # Weisser Hund (ausser Konkurrenz, z.B. L2 läuft bei L3 für die FMBB-Quali
             # mit): zählt NICHT für die Standardzeit-Basis der normalen Lauf-Rangliste.
-            if entry.get("ausser_konkurrenz"):
+            if _is_ausser_konkurrenz(entry, klasse):
                 continue
             result_data = entry.get("result") or {
                 "zeit": entry.get("zeit"),
@@ -626,7 +645,7 @@ def _calculate_run_results(run, settings):
     rank = 0
     prev_key = None
     for res in results:
-        if res.get('ausser_konkurrenz'):
+        if _is_ausser_konkurrenz(res, klasse):
             # Weisser Hund: läuft mit und wird gemessen, erhält aber KEINEN Platz in
             # der Normalrangliste und verschiebt die Nummerierung der Gewerteten nicht.
             res['platz'] = None

@@ -174,12 +174,15 @@ def calculate_fmbb_quali(event: dict) -> dict:
             "parcours_laengen": [],
             "items": [],   # (entry, klasse)
         })
-        bucket["classes"].add(klasse)
         laenge = _to_float((run.get("laufdaten") or {}).get("parcours_laenge"), None)
         if laenge:
             bucket["parcours_laengen"].append(laenge)
         for e in fmbb_entries:
-            bucket["items"].append((e, klasse))
+            # Eigene gemeldete Klasse des Hundes (ein L2-Hund läuft bei L3 mit, soll
+            # aber als Klasse 2 ausgewiesen werden). Fallback: Lauf-Klasse.
+            entry_klasse = str(e.get("Klasse") or klasse)
+            bucket["classes"].add(entry_klasse)
+            bucket["items"].append((e, entry_klasse))
 
     result_runs: list[dict] = []
     fmbb_licenses: set[str] = set()
