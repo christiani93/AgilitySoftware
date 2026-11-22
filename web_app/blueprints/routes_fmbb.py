@@ -54,6 +54,15 @@ def _parse_license_list(text: str) -> list[str]:
     return [p.strip() for p in parts if p.strip()]
 
 
+def _format_points(points) -> str:
+    """FMBB-Punkte sauber: ganze Zahl ohne .0 (``20``), halbe Punkte als ``8.5``."""
+    try:
+        val = float(points)
+    except (TypeError, ValueError):
+        return '0'
+    return str(int(val)) if val == int(val) else f"{val:.1f}"
+
+
 # ── Routen ────────────────────────────────────────────────────────────────────
 
 @fmbb_bp.get('/dashboard/<event_id>')
@@ -172,24 +181,29 @@ def fmbb_export_csv(event_id):
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';')
     writer.writerow([
-        'Kategorie', 'Klasse', 'Laufart',
+        'Kategorie', 'Klasse', 'Laufart', 'SCT (s)',
         'Rang', 'Lizenznummer', 'Hund', 'Hundeführer/in',
-        'Gesamt-Fehler', 'Parcoursfehler', 'Zeit (s)', 'Status',
+        'Gesamt-Fehler', 'Parcoursfehler', 'Zeitfehler', 'Zeit (s)',
+        'Punkte', 'Status',
     ])
 
     for run_data in fmbb_data['runs']:
+        sct = run_data.get('sct')
         for r in run_data['rankings']:
             writer.writerow([
                 run_data['kategorie'],
-                f"Klasse {run_data['klasse']}",
+                f"Klasse {r.get('klasse') or run_data['klasse']}",
                 run_data['laufart'],
+                sct if sct is not None else '',
                 r['rang'] if r['rang'] is not None else 'DIS',
                 r['license'],
                 r['dog_name'],
                 r['handler_name'],
                 round(r['fehler_total'], 2) if not r['dis'] else 'DIS',
                 r['fehler_parcours'],
+                round(r['zeitfehler'], 2) if (not r['dis'] and r.get('zeitfehler') is not None) else ('DIS' if r['dis'] else 0),
                 round(r['zeit'], 2) if not r['dis'] else 'DIS',
+                _format_points(r['points']) if not r['dis'] else 'DIS',
                 'DIS' if r['dis'] else 'OK',
             ])
 

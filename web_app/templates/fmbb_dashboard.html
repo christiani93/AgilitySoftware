@@ -52,6 +52,9 @@
       <span class="badge bg-primary me-2">{{ run_data.kategorie }} – Klasse {{ run_data.klasse }}</span>
       <span class="text-muted">{{ run_data.laufart }}</span>
       <span class="badge bg-secondary ms-2">{{ run_data.rankings | length }} Teams</span>
+      {% if run_data.sct is not none %}
+      <span class="badge bg-info text-dark ms-2" title="Standardzeit = schnellster Belg. Schäferhund × 1.15">SCT {{ run_data.sct }}s</span>
+      {% endif %}
     </h5>
   </div>
   <div class="card-body p-0">
@@ -59,24 +62,32 @@
       <thead class="table-light">
         <tr>
           <th>Rang</th>
+          <th>Kl.</th>
           <th>Lizenz</th>
           <th>Hund</th>
           <th>Führer/in</th>
           <th class="text-end">Fehler</th>
           <th class="text-end">Parcours</th>
+          <th class="text-end">Zeitf.</th>
           <th class="text-end">Zeit</th>
+          <th class="text-end">Punkte</th>
         </tr>
       </thead>
       <tbody>
         {% for r in run_data.rankings %}
         <tr class="{% if r.dis %}text-muted{% endif %}">
           <td>{% if r.dis %}<span class="badge bg-danger">DIS</span>{% else %}{{ r.rang }}{% endif %}</td>
+          <td>{{ r.klasse }}</td>
           <td>{{ r.license }}</td>
           <td>{{ r.dog_name }}</td>
           <td>{{ r.handler_name }}</td>
           <td class="text-end">{% if r.dis %}–{% else %}{{ r.fehler_total | round(1) }}{% endif %}</td>
           <td class="text-end">{{ r.fehler_parcours }}</td>
+          <td class="text-end">{% if r.dis or r.zeitfehler is none %}–{% else %}{{ r.zeitfehler | round(2) }}{% endif %}</td>
           <td class="text-end">{% if r.dis %}–{% else %}{{ r.zeit | round(2) }}s{% endif %}</td>
+          <td class="text-end fw-semibold">
+            {%- if r.dis %}–{% elif r.points == r.points | int %}{{ r.points | int }}{% else %}{{ r.points | round(1) }}{% endif -%}
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -88,9 +99,10 @@
 {% if runs %}
 <div class="alert alert-secondary mt-3 no-print">
   <i class="fas fa-info-circle me-2"></i>
-  <strong>Hinweis:</strong> Diese Tag-Auswertung enthält keine Punkteberechnung —
-  die Saison-Punkte werden vom SKBS-Verband berechnet (Streichresultate über alle
-  Quali-Tage). Das Tool liefert nur die Tages-Rangliste.
+  <strong>Hinweis:</strong> SCT = schnellster Belgischer Schäferhund × 1.15 (FMBB-WM-Reglement).
+  Punkte pro Lauf nach Rang-Tabelle; ab 15 Parcours-Fehlerpunkten halbe Punkte, bei Zeitfehler
+  keine Punkte. Die Saison-Selektion (Streichresultate über alle Quali-Tage, 8+2 Teams) macht
+  weiterhin der SKBS-Verband.
 </div>
 {% endif %}
 {% endblock %}
