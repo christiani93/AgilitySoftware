@@ -277,6 +277,49 @@ def _participant_identity(entry: dict, cls: str) -> dict:
     }
 
 
+def sm_registrations(event: dict) -> dict:
+    """Meldeliste der angemeldeten SM-Hunde je Kategorie (nicht je Division, da
+    Registrierungen nicht nach SM/Nachwuchs getrennt sind). Aus dem Registrierungs-
+    Pool abgeleitet, unabhängig von Quali-Läufen.
+
+    Nur SM-Hunde zählen (s. `_build_sm_predicate`): Per-Entry-Flag `bccs_sm` bzw.
+    Lizenz-Liste. Dedupliziert je Lizenz und sortiert nach Startnummer.
+
+    Returns:
+      {"categories": [ {category, participants:[...]}, ... ],
+       "total": int}
+    participant: {license, dog_name, handler_name}
+    """
+    sm_pred = _build_sm_predicate(event)
+    out_categories: list[dict] = []
+    total = 0
+    for category in CATEGORIES:
+        by_lic: dict[str, dict] = {}
+        for reg in event.get("registrations", []):
+            if reg.get("kategorie") != category:
+                continue
+            if not _is_sm_participant(reg, sm_pred):
+                continue
+            lic = (reg.get("Lizenznummer") or "").strip()
+            if not lic or lic in by_lic:
+                continue
+            by_lic[lic] = {
+                "license":      lic,
+                "dog_name":     reg.get("Hundename") or reg.get("dog_name") or "",
+                "handler_name": (
+                    (reg.get("Vorname", "") + " " + reg.get("Nachname", "")).strip()
+                    or reg.get("Hundefuehrer") or reg.get("handler_name") or ""
+                ),
+            }
+        participants = sorted(by_lic.values(), key=lambda p: p["dog_name"])
+        total += len(participants)
+        out_categories.append({
+            "category": category,
+            "participants": participants,
+        })
+    return {"categories": out_categories, "total": total}
+
+
 def rank_final_bccs(event: dict, recalc_fn=None) -> dict:
     """
     Berechnet die Final-Rangierung je Division aus den 2 Finalläufen (Jumping + Agility),
