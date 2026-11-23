@@ -13,6 +13,8 @@ import io
 from flask import (Blueprint, render_template, request, redirect,
                    url_for, flash, abort, Response)
 
+from functools import partial
+
 from utils import _load_data, _save_data, _load_settings, recalc_and_store, _safe_http_filename
 from skbs_sm_qualification import (
     calculate_skbs_sm_qualification, rank_final,
@@ -58,7 +60,8 @@ def skbs_sm_dashboard(event_id):
             recalc_and_store(run, settings)
     _save_data(EVENTS_FILE, events)
 
-    skbs_data = calculate_skbs_sm_qualification(event)
+    skbs_data = calculate_skbs_sm_qualification(
+        event, recalc_fn=partial(recalc_and_store, settings=settings))
     final_ranking = rank_final(event)
 
     return render_template(
@@ -118,7 +121,8 @@ def skbs_sm_final_list(event_id):
         if _is_skbs_sm_run(run):
             recalc_and_store(run, settings)
 
-    skbs_data = calculate_skbs_sm_qualification(event)
+    skbs_data = calculate_skbs_sm_qualification(
+        event, recalc_fn=partial(recalc_and_store, settings=settings))
 
     return render_template(
         'skbs_sm_final_list.html',
@@ -139,7 +143,8 @@ def skbs_sm_export_csv(event_id):
         if _is_skbs_sm_run(run):
             recalc_and_store(run, settings)
 
-    skbs_data = calculate_skbs_sm_qualification(event)
+    skbs_data = calculate_skbs_sm_qualification(
+        event, recalc_fn=partial(recalc_and_store, settings=settings))
     final_ranking = rank_final(event)
 
     output = io.StringIO()

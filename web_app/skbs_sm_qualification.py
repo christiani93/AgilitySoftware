@@ -42,6 +42,7 @@ Datenformat-Erwartungen am `event`-Dict:
 """
 from __future__ import annotations
 
+import copy
 import math
 
 
@@ -58,9 +59,15 @@ DIS_SENTINEL_FEHLER = 999.0                     # passend zu sm_qualification.py
 # Public API
 # ---------------------------------------------------------------------------
 
-def calculate_skbs_sm_qualification(event: dict) -> dict:
+def calculate_skbs_sm_qualification(event: dict, recalc_fn=None) -> dict:
     """
     Berechnet SKBS-SM-Qualifikation für ein Event.
+
+    `recalc_fn` (optional, z.B. partial(recalc_and_store, settings=settings)): wird
+    genutzt, um bei aktivem SM-Filter die SM-only-Werte eines Laufs NEU zu rechnen
+    (die SCT in Kl.2/3 hängt vom schnellsten *berücksichtigten* Hund ab). Ohne
+    `recalc_fn` oder ohne Rohdaten fällt die Berechnung auf die gespeicherten Werte
+    zurück (abwärtskompatibel).
 
     Returns: dict mit Struktur:
       {
@@ -82,6 +89,8 @@ def calculate_skbs_sm_qualification(event: dict) -> dict:
     skbs_runs = _collect_skbs_runs(event)
     config = event.get("skbs_sm_config") or {}
     defending = config.get("defending_champion")
+    # Nur SM-Hunde zählen (sofern das Portal/Config SM-Marker liefert); sonst alle.
+    sm_pred = _build_skbs_sm_predicate(event)
 
     per_class: dict[str, dict] = {}
     qualified_licenses: set[str] = set()
@@ -103,7 +112,8 @@ def calculate_skbs_sm_qualification(event: dict) -> dict:
 
     # Pro Klasse: Quali-Ergebnisse normalisieren + Top-Quote auswählen
     for cls in CLASS_LEVELS:
-        cls_data = _build_class_results(skbs_runs, cls, qualified_licenses, finalists)
+        cls_data = _build_class_results(skbs_runs, cls, qualified_licenses,
+                                        finalists, sm_pred, recalc_fn)
         per_class[cls] = cls_data
 
     # Nachrück-Logik: aus Klassen 3 → 2 → 1, Agi vor Jump, max 10 FP
@@ -114,7 +124,8 @@ def calculate_skbs_sm_qualification(event: dict) -> dict:
     # Für später entstehende Lücken (zwischen Klassen) folgt _fill_open_spots.
     open_spots = _count_open_spots(per_class, finalists)
     if open_spots > 0:
-        _fill_open_spots(per_class, skbs_runs, qualified_licenses, finalists, open_spots)
+        _fill_open_spots(per_class, skbs_runs, qualified_licenses, finalists,
+                         open_spots, sm_pred, recalc_fn)
 
     final_open = _count_open_spots(per_class, finalists)
 
@@ -124,6 +135,100 @@ def calculate_skbs_sm_qualification(event: dict) -> dict:
         "defending_champion": defending,
         "open_spots":         final_open,
     }
+
+
+# ---------------------------------------------------------------------------
+# SM-Hund-Filter (nur gemeldete SM-Teilnehmer zählen)
+# ---------------------------------------------------------------------------
+
+def _build_skbs_sm_predicate(event: dict):
+    """Filterprädikat für SM-Hunde (analog BCCS `_build_sm_predicate`).
+
+    Die SKBS-SM kann als offenes Large-Turnier laufen, bei dem nicht alle Starter
+    zur SM gehören — manche laufen nur die FMBB-Quali, manche gar keine Sonderwertung.
+    Nur **SM-Hunde** zählen für Quote (Art. 22b), direkte Qualifikation und Nachrücken.
+
+    Zwei Quellen in dieser Priorität:
+      1. **Per-Entry-Flag** `entry["skbs_sm"]` — vom Portal pro Anmeldung gesetzt
+         (Portal→eventexport→Entry). Sobald das Feld bei IRGENDEINEM SKBS-relevanten
+         Eintrag vorkommt, gilt Per-Entry-Modus: ein Eintrag zählt genau dann, wenn
+         `entry["skbs_sm"]` truthy ist (nicht markierte Hunde fallen raus).
+      2. **Lizenz-Liste** `skbs_sm_config["sm_licenses"]` — Fallback ohne Per-Entry-Flags
+         (schneller manueller Import am Event).
+
+    Returns:
+      - Prädikat `fn(entry) -> bool`, wenn ein Filter aktiv ist.
+      - `None`, wenn keine Quelle etwas liefert → KEIN Filter (alle Large-Starter
+        zählen). Abwärtskompatibel für SKBS-SM-Events ohne Portal-Herkunft/Altdaten.
+    """
+    if _event_has_skbs_sm_flags(event):
+        return lambda e: bool(e.get("skbs_sm"))
+
+    config = event.get("skbs_sm_config") or {}
+    raw = config.get("sm_licenses")
+    if raw:
+        licenses = {str(l).strip() for l in raw if str(l).strip()}
+        if licenses:
+            return lambda e: (e.get("Lizenznummer") or "").strip() in licenses
+
+    return None
+
+
+def _event_has_skbs_sm_flags(event: dict) -> bool:
+    """True, wenn in irgendeinem SKBS-relevanten Lauf (Large, Quali oder Final) ein
+    Eintrag das Feld `skbs_sm` trägt (Key present ⇒ Per-Entry-Modus, unabhängig vom Wert)."""
+    for run in event.get("runs", []):
+        if run.get("kategorie") != CATEGORY:
+            continue
+        if not run.get("is_final") and run.get("laufart") not in QUALI_RUN_TYPES:
+            continue
+        for e in run.get("entries", []):
+            if "skbs_sm" in e:
+                return True
+    return False
+
+
+def _is_skbs_sm_participant(entry: dict, sm_pred) -> bool:
+    """True, wenn der Eintrag als SM-Hund zählt (kein Filter aktiv ⇒ immer True)."""
+    return True if sm_pred is None else bool(sm_pred(entry))
+
+
+def _has_raw_result(entries) -> bool:
+    """True, wenn mind. ein Eintrag Roh-Ergebnisdaten (`result`-Dict oder top-level
+    `zeit`) trägt, die eine Neuberechnung erlauben (vgl. bccs_sm_qualification)."""
+    for e in entries:
+        if "result" in e or "zeit" in e:
+            return True
+    return False
+
+
+def _skbs_sm_entries_for_run(run: dict, sm_pred, recalc_fn) -> list:
+    """Liefert die für die SKBS-Wertung zählenden Entries EINES Laufs.
+
+    - `sm_pred is None`                 → kein Filter (Altdaten/Nicht-Portal): ganzes
+                                          Feld, gespeicherte Werte gelten.
+    - `recalc_fn is None` ODER keine Rohdaten → SM-gefilterte Entries mit gespeicherten
+                                          Werten (kompatibel, z.B. Unit-Test-Fixtures).
+    - sonst                             → Temp-Lauf (Kopie) NUR mit SM-Entries durch
+                                          `recalc_fn` neu rechnen (SCT Kl.2/3 aus dem
+                                          SM-Feld, utils._calculate_run_results); das
+                                          Original-Event bleibt unberührt.
+    """
+    entries = run.get("entries", []) or []
+    if sm_pred is None:
+        return entries
+    sm_entries = [e for e in entries if _is_skbs_sm_participant(e, sm_pred)]
+    if recalc_fn is None or not _has_raw_result(sm_entries):
+        return sm_entries
+    temp_run = {
+        "kategorie": run.get("kategorie"),
+        "klasse":    run.get("klasse"),
+        "laufart":   run.get("laufart"),
+        "laufdaten": copy.deepcopy(run.get("laufdaten", {}) or {}),
+        "entries":   copy.deepcopy(sm_entries),
+    }
+    recalc_fn(temp_run)
+    return temp_run["entries"]
 
 
 # ---------------------------------------------------------------------------
@@ -212,11 +317,15 @@ def _build_class_results(
     cls: str,
     qualified_licenses: set[str],
     finalists: list[dict],
+    sm_pred=None,
+    recalc_fn=None,
 ) -> dict:
     """
     Verarbeitet eine Klasse: normalisiert Quali-Ergebnisse, vergibt
     direkte Quali-Plätze gemäss Quote. Reihenfolge: Agility vor Jumping.
 
+    Nur SM-Hunde (sofern `sm_pred` gesetzt) zählen für Quote und Qualifikation;
+    `recalc_fn` rechnet die SM-only-Werte neu (s. `_skbs_sm_entries_for_run`).
     Mutiert qualified_licenses und finalists in-place.
     """
     cls_data: dict = {
@@ -232,7 +341,8 @@ def _build_class_results(
         if not run:
             continue
 
-        normalised = [_normalise_entry(e) for e in run.get("entries", [])
+        sm_entries = _skbs_sm_entries_for_run(run, sm_pred, recalc_fn)
+        normalised = [_normalise_entry(e) for e in sm_entries
                       if (e.get("Lizenznummer") or "").strip()]
         # nur Starter zählen (nicht-DNS — DIS/ABR zählen, da sie ja gestartet sind)
         num_starters = sum(1 for e in normalised if (e.get("dis") is False)
@@ -300,11 +410,13 @@ def _fill_open_spots(
     qualified_licenses: set[str],
     finalists: list[dict],
     open_spots: int,
+    sm_pred=None,
+    recalc_fn=None,
 ) -> None:
     """
     Nachrück-Logik (Art. 22b): füllt offene Plätze, Reihenfolge Klasse 3 → 2 → 1,
     pro Klasse Agi vor Jump. Max 10 FP pro Nachrücker. Bereits qualifizierte
-    werden übersprungen.
+    werden übersprungen. Nur SM-Hunde (sofern `sm_pred` gesetzt).
     """
     remaining = open_spots
     for cls in CLASS_LEVELS:
@@ -317,7 +429,8 @@ def _fill_open_spots(
             run = cls_runs.get(laufart)
             if not run:
                 continue
-            normalised = [_normalise_entry(e) for e in run.get("entries", [])
+            sm_entries = _skbs_sm_entries_for_run(run, sm_pred, recalc_fn)
+            normalised = [_normalise_entry(e) for e in sm_entries
                           if (e.get("Lizenznummer") or "").strip()]
             platzierte = _platzierte_sortiert(normalised)
             for entry in platzierte:

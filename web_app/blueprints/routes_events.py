@@ -741,6 +741,12 @@ def _apply_eventexport_registrations(event: dict, registrations: list, entities:
         _sm_keys = ("bccs_sm", "sm_angemeldet", "sm", "laeuft_sm")
         if any(k in reg for k in _sm_keys):
             entry["bccs_sm"] = bool(_get_first_value(reg, _sm_keys, False))
+        # SKBS-SM-Teilnahme (eigenständiger Marker, unabhängig von FMBB/BCCS): nur gesetzt,
+        # wenn das Portal das Feld liefert. Fehlt es (Alt-Exporte), bleibt der Key weg → der
+        # SKBS-Rechenkern filtert NICHT auf Per-Entry-Flags (sonst "niemand SM").
+        _skbs_keys = ("skbs_sm", "skbs_sm_angemeldet", "laeuft_skbs_sm")
+        if any(k in reg for k in _skbs_keys):
+            entry["skbs_sm"] = bool(_get_first_value(reg, _skbs_keys, False))
         # FMBB-Quali-Teilnahme: nur gesetzt, wenn das Portal das Feld liefert (Alt-
         # Exporte → Key weg). Die FMBB-Auswertung nutzt entry["is_fmbb"] + entry["Klasse"]
         # (L2 läuft bei L3 automatisch ausser Konkurrenz, s. utils._is_ausser_konkurrenz).

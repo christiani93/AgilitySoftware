@@ -723,7 +723,7 @@ def _build_finalists_payload(event: dict, recalc_fn=None) -> dict | None:
     if art == "SKBS-SM":
         try:
             from skbs_sm_qualification import calculate_skbs_sm_qualification
-            result = calculate_skbs_sm_qualification(event)
+            result = calculate_skbs_sm_qualification(event, recalc_fn=recalc_fn)
         except Exception:
             return None
         finalists = result.get("finalists") or []
